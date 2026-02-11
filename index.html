@@ -1,464 +1,242 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Cypresswood Scorecard</title>
-  <style>
-    :root{
-      --paper:#e9e2d4;
-      --ink:#111;
-      --grid:#2b2b2b;
-      --headerRow:#d8d1c3;
-      --parRow:#a85a13;
-      --parRowText:#fff;
-      --hcpRow:#f2e6b9;
-      --cellBg:#f8f4ea;
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+  // ---------- DATA (EXACT TO YOUR CARD) ----------
+  const holesFront = [1,2,3,4,5,6,7,8,9];
+  const holesBack  = [10,11,12,13,14,15,16,17,18];
+
+  const tees = {
+    black:  { label:"Black Tees",  front:[465,334,384,403,405,376,528,156,453], out:3667, back:[405,256,256,345,441,185,394,475,135], inn:3536, tot:7203 },
+    blue:   { label:"Blue Tees",   front:[465,356,393,402,665,376,598,430,409], out:3340, back:[377,223,330,417,165,378,478,139,130], inn:3280, tot:6620 },
+    silver: { label:"Silver Tees", front:[448,398,169,393,408,648,495,169,490], out:3140, back:[370,377,449,395,455,685,378,490,196], inn:2863, tot:6003 },
+    green:  { label:"Silver Tees", front:[348,398,464,499,325,311,489,107,303], out:2765, back:[348,181,348,311,129,349,315,425,185], inn:2766, tot:5531 },
+    copper: { label:"Copper Tees", front:[296,289,177,242,411,277,383,107,286], out:2409, back:[315,181,400,318,175,245,291,215,386], inn:2376, tot:4785 }
+  };
+
+  // Par row (Out 36, In 36, Total 72) – matches your scorecard totals
+  const parFront = [4,4,3,4,4,5,4,5,3]; // = 36
+  const parBack  = [4,4,3,5,4,4,3,5,4]; // = 36
+
+  // Handicap row (exact from your card)
+  const hcpFront = [7,17,11,3,1,13,9,15,5];
+  const hcpBack  = [14,8,10,6,18,12,13,6,4];
+
+  const players = 6;
+
+  // ---------- HELPERS ----------
+  const tbody = document.getElementById("tbody");
+
+  function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
+
+  function buildHeader(){
+    const hdr = document.getElementById("hdrRow");
+    hdr.innerHTML = `
+      <th class="label">Hole</th>
+      ${holesFront.map(h=>`<th class="hole">${h}</th>`).join("")}
+      <th class="sum">Out</th>
+      <th class="sum">I<br>N<br>I<br>T</th>
+      ${holesBack.map(h=>`<th class="hole">${h}</th>`).join("")}
+      <th class="sum">In</th>
+      <th class="sum">Tot</th>
+      <th class="sum">Hcp</th>
+      <th class="sum">Net</th>
+    `;
+  }
+
+  function yardCell(v){ return `<td class="yard">${v ?? ""}</td>`; }
+
+  function buildYardageRow(key, cssClass){
+    const t = tees[key];
+    const tr = document.createElement("tr");
+    tr.className = cssClass;
+
+    tr.innerHTML = `
+      <td class="label">${t.label}</td>
+      ${t.front.map(n=>yardCell(n)).join("")}
+      ${yardCell(t.out)}
+      ${yardCell("")} 
+      ${t.back.map(n=>yardCell(n)).join("")}
+      ${yardCell(t.inn)}
+      ${yardCell(t.tot)}
+      ${yardCell("")}
+      ${yardCell("")}
+    `;
+    return tr;
+  }
+
+  function buildBlankRow(){
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="label"></td>
+      ${"<td></td>".repeat(9)}
+      <td></td>
+      <td></td>
+      ${"<td></td>".repeat(9)}
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    `;
+    return tr;
+  }
+
+  function buildParRow(){
+    const out = sum(parFront), inn = sum(parBack), tot = out+inn;
+    const tr = document.createElement("tr");
+    tr.className = "row-par";
+    tr.innerHTML = `
+      <td class="label">Par:</td>
+      ${parFront.map(n=>yardCell(n)).join("")}
+      ${yardCell(out)}
+      ${yardCell("")}
+      ${parBack.map(n=>yardCell(n)).join("")}
+      ${yardCell(inn)}
+      ${yardCell(tot)}
+      ${yardCell("")}
+      ${yardCell("")}
+    `;
+    return tr;
+  }
+
+  function buildHcpRow(){
+    const tr = document.createElement("tr");
+    tr.className = "row-hcp";
+    tr.innerHTML = `
+      <td class="label">Handicap</td>
+      ${hcpFront.map(n=>yardCell(n)).join("")}
+      ${yardCell("")}
+      ${yardCell("")}
+      ${hcpBack.map(n=>yardCell(n)).join("")}
+      ${yardCell("")}
+      ${yardCell("")}
+      ${yardCell("")}
+      ${yardCell("")}
+    `;
+    return tr;
+  }
+
+  function cellInput(playerIdx, holeNum){
+    const id = `p${playerIdx}_h${holeNum}`;
+    return `
+      <td>
+        <input
+          id="${id}"
+          class="score-input"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="2"
+          autocomplete="off"
+          aria-label="Player ${playerIdx+1} hole ${holeNum}"
+        />
+      </td>
+    `;
+  }
+
+  function buildPlayerRow(i){
+    const tr = document.createElement("tr");
+
+    const cellsFront = holesFront.map(h => cellInput(i,h)).join("");
+    const cellsBack  = holesBack.map(h => cellInput(i,h)).join("");
+
+    tr.innerHTML = `
+      <td class="label"><input class="player-name" placeholder="Player ${i+1}" /></td>
+      ${cellsFront}
+      <td class="total" data-out="${i}">0</td>
+      <td></td>
+      ${cellsBack}
+      <td class="total" data-in="${i}">0</td>
+      <td class="total" data-tot="${i}">0</td>
+      <td></td>
+      <td></td>
+    `;
+    return tr;
+  }
+
+  function recalcPlayer(i){
+    let out=0, inn=0;
+    for (const h of holesFront){
+      out += Number(document.getElementById(`p${i}_h${h}`).value || 0);
     }
-
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: var(--paper);
-      color: var(--ink);
+    for (const h of holesBack){
+      inn += Number(document.getElementById(`p${i}_h${h}`).value || 0);
     }
+    const tot = out + inn;
 
-    .wrap{
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 10px 10px 24px;
-    }
+    document.querySelector(`[data-out="${i}"]`).textContent = out;
+    document.querySelector(`[data-in="${i}"]`).textContent = inn;
+    document.querySelector(`[data-tot="${i}"]`).textContent = tot;
+  }
 
-    .card{
-      background: #efe7d7;
-      border: 3px solid #7a4a0b;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 8px 22px rgba(0,0,0,.18);
-    }
-
-    .header-img{
-      width: 100%;
-      display:block;
-    }
-
-    /* Sticky "Hole" header row while scrolling vertically */
-    .table-shell{
-      background: #efe7d7;
-      padding: 10px;
-    }
-
-    .scroll-x{
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      border: 2px solid #7a4a0b;
-      border-radius: 10px;
-      background: rgba(255,255,255,.12);
-    }
-
-    table{
-      border-collapse: collapse;
-      min-width: 980px; /* forces horizontal scroll on phones */
-      width: 100%;
-    }
-
-    th, td{
-      border: 2px solid var(--grid);
-      padding: 0;
-      height: 38px;
-      background: var(--cellBg);
-    }
-
-    /* left label column */
-    .label{
-      width: 120px;
-      font-weight: 800;
-      padding: 0 10px;
-      text-align: left;
-      background: #e1d8c8;
-      white-space: nowrap;
-    }
-
-    /* hole header row */
-    thead th{
-      position: sticky;
-      top: 0;
-      z-index: 5;
-      background: var(--headerRow);
-      font-weight: 900;
-      height: 42px;
-    }
-
-    .hole{
-      width: 44px;
-      text-align:center;
-      font-weight: 900;
-    }
-
-    .sum{
-      width: 58px;
-      text-align:center;
-      font-weight: 900;
-    }
-
-    /* Inputs that look printed into the cell */
-    .score-input{
-      width: 100%;
-      height: 100%;
-      border: 0;
-      outline: none;
-      background: transparent;
-      text-align: center;
-      font-weight: 900;
-      font-size: 18px;
-      color: #111;
-      -webkit-appearance: none;
-      appearance: none;
-      caret-color: transparent; /* feels less “form-y” */
-    }
-    /* kill iOS blue glow */
-    .score-input:focus{
-      outline: none;
-      box-shadow: inset 0 0 0 9999px rgba(0,0,0,.06);
-    }
-
-    /* Yardage rows (approx colors; we’ll tune to match your card exactly) */
-    .row-black td{ background:#0d2a55; color:#fff; }
-    .row-blue  td{ background:#1f5ea8; color:#fff; }
-    .row-silver td{ background:#cfcfcf; color:#111; }
-    .row-green td{ background:#8dbd79; color:#111; }
-    .row-copper td{ background:#a85a13; color:#fff; }
-
-    .row-black .label,
-    .row-blue  .label{ background:#0b2246; color:#fff; }
-    .row-silver .label{ background:#bdbdbd; }
-    .row-green  .label{ background:#7fb26c; }
-    .row-copper .label{ background:#8f4b10; color:#fff; }
-
-    .yard{
-      text-align:center;
-      font-weight: 900;
-      font-size: 16px;
-    }
-
-    /* Par & Handicap rows */
-    .row-par td{ background: var(--parRow); color: var(--parRowText); }
-    .row-par .label{ background: #8f4b10; color:#fff; }
-    .row-hcp td{ background: var(--hcpRow); color:#111; }
-    .row-hcp .label{ background: #e9dcaa; }
-
-    /* Player rows */
-    .player-name{
-      width: 100%;
-      height: 100%;
-      border: 0;
-      outline: none;
-      background: transparent;
-      font-weight: 900;
-      padding: 0 10px;
-      font-size: 16px;
-    }
-    .player-name:focus{
-      box-shadow: inset 0 0 0 9999px rgba(0,0,0,.06);
-    }
-
-    /* Totals cells */
-    .total{
-      text-align:center;
-      font-weight: 1000;
-      font-size: 18px;
-      background:#f1eadb;
-    }
-
-    .actions{
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-      padding: 12px 10px 14px;
-      background: #efe7d7;
-    }
-    button{
-      border: 2px solid #7a4a0b;
-      background: #e7ddcb;
-      border-radius: 10px;
-      padding: 12px 10px;
-      font-weight: 900;
-      font-size: 16px;
-    }
-    button:active{ transform: translateY(1px); }
-    .danger{
-      background:#b6422d;
-      color:#fff;
-      border-color:#7a2b20;
-      grid-column: 1 / -1;
-    }
-
-    .hint{
-      padding: 10px 12px 0;
-      font-size: 13px;
-      opacity:.85;
-    }
-  </style>
-</head>
-
-<body>
-  <div class="wrap">
-    <div class="card" id="card">
-      <!-- Header image (locked) -->
-      <img class="header-img" src="./assets/cypresswood_header.png" alt="Cypresswood Header" />
-
-      <div class="table-shell">
-        <div class="hint">Swipe left/right to enter holes 1–18. Tap a box to type. Out/In/Total auto-calc.</div>
-
-        <div class="scroll-x">
-          <table id="scoreTable">
-            <thead>
-              <tr>
-                <th class="label">Hole</th>
-                <!-- Holes 1-9 -->
-                ${Array.from({length:9},(_,i)=>`<th class="hole">${i+1}</th>`).join("")}
-                <th class="sum">Out</th>
-                <!-- Holes 10-18 -->
-                ${Array.from({length:9},(_,i)=>`<th class="hole">${i+10}</th>`).join("")}
-                <th class="sum">In</th>
-                <th class="sum">Tot</th>
-              </tr>
-            </thead>
-            <tbody id="tbody">
-              <!-- Yardage + par/hcp rows inserted by JS -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button id="saveImg">Save as Image</button>
-        <button id="downloadPdf" disabled>Download PDF (next)</button>
-        <button id="share">Share</button>
-        <button class="danger" id="clear">Clear Card</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- html2canvas for Save as Image -->
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
-  <script>
-    // === Replace these arrays with the exact numbers from your card (we will tune next) ===
-    const holesFront = [1,2,3,4,5,6,7,8,9];
-    const holesBack  = [10,11,12,13,14,15,16,17,18];
-
-    // Yardages (placeholder: you’ll paste exact values from the card)
-    const tees = {
-      black:  { label:"Black Tees",  front:[465,334,384,403,405,376,528,156,453], back:[405,256,256,345,441,185,394,475,135] },
-      blue:   { label:"Blue Tees",   front:[465,356,393,402,665,376,598,430,409], back:[377,223,330,417,165,378,478,139,130] },
-      silver: { label:"Silver Tees", front:[448,398,169,393,408,648,495,169,490], back:[370,377,449,395,455,685,378,490,196] },
-      green:  { label:"Silver Tees", front:[348,398,464,499,325,311,489,107,303], back:[348,181,348,311,129,349,315,425,185] },
-      copper: { label:"Copper Tees", front:[296,289,177,242,411,277,383,107,286], back:[315,181,400,318,175,245,291,215,386] }
-    };
-
-    const parFront = [4,4,3,4,4,5,3,5,3];
-    const parBack  = [4,4,3,5,4,6,4,5,5];
-
-    const hcpFront = [7,17,11,3,1,13,9,15,5];
-    const hcpBack  = [14,8,10,6,18,12,13,6,4];
-
-    const players = 6;
-
-    const tbody = document.getElementById("tbody");
-
-    function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
-
-    function buildYardageRow(key, cssClass){
-      const t = tees[key];
-      const out = sum(t.front);
-      const inn = sum(t.back);
-      const tot = out + inn;
-
-      const tr = document.createElement("tr");
-      tr.className = cssClass;
-      tr.innerHTML = `
-        <td class="label">${t.label}</td>
-        ${t.front.map(n=>`<td class="yard">${n}</td>`).join("")}
-        <td class="yard">${out}</td>
-        ${t.back.map(n=>`<td class="yard">${n}</td>`).join("")}
-        <td class="yard">${inn}</td>
-        <td class="yard">${tot}</td>
-      `;
-      return tr;
-    }
-
-    function buildParRow(){
-      const out = sum(parFront), inn = sum(parBack), tot = out+inn;
-      const tr = document.createElement("tr");
-      tr.className = "row-par";
-      tr.innerHTML = `
-        <td class="label">Par:</td>
-        ${parFront.map(n=>`<td class="yard">${n}</td>`).join("")}
-        <td class="yard">${out}</td>
-        ${parBack.map(n=>`<td class="yard">${n}</td>`).join("")}
-        <td class="yard">${inn}</td>
-        <td class="yard">${tot}</td>
-      `;
-      return tr;
-    }
-
-    function buildHcpRow(){
-      const tr = document.createElement("tr");
-      tr.className = "row-hcp";
-      tr.innerHTML = `
-        <td class="label">Handicap</td>
-        ${hcpFront.map(n=>`<td class="yard">${n}</td>`).join("")}
-        <td class="yard"></td>
-        ${hcpBack.map(n=>`<td class="yard">${n}</td>`).join("")}
-        <td class="yard"></td>
-        <td class="yard"></td>
-      `;
-      return tr;
-    }
-
-    function buildPlayerRow(i){
-      const tr = document.createElement("tr");
-      tr.dataset.player = i;
-
-      const cellsFront = holesFront.map(h => cellInput(i,h));
-      const cellsBack  = holesBack.map(h => cellInput(i,h));
-
-      tr.innerHTML = `
-        <td class="label"><input class="player-name" placeholder="Player ${i+1}" /></td>
-        ${cellsFront.join("")}
-        <td class="total" data-out="${i}">0</td>
-        ${cellsBack.join("")}
-        <td class="total" data-in="${i}">0</td>
-        <td class="total" data-tot="${i}">0</td>
-      `;
-      return tr;
-    }
-
-    function cellInput(playerIdx, holeNum){
-      const id = `p${playerIdx}_h${holeNum}`;
-      return `
-        <td>
-          <input
-            id="${id}"
-            class="score-input"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            maxlength="2"
-            autocomplete="off"
-            aria-label="Player ${playerIdx+1} hole ${holeNum}"
-          />
-        </td>
-      `;
-    }
-
-    function recalcPlayer(i){
-      let out=0, inn=0;
-
-      for (let h of holesFront){
-        const v = Number(document.getElementById(`p${i}_h${h}`).value || 0);
-        out += v;
+  function wireInputs(){
+    for (let i=0;i<players;i++){
+      for (let h=1;h<=18;h++){
+        const el = document.getElementById(`p${i}_h${h}`);
+        el.addEventListener("input", () => {
+          el.value = (el.value || "").replace(/[^\d]/g,"").slice(0,2);
+          recalcPlayer(i);
+        });
       }
-      for (let h of holesBack){
-        const v = Number(document.getElementById(`p${i}_h${h}`).value || 0);
-        inn += v;
-      }
-      const tot = out + inn;
+      recalcPlayer(i);
+    }
+  }
 
-      document.querySelector(`[data-out="${i}"]`).textContent = out;
-      document.querySelector(`[data-in="${i}"]`).textContent = inn;
-      document.querySelector(`[data-tot="${i}"]`).textContent = tot;
+  function build(){
+    buildHeader();
+
+    // Tee yardage rows (top section)
+    tbody.appendChild(buildYardageRow("black","row-black"));
+    tbody.appendChild(buildYardageRow("blue","row-blue"));
+    tbody.appendChild(buildYardageRow("silver","row-silver"));
+    tbody.appendChild(buildYardageRow("green","row-green"));
+
+    // Blank scoring area (big empty grid look)
+    tbody.appendChild(buildBlankRow());
+
+    // Par & Handicap
+    tbody.appendChild(buildParRow());
+    tbody.appendChild(buildHcpRow());
+
+    // 6 players
+    for (let i=0;i<players;i++){
+      tbody.appendChild(buildPlayerRow(i));
     }
 
-    function wireInputs(){
-      for (let i=0;i<players;i++){
-        for (let h=1;h<=18;h++){
-          const el = document.getElementById(`p${i}_h${h}`);
-          el.addEventListener("input", () => {
-            // keep only digits
-            el.value = (el.value || "").replace(/[^\d]/g,"").slice(0,2);
-            recalcPlayer(i);
-          });
+    // Copper yardage row (bottom)
+    tbody.appendChild(buildYardageRow("copper","row-copper"));
 
-          // optional: auto-advance to next hole
-          el.addEventListener("keyup", (e) => {
-            if (el.value.length >= 1){
-              const nextHole = h < 18 ? h+1 : null;
-              if (nextHole){
-                const next = document.getElementById(`p${i}_h${nextHole}`);
-                next && next.focus();
-              }
-            }
-          });
-        }
-        recalcPlayer(i);
-      }
-    }
+    wireInputs();
+  }
 
-    function build(){
-      // Yardage rows (top)
-      tbody.appendChild(buildYardageRow("black","row-black"));
-      tbody.appendChild(buildYardageRow("blue","row-blue"));
-      tbody.appendChild(buildYardageRow("silver","row-silver"));
-      tbody.appendChild(buildYardageRow("green","row-green"));
+  build();
 
-      // Blank spacer row (like the card has)
-      const spacer = document.createElement("tr");
-      spacer.innerHTML = `<td class="label"></td>${"<td></td>".repeat(9)}<td></td>${"<td></td>".repeat(9)}<td></td><td></td>`;
-      tbody.appendChild(spacer);
+  // ---------- SAVE / SHARE / CLEAR ----------
+  document.getElementById("saveImg").addEventListener("click", async () => {
+    const node = document.getElementById("card");
+    const canvas = await html2canvas(node, { scale: 2, backgroundColor: null });
+    const dataUrl = canvas.toDataURL("image/png");
+    const w = window.open();
+    w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
+  });
 
-      // Par & Handicap
-      tbody.appendChild(buildParRow());
-      tbody.appendChild(buildHcpRow());
-
-      // Players
-      for (let i=0;i<players;i++){
-        tbody.appendChild(buildPlayerRow(i));
-      }
-
-      // Copper yardage row (bottom)
-      tbody.appendChild(buildYardageRow("copper","row-copper"));
-
-      wireInputs();
-    }
-
-    build();
-
-    // === Save as Image ===
-    document.getElementById("saveImg").addEventListener("click", async () => {
+  document.getElementById("share").addEventListener("click", async () => {
+    try{
       const node = document.getElementById("card");
       const canvas = await html2canvas(node, { scale: 2, backgroundColor: null });
-      const dataUrl = canvas.toDataURL("image/png");
+      const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+      const file = new File([blob], "cypresswood-scorecard.png", { type:"image/png" });
 
-      // iOS: open in new tab so user can long-press Save Image
-      const w = window.open();
-      w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
-    });
-
-    // === Share (iOS share sheet when possible) ===
-    document.getElementById("share").addEventListener("click", async () => {
-      try{
-        const node = document.getElementById("card");
-        const canvas = await html2canvas(node, { scale: 2, backgroundColor: null });
-        const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
-        const file = new File([blob], "cypresswood-scorecard.png", { type:"image/png" });
-
-        if (navigator.canShare && navigator.canShare({ files:[file] })){
-          await navigator.share({ files:[file], title:"Scorecard" });
-        } else {
-          alert("Sharing not supported here. Use Save as Image then share from Photos.");
-        }
-      } catch(e){
-        alert("Share failed. Use Save as Image.");
+      if (navigator.canShare && navigator.canShare({ files:[file] })){
+        await navigator.share({ files:[file], title:"Scorecard" });
+      } else {
+        alert("Sharing not supported here. Use Save as Image then share from Photos.");
       }
-    });
+    } catch(e){
+      alert("Share failed. Use Save as Image.");
+    }
+  });
 
-    // === Clear ===
-    document.getElementById("clear").addEventListener("click", () => {
-      if(!confirm("Clear all scores?")) return;
-      document.querySelectorAll(".score-input").forEach(i => i.value="");
-      for (let i=0;i<players;i++) recalcPlayer(i);
-    });
-  </script>
-</body>
-</html>
+  document.getElementById("clear").addEventListener("click", () => {
+    if(!confirm("Clear all scores?")) return;
+    document.querySelectorAll(".score-input").forEach(i => i.value="");
+    for (let i=0;i<players;i++) recalcPlayer(i);
+  });
+</script>
