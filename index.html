@@ -208,16 +208,23 @@
 
   build();
 
-  // ---------- SAVE / SHARE / CLEAR ----------
-  document.getElementById("saveImg").addEventListener("click", async () => {
+// ---------- SAVE / SHARE / CLEAR (SAFE) ----------
+const saveBtn = document.getElementById("saveImg");
+const shareBtn = document.getElementById("share");
+const clearBtn = document.getElementById("clear");
+
+if (saveBtn){
+  saveBtn.addEventListener("click", async () => {
     const node = document.getElementById("card");
     const canvas = await html2canvas(node, { scale: 2, backgroundColor: null });
     const dataUrl = canvas.toDataURL("image/png");
     const w = window.open();
     w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
   });
+}
 
-  document.getElementById("share").addEventListener("click", async () => {
+if (shareBtn){
+  shareBtn.addEventListener("click", async () => {
     try{
       const node = document.getElementById("card");
       const canvas = await html2canvas(node, { scale: 2, backgroundColor: null });
@@ -233,10 +240,13 @@
       alert("Share failed. Use Save as Image.");
     }
   });
+}
 
-  document.getElementById("clear").addEventListener("click", () => {
+if (clearBtn){
+  clearBtn.addEventListener("click", () => {
     if(!confirm("Clear all scores?")) return;
     document.querySelectorAll(".score-input").forEach(i => i.value="");
     for (let i=0;i<players;i++) recalcPlayer(i);
   });
-</script>
+}
+
