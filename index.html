@@ -452,12 +452,55 @@ tbody.appendChild(buildYardageRow("silver","row-silver"));
 
     // SAVE
     document.getElementById("saveImg").addEventListener("click", async () => {
-      const node = document.getElementById("card");
-      const canvas = await html2canvas(node, { scale: 2, backgroundColor: null });
-      const dataUrl = canvas.toDataURL("image/png");
-      const w = window.open();
-      w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
-    });
+  const card = document.getElementById("card");
+  const scroll = document.querySelector(".scroll-x");
+  const table = document.getElementById("scoreTable");
+
+  // Temporarily expand the scroll area so html2canvas captures EVERYTHING
+  const oldOverflowX = scroll.style.overflowX;
+  const oldOverflowY = scroll.style.overflowY;
+  const oldWidth = scroll.style.width;
+
+  scroll.style.overflowX = "visible";
+  scroll.style.overflowY = "visible";
+  scroll.style.width = table.scrollWidth + "px";
+
+  // Also widen the card so the full table is inside it during capture
+  const oldCardWidth = card.style.width;
+  card.style.width = (table.scrollWidth + 40) + "px";
+
+  // Capture
+  const canvas = await html2canvas(card, {
+    scale: 2,
+    backgroundColor: null,
+    windowWidth: card.scrollWidth,
+    windowHeight: card.scrollHeight
+  });
+
+  // Restore styles
+  scroll.style.overflowX = oldOverflowX;
+  scroll.style.overflowY = oldOverflowY;
+  scroll.style.width = oldWidth;
+  card.style.width = oldCardWidth;
+
+  // Convert to file + share/download
+  canvas.toBlob(async (blob) => {
+    const file = new File([blob], "cypresswood-scorecard.png", { type: "image/png" });
+
+    // iPhone best experience: Share Sheet (Save Image / AirDrop / etc.)
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: "Scorecard" });
+      return;
+    }
+
+    // Fallback: open image in same tab so user can long-press Save Image
+    const dataUrl = canvas.toDataURL("image/png");
+    document.open();
+    document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
+    document.close();
+  }, "image/png");
+});
+
 
     // SHARE
     document.getElementById("share").addEventListener("click", async () => {
