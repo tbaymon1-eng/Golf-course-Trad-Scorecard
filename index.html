@@ -63,12 +63,14 @@ thead th{
 
     }
 
-   .header-img{
+  .header-img{
   width: 100%;
-  height: 190px;          /* adjust if needed */
+  height: auto;        /* key: no fixed height on phone */
   display: block;
-  object-fit: cover;      /* fills width like the printed card */
-  object-position: left;  /* aligns like your left example */
+  object-fit: contain; /* key: show full header image */
+  background: #efe7d7; /* fills any leftover space */
+}
+
 }
 
 
