@@ -63,18 +63,8 @@ thead th{
 
     
 
-  .header-img{
-  width: 100%;
-  height: auto;        /* key: no fixed height on phone */
-  display: block;
-  object-fit: contain; /* key: show full header image */
-  background: #efe7d7; /* fills any leftover space */
-    @media (min-width: 900px){
-  .header-img{
-    height: 210px;
-    object-fit: cover;
-    object-position: left;
-  }
+ 
+  
 
 
 
@@ -236,6 +226,17 @@ thead th{
       border-color:#7a2b20;
       grid-column: 1 / -1;
     }
+    /* FINAL header rule (phone-safe, shows the ENTIRE header) */
+.header-img{
+  width: 100%;
+  height: auto !important;
+  max-height: 160px;          /* keeps it from being huge on phone */
+  display: block;
+  object-fit: contain !important;
+  object-position: center !important;
+  background: #efe7d7;
+}
+
   </style>
 </head>
 
