@@ -350,7 +350,58 @@ const hcpFront = [7,17,11,1,3,13,9,15,5];
 const hcpBack  = [14,8,10,6,18,12,2,16,4];
 
 const players = 6;
+const tbody = document.getElementById("tbody");
+   const STORAGE_KEY = "cypresswood_scorecard_v1";
 
+function saveState(){
+  const state = {
+    names: Array.from(document.querySelectorAll(".player-name")).map(i => i.value || ""),
+    scores: Array.from({length: players}, (_,p) =>
+      Array.from({length: 18}, (_,h) => {
+        const el = document.getElementById(`p${p}_h${h+1}`);
+        return el ? (el.value || "") : "";
+      })
+    ),
+    completedShown: (typeof completedShown !== "undefined") ? completedShown : null
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return;
+  try{
+    const state = JSON.parse(raw);
+
+    // names
+    const nameInputs = document.querySelectorAll(".player-name");
+    (state.names || []).forEach((v, idx) => {
+      if(nameInputs[idx]) nameInputs[idx].value = v;
+    });
+
+    // scores
+    (state.scores || []).forEach((row, p) => {
+      row.forEach((v, hIdx) => {
+        const el = document.getElementById(`p${p}_h${hIdx+1}`);
+        if(el) el.value = v || "";
+      });
+    });
+
+    // restore completion flags (optional)
+    if(state.completedShown && typeof completedShown !== "undefined"){
+      state.completedShown.forEach((v, i) => completedShown[i] = !!v);
+    }
+
+    // recalc totals
+    for(let i=0;i<players;i++) recalcPlayer(i);
+  } catch(e){
+    // if storage is corrupt, ignore
+  }
+}
+
+function clearState(){
+  localStorage.removeItem(STORAGE_KEY);
+} 
 
     function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
     function yardCell(v){ return `<td class="yard">${v ?? ""}</td>`; }
@@ -520,57 +571,7 @@ tbody.appendChild(buildYardageRow("silver","row-silver"));
     }
 
     build();
-const STORAGE_KEY = "cypresswood_scorecard_v1";
 
-function saveState(){
-  const state = {
-    names: Array.from(document.querySelectorAll(".player-name")).map(i => i.value || ""),
-    scores: Array.from({length: players}, (_,p) =>
-      Array.from({length: 18}, (_,h) => {
-        const el = document.getElementById(`p${p}_h${h+1}`);
-        return el ? (el.value || "") : "";
-      })
-    ),
-    completedShown: (typeof completedShown !== "undefined") ? completedShown : null
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-function loadState(){
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if(!raw) return;
-  try{
-    const state = JSON.parse(raw);
-
-    // names
-    const nameInputs = document.querySelectorAll(".player-name");
-    (state.names || []).forEach((v, idx) => {
-      if(nameInputs[idx]) nameInputs[idx].value = v;
-    });
-
-    // scores
-    (state.scores || []).forEach((row, p) => {
-      row.forEach((v, hIdx) => {
-        const el = document.getElementById(`p${p}_h${hIdx+1}`);
-        if(el) el.value = v || "";
-      });
-    });
-
-    // restore completion flags (optional)
-    if(state.completedShown && typeof completedShown !== "undefined"){
-      state.completedShown.forEach((v, i) => completedShown[i] = !!v);
-    }
-
-    // recalc totals
-    for(let i=0;i<players;i++) recalcPlayer(i);
-  } catch(e){
-    // if storage is corrupt, ignore
-  }
-}
-
-function clearState(){
-  localStorage.removeItem(STORAGE_KEY);
-}
 function captureFullCardCanvas(){
   const card = document.getElementById("card");
   const scroll = document.querySelector(".scroll-x");
@@ -661,8 +662,9 @@ function wireButtons(){
 }
 
 // IMPORTANT: build first, then wire buttons
-try{
-  wireButtons();
+try{build();
+wireButtons();
+  
 } catch(e){
   // If something weird happens, fail silently instead of blank page
 }
