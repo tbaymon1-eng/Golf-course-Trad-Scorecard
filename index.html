@@ -493,11 +493,15 @@ const players = 6;
           el.addEventListener("input", () => {
             el.value = (el.value || "").replace(/[^\d]/g,"").slice(0,2);
             recalcPlayer(i);
+             saveState();
           });
         }
         recalcPlayer(i);
       }
-    }
+     document.querySelectorAll(".player-name").forEach(inp => {
+    inp.addEventListener("input", saveState);
+  });
+}
 
     function build(){
       buildHeader();
@@ -512,9 +516,61 @@ tbody.appendChild(buildYardageRow("silver","row-silver"));
       for (let i=0;i<players;i++) tbody.appendChild(buildPlayerRow(i));
       tbody.appendChild(buildYardageRow("copper","row-copper"));
       wireInputs();
+      loadState();
     }
 
     build();
+const STORAGE_KEY = "cypresswood_scorecard_v1";
+
+function saveState(){
+  const state = {
+    names: Array.from(document.querySelectorAll(".player-name")).map(i => i.value || ""),
+    scores: Array.from({length: players}, (_,p) =>
+      Array.from({length: 18}, (_,h) => {
+        const el = document.getElementById(`p${p}_h${h+1}`);
+        return el ? (el.value || "") : "";
+      })
+    ),
+    completedShown: (typeof completedShown !== "undefined") ? completedShown : null
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return;
+  try{
+    const state = JSON.parse(raw);
+
+    // names
+    const nameInputs = document.querySelectorAll(".player-name");
+    (state.names || []).forEach((v, idx) => {
+      if(nameInputs[idx]) nameInputs[idx].value = v;
+    });
+
+    // scores
+    (state.scores || []).forEach((row, p) => {
+      row.forEach((v, hIdx) => {
+        const el = document.getElementById(`p${p}_h${hIdx+1}`);
+        if(el) el.value = v || "";
+      });
+    });
+
+    // restore completion flags (optional)
+    if(state.completedShown && typeof completedShown !== "undefined"){
+      state.completedShown.forEach((v, i) => completedShown[i] = !!v);
+    }
+
+    // recalc totals
+    for(let i=0;i<players;i++) recalcPlayer(i);
+  } catch(e){
+    // if storage is corrupt, ignore
+  }
+}
+
+function clearState(){
+  localStorage.removeItem(STORAGE_KEY);
+}
 
     // SAVE
     document.getElementById("saveImg").addEventListener("click", async () => {
@@ -590,6 +646,7 @@ tbody.appendChild(buildYardageRow("silver","row-silver"));
     document.getElementById("clear").addEventListener("click", () => {
       if(!confirm("Clear all scores?")) return;
       document.querySelectorAll(".score-input").forEach(i => i.value="");
+      clearState();
       for (let i=0;i<players;i++) recalcPlayer(i);
     });
   </script>
