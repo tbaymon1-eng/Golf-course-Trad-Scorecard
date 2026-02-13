@@ -295,74 +295,66 @@ thead th{
   <script>
     // ---------- DATA (EXACT TO YOUR CARD) ----------
 // ---------- DATA (EXACT TO THE IMAGE YOU POSTED) ----------
+// ====================== DATA ======================
 const holesFront = [1,2,3,4,5,6,7,8,9];
 const holesBack  = [10,11,12,13,14,15,16,17,18];
 
 const tees = {
-  black: {
-    label:"Black Tees",
+  black:{ label:"Black Tees",
     front:[465,384,203,448,606,376,528,196,453],
     out:3657,
     back:[405,256,545,464,185,394,472,318,546],
-    inn:3563,
-    tot:7220
+    inn:3563, tot:7220
   },
-  blue: {
-    label:"Blue Tees",
+  blue:{ label:"Blue Tees",
     front:[373,356,195,422,565,343,508,169,409],
     out:3340,
     back:[370,211,518,423,169,357,439,291,520],
-    inn:3298,
-    tot:6638
+    inn:3298, tot:6638
   },
-  white: {
-    label:"White Tees",
+  white:{ label:"White Tees",
     front:[348,328,169,398,547,311,482,169,394],
     out:3146,
     back:[348,187,468,395,151,328,378,265,496],
-    inn:3016,
-    tot:6162
+    inn:3016, tot:6162
   },
-  silver: {
-    label:"Silver Tees",
+  silver:{ label:"Silver Tees",
     front:[348,328,129,528,461,277,482,107,305],
     out:2765,
     back:[315,153,413,348,151,328,318,215,435],
-    inn:2676,
-    tot:5441
+    inn:2676, tot:5441
   },
-  copper: {
-    label:"Copper Tees",
+  copper:{ label:"Copper Tees",
     front:[296,287,117,242,411,277,388,107,284],
     out:2409,
     back:[315,131,400,318,75,245,291,215,386],
-    inn:2376,
-    tot:4785
+    inn:2376, tot:4785
   }
 };
 
-// Par row (matches the image: Out 36 / In 36 / Total 72)
-const parFront = [4,4,3,4,5,4,5,3,4]; // = 36
-const parBack  = [4,3,5,4,3,4,4,4,5]; // = 36
-
-// Handicap row (matches the image)
+const parFront = [4,4,3,4,5,4,5,3,4];
+const parBack  = [4,3,5,4,3,4,4,4,5];
 const hcpFront = [7,17,11,1,3,13,9,15,5];
 const hcpBack  = [14,8,10,6,18,12,2,16,4];
 
 const players = 6;
 const tbody = document.getElementById("tbody");
-   const STORAGE_KEY = "cypresswood_scorecard_v1";
+const STORAGE_KEY = "cypresswood_scorecard_v2";
 
+// ====================== HELPERS ======================
+function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
+function yardCell(v){ return `<td class="yard">${v ?? ""}</td>`; }
+
+// ====================== STORAGE ======================
 function saveState(){
   const state = {
-    names: Array.from(document.querySelectorAll(".player-name")).map(i => i.value || ""),
-    scores: Array.from({length: players}, (_,p) =>
-      Array.from({length: 18}, (_,h) => {
-        const el = document.getElementById(`p${p}_h${h+1}`);
-        return el ? (el.value || "") : "";
+    names: Array.from(document.querySelectorAll(".player-name")).map(i=>i.value||""),
+    scores: Array.from({length:players},(_,p)=>
+      Array.from({length:18},(_,h)=>{
+        const el=document.getElementById(`p${p}_h${h+1}`);
+        return el?el.value:"";
       })
-    ),
-    completedShown: (typeof completedShown !== "undefined") ? completedShown : null
+    )
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
@@ -372,302 +364,148 @@ function loadState(){
   if(!raw) return;
   try{
     const state = JSON.parse(raw);
-
-    // names
-    const nameInputs = document.querySelectorAll(".player-name");
-    (state.names || []).forEach((v, idx) => {
-      if(nameInputs[idx]) nameInputs[idx].value = v;
-    });
-
-    // scores
-    (state.scores || []).forEach((row, p) => {
-      row.forEach((v, hIdx) => {
-        const el = document.getElementById(`p${p}_h${hIdx+1}`);
-        if(el) el.value = v || "";
+    document.querySelectorAll(".player-name")
+      .forEach((el,i)=>el.value = state.names?.[i]||"");
+    state.scores?.forEach((row,p)=>{
+      row.forEach((v,h)=>{
+        const el=document.getElementById(`p${p}_h${h+1}`);
+        if(el) el.value=v;
       });
     });
-
-    // restore completion flags (optional)
-    if(state.completedShown && typeof completedShown !== "undefined"){
-      state.completedShown.forEach((v, i) => completedShown[i] = !!v);
-    }
-
-    // recalc totals
     for(let i=0;i<players;i++) recalcPlayer(i);
-  } catch(e){
-    // if storage is corrupt, ignore
-  }
+  }catch(e){}
 }
 
- clearState(){
-  localStorage.removeItem(STORAGE_KEY);
-} 
+function clearState(){ localStorage.removeItem(STORAGE_KEY); }
 
-    function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
-    function yardCell(v){ return `<td class="yard">${v ?? ""}</td>`; }
+// ====================== BUILD ======================
+function buildHeader(){
+  const hdr=document.getElementById("hdrRow");
+  hdr.innerHTML=`
+    <th class="label">Hole</th>
+    ${holesFront.map(h=>`<th class="hole">${h}</th>`).join("")}
+    <th class="sum">Out</th>
+    <th class="sum">I<br>N<br>I<br>T</th>
+    ${holesBack.map(h=>`<th class="hole">${h}</th>`).join("")}
+    <th class="sum">In</th>
+    <th class="sum">Tot</th>
+    <th class="sum">Hcp</th>
+    <th class="sum">Net</th>
+  `;
+}
 
-    function buildHeader(){
-      const hdr = document.getElementById("hdrRow");
-      hdr.innerHTML = `
-        <th class="label">Hole</th>
-        ${holesFront.map(h=>`<th class="hole">${h}</th>`).join("")}
-        <th class="sum">Out</th>
-        <th class="sum">I<br>N<br>I<br>T</th>
-        ${holesBack.map(h=>`<th class="hole">${h}</th>`).join("")}
-        <th class="sum">In</th>
-        <th class="sum">Tot</th>
-        <th class="sum">Hcp</th>
-        <th class="sum">Net</th>
-      `;
-    }
+function buildYardageRow(key,cls){
+  const t=tees[key];
+  const tr=document.createElement("tr");
+  tr.className=cls;
+  tr.innerHTML=`
+    <td class="label">${t.label}</td>
+    ${t.front.map(n=>yardCell(n)).join("")}
+    ${yardCell(t.out)}${yardCell("")}
+    ${t.back.map(n=>yardCell(n)).join("")}
+    ${yardCell(t.inn)}${yardCell(t.tot)}
+    ${yardCell("")}${yardCell("")}
+  `;
+  return tr;
+}
 
-    function buildYardageRow(key, cssClass){
-      const t = tees[key];
-      const tr = document.createElement("tr");
-      tr.className = cssClass;
-      tr.innerHTML = `
-        <td class="label">${t.label}</td>
-        ${t.front.map(n=>yardCell(n)).join("")}
-        ${yardCell(t.out)}
-        ${yardCell("")}
-        ${t.back.map(n=>yardCell(n)).join("")}
-        ${yardCell(t.inn)}
-        ${yardCell(t.tot)}
-        ${yardCell("")}
-        ${yardCell("")}
-      `;
-      return tr;
-    }
+function buildPlayerRow(i){
+  const tr=document.createElement("tr");
+  tr.innerHTML=`
+    <td class="label"><input class="player-name" placeholder="Player ${i+1}" /></td>
+    ${holesFront.map(h=>cellInput(i,h)).join("")}
+    <td class="total" data-out="${i}">0</td>
+    <td></td>
+    ${holesBack.map(h=>cellInput(i,h)).join("")}
+    <td class="total" data-in="${i}">0</td>
+    <td class="total" data-tot="${i}">0</td>
+    <td></td><td></td>
+  `;
+  return tr;
+}
 
-    function buildBlankRow(){
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td class="label"></td>
-        ${"<td></td>".repeat(9)}
-        <td></td>
-        <td></td>
-        ${"<td></td>".repeat(9)}
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      `;
-      return tr;
-    }
+function cellInput(p,h){
+  return `<td><input id="p${p}_h${h}" class="score-input" inputmode="numeric" maxlength="2"/></td>`;
+}
 
-    function buildParRow(){
-      const out = sum(parFront), inn = sum(parBack), tot = out+inn;
-      const tr = document.createElement("tr");
-      tr.className = "row-par";
-      tr.innerHTML = `
-        <td class="label">Par:</td>
-        ${parFront.map(n=>yardCell(n)).join("")}
-        ${yardCell(out)}
-        ${yardCell("")}
-        ${parBack.map(n=>yardCell(n)).join("")}
-        ${yardCell(inn)}
-        ${yardCell(tot)}
-        ${yardCell("")}
-        ${yardCell("")}
-      `;
-      return tr;
-    }
+function recalcPlayer(i){
+  let out=0,inn=0;
+  holesFront.forEach(h=>out+=Number(document.getElementById(`p${i}_h${h}`).value||0));
+  holesBack.forEach(h=>inn+=Number(document.getElementById(`p${i}_h${h}`).value||0));
+  document.querySelector(`[data-out="${i}"]`).textContent=out;
+  document.querySelector(`[data-in="${i}"]`).textContent=inn;
+  document.querySelector(`[data-tot="${i}"]`).textContent=out+inn;
+}
 
-    function buildHcpRow(){
-      const tr = document.createElement("tr");
-      tr.className = "row-hcp";
-      tr.innerHTML = `
-        <td class="label">Handicap</td>
-        ${hcpFront.map(n=>yardCell(n)).join("")}
-        ${yardCell("")}
-        ${yardCell("")}
-        ${hcpBack.map(n=>yardCell(n)).join("")}
-        ${yardCell("")}
-        ${yardCell("")}
-        ${yardCell("")}
-        ${yardCell("")}
-      `;
-      return tr;
-    }
-
-    function cellInput(playerIdx, holeNum){
-      const id = `p${playerIdx}_h${holeNum}`;
-      return `
-        <td>
-          <input
-            id="${id}"
-            class="score-input"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            maxlength="2"
-            autocomplete="off"
-            aria-label="Player ${playerIdx+1} hole ${holeNum}"
-          />
-        </td>
-      `;
-    }
-
-    function buildPlayerRow(i){
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td class="label"><input class="player-name" placeholder="Player ${i+1}" /></td>
-        ${holesFront.map(h=>cellInput(i,h)).join("")}
-        <td class="total" data-out="${i}">0</td>
-        <td></td>
-        ${holesBack.map(h=>cellInput(i,h)).join("")}
-        <td class="total" data-in="${i}">0</td>
-        <td class="total" data-tot="${i}">0</td>
-        <td></td>
-        <td></td>
-      `;
-      return tr;
-    }
-
-    function recalcPlayer(i){
-      let out=0, inn=0;
-      for (const h of holesFront){
-        out += Number(document.getElementById(`p${i}_h${h}`).value || 0);
-      }
-      for (const h of holesBack){
-        inn += Number(document.getElementById(`p${i}_h${h}`).value || 0);
-      }
-      const tot = out + inn;
-      document.querySelector(`[data-out="${i}"]`).textContent = out;
-      document.querySelector(`[data-in="${i}"]`).textContent = inn;
-      document.querySelector(`[data-tot="${i}"]`).textContent = tot;
-    }
-
-    function wireInputs(){
-      for (let i=0;i<players;i++){
-        for (let h=1;h<=18;h++){
-          const el = document.getElementById(`p${i}_h${h}`);
-          el.addEventListener("input", () => {
-            el.value = (el.value || "").replace(/[^\d]/g,"").slice(0,2);
-            recalcPlayer(i);
-             saveState();
-          });
-        }
+function wireInputs(){
+  for(let i=0;i<players;i++){
+    for(let h=1;h<=18;h++){
+      const el=document.getElementById(`p${i}_h${h}`);
+      el.addEventListener("input",()=>{
+        el.value=(el.value||"").replace(/[^\d]/g,"").slice(0,2);
         recalcPlayer(i);
-      }
-     document.querySelectorAll(".player-name").forEach(inp => {
-    inp.addEventListener("input", saveState);
-  });
-}
-
-    function build(){ tbody.innerHTML = "";
-      buildHeader();
-     tbody.appendChild(buildYardageRow("black","row-black"));
-tbody.appendChild(buildYardageRow("blue","row-blue"));
-tbody.appendChild(buildYardageRow("white","row-white"));  // reuse silver styling (gray) for White row, or create a new class
-tbody.appendChild(buildYardageRow("silver","row-silver"));
-
-    
-      tbody.appendChild(buildParRow());
-      tbody.appendChild(buildHcpRow());
-      for (let i=0;i<players;i++) tbody.appendChild(buildPlayerRow(i));
-      tbody.appendChild(buildYardageRow("copper","row-copper"));
-      wireInputs();
-      loadState();
+        saveState();
+      });
     }
-
-  
-
-function captureFullCardCanvas(){
-  const card = document.getElementById("card");
-  const scroll = document.querySelector(".scroll-x");
-  const table = document.getElementById("scoreTable");
-
-  // Temporarily expand scroll area so html2canvas captures EVERYTHING (full width)
-  const oldOverflowX = scroll.style.overflowX;
-  const oldOverflowY = scroll.style.overflowY;
-  const oldWidth = scroll.style.width;
-  const oldCardWidth = card.style.width;
-
-  scroll.style.overflowX = "visible";
-  scroll.style.overflowY = "visible";
-  scroll.style.width = table.scrollWidth + "px";
-  card.style.width = (table.scrollWidth + 40) + "px";
-
-  return html2canvas(card, {
-    scale: 2,
-    backgroundColor: null,
-    windowWidth: card.scrollWidth,
-    windowHeight: card.scrollHeight
-  }).finally(() => {
-    // Restore
-    scroll.style.overflowX = oldOverflowX;
-    scroll.style.overflowY = oldOverflowY;
-    scroll.style.width = oldWidth;
-    card.style.width = oldCardWidth;
-  });
+  }
+  document.querySelectorAll(".player-name")
+    .forEach(el=>el.addEventListener("input",saveState));
 }
 
+function build(){
+  tbody.innerHTML="";
+  buildHeader();
+  tbody.appendChild(buildYardageRow("black","row-black"));
+  tbody.appendChild(buildYardageRow("blue","row-blue"));
+  tbody.appendChild(buildYardageRow("white","row-white"));
+  tbody.appendChild(buildYardageRow("silver","row-silver"));
+
+  const par=document.createElement("tr");
+  par.className="row-par";
+  par.innerHTML=`
+    <td class="label">Par:</td>
+    ${parFront.map(n=>yardCell(n)).join("")}
+    ${yardCell(sum(parFront))}${yardCell("")}
+    ${parBack.map(n=>yardCell(n)).join("")}
+    ${yardCell(sum(parBack))}${yardCell(sum(parFront)+sum(parBack))}
+    ${yardCell("")}${yardCell("")}
+  `;
+  tbody.appendChild(par);
+
+  const hcp=document.createElement("tr");
+  hcp.className="row-hcp";
+  hcp.innerHTML=`
+    <td class="label">Handicap</td>
+    ${hcpFront.map(n=>yardCell(n)).join("")}
+    ${yardCell("")}${yardCell("")}
+    ${hcpBack.map(n=>yardCell(n)).join("")}
+    ${yardCell("")}${yardCell("")}${yardCell("")}${yardCell("")}
+  `;
+  tbody.appendChild(hcp);
+
+  for(let i=0;i<players;i++) tbody.appendChild(buildPlayerRow(i));
+
+  tbody.appendChild(buildYardageRow("copper","row-copper"));
+
+  wireInputs();
+  loadState();
+}
+
+// ====================== BUTTONS ======================
 function wireButtons(){
-  const saveBtn = document.getElementById("saveImg");
-  const shareBtn = document.getElementById("share");
-  const clearBtn = document.getElementById("clear");
-
-  if (saveBtn){
-    saveBtn.addEventListener("click", async () => {
-      try{
-        const canvas = await captureFullCardCanvas();
-        canvas.toBlob(async (blob) => {
-          const file = new File([blob], "cypresswood-scorecard.png", { type: "image/png" });
-
-          // Best on iPhone: Share Sheet includes “Save Image”
-          if (navigator.canShare && navigator.canShare({ files:[file] })) {
-            await navigator.share({ files:[file], title:"Scorecard" });
-            return;
-          }
-
-          // Fallback: open image so user can long-press Save Image
-          const dataUrl = canvas.toDataURL("image/png");
-          const w = window.open();
-          if (w) w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
-          else alert("Pop-up blocked. Try the Share button instead.");
-        }, "image/png");
-      } catch(e){
-        alert("Save failed. Try again.");
-      }
-    });
-  }
-
-  if (shareBtn){
-    shareBtn.addEventListener("click", async () => {
-      try{
-        const canvas = await captureFullCardCanvas();
-        const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
-        const file = new File([blob], "cypresswood-scorecard.png", { type:"image/png" });
-
-        if (navigator.canShare && navigator.canShare({ files:[file] })){
-          await navigator.share({ files:[file], title:"Scorecard" });
-        } else {
-          alert("Sharing not supported here. Use Save as Image.");
-        }
-      } catch(e){
-        alert("Share failed. Use Save as Image.");
-      }
-    });
-  }
-
-  if (clearBtn){
-    clearBtn.addEventListener("click", () => {
+  document.getElementById("clear")
+    .addEventListener("click",()=>{
       if(!confirm("Clear all scores?")) return;
-      document.querySelectorAll(".score-input").forEach(i => i.value = "");
-      document.querySelectorAll(".player-name").forEach(i => i.value = "");
-      try{ clearState(); } catch(e){}
-      for (let i=0;i<players;i++) recalcPlayer(i);
+      document.querySelectorAll(".score-input,.player-name")
+        .forEach(el=>el.value="");
+      clearState();
+      for(let i=0;i<players;i++) recalcPlayer(i);
     });
-  }
 }
 
-// IMPORTANT: 
-try{build();
+// ====================== INIT ======================
+build();
 wireButtons();
-  
-} catch(e){
-  // If something weird happens, fail silently instead of blank page
-}
 
   </script>
 </body>
