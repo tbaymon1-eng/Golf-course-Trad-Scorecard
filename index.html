@@ -571,84 +571,102 @@ function loadState(){
 function clearState(){
   localStorage.removeItem(STORAGE_KEY);
 }
-
-    // SAVE
-    document.getElementById("saveImg").addEventListener("click", async () => {
+function captureFullCardCanvas(){
   const card = document.getElementById("card");
   const scroll = document.querySelector(".scroll-x");
   const table = document.getElementById("scoreTable");
 
-  // Temporarily expand the scroll area so html2canvas captures EVERYTHING
+  // Temporarily expand scroll area so html2canvas captures EVERYTHING (full width)
   const oldOverflowX = scroll.style.overflowX;
   const oldOverflowY = scroll.style.overflowY;
   const oldWidth = scroll.style.width;
+  const oldCardWidth = card.style.width;
 
   scroll.style.overflowX = "visible";
   scroll.style.overflowY = "visible";
   scroll.style.width = table.scrollWidth + "px";
-
-  // Also widen the card so the full table is inside it during capture
-  const oldCardWidth = card.style.width;
   card.style.width = (table.scrollWidth + 40) + "px";
 
-  // Capture
-  const canvas = await html2canvas(card, {
+  return html2canvas(card, {
     scale: 2,
     backgroundColor: null,
     windowWidth: card.scrollWidth,
     windowHeight: card.scrollHeight
+  }).finally(() => {
+    // Restore
+    scroll.style.overflowX = oldOverflowX;
+    scroll.style.overflowY = oldOverflowY;
+    scroll.style.width = oldWidth;
+    card.style.width = oldCardWidth;
   });
+}
 
-  // Restore styles
-  scroll.style.overflowX = oldOverflowX;
-  scroll.style.overflowY = oldOverflowY;
-  scroll.style.width = oldWidth;
-  card.style.width = oldCardWidth;
+function wireButtons(){
+  const saveBtn = document.getElementById("saveImg");
+  const shareBtn = document.getElementById("share");
+  const clearBtn = document.getElementById("clear");
 
-  // Convert to file + share/download
-  canvas.toBlob(async (blob) => {
-    const file = new File([blob], "cypresswood-scorecard.png", { type: "image/png" });
-
-    // iPhone best experience: Share Sheet (Save Image / AirDrop / etc.)
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: "Scorecard" });
-      return;
-    }
-
-    // Fallback: open image in same tab so user can long-press Save Image
-    const dataUrl = canvas.toDataURL("image/png");
-    document.open();
-    document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
-    document.close();
-  }, "image/png");
-});
-
-
-    // SHARE
-    document.getElementById("share").addEventListener("click", async () => {
+  if (saveBtn){
+    saveBtn.addEventListener("click", async () => {
       try{
-        const node = document.getElementById("card");
-        const canvas = await html2canvas(node, { scale: 2, backgroundColor: null });
+        const canvas = await captureFullCardCanvas();
+        canvas.toBlob(async (blob) => {
+          const file = new File([blob], "cypresswood-scorecard.png", { type: "image/png" });
+
+          // Best on iPhone: Share Sheet includes “Save Image”
+          if (navigator.canShare && navigator.canShare({ files:[file] })) {
+            await navigator.share({ files:[file], title:"Scorecard" });
+            return;
+          }
+
+          // Fallback: open image so user can long-press Save Image
+          const dataUrl = canvas.toDataURL("image/png");
+          const w = window.open();
+          if (w) w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
+          else alert("Pop-up blocked. Try the Share button instead.");
+        }, "image/png");
+      } catch(e){
+        alert("Save failed. Try again.");
+      }
+    });
+  }
+
+  if (shareBtn){
+    shareBtn.addEventListener("click", async () => {
+      try{
+        const canvas = await captureFullCardCanvas();
         const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
         const file = new File([blob], "cypresswood-scorecard.png", { type:"image/png" });
 
         if (navigator.canShare && navigator.canShare({ files:[file] })){
           await navigator.share({ files:[file], title:"Scorecard" });
         } else {
-          alert("Sharing not supported here. Use Save as Image then share from Photos.");
+          alert("Sharing not supported here. Use Save as Image.");
         }
       } catch(e){
         alert("Share failed. Use Save as Image.");
       }
     });
+  }
 
-    // CLEAR
-    document.getElementById("clear").addEventListener("click", () => {
+  if (clearBtn){
+    clearBtn.addEventListener("click", () => {
       if(!confirm("Clear all scores?")) return;
-      document.querySelectorAll(".score-input").forEach(i => i.value="");
-      clearState();
+      document.querySelectorAll(".score-input").forEach(i => i.value = "");
+      document.querySelectorAll(".player-name").forEach(i => i.value = "");
+      try{ clearState(); } catch(e){}
       for (let i=0;i<players;i++) recalcPlayer(i);
     });
+  }
+}
+
+// IMPORTANT: build first, then wire buttons
+try{
+  wireButtons();
+} catch(e){
+  // If something weird happens, fail silently instead of blank page
+}
+
   </script>
 </body>
 </html>
