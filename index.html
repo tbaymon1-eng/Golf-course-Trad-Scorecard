@@ -490,6 +490,55 @@ function build(){
   wireInputs();
   loadState();
 }
+// ====================== IMAGE CAPTURE ======================
+async function captureCard(){
+  const card = document.getElementById("card");
+
+  return html2canvas(card, {
+    scale: 2,
+    backgroundColor: null
+  });
+}
+
+function wireSaveShare(){
+
+  const saveBtn = document.getElementById("saveImg");
+  const shareBtn = document.getElementById("share");
+
+  if(saveBtn){
+    saveBtn.addEventListener("click", async ()=>{
+      try{
+        const canvas = await captureCard();
+        const dataUrl = canvas.toDataURL("image/png");
+
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = "cypresswood-scorecard.png";
+        link.click();
+      } catch(e){
+        alert("Save failed.");
+      }
+    });
+  }
+
+  if(shareBtn){
+    shareBtn.addEventListener("click", async ()=>{
+      try{
+        const canvas = await captureCard();
+        const blob = await new Promise(res => canvas.toBlob(res,"image/png"));
+        const file = new File([blob], "cypresswood-scorecard.png", {type:"image/png"});
+
+        if(navigator.canShare && navigator.canShare({files:[file]})){
+          await navigator.share({files:[file], title:"Scorecard"});
+        } else {
+          alert("Sharing not supported here. Try Save as Image.");
+        }
+      } catch(e){
+        alert("Share failed.");
+      }
+    });
+  }
+}
 
 // ====================== BUTTONS ======================
 function wireButtons(){
@@ -506,7 +555,7 @@ function wireButtons(){
 // ====================== INIT ======================
 build();
 wireButtons();
-
+wireSaveShare();
   </script>
 </body>
 </html>
