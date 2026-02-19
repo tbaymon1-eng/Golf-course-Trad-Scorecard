@@ -1,8 +1,8 @@
 {
   "name": "Cypresswood Tradition Scorecard",
   "short_name": "Scorecard",
-  "start_url": "/Golf-course-Trad-Scorecard/",
-  "scope": "./",
+  "start_url": "./",
+ "scope": "./",
   "display": "standalone",
 "orientation": "portrait",
   "background_color": "#efe7d7",
