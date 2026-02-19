@@ -4,8 +4,11 @@ const CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./assets/cypresswood_header.png"
+  "./assets/cypresswood_header.png",
+  "./assets/icon-192.png",
+  "./assets/icon-512.png"
 ];
+
 
 // Install: cache core assets
 self.addEventListener("install", (event) => {
