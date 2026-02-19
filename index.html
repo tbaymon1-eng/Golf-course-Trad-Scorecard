@@ -1,6 +1,15 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#7a4a0b">
+
+<!-- iOS Add to Home Screen support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Scorecard">
+<link rel="apple-touch-icon" href="./assets/icon-192.png">
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Cypresswood Scorecard</title>
@@ -557,5 +566,7 @@ build();
 wireButtons();
 wireSaveShare();
   </script>
+  <script src="./pwa.js"></script>
+
 </body>
 </html>
