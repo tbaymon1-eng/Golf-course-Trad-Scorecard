@@ -1,4 +1,5 @@
-const CACHE_NAME = "cypresswood-scorecard-v1";
+const CACHE_NAME = "cypresswood-scorecard-v2";
+
 
 const CORE_ASSETS = [
   "./",
