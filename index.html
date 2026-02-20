@@ -396,6 +396,24 @@
     const holesFront = [1,2,3,4,5,6,7,8,9];
     const holesBack  = [10,11,12,13,14,15,16,17,18];
     const players = 6;
+    // ===== Course header images =====
+const COURSE_HEADERS = {
+  tradition: "./assets/cypresswood_header.png",
+  cypress: "./assets/cypress_header.png"
+};
+
+function setCourseHeader(courseKey){
+  const img = document.getElementById("courseHeader");
+  if(!img) return;
+
+  const src = COURSE_HEADERS[courseKey] || COURSE_HEADERS.tradition;
+  img.src = src;
+
+  img.alt =
+    courseKey === "cypress"
+      ? "Cypress Course Header"
+      : "Tradition Course Header";
+}
 
     // ====================== DOM ======================
     const tbody = document.getElementById("tbody");
