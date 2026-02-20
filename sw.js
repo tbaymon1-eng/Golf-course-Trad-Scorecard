@@ -1,17 +1,15 @@
-const CACHE_NAME = "cypresswood-scorecard-v2";
-
+const CACHE_NAME = "cypresswood-scorecard-v3";
 
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
+  "./pwa.js",
   "./assets/cypresswood_header.png",
   "./assets/icon-192.png",
   "./assets/icon-512.png"
 ];
 
-
-// Install: cache core assets
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS))
@@ -19,7 +17,6 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-// Activate: clean old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -29,12 +26,10 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch: cache-first for core; network for everything else
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Only handle same-origin
   if (url.origin !== location.origin) return;
 
   event.respondWith(
@@ -42,7 +37,6 @@ self.addEventListener("fetch", (event) => {
       return (
         cached ||
         fetch(req).then((res) => {
-          // Optionally cache fetched same-origin GET requests
           if (req.method === "GET") {
             const resClone = res.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
