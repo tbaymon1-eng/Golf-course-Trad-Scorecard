@@ -6,6 +6,7 @@ const CORE_ASSETS = [
   "./manifest.webmanifest",
   "./pwa.js",
   "./assets/cypresswood_header.png",
+  "./assets/cypress_header.png",
   "./assets/icon-192.png",
   "./assets/icon-512.png"
 ];
