@@ -507,38 +507,36 @@ async function captureCard(){
   const scroll = document.querySelector(".scroll-x");
   const table  = document.getElementById("scoreTable");
 
-  // Save current styles
+  // Save styles
   const oldScrollOverflowX = scroll.style.overflowX;
   const oldScrollWidth     = scroll.style.width;
   const oldCardTransform   = card.style.transform;
   const oldCardWidth       = card.style.width;
 
-  // 🔥 disable scale so capture is true size
+  // Disable scale so we capture true size
   card.style.transform = "none";
 
-  // 🔥 expand scroll area to full table width
+  // Expand scroll area
   scroll.style.overflowX = "visible";
   scroll.style.width = table.scrollWidth + "px";
 
-  // 🔥 expand card to match table
+  // Expand card width
   card.style.width = (table.scrollWidth + 20) + "px";
 
   try{
     const rawCanvas = await html2canvas(card, {
       scale: 2,
-      backgroundColor: null,
-      useCORS: true,
-      windowWidth: card.scrollWidth,
-      windowHeight: card.scrollHeight
+      backgroundColor: "#efe7d7",
+      useCORS: true
     });
 
-    // ✅ NEW: scale down to phone-friendly width
-    const MAX_WIDTH = 1400; // keeps image readable on phones
-    if (rawCanvas.width <= MAX_WIDTH) return rawCanvas;
+    // 🔥 PHONE-FRIENDLY WIDTH (KEY FIX)
+    const TARGET_WIDTH = 1080; // perfect for phones
 
-    const ratio = MAX_WIDTH / rawCanvas.width;
+    const ratio = TARGET_WIDTH / rawCanvas.width;
     const finalCanvas = document.createElement("canvas");
-    finalCanvas.width = MAX_WIDTH;
+
+    finalCanvas.width = TARGET_WIDTH;
     finalCanvas.height = rawCanvas.height * ratio;
 
     const ctx = finalCanvas.getContext("2d");
@@ -547,7 +545,7 @@ async function captureCard(){
     return finalCanvas;
 
   } finally {
-    // restore styles
+    // Restore styles
     scroll.style.overflowX = oldScrollOverflowX;
     scroll.style.width = oldScrollWidth;
     card.style.transform = oldCardTransform;
