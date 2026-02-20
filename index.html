@@ -726,6 +726,7 @@ function setCourseHeader(courseKey){
       if (!COURSES[courseId]) return;
       currentCourseId = courseId;
       courseSelect.value = courseId;
+      setCourseHeader(currentCourseId);
       build();
     }
 
