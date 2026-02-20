@@ -1,21 +1,22 @@
 <!doctype html>
 <html lang="en">
 <head>
-   <meta charset="utf-8" />
-  <link rel="manifest" href="./manifest.webmanifest">
-<meta name="theme-color" content="#7a4a0b">
-
-<!-- iOS Add to Home Screen support -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Scorecard">
-<link rel="apple-touch-icon" href="./assets/icon-192.png">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
- 
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Cypresswood Scorecard</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#7a4a0b">
+
+  <!-- iOS add-to-home-screen support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Scorecard">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
 
   <style>
     :root{
@@ -27,49 +28,15 @@
       --parRowText:#fff;
       --hcpRow:#f2e6b9;
       --cellBg:#f8f4ea;
+      --border:#7a4a0b;
+      --card:#efe7d7;
     }
-.book-btn{
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #7a4a0b;
-  background: #2f6b2f;       /* golf green */
-  color: #ffffff;
-  border-radius: 10px;
-  padding: 12px 10px;
-  font-weight: 900;
-  font-size: 16px;
-  text-decoration: none;
-}
 
-.book-btn:active{
-  transform: translateY(1px);
-}
-
- body{
-  font-family: Georgia, 'Times New Roman', serif;
-}
-.label,
-thead th{
-  font-family: 'Cinzel', serif;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.yard,
-.hole,
-.sum,
-.total,
-.score-input{
-  font-family: Georgia, 'Times New Roman', serif;
-  font-weight: 700;
-  letter-spacing: 0;
-}
-
-
-
+    body{
+      margin:0;
       background: var(--paper);
       color: var(--ink);
+      font-family: Georgia, 'Times New Roman', serif;
     }
 
     .wrap{
@@ -79,62 +46,78 @@ thead th{
     }
 
     .card{
-      background: #efe7d7;
-      border: 3px solid #7a4a0b;
+      background: var(--card);
+      border: 3px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 8px 22px rgba(0,0,0,.18);
-      
-  transform: scale(0.92);
-  transform-origin: top center;
-}
-
-    
-
- 
-  
-
-
-
-
-
-
-
-
-    
-
-    .table-shell{
-      background: #efe7d7;
-      padding: 0px;
     }
 
+    /* Header (phone-safe) */
+    .header-img{
+      width: 100%;
+      height: auto !important;
+      max-height: 210px;
+      display: block;
+      object-fit: contain !important;
+      object-position: center !important;
+      background: var(--card);
+    }
+
+    /* Course switch */
+    .coursebar{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap:10px;
+      padding: 8px 10px;
+      background: var(--card);
+      border-top: 1px solid rgba(0,0,0,.08);
+      border-bottom: 1px solid rgba(0,0,0,.08);
+    }
+    .course-title{
+      font-family:'Cinzel', serif;
+      font-weight: 900;
+      letter-spacing: .5px;
+      font-size: 14px;
+      line-height: 1.1;
+    }
+    .course-hint{
+      font-size: 12px;
+      opacity:.8;
+    }
+    .course-select{
+      border: 2px solid var(--border);
+      background: #e7ddcb;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .table-shell{ padding: 0px; background: var(--card); }
+
     .hint{
-      padding: 10px 12px 0;
+      padding: 8px 12px 0;
       font-size: 13px;
       opacity:.85;
     }
 
     .scroll-x{
-  overflow-x: auto;
-  overflow-y: visible;          /* important */
-  -webkit-overflow-scrolling: touch;
-  border: 2px solid #7a4a0b;
-  border-radius: 10px;
-  background: rgba(255,255,255,.12);
-  margin-top: 10px;
-}
-
-      border: 2px solid #7a4a0b;
+      overflow-x: auto;
+      overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+      border: 2px solid var(--border);
       border-radius: 10px;
       background: rgba(255,255,255,.12);
-      margin-top: 10px;
-     width: 100%;
-  box-sizing: border-box;
+      margin: 10px 10px 0;
+      width: calc(100% - 20px);
+      box-sizing: border-box;
     }
 
     table{
       border-collapse: collapse;
-      min-width: 1120px; /* includes extra columns (INITIAL/Hcp/Net) */
+      min-width: 1120px; /* includes Out/In/Tot/Hcp/Net */
       width: 100%;
     }
 
@@ -143,6 +126,13 @@ thead th{
       padding: 0;
       height: 34px;
       background: var(--cellBg);
+    }
+
+    .label,
+    thead th{
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      letter-spacing: 0.5px;
     }
 
     .label{
@@ -161,6 +151,7 @@ thead th{
       background: var(--headerRow);
       font-weight: 900;
       height: 42px;
+      text-align:center;
     }
 
     .hole{ width: 44px; text-align:center; font-weight: 900; }
@@ -168,21 +159,24 @@ thead th{
 
     .yard{
       text-align:center;
+      font-family: Georgia, 'Times New Roman', serif;
       font-weight: 900;
       font-size: 16px;
     }
 
-    /* Yardage row colors (we can fine-tune to match print perfectly) */
+    /* Tee row colors */
     .row-black td{ background:#0d2a55; color:#fff; }
     .row-blue  td{ background:#1f5ea8; color:#fff; }
     .row-white td{ background:#f7f7f7; color:#111; }
     .row-silver td{ background:#cfcfcf; color:#111; }
+    .row-forest td{ background:#1f4f3a; color:#fff; }  /* Cypress Forest */
     .row-copper td{ background:#a85a13; color:#fff; }
 
     .row-black .label{ background:#0b2246; color:#fff; }
     .row-blue  .label{ background:#174c89; color:#fff; }
     .row-white .label{ background:#f0f0f0; color:#111; }
     .row-silver .label{ background:#bdbdbd; color:#111; }
+    .row-forest .label{ background:#163a2b; color:#fff; }
     .row-copper .label{ background:#8f4b10; color:#fff; }
 
     .row-par td{ background: var(--parRow); color: var(--parRowText); }
@@ -191,7 +185,7 @@ thead th{
     .row-hcp td{ background: var(--hcpRow); color:#111; }
     .row-hcp .label{ background: #e9dcaa; }
 
-    /* Inputs that look printed into the box */
+    /* Inputs */
     .score-input{
       width: 100%;
       height: 100%;
@@ -205,6 +199,7 @@ thead th{
       -webkit-appearance: none;
       appearance: none;
       caret-color: transparent;
+      font-family: Georgia, 'Times New Roman', serif;
     }
     .score-input:focus{
       outline: none;
@@ -220,6 +215,7 @@ thead th{
       font-weight: 950;
       padding: 0 10px;
       font-size: 16px;
+      font-family: Georgia, 'Times New Roman', serif;
     }
     .player-name:focus{
       box-shadow: inset 0 0 0 9999px rgba(0,0,0,.06);
@@ -230,6 +226,7 @@ thead th{
       font-weight: 1000;
       font-size: 18px;
       background:#f1eadb;
+      font-family: Georgia, 'Times New Roman', serif;
     }
 
     .actions{
@@ -237,10 +234,11 @@ thead th{
       grid-template-columns: 1fr 1fr 1fr;
       gap: 10px;
       padding: 12px 10px 14px;
-      background: #efe7d7;
+      background: var(--card);
     }
+
     button{
-      border: 2px solid #7a4a0b;
+      border: 2px solid var(--border);
       background: #e7ddcb;
       border-radius: 10px;
       padding: 12px 10px;
@@ -248,23 +246,29 @@ thead th{
       font-size: 16px;
     }
     button:active{ transform: translateY(1px); }
+
+    .book-btn{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border: 2px solid var(--border);
+      background: #2f6b2f;
+      color:#fff;
+      border-radius: 10px;
+      padding: 12px 10px;
+      font-weight: 900;
+      font-size: 16px;
+      text-decoration:none;
+      text-align:center;
+    }
+    .book-btn:active{ transform: translateY(1px); }
+
     .danger{
       background:#b6422d;
       color:#fff;
       border-color:#7a2b20;
       grid-column: 1 / -1;
     }
-    /* FINAL header rule (phone-safe, shows the ENTIRE header) */
-.header-img{
-  width: 100%;
-  height: auto !important;
-  max-height: 210px;          /* keeps it from being huge on phone */
-  display: block;
-  object-fit: contain !important;
-  object-position: center !important;
-  background: #efe7d7;
-}
-
   </style>
 </head>
 
@@ -272,17 +276,26 @@ thead th{
   <div class="wrap">
     <div class="card" id="card">
 
-      <!-- MUST match your repo file exactly -->
-      <img class="header-img" src="./assets/cypresswood_header.png" alt="Cypresswood Header" />
+      <img class="header-img" id="headerImg" src="./assets/cypresswood_header.png" alt="Cypresswood Header" />
+
+      <div class="coursebar" id="courseSwipeZone">
+        <div>
+          <div class="course-title" id="courseTitle">Tradition Course</div>
+          <div class="course-hint">Swipe left/right here to switch courses</div>
+        </div>
+
+        <select class="course-select" id="courseSelect" aria-label="Select course">
+          <option value="tradition">Tradition</option>
+          <option value="cypress">Cypress</option>
+        </select>
+      </div>
 
       <div class="table-shell">
-        <div class="hint">Swipe left/right. Tap a box to type. Out/In/Tot auto-calc.</div>
+        <div class="hint">Swipe left/right inside the table to scroll. Tap a box to type. Out/In/Tot auto-calc.</div>
 
         <div class="scroll-x">
           <table id="scoreTable">
-            <thead>
-              <tr id="hdrRow"></tr>
-            </thead>
+            <thead><tr id="hdrRow"></tr></thead>
             <tbody id="tbody"></tbody>
           </table>
         </div>
@@ -290,326 +303,442 @@ thead th{
 
       <div class="actions">
         <button id="saveImg">Save as Image</button>
-        <a href="https://foresightcypress.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225"
-   target="_blank"
-   class="book-btn">
-   Book Your Next Tee Time Here!
-</a>
+
+        <a
+          id="bookBtn"
+          href="https://foresightcypress.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225"
+          target="_blank"
+          class="book-btn"
+        >
+          Book Your Next Tee Time Here!
+        </a>
+
         <button id="share">Share</button>
         <button class="danger" id="clear">Clear Card</button>
       </div>
-
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
-    // ---------- DATA (EXACT TO YOUR CARD) ----------
-// ---------- DATA (EXACT TO THE IMAGE YOU POSTED) ----------
-// ====================== DATA ======================
-const holesFront = [1,2,3,4,5,6,7,8,9];
-const holesBack  = [10,11,12,13,14,15,16,17,18];
+    // ====================== COURSES ======================
+    // Tradition (your working data)
+    const COURSE_TRADITION = {
+      id: "tradition",
+      title: "Tradition Course",
+      headerImg: "./assets/cypresswood_header.png",
+      teeRows: [
+        { key:"black",  css:"row-black",  label:"Black Tees",
+          front:[465,384,203,448,606,376,528,196,453], out:3657,
+          back:[405,256,545,464,185,394,472,318,546], inn:3563, tot:7220
+        },
+        { key:"blue",   css:"row-blue",   label:"Blue Tees",
+          front:[373,356,195,422,565,343,508,169,409], out:3340,
+          back:[370,211,518,423,169,357,439,291,520], inn:3298, tot:6638
+        },
+        { key:"white",  css:"row-white",  label:"White Tees",
+          front:[348,328,169,398,547,311,482,169,394], out:3146,
+          back:[348,187,468,395,151,328,378,265,496], inn:3016, tot:6162
+        },
+        { key:"silver", css:"row-silver", label:"Silver Tees",
+          front:[348,328,129,528,461,277,482,107,305], out:2765,
+          back:[315,153,413,348,151,328,318,215,435], inn:2676, tot:5441
+        },
+      ],
+      parFront:[4,4,3,4,5,4,5,3,4],
+      parBack: [4,3,5,4,3,4,4,4,5],
+      hcpFront:[7,17,11,1,3,13,9,15,5],
+      hcpBack: [14,8,10,6,18,12,2,16,4],
+      bottomRow: { css:"row-copper", label:"Copper Tees",
+        front:[296,287,117,242,411,277,388,107,284], out:2409,
+        back:[315,131,400,318,75,245,291,215,386], inn:2376, tot:4785
+      }
+    };
 
-const tees = {
-  black:{ label:"Black Tees",
-    front:[465,384,203,448,606,376,528,196,453],
-    out:3657,
-    back:[405,256,545,464,185,394,472,318,546],
-    inn:3563, tot:7220
-  },
-  blue:{ label:"Blue Tees",
-    front:[373,356,195,422,565,343,508,169,409],
-    out:3340,
-    back:[370,211,518,423,169,357,439,291,520],
-    inn:3298, tot:6638
-  },
-  white:{ label:"White Tees",
-    front:[348,328,169,398,547,311,482,169,394],
-    out:3146,
-    back:[348,187,468,395,151,328,378,265,496],
-    inn:3016, tot:6162
-  },
-  silver:{ label:"Silver Tees",
-    front:[348,328,129,528,461,277,482,107,305],
-    out:2765,
-    back:[315,153,413,348,151,328,318,215,435],
-    inn:2676, tot:5441
-  },
-  copper:{ label:"Copper Tees",
-    front:[296,287,117,242,411,277,388,107,284],
-    out:2409,
-    back:[315,131,400,318,75,245,291,215,386],
-    inn:2376, tot:4785
-  }
-};
+    // Cypress (data read from your correct scorecard image)
+    const COURSE_CYPRESS = {
+      id: "cypress",
+      title: "Cypress Course",
+      headerImg: "./assets/cypresswood_header.png", // swap later if you upload a Cypress header image
+      teeRows: [
+        { key:"blue", css:"row-blue", label:"Blue",
+          front:[514,396,387,482,486,182,417,189,417], out:3472,
+          back:[416,409,388,349,149,566,351,465,441], inn:3134, tot:6006
+        },
+        { key:"forest", css:"row-forest", label:"Forest",
+          front:[485,335,396,376,151,361,186,727,552], out:3053,
+          back:[381,368,354,330,177,549,473,873, -1], inn:3713, tot:6168
+        },
+      ],
+      // NOTE: one Cypress row cell in the photo is hard to read at small size in the last back-9 slot.
+      // Your image shows Forest back includes: 381,368,354,330,177,549,473,873,???.
+      // I left the last value as -1 so it renders blank. Replace -1 with the correct number once you confirm it.
+      parFront:[5,4,4,4,3,4,3,5,4],
+      parBack: [4,4,4,4,3,5,3,5,4],
+      hcpFront:[3,13,11,7,15,9,17,1,5],
+      hcpBack: [6,10,12,14,18,2,16,4,8],
+      bottomRow: { css:"row-copper", label:"Copper",
+        front:[401,668,287,260,779,105,289,105,445], out:3638,
+        back:[277,315,249,92,445,293,575,854,232], inn:2856, tot:4744
+      },
+      extraRow: { css:"row-silver", label:"Silver",
+        front:[456,305,305,357,119,557,137,493,321], out:2861,
+        back:[277,315,519,320,117,515,127,461,342], inn:2793, tot:5694
+      }
+    };
 
-const parFront = [4,4,3,4,5,4,5,3,4];
-const parBack  = [4,3,5,4,3,4,4,4,5];
-const hcpFront = [7,17,11,1,3,13,9,15,5];
-const hcpBack  = [14,8,10,6,18,12,2,16,4];
+    const COURSES = {
+      tradition: COURSE_TRADITION,
+      cypress: COURSE_CYPRESS
+    };
 
-const players = 6;
-const tbody = document.getElementById("tbody");
-const STORAGE_KEY = "cypresswood_scorecard_v2";
+    // ====================== CONFIG ======================
+    const holesFront = [1,2,3,4,5,6,7,8,9];
+    const holesBack  = [10,11,12,13,14,15,16,17,18];
+    const players = 6;
 
-// ====================== HELPERS ======================
-function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
-function yardCell(v){ return `<td class="yard">${v ?? ""}</td>`; }
+    // ====================== DOM ======================
+    const tbody = document.getElementById("tbody");
+    const hdrRow = document.getElementById("hdrRow");
+    const courseSelect = document.getElementById("courseSelect");
+    const courseTitle = document.getElementById("courseTitle");
+    const headerImg = document.getElementById("headerImg");
+    const swipeZone = document.getElementById("courseSwipeZone");
 
-// ====================== STORAGE ======================
-function saveState(){
-  const state = {
-    names: Array.from(document.querySelectorAll(".player-name")).map(i=>i.value||""),
-    scores: Array.from({length:players},(_,p)=>
-      Array.from({length:18},(_,h)=>{
-        const el=document.getElementById(`p${p}_h${h+1}`);
-        return el?el.value:"";
-      })
-    )
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
+    // ====================== STATE ======================
+    let currentCourseId = "tradition";
 
-function loadState(){
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if(!raw) return;
-  try{
-    const state = JSON.parse(raw);
-    document.querySelectorAll(".player-name")
-      .forEach((el,i)=>el.value = state.names?.[i]||"");
-    state.scores?.forEach((row,p)=>{
-      row.forEach((v,h)=>{
-        const el=document.getElementById(`p${p}_h${h+1}`);
-        if(el) el.value=v;
-      });
-    });
-    for(let i=0;i<players;i++) recalcPlayer(i);
-  }catch(e){}
-}
+    function storageKeyFor(courseId){
+      return `scorecard_state_${courseId}_v1`;
+    }
 
-function clearState(){ localStorage.removeItem(STORAGE_KEY); }
+    function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
+    function yardCell(v){
+      if (v === -1) return `<td class="yard"></td>`;
+      return `<td class="yard">${v ?? ""}</td>`;
+    }
 
-// ====================== BUILD ======================
-function buildHeader(){
-  const hdr=document.getElementById("hdrRow");
-  hdr.innerHTML=`
-    <th class="label">Hole</th>
-    ${holesFront.map(h=>`<th class="hole">${h}</th>`).join("")}
-    <th class="sum">Out</th>
-    <th class="sum">I<br>N<br>I<br>T</th>
-    ${holesBack.map(h=>`<th class="hole">${h}</th>`).join("")}
-    <th class="sum">In</th>
-    <th class="sum">Tot</th>
-    <th class="sum">Hcp</th>
-    <th class="sum">Net</th>
-  `;
-}
+    // ====================== BUILD TABLE ======================
+    function buildHeader(){
+      hdrRow.innerHTML = `
+        <th class="label">Hole</th>
+        ${holesFront.map(h=>`<th class="hole">${h}</th>`).join("")}
+        <th class="sum">Out</th>
+        <th class="sum">I<br>N<br>I<br>T</th>
+        ${holesBack.map(h=>`<th class="hole">${h}</th>`).join("")}
+        <th class="sum">In</th>
+        <th class="sum">Tot</th>
+        <th class="sum">Hcp</th>
+        <th class="sum">Net</th>
+      `;
+    }
 
-function buildYardageRow(key,cls){
-  const t=tees[key];
-  const tr=document.createElement("tr");
-  tr.className=cls;
-  tr.innerHTML=`
-    <td class="label">${t.label}</td>
-    ${t.front.map(n=>yardCell(n)).join("")}
-    ${yardCell(t.out)}${yardCell("")}
-    ${t.back.map(n=>yardCell(n)).join("")}
-    ${yardCell(t.inn)}${yardCell(t.tot)}
-    ${yardCell("")}${yardCell("")}
-  `;
-  return tr;
-}
+    function buildYardageRow(row){
+      const tr = document.createElement("tr");
+      tr.className = row.css;
+      tr.innerHTML = `
+        <td class="label">${row.label}</td>
+        ${row.front.map(n=>yardCell(n)).join("")}
+        ${yardCell(row.out)}
+        ${yardCell("")}
+        ${row.back.map(n=>yardCell(n)).join("")}
+        ${yardCell(row.inn)}
+        ${yardCell(row.tot)}
+        ${yardCell("")}
+        ${yardCell("")}
+      `;
+      return tr;
+    }
 
-function buildPlayerRow(i){
-  const tr=document.createElement("tr");
-  tr.innerHTML=`
-    <td class="label"><input class="player-name" placeholder="Player ${i+1}" /></td>
-    ${holesFront.map(h=>cellInput(i,h)).join("")}
-    <td class="total" data-out="${i}">0</td>
-    <td></td>
-    ${holesBack.map(h=>cellInput(i,h)).join("")}
-    <td class="total" data-in="${i}">0</td>
-    <td class="total" data-tot="${i}">0</td>
-    <td></td><td></td>
-  `;
-  return tr;
-}
+    function buildParRow(course){
+      const out = sum(course.parFront), inn = sum(course.parBack), tot = out+inn;
+      const tr = document.createElement("tr");
+      tr.className = "row-par";
+      tr.innerHTML = `
+        <td class="label">Par:</td>
+        ${course.parFront.map(n=>yardCell(n)).join("")}
+        ${yardCell(out)}
+        ${yardCell("")}
+        ${course.parBack.map(n=>yardCell(n)).join("")}
+        ${yardCell(inn)}
+        ${yardCell(tot)}
+        ${yardCell("")}
+        ${yardCell("")}
+      `;
+      return tr;
+    }
 
-function cellInput(p,h){
-  return `<td><input id="p${p}_h${h}" class="score-input" inputmode="numeric" maxlength="2"/></td>`;
-}
+    function buildHcpRow(course){
+      const tr = document.createElement("tr");
+      tr.className = "row-hcp";
+      tr.innerHTML = `
+        <td class="label">Handicap</td>
+        ${course.hcpFront.map(n=>yardCell(n)).join("")}
+        ${yardCell("")}
+        ${yardCell("")}
+        ${course.hcpBack.map(n=>yardCell(n)).join("")}
+        ${yardCell("")}
+        ${yardCell("")}
+        ${yardCell("")}
+        ${yardCell("")}
+      `;
+      return tr;
+    }
 
-function recalcPlayer(i){
-  let out=0,inn=0;
-  holesFront.forEach(h=>out+=Number(document.getElementById(`p${i}_h${h}`).value||0));
-  holesBack.forEach(h=>inn+=Number(document.getElementById(`p${i}_h${h}`).value||0));
-  document.querySelector(`[data-out="${i}"]`).textContent=out;
-  document.querySelector(`[data-in="${i}"]`).textContent=inn;
-  document.querySelector(`[data-tot="${i}"]`).textContent=out+inn;
-}
+    function cellInput(playerIdx, holeNum){
+      const id = `p${playerIdx}_h${holeNum}`;
+      return `
+        <td>
+          <input
+            id="${id}"
+            class="score-input"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="2"
+            autocomplete="off"
+          />
+        </td>
+      `;
+    }
 
-function wireInputs(){
-  for(let i=0;i<players;i++){
-    for(let h=1;h<=18;h++){
-      const el=document.getElementById(`p${i}_h${h}`);
-      el.addEventListener("input",()=>{
-        el.value=(el.value||"").replace(/[^\d]/g,"").slice(0,2);
+    function buildPlayerRow(i){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="label"><input class="player-name" placeholder="Player ${i+1}" /></td>
+        ${holesFront.map(h=>cellInput(i,h)).join("")}
+        <td class="total" data-out="${i}">0</td>
+        <td></td>
+        ${holesBack.map(h=>cellInput(i,h)).join("")}
+        <td class="total" data-in="${i}">0</td>
+        <td class="total" data-tot="${i}">0</td>
+        <td></td>
+        <td></td>
+      `;
+      return tr;
+    }
+
+    function recalcPlayer(i){
+      let out=0, inn=0;
+      for (const h of holesFront){
+        out += Number(document.getElementById(`p${i}_h${h}`).value || 0);
+      }
+      for (const h of holesBack){
+        inn += Number(document.getElementById(`p${i}_h${h}`).value || 0);
+      }
+      const tot = out + inn;
+      document.querySelector(`[data-out="${i}"]`).textContent = out;
+      document.querySelector(`[data-in="${i}"]`).textContent = inn;
+      document.querySelector(`[data-tot="${i}"]`).textContent = tot;
+    }
+
+    function saveState(){
+      const key = storageKeyFor(currentCourseId);
+      const state = {
+        names: Array.from(document.querySelectorAll(".player-name")).map(i => i.value || ""),
+        scores: Array.from({length: players}, (_,p) =>
+          Array.from({length: 18}, (_,h) => {
+            const el = document.getElementById(`p${p}_h${h+1}`);
+            return el ? (el.value || "") : "";
+          })
+        )
+      };
+      localStorage.setItem(key, JSON.stringify(state));
+    }
+
+    function loadState(){
+      const key = storageKeyFor(currentCourseId);
+      const raw = localStorage.getItem(key);
+      if(!raw) return;
+      try{
+        const state = JSON.parse(raw);
+
+        const nameInputs = document.querySelectorAll(".player-name");
+        (state.names || []).forEach((v, idx) => {
+          if(nameInputs[idx]) nameInputs[idx].value = v;
+        });
+
+        (state.scores || []).forEach((row, p) => {
+          row.forEach((v, hIdx) => {
+            const el = document.getElementById(`p${p}_h${hIdx+1}`);
+            if(el) el.value = v || "";
+          });
+        });
+
+        for(let i=0;i<players;i++) recalcPlayer(i);
+      } catch(e){}
+    }
+
+    function clearState(){
+      const key = storageKeyFor(currentCourseId);
+      localStorage.removeItem(key);
+    }
+
+    function wireInputs(){
+      for (let i=0;i<players;i++){
+        for (let h=1;h<=18;h++){
+          const el = document.getElementById(`p${i}_h${h}`);
+          el.addEventListener("input", () => {
+            el.value = (el.value || "").replace(/[^\d]/g,"").slice(0,2);
+            recalcPlayer(i);
+            saveState();
+          });
+        }
         recalcPlayer(i);
-        saveState();
+      }
+      document.querySelectorAll(".player-name").forEach(inp => {
+        inp.addEventListener("input", saveState);
       });
     }
-  }
-  document.querySelectorAll(".player-name")
-    .forEach(el=>el.addEventListener("input",saveState));
-}
 
-function build(){
-  tbody.innerHTML="";
-  buildHeader();
-  tbody.appendChild(buildYardageRow("black","row-black"));
-  tbody.appendChild(buildYardageRow("blue","row-blue"));
-  tbody.appendChild(buildYardageRow("white","row-white"));
-  tbody.appendChild(buildYardageRow("silver","row-silver"));
+    function build(){
+      const course = COURSES[currentCourseId];
 
-  const par=document.createElement("tr");
-  par.className="row-par";
-  par.innerHTML=`
-    <td class="label">Par:</td>
-    ${parFront.map(n=>yardCell(n)).join("")}
-    ${yardCell(sum(parFront))}${yardCell("")}
-    ${parBack.map(n=>yardCell(n)).join("")}
-    ${yardCell(sum(parBack))}${yardCell(sum(parFront)+sum(parBack))}
-    ${yardCell("")}${yardCell("")}
-  `;
-  tbody.appendChild(par);
+      // header UI
+      courseTitle.textContent = course.title;
+      headerImg.src = course.headerImg;
 
-  const hcp=document.createElement("tr");
-  hcp.className="row-hcp";
-  hcp.innerHTML=`
-    <td class="label">Handicap</td>
-    ${hcpFront.map(n=>yardCell(n)).join("")}
-    ${yardCell("")}${yardCell("")}
-    ${hcpBack.map(n=>yardCell(n)).join("")}
-    ${yardCell("")}${yardCell("")}${yardCell("")}${yardCell("")}
-  `;
-  tbody.appendChild(hcp);
+      // table
+      tbody.innerHTML = "";
+      buildHeader();
 
-  for(let i=0;i<players;i++) tbody.appendChild(buildPlayerRow(i));
+      // top tee rows
+      course.teeRows.forEach(r => tbody.appendChild(buildYardageRow(r)));
 
-  tbody.appendChild(buildYardageRow("copper","row-copper"));
-
-  wireInputs();
-  loadState();
-}
-// ====================== IMAGE CAPTURE ======================
-async function captureCard(){
-  const card   = document.getElementById("card");
-  const scroll = document.querySelector(".scroll-x");
-  const table  = document.getElementById("scoreTable");
-
-  // Save styles
-  const oldScrollOverflowX = scroll.style.overflowX;
-  const oldScrollWidth     = scroll.style.width;
-  const oldCardTransform   = card.style.transform;
-  const oldCardWidth       = card.style.width;
-
-  // Disable scale so we capture true size
-  card.style.transform = "none";
-
-  // Expand scroll area
-  scroll.style.overflowX = "visible";
-  scroll.style.width = table.scrollWidth + "px";
-
-  // Expand card width
-  card.style.width = (table.scrollWidth + 20) + "px";
-
-  try{
-    const rawCanvas = await html2canvas(card, {
-      scale: 2,
-      backgroundColor: "#efe7d7",
-      useCORS: true
-    });
-
-    // 🔥 PHONE-FRIENDLY WIDTH (KEY FIX)
-    const TARGET_WIDTH = 1080; // perfect for phones
-
-    const ratio = TARGET_WIDTH / rawCanvas.width;
-    const finalCanvas = document.createElement("canvas");
-
-    finalCanvas.width = TARGET_WIDTH;
-    finalCanvas.height = rawCanvas.height * ratio;
-
-    const ctx = finalCanvas.getContext("2d");
-    ctx.drawImage(rawCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
-
-    return finalCanvas;
-
-  } finally {
-    // Restore styles
-    scroll.style.overflowX = oldScrollOverflowX;
-    scroll.style.width = oldScrollWidth;
-    card.style.transform = oldCardTransform;
-    card.style.width = oldCardWidth;
-  }
-}
-function wireSaveShare(){
-
-  const saveBtn = document.getElementById("saveImg");
-  const shareBtn = document.getElementById("share");
-
-  if(saveBtn){
-    saveBtn.addEventListener("click", async ()=>{
-      try{
-        const canvas = await captureCard();
-        const dataUrl = canvas.toDataURL("image/png");
-
-        const link = document.createElement("a");
-        link.href = dataUrl;
-        link.download = "cypresswood-scorecard.png";
-        link.click();
-      } catch(e){
-        alert("Save failed.");
+      // Cypress has an extra silver row at bottom section in your photo
+      if (course.extraRow) {
+        // keep it below players like the printed card style (we add it near bottom)
       }
-    });
-  }
 
-  if(shareBtn){
-    shareBtn.addEventListener("click", async ()=>{
-      try{
-        const canvas = await captureCard();
-        const blob = await new Promise(res => canvas.toBlob(res,"image/png"));
-        const file = new File([blob], "cypresswood-scorecard.png", {type:"image/png"});
+      tbody.appendChild(buildParRow(course));
+      tbody.appendChild(buildHcpRow(course));
 
-        if(navigator.canShare && navigator.canShare({files:[file]})){
-          await navigator.share({files:[file], title:"Scorecard"});
-        } else {
-          alert("Sharing not supported here. Try Save as Image.");
+      for (let i=0;i<players;i++) tbody.appendChild(buildPlayerRow(i));
+
+      // optional extra row (Cypress silver) then copper bottom
+      if (course.extraRow) tbody.appendChild(buildYardageRow(course.extraRow));
+      tbody.appendChild(buildYardageRow(course.bottomRow));
+
+      wireInputs();
+      loadState();
+    }
+
+    // ====================== FULL-WIDTH IMAGE CAPTURE ======================
+    function captureFullCardCanvas(){
+      const card = document.getElementById("card");
+      const scroll = document.querySelector(".scroll-x");
+      const table = document.getElementById("scoreTable");
+
+      // Expand scroll container so capture includes full table width
+      const oldOverflowX = scroll.style.overflowX;
+      const oldOverflowY = scroll.style.overflowY;
+      const oldWidth = scroll.style.width;
+      const oldCardWidth = card.style.width;
+
+      scroll.style.overflowX = "visible";
+      scroll.style.overflowY = "visible";
+      scroll.style.width = table.scrollWidth + "px";
+      card.style.width = (table.scrollWidth + 40) + "px";
+
+      return html2canvas(card, {
+        scale: 2,
+        backgroundColor: null,
+        windowWidth: card.scrollWidth,
+        windowHeight: card.scrollHeight
+      }).finally(() => {
+        scroll.style.overflowX = oldOverflowX;
+        scroll.style.overflowY = oldOverflowY;
+        scroll.style.width = oldWidth;
+        card.style.width = oldCardWidth;
+      });
+    }
+
+    function wireButtons(){
+      const saveBtn = document.getElementById("saveImg");
+      const shareBtn = document.getElementById("share");
+      const clearBtn = document.getElementById("clear");
+
+      saveBtn.addEventListener("click", async () => {
+        try{
+          const canvas = await captureFullCardCanvas();
+          canvas.toBlob(async (blob) => {
+            const file = new File([blob], "scorecard.png", { type: "image/png" });
+
+            if (navigator.canShare && navigator.canShare({ files:[file] })) {
+              await navigator.share({ files:[file], title:"Scorecard" });
+              return;
+            }
+
+            const dataUrl = canvas.toDataURL("image/png");
+            const w = window.open();
+            if (w) w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
+            else alert("Pop-up blocked. Try Share instead.");
+          }, "image/png");
+        } catch(e){
+          alert("Save failed. Try again.");
         }
-      } catch(e){
-        alert("Share failed.");
+      });
+
+      shareBtn.addEventListener("click", async () => {
+        try{
+          const canvas = await captureFullCardCanvas();
+          const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+          const file = new File([blob], "scorecard.png", { type:"image/png" });
+
+          if (navigator.canShare && navigator.canShare({ files:[file] })){
+            await navigator.share({ files:[file], title:"Scorecard" });
+          } else {
+            alert("Sharing not supported here. Use Save as Image.");
+          }
+        } catch(e){
+          alert("Share failed. Use Save as Image.");
+        }
+      });
+
+      clearBtn.addEventListener("click", () => {
+        if(!confirm("Clear all scores for this course?")) return;
+        document.querySelectorAll(".score-input").forEach(i => i.value = "");
+        document.querySelectorAll(".player-name").forEach(i => i.value = "");
+        clearState();
+        for (let i=0;i<players;i++) recalcPlayer(i);
+      });
+    }
+
+    // ====================== COURSE SWITCH (Option B: SWIPE) ======================
+    function setCourse(courseId){
+      if (!COURSES[courseId]) return;
+      currentCourseId = courseId;
+      courseSelect.value = courseId;
+      build();
+    }
+
+    courseSelect.addEventListener("change", () => setCourse(courseSelect.value));
+
+    // Swipe left/right on the course bar
+    let touchStartX = null;
+    swipeZone.addEventListener("touchstart", (e) => {
+      touchStartX = e.changedTouches[0].clientX;
+    }, { passive:true });
+
+    swipeZone.addEventListener("touchend", (e) => {
+      if (touchStartX === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      touchStartX = null;
+      if (Math.abs(dx) < 50) return;
+
+      if (dx < 0) {
+        // swipe left -> next
+        setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
+      } else {
+        // swipe right -> previous
+        setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
       }
-    });
-  }
-}
+    }, { passive:true });
 
-// ====================== BUTTONS ======================
-function wireButtons(){
-  document.getElementById("clear")
-    .addEventListener("click",()=>{
-      if(!confirm("Clear all scores?")) return;
-      document.querySelectorAll(".score-input,.player-name")
-        .forEach(el=>el.value="");
-      clearState();
-      for(let i=0;i<players;i++) recalcPlayer(i);
-    });
-}
-
-// ====================== INIT ======================
-build();
-wireButtons();
-wireSaveShare();
+    // ====================== INIT ======================
+    wireButtons();
+    build();
   </script>
-  <script src="./pwa.js"></script>
 
+  <script src="./pwa.js"></script>
 </body>
 </html>
