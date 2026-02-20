@@ -1,4 +1,4 @@
-const CACHE_NAME = "cypresswood-scorecard-v3";
+const CACHE_NAME = "cypresswood-scorecard-v3"; // <-- bump this (v4, v5, etc.)
 
 const CORE_ASSETS = [
   "./",
