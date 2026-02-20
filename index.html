@@ -74,6 +74,9 @@
       background: var(--card);
       border-top: 1px solid rgba(0,0,0,.08);
       border-bottom: 1px solid rgba(0,0,0,.08);
+      user-select:none;
+      -webkit-user-select:none;
+      touch-action: pan-y; /* allow vertical scroll, handle horizontal swipe ourselves */
     }
     .course-title{
       font-family:'Cinzel', serif;
@@ -276,6 +279,7 @@
   <div class="wrap">
     <div class="card" id="card">
 
+      <!-- header switches by course -->
       <img id="courseHeader" class="header-img" src="./assets/cypresswood_header.png" alt="Scorecard Header" />
 
       <div class="coursebar" id="courseSwipeZone">
@@ -321,69 +325,76 @@
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
-    // ====================== COURSES ======================
-    // Tradition (your working data)
+    // ====================== HEADER IMAGES ======================
+    const COURSE_HEADERS = {
+      tradition: "./assets/cypresswood_header.png",
+      cypress: "./assets/cypress_header.png"
+    };
+
+    function setCourseHeader(courseKey){
+      const img = document.getElementById("courseHeader");
+      if(!img) return;
+      img.src = COURSE_HEADERS[courseKey] || COURSE_HEADERS.tradition;
+      img.alt = courseKey === "cypress" ? "Cypress Course Header" : "Tradition Course Header";
+    }
+
+    // ====================== COURSES DATA ======================
     const COURSE_TRADITION = {
       id: "tradition",
       title: "Tradition Course",
-      headerImg: "./assets/cypresswood_header.png",
       teeRows: [
-        { key:"black",  css:"row-black",  label:"Black Tees",
+        { css:"row-black",  label:"Black Tees",
           front:[465,384,203,448,606,376,528,196,453], out:3657,
           back:[405,256,545,464,185,394,472,318,546], inn:3563, tot:7220
         },
-        { key:"blue",   css:"row-blue",   label:"Blue Tees",
+        { css:"row-blue",   label:"Blue Tees",
           front:[373,356,195,422,565,343,508,169,409], out:3340,
           back:[370,211,518,423,169,357,439,291,520], inn:3298, tot:6638
         },
-        { key:"white",  css:"row-white",  label:"White Tees",
+        { css:"row-white",  label:"White Tees",
           front:[348,328,169,398,547,311,482,169,394], out:3146,
           back:[348,187,468,395,151,328,378,265,496], inn:3016, tot:6162
         },
-        { key:"silver", css:"row-silver", label:"Silver Tees",
+        { css:"row-silver", label:"Silver Tees",
           front:[348,328,129,528,461,277,482,107,305], out:2765,
           back:[315,153,413,348,151,328,318,215,435], inn:2676, tot:5441
-        },
+        }
       ],
       parFront:[4,4,3,4,5,4,5,3,4],
       parBack: [4,3,5,4,3,4,4,4,5],
       hcpFront:[7,17,11,1,3,13,9,15,5],
       hcpBack: [14,8,10,6,18,12,2,16,4],
+      extraRow: null,
       bottomRow: { css:"row-copper", label:"Copper Tees",
         front:[296,287,117,242,411,277,388,107,284], out:2409,
         back:[315,131,400,318,75,245,291,215,386], inn:2376, tot:4785
       }
     };
 
-    // Cypress (data read from your correct scorecard image)
     const COURSE_CYPRESS = {
       id: "cypress",
       title: "Cypress Course",
-      headerImg: "./assets/cypresswood_header.png", // swap later if you upload a Cypress header image
       teeRows: [
-        { key:"blue", css:"row-blue", label:"Blue",
+        { css:"row-blue", label:"Blue",
           front:[514,396,387,482,486,182,417,189,417], out:3472,
           back:[416,409,388,349,149,566,351,465,441], inn:3134, tot:6006
         },
-        { key:"forest", css:"row-forest", label:"Forest",
+        { css:"row-forest", label:"Forest",
           front:[485,335,396,376,151,361,186,727,552], out:3053,
-          back:[381,368,354,330,177,549,473,873, -1], inn:3713, tot:6168
-        },
+          back:[381,368,354,330,177,549,473,873,null], inn:3713, tot:6168
+        }
       ],
-      // NOTE: one Cypress row cell in the photo is hard to read at small size in the last back-9 slot.
-      // Your image shows Forest back includes: 381,368,354,330,177,549,473,873,???.
-      // I left the last value as -1 so it renders blank. Replace -1 with the correct number once you confirm it.
       parFront:[5,4,4,4,3,4,3,5,4],
       parBack: [4,4,4,4,3,5,3,5,4],
       hcpFront:[3,13,11,7,15,9,17,1,5],
       hcpBack: [6,10,12,14,18,2,16,4,8],
-      bottomRow: { css:"row-copper", label:"Copper",
-        front:[401,668,287,260,779,105,289,105,445], out:3638,
-        back:[277,315,249,92,445,293,575,854,232], inn:2856, tot:4744
-      },
       extraRow: { css:"row-silver", label:"Silver",
         front:[456,305,305,357,119,557,137,493,321], out:2861,
         back:[277,315,519,320,117,515,127,461,342], inn:2793, tot:5694
+      },
+      bottomRow: { css:"row-copper", label:"Copper",
+        front:[401,668,287,260,779,105,289,105,445], out:3638,
+        back:[277,315,249,92,445,293,575,854,232], inn:2856, tot:4744
       }
     };
 
@@ -396,31 +407,12 @@
     const holesFront = [1,2,3,4,5,6,7,8,9];
     const holesBack  = [10,11,12,13,14,15,16,17,18];
     const players = 6;
-    // ===== Course header images =====
-const COURSE_HEADERS = {
-  tradition: "./assets/cypresswood_header.png",
-  cypress: "./assets/cypress_header.png"
-};
-
-function setCourseHeader(courseKey){
-  const img = document.getElementById("courseHeader");
-  if(!img) return;
-
-  const src = COURSE_HEADERS[courseKey] || COURSE_HEADERS.tradition;
-  img.src = src;
-
-  img.alt =
-    courseKey === "cypress"
-      ? "Cypress Course Header"
-      : "Tradition Course Header";
-}
 
     // ====================== DOM ======================
     const tbody = document.getElementById("tbody");
     const hdrRow = document.getElementById("hdrRow");
     const courseSelect = document.getElementById("courseSelect");
     const courseTitle = document.getElementById("courseTitle");
-    const headerImg = document.getElementById("headerImg");
     const swipeZone = document.getElementById("courseSwipeZone");
 
     // ====================== STATE ======================
@@ -432,8 +424,8 @@ function setCourseHeader(courseKey){
 
     function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
     function yardCell(v){
-      if (v === -1) return `<td class="yard"></td>`;
-      return `<td class="yard">${v ?? ""}</td>`;
+      if (v === null || v === undefined) return `<td class="yard"></td>`;
+      return `<td class="yard">${v}</td>`;
     }
 
     // ====================== BUILD TABLE ======================
@@ -611,28 +603,19 @@ function setCourseHeader(courseKey){
     function build(){
       const course = COURSES[currentCourseId];
 
-      // header UI
+      // UI
       courseTitle.textContent = course.title;
-      headerImg.src = course.headerImg;
 
-      // table
+      // Table
       tbody.innerHTML = "";
       buildHeader();
 
-      // top tee rows
       course.teeRows.forEach(r => tbody.appendChild(buildYardageRow(r)));
-
-      // Cypress has an extra silver row at bottom section in your photo
-      if (course.extraRow) {
-        // keep it below players like the printed card style (we add it near bottom)
-      }
-
       tbody.appendChild(buildParRow(course));
       tbody.appendChild(buildHcpRow(course));
 
       for (let i=0;i<players;i++) tbody.appendChild(buildPlayerRow(i));
 
-      // optional extra row (Cypress silver) then copper bottom
       if (course.extraRow) tbody.appendChild(buildYardageRow(course.extraRow));
       tbody.appendChild(buildYardageRow(course.bottomRow));
 
@@ -646,7 +629,6 @@ function setCourseHeader(courseKey){
       const scroll = document.querySelector(".scroll-x");
       const table = document.getElementById("scoreTable");
 
-      // Expand scroll container so capture includes full table width
       const oldOverflowX = scroll.style.overflowX;
       const oldOverflowY = scroll.style.overflowY;
       const oldWidth = scroll.style.width;
@@ -721,18 +703,17 @@ function setCourseHeader(courseKey){
       });
     }
 
-    // ====================== COURSE SWITCH (Option B: SWIPE) ======================
+    // ====================== COURSE SWITCH (DROPDOWN + SWIPE BAR) ======================
     function setCourse(courseId){
       if (!COURSES[courseId]) return;
       currentCourseId = courseId;
       courseSelect.value = courseId;
-      setCourseHeader(CourseId);
+      setCourseHeader(courseId);
       build();
     }
 
     courseSelect.addEventListener("change", () => setCourse(courseSelect.value));
 
-    // Swipe left/right on the course bar
     let touchStartX = null;
     swipeZone.addEventListener("touchstart", (e) => {
       touchStartX = e.changedTouches[0].clientX;
@@ -745,20 +726,19 @@ function setCourseHeader(courseKey){
       if (Math.abs(dx) < 50) return;
 
       if (dx < 0) {
-        // swipe left -> next
         setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
       } else {
-        // swipe right -> previous
         setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
       }
     }, { passive:true });
 
     // ====================== INIT ======================
     wireButtons();
-    build();
     setCourseHeader(currentCourseId);
+    build();
   </script>
 
+  <!-- Service worker register (your existing pwa.js file) -->
   <script src="./pwa.js"></script>
 </body>
 </html>
