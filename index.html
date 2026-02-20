@@ -503,13 +503,46 @@ function build(){
 }
 // ====================== IMAGE CAPTURE ======================
 async function captureCard(){
-  const card = document.getElementById("card");
+  const card   = document.getElementById("card");
+  const scroll = document.querySelector(".scroll-x");
+  const table  = document.getElementById("scoreTable");
 
-  return html2canvas(card, {
-    scale: 2,
-    backgroundColor: null
-  });
-}
+  // Save current inline styles so we can restore them
+  const oldScrollOverflowX = scroll.style.overflowX;
+  const oldScrollWidth     = scroll.style.width;
+
+  const oldCardTransform   = card.style.transform;
+  const oldCardWidth       = card.style.width;
+
+  // Also handle CSS transform scale coming from stylesheet:
+  // temporarily disable transform by setting inline transform to none
+  card.style.transform = "none";
+
+  // Expand scroll area so html2canvas can "see" the full table
+  scroll.style.overflowX = "visible";
+  scroll.style.width = table.scrollWidth + "px";
+
+  // Make card wide enough to include the full table (add a little buffer)
+  card.style.width = (table.scrollWidth + 6) + "px";
+
+  try{
+    const canvas = await html2canvas(card, {
+      scale: 2,
+      backgroundColor: null,
+      useCORS: true,
+      windowWidth: card.scrollWidth,
+      windowHeight: card.scrollHeight
+    });
+    return canvas;
+  } finally {
+    // Restore styles
+    scroll.style.overflowX = oldScrollOverflowX;
+    scroll.style.width = oldScrollWidth;
+
+    card.style.transform = oldCardTransform;
+    card.style.width = oldCardWidth;
+  }
+} 
 
 function wireSaveShare(){
 
