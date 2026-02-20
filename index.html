@@ -507,43 +507,53 @@ async function captureCard(){
   const scroll = document.querySelector(".scroll-x");
   const table  = document.getElementById("scoreTable");
 
-  // Save current inline styles so we can restore them
+  // Save current styles
   const oldScrollOverflowX = scroll.style.overflowX;
   const oldScrollWidth     = scroll.style.width;
-
   const oldCardTransform   = card.style.transform;
   const oldCardWidth       = card.style.width;
 
-  // Also handle CSS transform scale coming from stylesheet:
-  // temporarily disable transform by setting inline transform to none
+  // 🔥 disable scale so capture is true size
   card.style.transform = "none";
 
-  // Expand scroll area so html2canvas can "see" the full table
+  // 🔥 expand scroll area to full table width
   scroll.style.overflowX = "visible";
   scroll.style.width = table.scrollWidth + "px";
 
-  // Make card wide enough to include the full table (add a little buffer)
-  card.style.width = (table.scrollWidth + 6) + "px";
+  // 🔥 expand card to match table
+  card.style.width = (table.scrollWidth + 20) + "px";
 
   try{
-    const canvas = await html2canvas(card, {
+    const rawCanvas = await html2canvas(card, {
       scale: 2,
       backgroundColor: null,
       useCORS: true,
       windowWidth: card.scrollWidth,
       windowHeight: card.scrollHeight
     });
-    return canvas;
+
+    // ✅ NEW: scale down to phone-friendly width
+    const MAX_WIDTH = 1400; // keeps image readable on phones
+    if (rawCanvas.width <= MAX_WIDTH) return rawCanvas;
+
+    const ratio = MAX_WIDTH / rawCanvas.width;
+    const finalCanvas = document.createElement("canvas");
+    finalCanvas.width = MAX_WIDTH;
+    finalCanvas.height = rawCanvas.height * ratio;
+
+    const ctx = finalCanvas.getContext("2d");
+    ctx.drawImage(rawCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
+
+    return finalCanvas;
+
   } finally {
-    // Restore styles
+    // restore styles
     scroll.style.overflowX = oldScrollOverflowX;
     scroll.style.width = oldScrollWidth;
-
     card.style.transform = oldCardTransform;
     card.style.width = oldCardWidth;
   }
-} 
-
+}
 function wireSaveShare(){
 
   const saveBtn = document.getElementById("saveImg");
