@@ -35,8 +35,24 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
+  // Only handle same-origin
   if (url.origin !== location.origin) return;
 
+  // ✅ NETWORK-FIRST for page navigation
+  if (req.mode === "navigate") {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          return res;
+        })
+        .catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // ✅ Cache-first for assets
   event.respondWith(
     caches.match(req).then((cached) => {
       return (
@@ -47,7 +63,7 @@ self.addEventListener("fetch", (event) => {
             caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
           }
           return res;
-        }).catch(() => cached)
+        })
       );
     })
   );
