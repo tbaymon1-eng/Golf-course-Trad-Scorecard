@@ -67,7 +67,7 @@
       background: var(--card);
     }
 
-    /* Join Screen */
+    /* Tournament Join Screen */
     #joinScreen{
       display:none;
       padding:12px 10px;
@@ -225,7 +225,6 @@
       -webkit-appearance: none;
       appearance: none;
     }
-
     /* Remove grey focus overlay — printed look */
     .score-input:focus,
     .player-name:focus{
@@ -282,6 +281,13 @@
       border-color:#7a2b20;
       grid-column: 1 / -1;
     }
+
+    /* Refresh app button style (small) */
+    .mini{
+      font-size: 14px;
+      padding: 10px 10px;
+      opacity: .95;
+    }
   </style>
 </head>
 
@@ -289,10 +295,9 @@
   <div class="wrap">
     <div class="card" id="card">
 
-      <!-- Header switches per course -->
       <img id="courseHeader" class="header-img" src="./assets/cypresswood_header.png" alt="Scorecard Header" />
 
-      <!-- Tournament Join Screen (Screen B) -->
+      <!-- Tournament Join Screen -->
       <div id="joinScreen">
         <div style="font-family:Cinzel,serif; font-weight:900; font-size:16px;">Join Tournament</div>
         <div id="joinMeta" style="margin-top:6px; font-size:13px; opacity:.85;"></div>
@@ -307,13 +312,13 @@
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <label style="font-weight:900; font-size:13px;">
               Group (optional)
-              <input id="joinGroup" inputmode="numeric"
+              <input id="joinGroup"
                 style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
             </label>
 
             <label style="font-weight:900; font-size:13px;">
               Start Hole (optional)
-              <input id="joinStartHole" inputmode="numeric" placeholder="1"
+              <input id="joinStartHole" placeholder="1"
                 style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
             </label>
           </div>
@@ -328,7 +333,6 @@
         </div>
       </div>
 
-      <!-- Course switch -->
       <div class="coursebar" id="courseSwipeZone">
         <div>
           <div class="course-title" id="courseTitle">Tradition Course</div>
@@ -366,36 +370,39 @@
 
         <button id="share">Share</button>
         <button class="danger" id="clear">Clear Card</button>
+
+        <!-- NEW: easy refresh without hard-reset safari -->
+        <button class="mini" id="refreshApp">Refresh App (update)</button>
       </div>
 
     </div>
   </div>
+
   <!-- html2canvas -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-  <!-- Firebase (live tournament sync) -->
+  <!-- App logic + Firebase -->
   <script type="module">
+    // ====================== FIREBASE IMPORTS ======================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getFirestore,
       doc,
       setDoc,
-      getDoc,
-      onSnapshot,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // 🔴 TODO: REPLACE with your real Firebase config
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
-  authDomain: "cypresswood-tournaments.firebaseapp.com",
-  projectId: "cypresswood-tournaments",
-  storageBucket: "cypresswood-tournaments.firebasestorage.app",
-  messagingSenderId: "162441374966",
-  appId: "1:162441374966:web:157285a2d5c39db1e810d7",
-  measurementId: "G-HL6Y9CLV8K"
-};
+    // ====================== FIREBASE CONFIG ======================
+    // IMPORTANT: this must be valid JS (no stray "/" or broken comment lines)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
+      authDomain: "cypresswood-tournaments.firebaseapp.com",
+      projectId: "cypresswood-tournaments",
+      storageBucket: "cypresswood-tournaments.firebasestorage.app",
+      messagingSenderId: "162441374966",
+      appId: "1:162441374966:web:157285a2d5c39db1e810d7",
+      measurementId: "G-HL6Y9CLV8K"
+    };
 
     // ===== Firebase init =====
     let db = null;
@@ -403,11 +410,10 @@ const firebaseConfig = {
       const app = initializeApp(firebaseConfig);
       db = getFirestore(app);
     }catch(e){
-      console.warn("Firebase not configured yet.");
+      console.warn("Firebase init failed (ok if not set yet):", e);
     }
 
     // ====================== COURSES ======================
-
     const COURSE_TRADITION = {
       id: "tradition",
       title: "Tradition Course",
@@ -474,19 +480,14 @@ const firebaseConfig = {
       }
     };
 
-    const COURSES = {
-      tradition: COURSE_TRADITION,
-      cypress: COURSE_CYPRESS
-    };
+    const COURSES = { tradition: COURSE_TRADITION, cypress: COURSE_CYPRESS };
 
     // ====================== CONFIG ======================
-
     const holesFront = [1,2,3,4,5,6,7,8,9];
     const holesBack  = [10,11,12,13,14,15,16,17,18];
     const players = 6;
 
     // ====================== DOM ======================
-
     const tbody = document.getElementById("tbody");
     const hdrRow = document.getElementById("hdrRow");
     const courseSelect = document.getElementById("courseSelect");
@@ -503,15 +504,16 @@ const firebaseConfig = {
     const joinGroup = document.getElementById("joinGroup");
     const joinStartHole = document.getElementById("joinStartHole");
 
-    // ====================== STATE ======================
+    const refreshBtn = document.getElementById("refreshApp");
 
+    // ====================== STATE ======================
     let currentCourseId = "tradition";
+
+    // Tournament state
     let tournamentId = null;
-    let tournamentDoc = null;
     let isTournamentMode = false;
 
     // ====================== HELPERS ======================
-
     function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
 
     function yardCell(v){
@@ -523,54 +525,31 @@ const firebaseConfig = {
       const course = COURSES[courseKey];
       if(!courseHeaderImg || !course) return;
       courseHeaderImg.src = course.headerImg;
+      courseHeaderImg.alt = courseKey === "cypress" ? "Cypress Header" : "Tradition Header";
     }
 
     function storageKeyFor(courseId){
-      return `scorecard_state_${courseId}_v2`;
+      return `scorecard_state_${courseId}_v3`;
     }
 
-    // ====================== TOURNAMENT URL CHECK ======================
+    // randomUUID fallback (older iOS can choke)
+    function makeDeviceId(){
+      const existing = localStorage.getItem("t_device_id");
+      if (existing) return existing;
 
-    function checkTournamentFromURL(){
-      const params = new URLSearchParams(location.search);
-      const tId = params.get("t");
+      let id = "";
+      try{
+        id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : "";
+      }catch(e){}
 
-      if (!tId) return;
-
-      tournamentId = tId;
-      isTournamentMode = true;
-
-      joinScreen.style.display = "block";
-      joinMeta.textContent = `Tournament ID: ${tournamentId}`;
-
-      if (db){
-        tournamentDoc = doc(db, "tournaments", tournamentId);
+      if(!id){
+        id = "dev_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
       }
+      localStorage.setItem("t_device_id", id);
+      return id;
     }
 
-    // ====================== JOIN BUTTON ======================
-
-    joinBtn.addEventListener("click", async () => {
-      if (!tournamentId) return;
-
-      const playerName = joinName.value.trim() || "Player";
-
-      if (tournamentDoc && db){
-        await setDoc(tournamentDoc, {
-          lastJoin: serverTimestamp(),
-          lastPlayer: playerName
-        }, { merge:true });
-      }
-
-      joinScreen.style.display = "none";
-    });
-
-    joinCancel.addEventListener("click", () => {
-      joinScreen.style.display = "none";
-      isTournamentMode = false;
-    });
-        // ====================== BUILD TABLE ======================
-
+    // ====================== TABLE BUILD ======================
     function buildHeader(){
       hdrRow.innerHTML = `
         <th class="label">Hole</th>
@@ -603,7 +582,7 @@ const firebaseConfig = {
     }
 
     function buildParRow(course){
-      const out = sum(course.parFront), inn = sum(course.parBack), tot = out+inn;
+      const out = sum(course.parFront), inn = sum(course.parBack), tot = out + inn;
       const tr = document.createElement("tr");
       tr.className = "row-par";
       tr.innerHTML = `
@@ -670,22 +649,28 @@ const firebaseConfig = {
 
     function recalcPlayer(i){
       let out=0, inn=0;
+
       for (const h of holesFront){
         const v = document.getElementById(`p${i}_h${h}`)?.value || "";
-        out += parseInt(v, 10) || 0;   // totals ignore letters/symbols
+        out += parseInt(v, 10) || 0; // totals ignore letters/symbols
       }
       for (const h of holesBack){
         const v = document.getElementById(`p${i}_h${h}`)?.value || "";
         inn += parseInt(v, 10) || 0;
       }
+
       const tot = out + inn;
-      document.querySelector(`[data-out="${i}"]`).textContent = out;
-      document.querySelector(`[data-in="${i}"]`).textContent = inn;
-      document.querySelector(`[data-tot="${i}"]`).textContent = tot;
+
+      const outEl = document.querySelector(`[data-out="${i}"]`);
+      const inEl  = document.querySelector(`[data-in="${i}"]`);
+      const totEl = document.querySelector(`[data-tot="${i}"]`);
+
+      if(outEl) outEl.textContent = out;
+      if(inEl) inEl.textContent = inn;
+      if(totEl) totEl.textContent = tot;
     }
 
     // ====================== LOCAL STORAGE ======================
-
     function saveState(){
       const key = storageKeyFor(currentCourseId);
       const state = {
@@ -699,7 +684,6 @@ const firebaseConfig = {
       };
       localStorage.setItem(key, JSON.stringify(state));
 
-      // if tournament mode, push live (debounced)
       if (isTournamentMode) scheduleTournamentPush();
     }
 
@@ -724,18 +708,18 @@ const firebaseConfig = {
         });
 
         for(let i=0;i<players;i++) recalcPlayer(i);
-      } catch(e){}
+      }catch(e){}
     }
 
     function clearState(){
-      const key = storageKeyFor(currentCourseId);
-      localStorage.removeItem(key);
+      localStorage.removeItem(storageKeyFor(currentCourseId));
     }
 
     function wireInputs(){
       for (let i=0;i<players;i++){
         for (let h=1;h<=18;h++){
           const el = document.getElementById(`p${i}_h${h}`);
+          if(!el) continue; // prevents crash -> table disappears
           el.addEventListener("input", () => {
             el.value = (el.value || "").slice(0,3); // allow letters/symbols too
             recalcPlayer(i);
@@ -752,7 +736,6 @@ const firebaseConfig = {
 
     function build(){
       const course = COURSES[currentCourseId];
-
       courseTitle.textContent = course.title;
       courseSelect.value = currentCourseId;
       setCourseHeader(currentCourseId);
@@ -774,11 +757,10 @@ const firebaseConfig = {
     }
 
     // ====================== COURSE SWITCH ======================
-
     function setCourse(courseId){
       if (!COURSES[courseId]) return;
 
-      // Tournament mode (simple): lock to current course once joined
+      // Tournament mode MVP: once joined, keep course locked
       if (isTournamentMode && joinScreen.style.display === "none" && courseId !== currentCourseId){
         return;
       }
@@ -789,7 +771,7 @@ const firebaseConfig = {
 
     courseSelect.addEventListener("change", () => setCourse(courseSelect.value));
 
-    // Swipe left/right on course bar
+    // swipe left/right on coursebar
     let touchStartX = null;
     swipeZone.addEventListener("touchstart", (e) => {
       touchStartX = e.changedTouches[0].clientX;
@@ -801,15 +783,11 @@ const firebaseConfig = {
       touchStartX = null;
       if (Math.abs(dx) < 50) return;
 
-      if (dx < 0) {
-        setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
-      } else {
-        setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
-      }
+      if (dx < 0) setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
+      else        setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
     }, { passive:true });
 
-    // ====================== FULL-WIDTH IMAGE CAPTURE ======================
-
+    // ====================== SAVE/SHARE IMAGE ======================
     function captureFullCardCanvas(){
       const card = document.getElementById("card");
       const scroll = document.querySelector(".scroll-x");
@@ -838,7 +816,95 @@ const firebaseConfig = {
       });
     }
 
-    // ====================== TOURNAMENT LIVE PUSH ======================
+    function wireButtons(){
+      const saveBtn = document.getElementById("saveImg");
+      const shareBtn = document.getElementById("share");
+      const clearBtn = document.getElementById("clear");
+
+      saveBtn.addEventListener("click", async () => {
+        try{
+          const canvas = await captureFullCardCanvas();
+          canvas.toBlob(async (blob) => {
+            const file = new File([blob], "scorecard.png", { type: "image/png" });
+
+            if (navigator.canShare && navigator.canShare({ files:[file] })) {
+              await navigator.share({ files:[file], title:"Scorecard" });
+              return;
+            }
+
+            const dataUrl = canvas.toDataURL("image/png");
+            const w = window.open();
+            if (w) w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
+            else alert("Pop-up blocked. Try Share instead.");
+          }, "image/png");
+        }catch(e){
+          alert("Save failed. Try again.");
+        }
+      });
+
+      shareBtn.addEventListener("click", async () => {
+        try{
+          const canvas = await captureFullCardCanvas();
+          const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+          const file = new File([blob], "scorecard.png", { type:"image/png" });
+
+          if (navigator.canShare && navigator.canShare({ files:[file] })){
+            await navigator.share({ files:[file], title:"Scorecard" });
+          } else {
+            alert("Sharing not supported here. Use Save as Image.");
+          }
+        }catch(e){
+          alert("Share failed. Use Save as Image.");
+        }
+      });
+
+      clearBtn.addEventListener("click", () => {
+        if(!confirm("Clear all scores for this course?")) return;
+        document.querySelectorAll(".score-input").forEach(i => i.value = "");
+        document.querySelectorAll(".player-name").forEach(i => i.value = "");
+        clearState();
+        for (let i=0;i<players;i++) recalcPlayer(i);
+        if (isTournamentMode) scheduleTournamentPush();
+      });
+    }
+
+    // ====================== TOURNAMENT MODE (MVP) ======================
+    function checkTournamentFromURL(){
+      const params = new URLSearchParams(location.search);
+      const tId = params.get("t");
+      if (!tId) return;
+
+      tournamentId = tId;
+      isTournamentMode = true;
+
+      joinScreen.style.display = "block";
+      joinMeta.textContent = `Tournament ID: ${tournamentId}`;
+    }
+
+    joinBtn.addEventListener("click", async () => {
+      if (!tournamentId) return;
+
+      const playerName = joinName.value.trim() || "Player";
+
+      // Hide join screen, keep tournament mode active
+      joinScreen.style.display = "none";
+
+      // Send a tiny “joined” ping (optional)
+      if (db){
+        try{
+          const tRef = doc(db, "tournaments", tournamentId);
+          await setDoc(tRef, { lastJoin: serverTimestamp(), lastPlayer: playerName }, { merge:true });
+        }catch(e){}
+      }
+
+      scheduleTournamentPush();
+    });
+
+    joinCancel.addEventListener("click", () => {
+      joinScreen.style.display = "none";
+      isTournamentMode = false;
+      tournamentId = null;
+    });
 
     function readScoresFromDOM(){
       const names = Array.from(document.querySelectorAll(".player-name")).map(i => i.value || "");
@@ -866,89 +932,67 @@ const firebaseConfig = {
     async function pushTournamentNow(){
       if (!db || !tournamentId) return;
 
-      // MVP identity (device-based)
-      const deviceId = localStorage.getItem("t_device_id") || crypto.randomUUID();
-      localStorage.setItem("t_device_id", deviceId);
-
+      const deviceId = makeDeviceId();
       const payload = readScoresFromDOM();
 
+      const playerName = (joinName.value || payload.names[0] || "Player").trim();
+      const group = (joinGroup.value || "").trim();
+      const startHole = (joinStartHole.value || "").trim();
+
       const subRef = doc(db, "tournaments", tournamentId, "submissions", deviceId);
-      await setDoc(subRef, {
-        deviceId,
-        courseId: currentCourseId,
-        playerName: joinName.value.trim() || payload.names[0] || "Player",
-        group: joinGroup.value.trim() || "",
-        startHole: joinStartHole.value.trim() || "",
-        names: payload.names,
-        scores: payload.scores,
-        totals: payload.totals,
-        updatedAt: serverTimestamp()
-      }, { merge:true });
+
+      try{
+        await setDoc(subRef, {
+          deviceId,
+          courseId: currentCourseId,
+          playerName,
+          group,
+          startHole,
+          names: payload.names,
+          scores: payload.scores,
+          totals: payload.totals,
+          updatedAt: serverTimestamp()
+        }, { merge:true });
+      }catch(e){
+        // If rules block writes or network down, we just fail quietly
+      }
     }
 
-    // ====================== BUTTONS ======================
-
-    function wireButtons(){
-      const saveBtn = document.getElementById("saveImg");
-      const shareBtn = document.getElementById("share");
-      const clearBtn = document.getElementById("clear");
-
-      saveBtn.addEventListener("click", async () => {
-        try{
-          const canvas = await captureFullCardCanvas();
-          canvas.toBlob(async (blob) => {
-            const file = new File([blob], "scorecard.png", { type: "image/png" });
-
-            if (navigator.canShare && navigator.canShare({ files:[file] })) {
-              await navigator.share({ files:[file], title:"Scorecard" });
-              return;
-            }
-
-            const dataUrl = canvas.toDataURL("image/png");
-            const w = window.open();
-            if (w) w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
-            else alert("Pop-up blocked. Try Share instead.");
-          }, "image/png");
-        } catch(e){
-          alert("Save failed. Try again.");
+    // ====================== REFRESH APP BUTTON ======================
+    // This clears SW + caches without user wiping Safari history.
+    async function hardRefreshApp(){
+      try{
+        if ('serviceWorker' in navigator){
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(r => r.unregister()));
         }
-      });
+      }catch(e){}
 
-      shareBtn.addEventListener("click", async () => {
-        try{
-          const canvas = await captureFullCardCanvas();
-          const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
-          const file = new File([blob], "scorecard.png", { type:"image/png" });
-
-          if (navigator.canShare && navigator.canShare({ files:[file] })){
-            await navigator.share({ files:[file], title:"Scorecard" });
-          } else {
-            alert("Sharing not supported here. Use Save as Image.");
-          }
-        } catch(e){
-          alert("Share failed. Use Save as Image.");
+      try{
+        if (window.caches){
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
         }
-      });
+      }catch(e){}
 
-      clearBtn.addEventListener("click", () => {
-        if(!confirm("Clear all scores for this course?")) return;
-        document.querySelectorAll(".score-input").forEach(i => i.value = "");
-        document.querySelectorAll(".player-name").forEach(i => i.value = "");
-        clearState();
-        for (let i=0;i<players;i++) recalcPlayer(i);
+      // Also bust any local UI “stuck” state if desired:
+      // localStorage.clear();
 
-        if (isTournamentMode) scheduleTournamentPush();
-      });
+      location.reload();
     }
+
+    refreshBtn.addEventListener("click", () => {
+      if(!confirm("Refresh app and pull latest update?")) return;
+      hardRefreshApp();
+    });
 
     // ====================== INIT ======================
-
     wireButtons();
     build();
     checkTournamentFromURL();
   </script>
 
-  <!-- Keep your existing service worker registration file -->
+  <!-- Service worker registration -->
   <script src="./pwa.js"></script>
 </body>
 </html>
