@@ -160,9 +160,12 @@
     }
 
     function baseURL(){
-      // works for GitHub Pages (same origin)
-      return location.origin + location.pathname.replace(/admin\.html.*$/,"");
-    }
+  const url = new URL(location.href);
+  url.hash = "";
+  url.search = "";
+  url.pathname = url.pathname.replace(/\/admin\.html$/,"/");
+  return url.toString();
+}
 
     function buildLinks(id, token){
       const base = baseURL();
