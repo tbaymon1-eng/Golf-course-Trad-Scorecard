@@ -5,34 +5,53 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Tournament Admin</title>
   <meta name="theme-color" content="#7a4a0b">
+
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
 
   <style>
     :root{ --paper:#e9e2d4; --ink:#111; --border:#7a4a0b; --card:#efe7d7; }
+    *{ -webkit-tap-highlight-color: transparent; }
     body{ margin:0; background:var(--paper); color:var(--ink); font-family:Georgia,'Times New Roman',serif; }
     .wrap{ max-width:900px; margin:0 auto; padding:12px; }
     .card{ background:var(--card); border:3px solid var(--border); border-radius:12px; padding:12px; box-shadow:0 8px 22px rgba(0,0,0,.18); }
     h1{ margin:0 0 8px; font-family:Cinzel,serif; font-weight:900; font-size:20px; }
     .row{ display:grid; gap:10px; margin-top:10px; }
-    label{ font-weight:900; font-size:13px; }
+    label{ font-weight:900; font-size:13px; display:block; }
     input, select{
       width:100%; box-sizing:border-box;
       padding:12px 10px; border:2px solid var(--border);
       border-radius:10px; background:#fff; font-size:16px;
+      outline:none;
     }
     button{
       border:2px solid var(--border); background:#e7ddcb;
       border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;
     }
+    button:active{ transform: translateY(1px); }
     .primary{ background:#2f6b2f; color:#fff; }
     .danger{ background:#b6422d; color:#fff; border-color:#7a2b20; }
     .box{
       margin-top:12px; padding:10px; border:2px dashed rgba(0,0,0,.25); border-radius:10px;
       background:rgba(255,255,255,.35);
-      word-break: break-all;
+      word-break: break-word;
     }
     .small{ font-size:13px; opacity:.85; }
     .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .qrRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+      align-items: start;
+    }
+    .qrBox{
+      background: rgba(255,255,255,.55);
+      border: 2px solid rgba(0,0,0,.15);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .qrTitle{ font-weight: 900; font-size: 13px; margin-bottom: 8px; }
+    .qrWrap{ display:flex; justify-content:center; }
   </style>
 </head>
 
@@ -40,7 +59,7 @@
   <div class="wrap">
     <div class="card">
       <h1>Admin Tournament Setup</h1>
-      <div class="small">Create a tournament, then share the Join link + Live Leaderboard link.</div>
+      <div class="small">Create a tournament, then share the Join link (QR) + Live Leaderboard link.</div>
 
       <div class="row" style="grid-template-columns:1fr 1fr;">
         <label>
@@ -86,16 +105,31 @@
       </div>
 
       <div class="box">
-  <div class="small"><b>Join Link (players scan this QR)</b></div>
-  <div id="joinLink" class="mono small"></div>
-  <div id="joinQR" style="margin-top:10px;"></div>
+        <div class="small"><b>Join Link (players scan this QR)</b></div>
+        <div id="joinLink" class="mono small"></div>
 
-  <div style="height:14px"></div>
+        <div style="height:10px"></div>
 
-  <div class="small"><b>Leaderboard Link (organizer view)</b></div>
-  <div id="lbLink" class="mono small"></div>
-  <div id="lbQR" style="margin-top:10px;"></div>
-</div>
+        <div class="small"><b>Leaderboard Link (organizer view)</b></div>
+        <div id="lbLink" class="mono small"></div>
+
+        <div class="qrRow">
+          <div class="qrBox">
+            <div class="qrTitle">Join QR</div>
+            <div id="joinQR" class="qrWrap"></div>
+          </div>
+
+          <div class="qrBox">
+            <div class="qrTitle">Leaderboard QR</div>
+            <div id="lbQR" class="qrWrap"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <button id="copyJoin">Copy Join Link</button>
+        <button id="copyLb">Copy Leaderboard Link</button>
+      </div>
 
       <div class="row">
         <button class="danger" id="closeBtn">Close Tournament (stop accepting updates)</button>
@@ -105,6 +139,9 @@
       </div>
     </div>
   </div>
+
+  <!-- QR library MUST load before the module script -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -146,6 +183,9 @@
 
     const joinLinkEl = $("joinLink");
     const lbLinkEl = $("lbLink");
+    const joinQREl = $("joinQR");
+    const lbQREl = $("lbQR");
+
     const copyJoin = $("copyJoin");
     const copyLb = $("copyLb");
 
@@ -156,25 +196,47 @@
       return s;
     }
 
+    // Safer GitHub Pages base URL (no weird path issues)
     function baseURL(){
-  const url = new URL(location.href);
-  url.hash = "";
-  url.search = "";
-  url.pathname = url.pathname.replace(/\/admin\.html$/,"/");
-  return url.toString();
-}
+      const url = new URL(location.href);
+      url.hash = "";
+      url.search = "";
+      url.pathname = url.pathname.replace(/\/admin\.html$/,"/");
+      return url.toString();
+    }
+
+    function renderQR(el, text){
+      if (!el) return;
+      el.innerHTML = "";
+      if (!text) return;
+
+      // qrcodejs expects a plain element (not display:flex wrapper), so we render in a child
+      const holder = document.createElement("div");
+      el.appendChild(holder);
+
+      new QRCode(holder, {
+        text,
+        width: 180,
+        height: 180,
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
 
     function buildLinks(id, token){
       const base = baseURL();
       const join = `${base}index.html?t=${encodeURIComponent(id)}`;
       const lb = `${base}leaderboard.html?t=${encodeURIComponent(id)}&admin=${encodeURIComponent(token || "")}`;
+
       joinLinkEl.textContent = join;
       lbLinkEl.textContent = lb;
+
+      renderQR(joinQREl, join);
+      renderQR(lbQREl, lb);
     }
 
     async function createTournament(){
       const id = randId(10);
-      const token = randId(18); // basic “admin secret” (MVP)
+      const token = randId(18); // MVP “admin secret”
 
       const payload = {
         name: (tName.value || "Cypresswood Tournament").trim(),
@@ -182,7 +244,7 @@
         date: (tDate.value || "").trim(),
         organizer: (tOrg.value || "").trim(),
         status: "open",        // open | closed
-        adminToken: token,     // MVP gate for admin actions (client-side)
+        adminToken: token,     // MVP gate for admin actions (client-side for now)
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
@@ -218,7 +280,6 @@
       const token = (adminToken.value || "").trim();
       if(!id) return alert("Missing tournament ID.");
 
-      // MVP: require correct token, but enforcement is client-side while in Test Mode
       const snap = await getDoc(doc(db,"tournaments",id));
       if(!snap.exists()) return alert("Not found.");
 
@@ -247,7 +308,7 @@
     copyJoin.addEventListener("click", () => copyText(joinLinkEl.textContent || ""));
     copyLb.addEventListener("click", () => copyText(lbLinkEl.textContent || ""));
 
-    // If admin loads with ?t=... (optional)
+    // Optional: load by URL ?t=...
     const params = new URLSearchParams(location.search);
     const qid = params.get("t");
     if(qid){
@@ -256,6 +317,7 @@
     }
   </script>
 
+  <!-- optional: if you use the same service worker refresh logic -->
   <script src="./pwa.js"></script>
 </body>
 </html>
