@@ -534,10 +534,10 @@
     function recalcPlayer(i){
       let out=0, inn=0;
       for (const h of holesFront){
-        out += Number(document.getElementById(`p${i}_h${h}`).value || 0);
+        out += Number(document.getElementById(`p${i}_h${h}`).value, 10) || 0);
       }
       for (const h of holesBack){
-        inn += Number(document.getElementById(`p${i}_h${h}`).value || 0);
+        inn += Number(document.getElementById(`p${i}_h${h}`).value, 10) || 0);
       }
       const tot = out + inn;
       document.querySelector(`[data-out="${i}"]`).textContent = out;
