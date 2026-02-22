@@ -567,3 +567,386 @@
       joinScreen.style.display = "none";
       isTournamentMode = false;
     });
+        // ====================== BUILD TABLE ======================
+
+    function buildHeader(){
+      hdrRow.innerHTML = `
+        <th class="label">Hole</th>
+        ${holesFront.map(h=>`<th class="hole">${h}</th>`).join("")}
+        <th class="sum">Out</th>
+        <th class="sum">I<br>N<br>I<br>T</th>
+        ${holesBack.map(h=>`<th class="hole">${h}</th>`).join("")}
+        <th class="sum">In</th>
+        <th class="sum">Tot</th>
+        <th class="sum">Hcp</th>
+        <th class="sum">Net</th>
+      `;
+    }
+
+    function buildYardageRow(row){
+      const tr = document.createElement("tr");
+      tr.className = row.css;
+      tr.innerHTML = `
+        <td class="label">${row.label}</td>
+        ${row.front.map(n=>yardCell(n)).join("")}
+        ${yardCell(row.out)}
+        ${yardCell("")}
+        ${row.back.map(n=>yardCell(n)).join("")}
+        ${yardCell(row.inn)}
+        ${yardCell(row.tot)}
+        ${yardCell("")}
+        ${yardCell("")}
+      `;
+      return tr;
+    }
+
+    function buildParRow(course){
+      const out = sum(course.parFront), inn = sum(course.parBack), tot = out+inn;
+      const tr = document.createElement("tr");
+      tr.className = "row-par";
+      tr.innerHTML = `
+        <td class="label">Par:</td>
+        ${course.parFront.map(n=>yardCell(n)).join("")}
+        ${yardCell(out)}
+        ${yardCell("")}
+        ${course.parBack.map(n=>yardCell(n)).join("")}
+        ${yardCell(inn)}
+        ${yardCell(tot)}
+        ${yardCell("")}
+        ${yardCell("")}
+      `;
+      return tr;
+    }
+
+    function buildHcpRow(course){
+      const tr = document.createElement("tr");
+      tr.className = "row-hcp";
+      tr.innerHTML = `
+        <td class="label">Handicap</td>
+        ${course.hcpFront.map(n=>yardCell(n)).join("")}
+        ${yardCell("")}
+        ${yardCell("")}
+        ${course.hcpBack.map(n=>yardCell(n)).join("")}
+        ${yardCell("")}
+        ${yardCell("")}
+        ${yardCell("")}
+        ${yardCell("")}
+      `;
+      return tr;
+    }
+
+    function cellInput(playerIdx, holeNum){
+      const id = `p${playerIdx}_h${holeNum}`;
+      return `
+        <td>
+          <input
+            id="${id}"
+            class="score-input"
+            inputmode="text"
+            maxlength="3"
+            autocomplete="off"
+          />
+        </td>
+      `;
+    }
+
+    function buildPlayerRow(i){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="label"><input class="player-name" placeholder="Player ${i+1}" /></td>
+        ${holesFront.map(h=>cellInput(i,h)).join("")}
+        <td class="total" data-out="${i}">0</td>
+        <td></td>
+        ${holesBack.map(h=>cellInput(i,h)).join("")}
+        <td class="total" data-in="${i}">0</td>
+        <td class="total" data-tot="${i}">0</td>
+        <td></td>
+        <td></td>
+      `;
+      return tr;
+    }
+
+    function recalcPlayer(i){
+      let out=0, inn=0;
+      for (const h of holesFront){
+        const v = document.getElementById(`p${i}_h${h}`)?.value || "";
+        out += parseInt(v, 10) || 0;   // totals ignore letters/symbols
+      }
+      for (const h of holesBack){
+        const v = document.getElementById(`p${i}_h${h}`)?.value || "";
+        inn += parseInt(v, 10) || 0;
+      }
+      const tot = out + inn;
+      document.querySelector(`[data-out="${i}"]`).textContent = out;
+      document.querySelector(`[data-in="${i}"]`).textContent = inn;
+      document.querySelector(`[data-tot="${i}"]`).textContent = tot;
+    }
+
+    // ====================== LOCAL STORAGE ======================
+
+    function saveState(){
+      const key = storageKeyFor(currentCourseId);
+      const state = {
+        names: Array.from(document.querySelectorAll(".player-name")).map(i => i.value || ""),
+        scores: Array.from({length: players}, (_,p) =>
+          Array.from({length: 18}, (_,h) => {
+            const el = document.getElementById(`p${p}_h${h+1}`);
+            return el ? (el.value || "") : "";
+          })
+        )
+      };
+      localStorage.setItem(key, JSON.stringify(state));
+
+      // if tournament mode, push live (debounced)
+      if (isTournamentMode) scheduleTournamentPush();
+    }
+
+    function loadState(){
+      const key = storageKeyFor(currentCourseId);
+      const raw = localStorage.getItem(key);
+      if(!raw) return;
+
+      try{
+        const state = JSON.parse(raw);
+
+        const nameInputs = document.querySelectorAll(".player-name");
+        (state.names || []).forEach((v, idx) => {
+          if(nameInputs[idx]) nameInputs[idx].value = v;
+        });
+
+        (state.scores || []).forEach((row, p) => {
+          row.forEach((v, hIdx) => {
+            const el = document.getElementById(`p${p}_h${hIdx+1}`);
+            if(el) el.value = v || "";
+          });
+        });
+
+        for(let i=0;i<players;i++) recalcPlayer(i);
+      } catch(e){}
+    }
+
+    function clearState(){
+      const key = storageKeyFor(currentCourseId);
+      localStorage.removeItem(key);
+    }
+
+    function wireInputs(){
+      for (let i=0;i<players;i++){
+        for (let h=1;h<=18;h++){
+          const el = document.getElementById(`p${i}_h${h}`);
+          el.addEventListener("input", () => {
+            el.value = (el.value || "").slice(0,3); // allow letters/symbols too
+            recalcPlayer(i);
+            saveState();
+          });
+        }
+        recalcPlayer(i);
+      }
+
+      document.querySelectorAll(".player-name").forEach(inp => {
+        inp.addEventListener("input", saveState);
+      });
+    }
+
+    function build(){
+      const course = COURSES[currentCourseId];
+
+      courseTitle.textContent = course.title;
+      courseSelect.value = currentCourseId;
+      setCourseHeader(currentCourseId);
+
+      tbody.innerHTML = "";
+      buildHeader();
+
+      course.teeRows.forEach(r => tbody.appendChild(buildYardageRow(r)));
+      tbody.appendChild(buildParRow(course));
+      tbody.appendChild(buildHcpRow(course));
+
+      for (let i=0;i<players;i++) tbody.appendChild(buildPlayerRow(i));
+
+      if (course.extraRow) tbody.appendChild(buildYardageRow(course.extraRow));
+      tbody.appendChild(buildYardageRow(course.bottomRow));
+
+      wireInputs();
+      loadState();
+    }
+
+    // ====================== COURSE SWITCH ======================
+
+    function setCourse(courseId){
+      if (!COURSES[courseId]) return;
+
+      // Tournament mode (simple): lock to current course once joined
+      if (isTournamentMode && joinScreen.style.display === "none" && courseId !== currentCourseId){
+        return;
+      }
+
+      currentCourseId = courseId;
+      build();
+    }
+
+    courseSelect.addEventListener("change", () => setCourse(courseSelect.value));
+
+    // Swipe left/right on course bar
+    let touchStartX = null;
+    swipeZone.addEventListener("touchstart", (e) => {
+      touchStartX = e.changedTouches[0].clientX;
+    }, { passive:true });
+
+    swipeZone.addEventListener("touchend", (e) => {
+      if (touchStartX === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      touchStartX = null;
+      if (Math.abs(dx) < 50) return;
+
+      if (dx < 0) {
+        setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
+      } else {
+        setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
+      }
+    }, { passive:true });
+
+    // ====================== FULL-WIDTH IMAGE CAPTURE ======================
+
+    function captureFullCardCanvas(){
+      const card = document.getElementById("card");
+      const scroll = document.querySelector(".scroll-x");
+      const table = document.getElementById("scoreTable");
+
+      const oldOverflowX = scroll.style.overflowX;
+      const oldOverflowY = scroll.style.overflowY;
+      const oldWidth = scroll.style.width;
+      const oldCardWidth = card.style.width;
+
+      scroll.style.overflowX = "visible";
+      scroll.style.overflowY = "visible";
+      scroll.style.width = table.scrollWidth + "px";
+      card.style.width = (table.scrollWidth + 40) + "px";
+
+      return html2canvas(card, {
+        scale: 2,
+        backgroundColor: null,
+        windowWidth: card.scrollWidth,
+        windowHeight: card.scrollHeight
+      }).finally(() => {
+        scroll.style.overflowX = oldOverflowX;
+        scroll.style.overflowY = oldOverflowY;
+        scroll.style.width = oldWidth;
+        card.style.width = oldCardWidth;
+      });
+    }
+
+    // ====================== TOURNAMENT LIVE PUSH ======================
+
+    function readScoresFromDOM(){
+      const names = Array.from(document.querySelectorAll(".player-name")).map(i => i.value || "");
+      const scores = Array.from({length: players}, (_,p) =>
+        Array.from({length: 18}, (_,h) => {
+          const el = document.getElementById(`p${p}_h${h+1}`);
+          return el ? (el.value || "") : "";
+        })
+      );
+      const totals = Array.from({length: players}, (_,i) => ({
+        out: Number(document.querySelector(`[data-out="${i}"]`)?.textContent || 0) || 0,
+        inn: Number(document.querySelector(`[data-in="${i}"]`)?.textContent || 0) || 0,
+        tot: Number(document.querySelector(`[data-tot="${i}"]`)?.textContent || 0) || 0
+      }));
+      return { names, scores, totals };
+    }
+
+    let pushTimer = null;
+    function scheduleTournamentPush(){
+      if (!db || !tournamentId) return;
+      if (pushTimer) clearTimeout(pushTimer);
+      pushTimer = setTimeout(pushTournamentNow, 250);
+    }
+
+    async function pushTournamentNow(){
+      if (!db || !tournamentId) return;
+
+      // MVP identity (device-based)
+      const deviceId = localStorage.getItem("t_device_id") || crypto.randomUUID();
+      localStorage.setItem("t_device_id", deviceId);
+
+      const payload = readScoresFromDOM();
+
+      const subRef = doc(db, "tournaments", tournamentId, "submissions", deviceId);
+      await setDoc(subRef, {
+        deviceId,
+        courseId: currentCourseId,
+        playerName: joinName.value.trim() || payload.names[0] || "Player",
+        group: joinGroup.value.trim() || "",
+        startHole: joinStartHole.value.trim() || "",
+        names: payload.names,
+        scores: payload.scores,
+        totals: payload.totals,
+        updatedAt: serverTimestamp()
+      }, { merge:true });
+    }
+
+    // ====================== BUTTONS ======================
+
+    function wireButtons(){
+      const saveBtn = document.getElementById("saveImg");
+      const shareBtn = document.getElementById("share");
+      const clearBtn = document.getElementById("clear");
+
+      saveBtn.addEventListener("click", async () => {
+        try{
+          const canvas = await captureFullCardCanvas();
+          canvas.toBlob(async (blob) => {
+            const file = new File([blob], "scorecard.png", { type: "image/png" });
+
+            if (navigator.canShare && navigator.canShare({ files:[file] })) {
+              await navigator.share({ files:[file], title:"Scorecard" });
+              return;
+            }
+
+            const dataUrl = canvas.toDataURL("image/png");
+            const w = window.open();
+            if (w) w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
+            else alert("Pop-up blocked. Try Share instead.");
+          }, "image/png");
+        } catch(e){
+          alert("Save failed. Try again.");
+        }
+      });
+
+      shareBtn.addEventListener("click", async () => {
+        try{
+          const canvas = await captureFullCardCanvas();
+          const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+          const file = new File([blob], "scorecard.png", { type:"image/png" });
+
+          if (navigator.canShare && navigator.canShare({ files:[file] })){
+            await navigator.share({ files:[file], title:"Scorecard" });
+          } else {
+            alert("Sharing not supported here. Use Save as Image.");
+          }
+        } catch(e){
+          alert("Share failed. Use Save as Image.");
+        }
+      });
+
+      clearBtn.addEventListener("click", () => {
+        if(!confirm("Clear all scores for this course?")) return;
+        document.querySelectorAll(".score-input").forEach(i => i.value = "");
+        document.querySelectorAll(".player-name").forEach(i => i.value = "");
+        clearState();
+        for (let i=0;i<players;i++) recalcPlayer(i);
+
+        if (isTournamentMode) scheduleTournamentPush();
+      });
+    }
+
+    // ====================== INIT ======================
+
+    wireButtons();
+    build();
+    checkTournamentFromURL();
+  </script>
+
+  <!-- Keep your existing service worker registration file -->
+  <script src="./pwa.js"></script>
+</body>
+</html>
