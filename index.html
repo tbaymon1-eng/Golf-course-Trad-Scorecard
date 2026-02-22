@@ -31,9 +31,10 @@
       --border:#7a4a0b;
       --card:#efe7d7;
     }
-*{
-  -webkit-tap-highlight-color: transparent;
-}
+
+    /* Remove iOS tap flash */
+    *{ -webkit-tap-highlight-color: transparent; }
+
     body{
       margin:0;
       background: var(--paper);
@@ -66,7 +67,15 @@
       background: var(--card);
     }
 
-    /* Course switch */
+    /* Join Screen */
+    #joinScreen{
+      display:none;
+      padding:12px 10px;
+      background: var(--card);
+      border-bottom:1px solid rgba(0,0,0,.08);
+    }
+
+    /* Course switch bar */
     .coursebar{
       display:flex;
       align-items:center;
@@ -76,9 +85,6 @@
       background: var(--card);
       border-top: 1px solid rgba(0,0,0,.08);
       border-bottom: 1px solid rgba(0,0,0,.08);
-      user-select:none;
-      -webkit-user-select:none;
-      touch-action: pan-y; /* allow vertical scroll, handle horizontal swipe ourselves */
     }
     .course-title{
       font-family:'Cinzel', serif;
@@ -122,7 +128,7 @@
 
     table{
       border-collapse: collapse;
-      min-width: 1120px; /* includes Out/In/Tot/Hcp/Net */
+      min-width: 1120px;
       width: 100%;
     }
 
@@ -174,7 +180,7 @@
     .row-blue  td{ background:#1f5ea8; color:#fff; }
     .row-white td{ background:#f7f7f7; color:#111; }
     .row-silver td{ background:#cfcfcf; color:#111; }
-    .row-forest td{ background:#1f4f3a; color:#fff; }  /* Cypress Forest */
+    .row-forest td{ background:#1f4f3a; color:#fff; }
     .row-copper td{ background:#a85a13; color:#fff; }
 
     .row-black .label{ background:#0b2246; color:#fff; }
@@ -196,36 +202,37 @@
       height: 100%;
       border: 0;
       outline: none;
-      background: transparent;
+      background: transparent !important;
       text-align: center;
       font-weight: 950;
       font-size: 18px;
       color: #111;
       -webkit-appearance: none;
       appearance: none;
-      caret-color: transparent;
       font-family: Georgia, 'Times New Roman', serif;
+      caret-color: auto;
     }
-    /* Clean printed look — no gray focus */
-.score-input:focus,
-.player-name:focus{
-  outline: none !important;
-  box-shadow: none !important;
-  background: transparent !important;
-}
-
     .player-name{
       width: 100%;
       height: 100%;
       border: 0;
       outline: none;
-      background: transparent;
+      background: transparent !important;
       font-weight: 950;
       padding: 0 10px;
       font-size: 16px;
       font-family: Georgia, 'Times New Roman', serif;
+      -webkit-appearance: none;
+      appearance: none;
     }
-  
+
+    /* Remove grey focus overlay — printed look */
+    .score-input:focus,
+    .player-name:focus{
+      outline: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
+    }
 
     .total{
       text-align:center;
@@ -282,13 +289,50 @@
   <div class="wrap">
     <div class="card" id="card">
 
-      <!-- header switches by course -->
+      <!-- Header switches per course -->
       <img id="courseHeader" class="header-img" src="./assets/cypresswood_header.png" alt="Scorecard Header" />
 
+      <!-- Tournament Join Screen (Screen B) -->
+      <div id="joinScreen">
+        <div style="font-family:Cinzel,serif; font-weight:900; font-size:16px;">Join Tournament</div>
+        <div id="joinMeta" style="margin-top:6px; font-size:13px; opacity:.85;"></div>
+
+        <div style="display:grid; gap:10px; margin-top:12px;">
+          <label style="font-weight:900; font-size:13px;">
+            Your Name
+            <input id="joinName" autocomplete="name"
+              style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
+          </label>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <label style="font-weight:900; font-size:13px;">
+              Group (optional)
+              <input id="joinGroup" inputmode="numeric"
+                style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
+            </label>
+
+            <label style="font-weight:900; font-size:13px;">
+              Start Hole (optional)
+              <input id="joinStartHole" inputmode="numeric" placeholder="1"
+                style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
+            </label>
+          </div>
+
+          <button id="joinBtn" style="border:2px solid #7a4a0b; background:#2f6b2f; color:#fff; border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
+            Join & Start Scoring
+          </button>
+
+          <button id="joinCancel" style="border:2px solid #7a4a0b; background:#e7ddcb; border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
+            Exit Tournament
+          </button>
+        </div>
+      </div>
+
+      <!-- Course switch -->
       <div class="coursebar" id="courseSwipeZone">
         <div>
           <div class="course-title" id="courseTitle">Tradition Course</div>
-          <div class="course-hint">Swipe left/right here to switch courses</div>
+          <div class="course-hint" id="courseHint">Swipe left/right here to switch courses</div>
         </div>
 
         <select class="course-select" id="courseSelect" aria-label="Select course">
@@ -323,426 +367,6 @@
         <button id="share">Share</button>
         <button class="danger" id="clear">Clear Card</button>
       </div>
+
     </div>
   </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script>
-    // ====================== HEADER IMAGES ======================
-    const COURSE_HEADERS = {
-      tradition: "./assets/cypresswood_header.png",
-      cypress: "./assets/cypress_header.png"
-    };
-
-    function setCourseHeader(courseKey){
-      const img = document.getElementById("courseHeader");
-      if(!img) return;
-      img.src = COURSE_HEADERS[courseKey] || COURSE_HEADERS.tradition;
-      img.alt = courseKey === "cypress" ? "Cypress Course Header" : "Tradition Course Header";
-    }
-
-    // ====================== COURSES DATA ======================
-    const COURSE_TRADITION = {
-      id: "tradition",
-      title: "Tradition Course",
-      teeRows: [
-        { css:"row-black",  label:"Black Tees",
-          front:[465,384,203,448,606,376,528,196,453], out:3657,
-          back:[405,256,545,464,185,394,472,318,546], inn:3563, tot:7220
-        },
-        { css:"row-blue",   label:"Blue Tees",
-          front:[373,356,195,422,565,343,508,169,409], out:3340,
-          back:[370,211,518,423,169,357,439,291,520], inn:3298, tot:6638
-        },
-        { css:"row-white",  label:"White Tees",
-          front:[348,328,169,398,547,311,482,169,394], out:3146,
-          back:[348,187,468,395,151,328,378,265,496], inn:3016, tot:6162
-        },
-        { css:"row-silver", label:"Silver Tees",
-          front:[348,328,129,528,461,277,482,107,305], out:2765,
-          back:[315,153,413,348,151,328,318,215,435], inn:2676, tot:5441
-        }
-      ],
-      parFront:[4,4,3,4,5,4,5,3,4],
-      parBack: [4,3,5,4,3,4,4,4,5],
-      hcpFront:[7,17,11,1,3,13,9,15,5],
-      hcpBack: [14,8,10,6,18,12,2,16,4],
-      extraRow: null,
-      bottomRow: { css:"row-copper", label:"Copper Tees",
-        front:[296,287,117,242,411,277,388,107,284], out:2409,
-        back:[315,131,400,318,75,245,291,215,386], inn:2376, tot:4785
-      }
-    };
-
-    const COURSE_CYPRESS = {
-      id: "cypress",
-      title: "Cypress Course",
-      teeRows: [
-        { css:"row-blue", label:"Blue",
-          front:[514,396,387,482,486,182,417,189,417], out:3472,
-          back:[416,409,388,349,149,566,351,465,441], inn:3134, tot:6006
-        },
-        { css:"row-forest", label:"Forest",
-          front:[485,335,396,376,151,361,186,727,552], out:3053,
-          back:[381,368,354,330,177,549,473,873,null], inn:3713, tot:6168
-        }
-      ],
-      parFront:[5,4,4,4,3,4,3,5,4],
-      parBack: [4,4,4,4,3,5,3,5,4],
-      hcpFront:[3,13,11,7,15,9,17,1,5],
-      hcpBack: [6,10,12,14,18,2,16,4,8],
-      extraRow: { css:"row-silver", label:"Silver",
-        front:[456,305,305,357,119,557,137,493,321], out:2861,
-        back:[277,315,519,320,117,515,127,461,342], inn:2793, tot:5694
-      },
-      bottomRow: { css:"row-copper", label:"Copper",
-        front:[401,668,287,260,779,105,289,105,445], out:3638,
-        back:[277,315,249,92,445,293,575,854,232], inn:2856, tot:4744
-      }
-    };
-
-    const COURSES = {
-      tradition: COURSE_TRADITION,
-      cypress: COURSE_CYPRESS
-    };
-
-    // ====================== CONFIG ======================
-    const holesFront = [1,2,3,4,5,6,7,8,9];
-    const holesBack  = [10,11,12,13,14,15,16,17,18];
-    const players = 6;
-
-    // ====================== DOM ======================
-    const tbody = document.getElementById("tbody");
-    const hdrRow = document.getElementById("hdrRow");
-    const courseSelect = document.getElementById("courseSelect");
-    const courseTitle = document.getElementById("courseTitle");
-    const courseHeader = document.getElementById("courseHeader");
-    const swipeZone = document.getElementById("courseSwipeZone");
-
-    // ====================== STATE ======================
-    let currentCourseId = "tradition";
-
-    function storageKeyFor(courseId){
-      return `scorecard_state_${courseId}_v1`;
-    }
-
-    function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
-    function yardCell(v){
-      if (v === null || v === undefined) return `<td class="yard"></td>`;
-      return `<td class="yard">${v}</td>`;
-    }
-
-    // ====================== BUILD TABLE ======================
-    function buildHeader(){
-      hdrRow.innerHTML = `
-        <th class="label">Hole</th>
-        ${holesFront.map(h=>`<th class="hole">${h}</th>`).join("")}
-        <th class="sum">Out</th>
-        <th class="sum">I<br>N<br>I<br>T</th>
-        ${holesBack.map(h=>`<th class="hole">${h}</th>`).join("")}
-        <th class="sum">In</th>
-        <th class="sum">Tot</th>
-        <th class="sum">Hcp</th>
-        <th class="sum">Net</th>
-      `;
-    }
-
-    function buildYardageRow(row){
-      const tr = document.createElement("tr");
-      tr.className = row.css;
-      tr.innerHTML = `
-        <td class="label">${row.label}</td>
-        ${row.front.map(n=>yardCell(n)).join("")}
-        ${yardCell(row.out)}
-        ${yardCell("")}
-        ${row.back.map(n=>yardCell(n)).join("")}
-        ${yardCell(row.inn)}
-        ${yardCell(row.tot)}
-        ${yardCell("")}
-        ${yardCell("")}
-      `;
-      return tr;
-    }
-
-    function buildParRow(course){
-      const out = sum(course.parFront), inn = sum(course.parBack), tot = out+inn;
-      const tr = document.createElement("tr");
-      tr.className = "row-par";
-      tr.innerHTML = `
-        <td class="label">Par:</td>
-        ${course.parFront.map(n=>yardCell(n)).join("")}
-        ${yardCell(out)}
-        ${yardCell("")}
-        ${course.parBack.map(n=>yardCell(n)).join("")}
-        ${yardCell(inn)}
-        ${yardCell(tot)}
-        ${yardCell("")}
-        ${yardCell("")}
-      `;
-      return tr;
-    }
-
-    function buildHcpRow(course){
-      const tr = document.createElement("tr");
-      tr.className = "row-hcp";
-      tr.innerHTML = `
-        <td class="label">Handicap</td>
-        ${course.hcpFront.map(n=>yardCell(n)).join("")}
-        ${yardCell("")}
-        ${yardCell("")}
-        ${course.hcpBack.map(n=>yardCell(n)).join("")}
-        ${yardCell("")}
-        ${yardCell("")}
-        ${yardCell("")}
-        ${yardCell("")}
-      `;
-      return tr;
-    }
-
-    function cellInput(playerIdx, holeNum){
-      const id = `p${playerIdx}_h${holeNum}`;
-      return `
-        <td>
-          <input
-            id="${id}"
-            class="score-input"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            maxlength="2"
-            autocomplete="off"
-          />
-        </td>
-      `;
-    }
-
-    function buildPlayerRow(i){
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td class="label"><input class="player-name" placeholder="Player ${i+1}" /></td>
-        ${holesFront.map(h=>cellInput(i,h)).join("")}
-        <td class="total" data-out="${i}">0</td>
-        <td></td>
-        ${holesBack.map(h=>cellInput(i,h)).join("")}
-        <td class="total" data-in="${i}">0</td>
-        <td class="total" data-tot="${i}">0</td>
-        <td></td>
-        <td></td>
-      `;
-      return tr;
-    }
-
-    function recalcPlayer(i){
-      let out=0, inn=0;
-      for (const h of holesFront){
-        out += Number(document.getElementById(`p${i}_h${h}`).value, 10) || 0);
-      }
-      for (const h of holesBack){
-        inn += Number(document.getElementById(`p${i}_h${h}`).value, 10) || 0);
-      }
-      const tot = out + inn;
-      document.querySelector(`[data-out="${i}"]`).textContent = out;
-      document.querySelector(`[data-in="${i}"]`).textContent = inn;
-      document.querySelector(`[data-tot="${i}"]`).textContent = tot;
-    }
-
-    function saveState(){
-      const key = storageKeyFor(currentCourseId);
-      const state = {
-        names: Array.from(document.querySelectorAll(".player-name")).map(i => i.value || ""),
-        scores: Array.from({length: players}, (_,p) =>
-          Array.from({length: 18}, (_,h) => {
-            const el = document.getElementById(`p${p}_h${h+1}`);
-            return el ? (el.value || "") : "";
-          })
-        )
-      };
-      localStorage.setItem(key, JSON.stringify(state));
-    }
-
-    function loadState(){
-      const key = storageKeyFor(currentCourseId);
-      const raw = localStorage.getItem(key);
-      if(!raw) return;
-      try{
-        const state = JSON.parse(raw);
-
-        const nameInputs = document.querySelectorAll(".player-name");
-        (state.names || []).forEach((v, idx) => {
-          if(nameInputs[idx]) nameInputs[idx].value = v;
-        });
-
-        (state.scores || []).forEach((row, p) => {
-          row.forEach((v, hIdx) => {
-            const el = document.getElementById(`p${p}_h${hIdx+1}`);
-            if(el) el.value = v || "";
-          });
-        });
-
-        for(let i=0;i<players;i++) recalcPlayer(i);
-      } catch(e){}
-    }
-
-    function clearState(){
-      const key = storageKeyFor(currentCourseId);
-      localStorage.removeItem(key);
-    }
-
-    function wireInputs(){
-      for (let i=0;i<players;i++){
-        for (let h=1;h<=18;h++){
-          const el = document.getElementById(`p${i}_h${h}`);
-          el.addEventListener("input", () => {
-            el.value = (el.value || "").slice(0,3);
-            recalcPlayer(i);
-            saveState();
-          });
-        }
-        recalcPlayer(i);
-      }
-      document.querySelectorAll(".player-name").forEach(inp => {
-        inp.addEventListener("input", saveState);
-      });
-    }
-
-    function build(){
-      const course = COURSES[currentCourseId];
-
-      // UI
-      courseTitle.textContent = course.title;
-
-      // Table
-      tbody.innerHTML = "";
-      buildHeader();
-
-      course.teeRows.forEach(r => tbody.appendChild(buildYardageRow(r)));
-      tbody.appendChild(buildParRow(course));
-      tbody.appendChild(buildHcpRow(course));
-
-      for (let i=0;i<players;i++) tbody.appendChild(buildPlayerRow(i));
-
-      if (course.extraRow) tbody.appendChild(buildYardageRow(course.extraRow));
-      tbody.appendChild(buildYardageRow(course.bottomRow));
-
-      wireInputs();
-      loadState();
-    }
-
-    // ====================== FULL-WIDTH IMAGE CAPTURE ======================
-    function captureFullCardCanvas(){
-      const card = document.getElementById("card");
-      const scroll = document.querySelector(".scroll-x");
-      const table = document.getElementById("scoreTable");
-
-      const oldOverflowX = scroll.style.overflowX;
-      const oldOverflowY = scroll.style.overflowY;
-      const oldWidth = scroll.style.width;
-      const oldCardWidth = card.style.width;
-
-      scroll.style.overflowX = "visible";
-      scroll.style.overflowY = "visible";
-      scroll.style.width = table.scrollWidth + "px";
-      card.style.width = (table.scrollWidth + 40) + "px";
-
-      return html2canvas(card, {
-        scale: 2,
-        backgroundColor: null,
-        windowWidth: card.scrollWidth,
-        windowHeight: card.scrollHeight
-      }).finally(() => {
-        scroll.style.overflowX = oldOverflowX;
-        scroll.style.overflowY = oldOverflowY;
-        scroll.style.width = oldWidth;
-        card.style.width = oldCardWidth;
-      });
-    }
-
-    function wireButtons(){
-      const saveBtn = document.getElementById("saveImg");
-      const shareBtn = document.getElementById("share");
-      const clearBtn = document.getElementById("clear");
-
-      saveBtn.addEventListener("click", async () => {
-        try{
-          const canvas = await captureFullCardCanvas();
-          canvas.toBlob(async (blob) => {
-            const file = new File([blob], "scorecard.png", { type: "image/png" });
-
-            if (navigator.canShare && navigator.canShare({ files:[file] })) {
-              await navigator.share({ files:[file], title:"Scorecard" });
-              return;
-            }
-
-            const dataUrl = canvas.toDataURL("image/png");
-            const w = window.open();
-            if (w) w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
-            else alert("Pop-up blocked. Try Share instead.");
-          }, "image/png");
-        } catch(e){
-          alert("Save failed. Try again.");
-        }
-      });
-
-      shareBtn.addEventListener("click", async () => {
-        try{
-          const canvas = await captureFullCardCanvas();
-          const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
-          const file = new File([blob], "scorecard.png", { type:"image/png" });
-
-          if (navigator.canShare && navigator.canShare({ files:[file] })){
-            await navigator.share({ files:[file], title:"Scorecard" });
-          } else {
-            alert("Sharing not supported here. Use Save as Image.");
-          }
-        } catch(e){
-          alert("Share failed. Use Save as Image.");
-        }
-      });
-
-      clearBtn.addEventListener("click", () => {
-        if(!confirm("Clear all scores for this course?")) return;
-        document.querySelectorAll(".score-input").forEach(i => i.value = "");
-        document.querySelectorAll(".player-name").forEach(i => i.value = "");
-        clearState();
-        for (let i=0;i<players;i++) recalcPlayer(i);
-      });
-    }
-
-    // ====================== COURSE SWITCH (DROPDOWN + SWIPE BAR) ======================
-    function setCourse(courseId){
-      if (!COURSES[courseId]) return;
-      currentCourseId = courseId;
-      courseSelect.value = courseId;
-      setCourseHeader(courseId);
-      build();
-    }
-
-    courseSelect.addEventListener("change", () => setCourse(courseSelect.value));
-
-    let touchStartX = null;
-    swipeZone.addEventListener("touchstart", (e) => {
-      touchStartX = e.changedTouches[0].clientX;
-    }, { passive:true });
-
-    swipeZone.addEventListener("touchend", (e) => {
-      if (touchStartX === null) return;
-      const dx = e.changedTouches[0].clientX - touchStartX;
-      touchStartX = null;
-      if (Math.abs(dx) < 50) return;
-
-      if (dx < 0) {
-        setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
-      } else {
-        setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
-      }
-    }, { passive:true });
-
-    // ====================== INIT ======================
-    wireButtons();
-    setCourseHeader(currentCourseId);
-    build();
-  </script>
-
-  <!-- Service worker register (your existing pwa.js file) -->
-  <script src="./pwa.js"></script>
-</body>
-</html>
