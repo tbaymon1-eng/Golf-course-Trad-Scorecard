@@ -592,7 +592,7 @@
         for (let h=1;h<=18;h++){
           const el = document.getElementById(`p${i}_h${h}`);
           el.addEventListener("input", () => {
-            el.value = (el.value || "").replace(/[^\d]/g,"").slice(0,2);
+            el.value = (el.value || "").slice(0,3);
             recalcPlayer(i);
             saveState();
           });
