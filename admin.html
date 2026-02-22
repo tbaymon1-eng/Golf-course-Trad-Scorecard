@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Tournament Admin</title>
+  <meta name="theme-color" content="#7a4a0b">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{ --paper:#e9e2d4; --ink:#111; --border:#7a4a0b; --card:#efe7d7; }
+    body{ margin:0; background:var(--paper); color:var(--ink); font-family:Georgia,'Times New Roman',serif; }
+    .wrap{ max-width:900px; margin:0 auto; padding:12px; }
+    .card{ background:var(--card); border:3px solid var(--border); border-radius:12px; padding:12px; box-shadow:0 8px 22px rgba(0,0,0,.18); }
+    h1{ margin:0 0 8px; font-family:Cinzel,serif; font-weight:900; font-size:20px; }
+    .row{ display:grid; gap:10px; margin-top:10px; }
+    label{ font-weight:900; font-size:13px; }
+    input, select{
+      width:100%; box-sizing:border-box;
+      padding:12px 10px; border:2px solid var(--border);
+      border-radius:10px; background:#fff; font-size:16px;
+    }
+    button{
+      border:2px solid var(--border); background:#e7ddcb;
+      border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;
+    }
+    .primary{ background:#2f6b2f; color:#fff; }
+    .danger{ background:#b6422d; color:#fff; border-color:#7a2b20; }
+    .box{
+      margin-top:12px; padding:10px; border:2px dashed rgba(0,0,0,.25); border-radius:10px;
+      background:rgba(255,255,255,.35);
+      word-break: break-all;
+    }
+    .small{ font-size:13px; opacity:.85; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Admin Tournament Setup</h1>
+      <div class="small">Create a tournament, then share the Join link + Live Leaderboard link.</div>
+
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <label>
+          Tournament Name
+          <input id="tName" placeholder="Cypresswood Saturday Skins" />
+        </label>
+
+        <label>
+          Default Course
+          <select id="tCourse">
+            <option value="tradition">Tradition</option>
+            <option value="cypress">Cypress</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <label>
+          Date (optional)
+          <input id="tDate" placeholder="2026-03-01" />
+        </label>
+
+        <label>
+          Organizer Name (optional)
+          <input id="tOrg" placeholder="Tirrel" />
+        </label>
+      </div>
+
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <button class="primary" id="createBtn">Create Tournament</button>
+        <button id="loadBtn">Load Existing (by ID)</button>
+      </div>
+
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <label>
+          Tournament ID
+          <input id="tId" placeholder="(auto or paste here)" class="mono"/>
+        </label>
+        <label>
+          Admin Token (auto)
+          <input id="adminToken" placeholder="(auto)" class="mono" />
+        </label>
+      </div>
+
+      <div class="box">
+        <div class="small"><b>Join Link (players scan this QR)</b></div>
+        <div id="joinLink" class="mono small"></div>
+
+        <div style="height:10px"></div>
+
+        <div class="small"><b>Leaderboard Link (organizer view)</b></div>
+        <div id="lbLink" class="mono small"></div>
+      </div>
+
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <button id="copyJoin">Copy Join Link</button>
+        <button id="copyLb">Copy Leaderboard Link</button>
+      </div>
+
+      <div class="row">
+        <button class="danger" id="closeBtn">Close Tournament (stop accepting updates)</button>
+        <div class="small">
+          *In Test Mode, “close” is enforced by the client (we’ll enforce it by Rules later).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // Same config you already use in index.html
+    const firebaseConfig = {
+      apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
+      authDomain: "cypresswood-tournaments.firebaseapp.com",
+      projectId: "cypresswood-tournaments",
+      storageBucket: "cypresswood-tournaments.firebasestorage.app",
+      messagingSenderId: "162441374966",
+      appId: "1:162441374966:web:157285a2d5c39db1e810d7",
+      measurementId: "G-HL6Y9CLV8K"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const $ = (id) => document.getElementById(id);
+
+    const createBtn = $("createBtn");
+    const loadBtn = $("loadBtn");
+    const closeBtn = $("closeBtn");
+
+    const tName = $("tName");
+    const tCourse = $("tCourse");
+    const tDate = $("tDate");
+    const tOrg = $("tOrg");
+
+    const tId = $("tId");
+    const adminToken = $("adminToken");
+
+    const joinLinkEl = $("joinLink");
+    const lbLinkEl = $("lbLink");
+    const copyJoin = $("copyJoin");
+    const copyLb = $("copyLb");
+
+    function randId(len=10){
+      const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+      let s = "";
+      for(let i=0;i<len;i++) s += chars[Math.floor(Math.random()*chars.length)];
+      return s;
+    }
+
+    function baseURL(){
+      // works for GitHub Pages (same origin)
+      return location.origin + location.pathname.replace(/admin\.html.*$/,"");
+    }
+
+    function buildLinks(id, token){
+      const base = baseURL();
+      const join = `${base}index.html?t=${encodeURIComponent(id)}`;
+      const lb = `${base}leaderboard.html?t=${encodeURIComponent(id)}&admin=${encodeURIComponent(token || "")}`;
+      joinLinkEl.textContent = join;
+      lbLinkEl.textContent = lb;
+    }
+
+    async function createTournament(){
+      const id = randId(10);
+      const token = randId(18); // basic “admin secret” (MVP)
+
+      const payload = {
+        name: (tName.value || "Cypresswood Tournament").trim(),
+        courseDefault: tCourse.value,
+        date: (tDate.value || "").trim(),
+        organizer: (tOrg.value || "").trim(),
+        status: "open",        // open | closed
+        adminToken: token,     // MVP gate for admin actions (client-side)
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      await setDoc(doc(db, "tournaments", id), payload, { merge:false });
+
+      tId.value = id;
+      adminToken.value = token;
+      buildLinks(id, token);
+      alert("Tournament created!");
+    }
+
+    async function loadTournament(){
+      const id = (tId.value || "").trim();
+      if(!id) return alert("Paste a Tournament ID first.");
+
+      const snap = await getDoc(doc(db,"tournaments",id));
+      if(!snap.exists()) return alert("Not found.");
+
+      const data = snap.data();
+      tName.value = data.name || "";
+      tCourse.value = data.courseDefault || "tradition";
+      tDate.value = data.date || "";
+      tOrg.value = data.organizer || "";
+      adminToken.value = data.adminToken || "";
+
+      buildLinks(id, adminToken.value || "");
+      alert("Loaded.");
+    }
+
+    async function closeTournament(){
+      const id = (tId.value || "").trim();
+      const token = (adminToken.value || "").trim();
+      if(!id) return alert("Missing tournament ID.");
+
+      // MVP: require correct token, but enforcement is client-side while in Test Mode
+      const snap = await getDoc(doc(db,"tournaments",id));
+      if(!snap.exists()) return alert("Not found.");
+
+      const data = snap.data();
+      if((data.adminToken || "") !== token){
+        return alert("Admin token does not match.");
+      }
+
+      await setDoc(doc(db,"tournaments",id), { status:"closed", updatedAt: serverTimestamp() }, { merge:true });
+      alert("Tournament CLOSED.");
+    }
+
+    createBtn.addEventListener("click", createTournament);
+    loadBtn.addEventListener("click", loadTournament);
+    closeBtn.addEventListener("click", closeTournament);
+
+    async function copyText(txt){
+      try{
+        await navigator.clipboard.writeText(txt);
+        alert("Copied!");
+      }catch(e){
+        alert("Copy blocked. Press and hold to select text.");
+      }
+    }
+
+    copyJoin.addEventListener("click", () => copyText(joinLinkEl.textContent || ""));
+    copyLb.addEventListener("click", () => copyText(lbLinkEl.textContent || ""));
+
+    // If admin loads with ?t=... (optional)
+    const params = new URLSearchParams(location.search);
+    const qid = params.get("t");
+    if(qid){
+      tId.value = qid;
+      loadTournament();
+    }
+  </script>
+
+  <script src="./pwa.js"></script>
+</body>
+</html>
