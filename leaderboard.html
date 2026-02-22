@@ -6,7 +6,344 @@
   <title>Live Leaderboard</title>
   <meta name="theme-color" content="#7a4a0b">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
+
   <style>
-    :root{ --paper:#e9e2d4; --ink:#111; --border:#7a4a0b; --card:#efe7d7; }
+    :root{
+      --paper:#e9e2d4; --ink:#111; --border:#7a4a0b; --card:#efe7d7;
+      --grid:#2b2b2b; --cell:#f8f4ea;
+    }
+    *{ -webkit-tap-highlight-color: transparent; }
     body{ margin:0; background:var(--paper); color:var(--ink); font-family:Georgia,'Times New Roman',serif; }
-    .wrap{ max-width:980px;
+    .wrap{ max-width:980px; margin:0 auto; padding:12px; }
+    .card{ background:var(--card); border:3px solid var(--border); border-radius:12px; padding:12px; box-shadow:0 8px 22px rgba(0,0,0,.18); }
+    h1{ margin:0 0 6px; font-family:Cinzel,serif; font-weight:900; font-size:20px; letter-spacing:.3px; }
+    .meta{ font-size:13px; opacity:.85; line-height:1.35; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center; }
+    .pill{
+      border:2px solid var(--border); background:#e7ddcb; border-radius:999px;
+      padding:8px 10px; font-weight:900; font-size:13px;
+    }
+    button{
+      border:2px solid var(--border); background:#e7ddcb;
+      border-radius:10px; padding:10px 12px; font-weight:900; font-size:15px;
+    }
+    button:active{ transform: translateY(1px); }
+    .danger{ background:#b6422d; color:#fff; border-color:#7a2b20; }
+    .ok{ background:#2f6b2f; color:#fff; }
+    .warn{ background:#c78a1a; color:#111; }
+
+    .tableWrap{
+      margin-top:12px;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      border:2px solid var(--border);
+      border-radius:10px;
+      background:rgba(255,255,255,.12);
+    }
+    table{ border-collapse:collapse; min-width:720px; width:100%; }
+    th, td{
+      border:2px solid var(--grid);
+      padding:10px 10px;
+      background:var(--cell);
+      font-size:14px;
+      white-space:nowrap;
+    }
+    thead th{
+      position:sticky; top:0; z-index:5;
+      background:#d8d1c3;
+      font-family:Cinzel,serif; font-weight:900;
+      text-align:left;
+    }
+    .num{ text-align:right; font-weight:900; }
+    .team{ font-weight:900; }
+    .small{ font-size:12px; opacity:.8; }
+    .muted{ opacity:.7; }
+    .statusLine{ margin-top:10px; }
+    .empty{
+      margin-top:12px;
+      padding:12px;
+      border:2px dashed rgba(0,0,0,.25);
+      border-radius:10px;
+      background:rgba(255,255,255,.35);
+      font-size:13px;
+      line-height:1.35;
+    }
+    a{ color:#174c89; font-weight:900; text-decoration:none; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1 id="title">Live Leaderboard</h1>
+      <div class="meta" id="meta"></div>
+
+      <div class="row">
+        <div class="pill" id="tIdPill">Tournament: —</div>
+        <div class="pill" id="statusPill">Status: —</div>
+        <div class="pill" id="coursePill">Course: —</div>
+        <div class="pill" id="countPill">Teams: 0</div>
+      </div>
+
+      <div class="row">
+        <button id="refreshBtn" class="ok">Refresh Now</button>
+        <button id="copyLinkBtn">Copy This Leaderboard Link</button>
+        <button id="openJoinBtn">Open Join Link</button>
+      </div>
+
+      <div class="statusLine small" id="adminLine"></div>
+
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;">#</th>
+              <th>Team</th>
+              <th class="num">Out</th>
+              <th class="num">In</th>
+              <th class="num">Total</th>
+              <th>Last Update</th>
+              <th class="small">Device</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <div id="empty" class="empty" style="display:none;"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      collection,
+      onSnapshot,
+      query
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // Same Firebase config you used in index/admin
+    const firebaseConfig = {
+      apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
+      authDomain: "cypresswood-tournaments.firebaseapp.com",
+      projectId: "cypresswood-tournaments",
+      storageBucket: "cypresswood-tournaments.firebasestorage.app",
+      messagingSenderId: "162441374966",
+      appId: "1:162441374966:web:157285a2d5c39db1e810d7",
+      measurementId: "G-HL6Y9CLV8K"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const $ = (id) => document.getElementById(id);
+
+    const params = new URLSearchParams(location.search);
+    const t = params.get("t") || "";
+    const admin = params.get("admin") || "";
+
+    const titleEl = $("title");
+    const metaEl = $("meta");
+    const rowsEl = $("rows");
+    const emptyEl = $("empty");
+
+    const tIdPill = $("tIdPill");
+    const statusPill = $("statusPill");
+    const coursePill = $("coursePill");
+    const countPill = $("countPill");
+    const adminLine = $("adminLine");
+
+    const refreshBtn = $("refreshBtn");
+    const copyLinkBtn = $("copyLinkBtn");
+    const openJoinBtn = $("openJoinBtn");
+
+    function baseURL(){
+      // leaderboard.html is in the repo root, so base is current folder
+      return location.origin + location.pathname.replace(/leaderboard\.html.*$/,"");
+    }
+
+    function fmtTime(ts){
+      try{
+        if(!ts) return "—";
+        // Firestore Timestamp -> Date
+        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        return d.toLocaleString();
+      }catch(e){
+        return "—";
+      }
+    }
+
+    function safeText(x){ return (x ?? "").toString(); }
+
+    function scrambleTotalFromSubmission(sub){
+      // ✅ Scramble rule (MVP):
+      // Team enters team score in "Player 1" row => totals[0]
+      // If totals[0] missing, try compute from scores[0] (numbers only)
+      const totals = Array.isArray(sub.totals) ? sub.totals : [];
+      if (totals[0] && typeof totals[0] === "object"){
+        return {
+          out: Number(totals[0].out || 0) || 0,
+          inn: Number(totals[0].inn || 0) || 0,
+          tot: Number(totals[0].tot || 0) || 0
+        };
+      }
+
+      const scores = Array.isArray(sub.scores) ? sub.scores : [];
+      const row0 = Array.isArray(scores[0]) ? scores[0] : [];
+      const nums = row0.map(v => parseInt((v||"").toString(),10) || 0);
+
+      const out = nums.slice(0,9).reduce((a,b)=>a+b,0);
+      const inn = nums.slice(9,18).reduce((a,b)=>a+b,0);
+      return { out, inn, tot: out+inn };
+    }
+
+    async function loadTournamentHeader(){
+      if(!t){
+        titleEl.textContent = "Live Leaderboard";
+        metaEl.innerHTML = `Missing tournament id. Open this page like: <span class="mono">leaderboard.html?t=YOUR_ID</span>`;
+        emptyEl.style.display = "block";
+        emptyEl.innerHTML = `This page needs a <b>tournament ID</b>.<br><br>
+          Example: <span class="mono">leaderboard.html?t=abc123</span>`;
+        return null;
+      }
+
+      tIdPill.textContent = `Tournament: ${t}`;
+
+      const tRef = doc(db, "tournaments", t);
+      const snap = await getDoc(tRef);
+
+      if(!snap.exists()){
+        statusPill.textContent = "Status: not found";
+        statusPill.className = "pill danger";
+        emptyEl.style.display = "block";
+        emptyEl.innerHTML = `No tournament found for ID <b>${t}</b>.<br>
+          Go to <a href="${baseURL()}admin.html">admin.html</a> and create one.`;
+        return null;
+      }
+
+      const data = snap.data() || {};
+      titleEl.textContent = data.name ? `Live Leaderboard — ${data.name}` : "Live Leaderboard";
+      metaEl.textContent = data.date ? `Date: ${data.date}` : "Scramble mode: Team scores should be entered on Player 1 row.";
+
+      const status = (data.status || "open").toLowerCase();
+      statusPill.textContent = `Status: ${status}`;
+      statusPill.className = "pill " + (status === "open" ? "ok" : "danger");
+
+      coursePill.textContent = `Course: ${data.courseDefault || "—"}`;
+
+      // admin token hint (MVP client-side check)
+      const tokenOk = admin && (data.adminToken || "") === admin;
+      adminLine.innerHTML = tokenOk
+        ? `Admin token: <b>OK</b> (you can close tournaments from admin.html)`
+        : `Admin token: <span class="muted">not provided / not matching</span> — this page still shows scores, but “admin-only” actions are gated in admin.html`;
+
+      // Wire buttons now that we know base URL
+      openJoinBtn.onclick = () => {
+        const joinURL = `${baseURL()}index.html?t=${encodeURIComponent(t)}`;
+        window.open(joinURL, "_blank");
+      };
+
+      copyLinkBtn.onclick = async () => {
+        try{
+          await navigator.clipboard.writeText(location.href);
+          alert("Copied leaderboard link!");
+        }catch(e){
+          alert("Copy blocked. Tap the address bar and copy the URL.");
+        }
+      };
+
+      return { tRef, data };
+    }
+
+    function renderRows(list){
+      // Sort: lowest total first, then most recently updated
+      list.sort((a,b)=>{
+        const ta = a.total.tot;
+        const tb = b.total.tot;
+        if (ta !== tb) return ta - tb;
+        const da = a.updatedAtMs || 0;
+        const db = b.updatedAtMs || 0;
+        return db - da;
+      });
+
+      countPill.textContent = `Teams: ${list.length}`;
+
+      rowsEl.innerHTML = list.map((r, idx) => {
+        return `
+          <tr>
+            <td class="num">${idx + 1}</td>
+            <td class="team">${safeText(r.team || "Team")}</td>
+            <td class="num">${r.total.out}</td>
+            <td class="num">${r.total.inn}</td>
+            <td class="num">${r.total.tot}</td>
+            <td>${fmtTime(r.updatedAt)}</td>
+            <td class="small">${safeText(r.deviceId || "")}</td>
+          </tr>
+        `;
+      }).join("");
+
+      if(list.length === 0){
+        emptyEl.style.display = "block";
+        emptyEl.innerHTML = `
+          <b>No teams yet.</b><br><br>
+          This means nobody has submitted scores to Firestore.<br><br>
+          ✅ Make sure players opened the join link like:<br>
+          <span class="mono">${baseURL()}index.html?t=${encodeURIComponent(t)}</span><br><br>
+          Then they must type at least one score (this triggers a push).
+        `;
+      } else {
+        emptyEl.style.display = "none";
+      }
+    }
+
+    async function init(){
+      const header = await loadTournamentHeader();
+      if(!header) return;
+
+      refreshBtn.onclick = () => location.reload();
+
+      // Live stream submissions
+      const subsRef = collection(db, "tournaments", t, "submissions");
+      const q = query(subsRef);
+
+      onSnapshot(q, (snap) => {
+        const list = [];
+        snap.forEach(docSnap => {
+          const d = docSnap.data() || {};
+          const total = scrambleTotalFromSubmission(d);
+
+          // Team name priority:
+          // 1) playerName (what join screen captures)
+          // 2) first name entry in names[0]
+          const team =
+            (d.playerName && d.playerName.trim()) ||
+            (Array.isArray(d.names) && d.names[0]) ||
+            "Team";
+
+          const updatedAt = d.updatedAt || null;
+          const updatedAtMs = (updatedAt && updatedAt.toMillis) ? updatedAt.toMillis() : 0;
+
+          list.push({
+            id: docSnap.id,
+            deviceId: d.deviceId || docSnap.id,
+            team,
+            total,
+            updatedAt,
+            updatedAtMs
+          });
+        });
+
+        renderRows(list);
+      }, (err) => {
+        emptyEl.style.display = "block";
+        emptyEl.innerHTML = `Error loading leaderboard: <b>${safeText(err.message || err)}</b>`;
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
