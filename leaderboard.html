@@ -37,18 +37,24 @@
 
     /* ✅ Cypresswood branding watermark */
     .brand-watermark{
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      z-index:0;
-      opacity:.11;
-      background-repeat:no-repeat;
-      background-position:center 170px;
-      background-size: 520px auto;
-      /* Put your tree logo file here */
-      background-image: url("./assets/cypresswood_tree.png");
-      filter: saturate(0.9) contrast(1.05);
-    }
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+
+  /* MUCH lighter, premium look */
+  opacity:.07;
+
+  background-repeat:no-repeat;
+  background-position:center 120px;
+  background-size: 900px auto;
+
+  /* ✅ USE YOUR CYPRESS HEADER */
+  background-image: url("./assets/cypress_header.png");
+
+  /* soft wash so it looks embedded in paper */
+  filter: grayscale(10%) contrast(0.95) brightness(1.05);
+}
 
     .top, .section, .spotlight, .table-wrap, #sponsorTicker, #sponsorRotator{
       position:relative;
