@@ -9,48 +9,34 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
 
   <style>
-    :root{ --paper:#e9e2d4; --ink:#111; --border:#7a4a0b; --card:#efe7d7; --good:#2f6b2f; --bad:#b6422d; }
-    *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
+    :root{ --paper:#e9e2d4; --ink:#111; --border:#7a4a0b; --card:#efe7d7; }
+    *{ -webkit-tap-highlight-color: transparent; }
     body{ margin:0; background:var(--paper); color:var(--ink); font-family:Georgia,'Times New Roman',serif; }
     .wrap{ max-width:900px; margin:0 auto; padding:12px; }
     .card{ background:var(--card); border:3px solid var(--border); border-radius:12px; padding:12px; box-shadow:0 8px 22px rgba(0,0,0,.18); }
     h1{ margin:0 0 8px; font-family:Cinzel,serif; font-weight:900; font-size:20px; }
-    h2{ margin:16px 0 8px; font-family:Cinzel,serif; font-weight:900; font-size:16px; }
-    .small{ font-size:13px; opacity:.85; }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
     .row{ display:grid; gap:10px; margin-top:10px; }
     label{ font-weight:900; font-size:13px; display:block; }
-    input, select, textarea{
-      width:100%;
-      padding:12px 10px;
-      border:2px solid var(--border);
-      border-radius:10px;
-      background:#fff;
-      font-size:16px;
+    input, select{
+      width:100%; box-sizing:border-box;
+      padding:12px 10px; border:2px solid var(--border);
+      border-radius:10px; background:#fff; font-size:16px;
       outline:none;
     }
-    textarea{ min-height:90px; resize:vertical; }
     button{
-      border:2px solid var(--border);
-      background:#e7ddcb;
-      border-radius:10px;
-      padding:12px 10px;
-      font-weight:900;
-      font-size:16px;
-      cursor:pointer;
+      border:2px solid var(--border); background:#e7ddcb;
+      border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;
     }
     button:active{ transform: translateY(1px); }
-    .primary{ background:var(--good); color:#fff; }
-    .danger{ background:var(--bad); color:#fff; border-color:#7a2b20; }
+    .primary{ background:#2f6b2f; color:#fff; }
+    .danger{ background:#b6422d; color:#fff; border-color:#7a2b20; }
     .box{
-      margin-top:12px;
-      padding:10px;
-      border:2px dashed rgba(0,0,0,.25);
-      border-radius:10px;
+      margin-top:12px; padding:10px; border:2px dashed rgba(0,0,0,.25); border-radius:10px;
       background:rgba(255,255,255,.35);
       word-break: break-word;
     }
-
+    .small{ font-size:13px; opacity:.85; }
+    .mono{ font-family: ui-monospace, monospace; }
     .qrRow{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -66,92 +52,6 @@
     }
     .qrTitle{ font-weight: 900; font-size: 13px; margin-bottom: 8px; }
     .qrWrap{ display:flex; justify-content:center; }
-
-    /* Sponsors UI */
-    .panel{
-      margin-top:12px;
-      border:2px solid rgba(0,0,0,.12);
-      border-radius:12px;
-      overflow:hidden;
-      background:rgba(255,255,255,.40);
-    }
-    .panelHead{
-      padding:10px 12px;
-      border-bottom:1px solid rgba(0,0,0,.12);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:7px 10px;
-      border-radius:999px;
-      border:2px solid rgba(0,0,0,.15);
-      background:rgba(255,255,255,.65);
-      font-weight:900;
-      font-size:12px;
-      font-family:Cinzel, serif;
-      white-space:nowrap;
-    }
-    .grid2{ display:grid; gap:10px; grid-template-columns:1fr 1fr; }
-    @media (max-width:680px){ .grid2{ grid-template-columns:1fr; } }
-    .checks{
-      display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap:8px;
-      margin-top:6px;
-    }
-    @media (max-width:680px){ .checks{ grid-template-columns: 1fr 1fr; } }
-    .check{
-      display:flex; align-items:center; gap:8px;
-      padding:8px 10px;
-      border:2px solid rgba(0,0,0,.12);
-      border-radius:10px;
-      background:rgba(255,255,255,.55);
-      font-weight:900;
-      font-size:13px;
-    }
-    .check input{ width:auto; margin:0; }
-    .sponsorList{
-      padding:12px;
-      display:grid;
-      gap:10px;
-    }
-    .sponsorItem{
-      border:2px solid rgba(0,0,0,.12);
-      border-radius:12px;
-      background:rgba(255,255,255,.55);
-      padding:12px;
-      display:grid;
-      gap:8px;
-    }
-    .sTop{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .sName{ font-weight:900; font-size:16px; }
-    .sMeta{ font-size:12px; opacity:.85; margin-top:2px; }
-    .sBtns{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
-    .miniBtn{ font-size:14px; padding:10px 10px; }
-    .ghost{ background:rgba(255,255,255,.7); }
-    .ok{ background:var(--good); color:#fff; border-color:#1f4f1f; }
-    .off{ background:#888; color:#fff; border-color:#666; }
-    .logoRow{ display:flex; gap:10px; align-items:center; }
-    .logo{
-      width:44px; height:44px; border-radius:10px;
-      border:2px solid rgba(0,0,0,.12);
-      background:rgba(0,0,0,.04);
-      overflow:hidden;
-      display:flex; align-items:center; justify-content:center;
-      flex:0 0 auto;
-    }
-    .logo img{ width:100%; height:100%; object-fit:cover; }
   </style>
 </head>
 
@@ -159,8 +59,9 @@
   <div class="wrap">
     <div class="card">
       <h1>Admin Tournament Setup</h1>
-      <div class="small">Create a tournament, then share the Join link (QR) + Live Leaderboard link.</div>
+      <div class="small">Create a tournament, then share the Join link + Leaderboard.</div>
 
+      <!-- NAME + COURSE -->
       <div class="row" style="grid-template-columns:1fr 1fr;">
         <label>
           Tournament Name
@@ -176,41 +77,71 @@
         </label>
       </div>
 
+      <!-- ✅ FORMAT + DATE -->
       <div class="row" style="grid-template-columns:1fr 1fr;">
+        <label>
+          Format of Play
+          <select id="tFormat">
+            <option value="stroke">Stroke Play</option>
+            <option value="scramble">Scramble (Team Score)</option>
+            <option value="bestball">Best Ball</option>
+            <option value="skins">Skins</option>
+          </select>
+        </label>
+
         <label>
           Date (optional)
           <input id="tDate" placeholder="2026-03-01" />
         </label>
+      </div>
 
+      <!-- ORGANIZER -->
+      <div class="row">
         <label>
           Organizer Name (optional)
           <input id="tOrg" placeholder="Tirrel" />
         </label>
       </div>
 
+      <!-- ✅ SPONSOR -->
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <label>
+          Sponsor Name (optional)
+          <input id="tSponsorName" placeholder="Title Sponsor" />
+        </label>
+
+        <label>
+          Sponsor Logo URL (optional)
+          <input id="tSponsorLogo" placeholder="https://..." />
+        </label>
+      </div>
+
+      <!-- BUTTONS -->
       <div class="row" style="grid-template-columns:1fr 1fr;">
         <button class="primary" id="createBtn">Create Tournament</button>
         <button id="loadBtn">Load Existing (by ID)</button>
       </div>
 
+      <!-- IDS -->
       <div class="row" style="grid-template-columns:1fr 1fr;">
         <label>
           Tournament ID
-          <input id="tId" placeholder="(auto or paste here)" class="mono"/>
+          <input id="tId" class="mono"/>
         </label>
         <label>
-          Admin Token (auto)
-          <input id="adminToken" placeholder="(auto)" class="mono" />
+          Admin Token
+          <input id="adminToken" class="mono"/>
         </label>
       </div>
 
+      <!-- LINKS -->
       <div class="box">
-        <div class="small"><b>Join Link (players scan this QR)</b></div>
+        <div class="small"><b>Join Link</b></div>
         <div id="joinLink" class="mono small"></div>
 
         <div style="height:10px"></div>
 
-        <div class="small"><b>Leaderboard Link (organizer view)</b></div>
+        <div class="small"><b>Leaderboard Link</b></div>
         <div id="lbLink" class="mono small"></div>
 
         <div class="qrRow">
@@ -232,108 +163,11 @@
       </div>
 
       <div class="row">
-        <button class="danger" id="closeBtn">Close Tournament (stop accepting updates)</button>
-        <div class="small">
-          *In Test Mode, “close” is enforced by the client (we’ll enforce it by Rules later).
-        </div>
+        <button class="danger" id="closeBtn">Close Tournament</button>
       </div>
-
-      <!-- ====================== SPONSORS ====================== -->
-      <h2>Sponsors</h2>
-      <div class="small">Add sponsors here. The Leaderboard reads sponsors from Firestore and shows them in the ticker/rotator/etc.</div>
-
-      <div class="panel">
-        <div class="panelHead">
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <div class="pill">📣 Sponsor Manager</div>
-            <div class="small" id="sponsorHint">Load a tournament to manage sponsors.</div>
-          </div>
-          <div class="pill" id="sponsorCount">0 sponsors</div>
-        </div>
-
-        <div style="padding:12px;">
-          <div class="grid2">
-            <label>
-              Sponsor Name
-              <input id="sName" placeholder="ABC Roofing" />
-            </label>
-
-            <label>
-              Tier
-              <select id="sTier">
-                <option value="gold">Gold</option>
-                <option value="silver">Silver</option>
-                <option value="bronze">Bronze</option>
-                <option value="sponsor" selected>Sponsor</option>
-              </select>
-            </label>
-          </div>
-
-          <div class="grid2" style="margin-top:10px;">
-            <label>
-              Link URL (tap sponsor opens this)
-              <input id="sLink" placeholder="https://example.com" />
-            </label>
-
-            <label>
-              Image URL (logo) — optional
-              <input id="sImage" placeholder="https://.../logo.png" />
-            </label>
-          </div>
-
-          <div style="margin-top:10px;">
-            <label>
-              Sponsor Message (optional)
-              <textarea id="sText" placeholder="Proud supporter of today’s tournament!"></textarea>
-            </label>
-          </div>
-
-          <div class="grid2" style="margin-top:10px;">
-            <label>
-              Weight (rotation frequency)
-              <input id="sWeight" type="number" min="1" max="10" value="1" />
-            </label>
-
-            <label style="display:flex; align-items:flex-end;">
-              <span class="check" style="width:100%;">
-                <input id="sActive" type="checkbox" checked />
-                Active (show on leaderboard)
-              </span>
-            </label>
-          </div>
-
-          <div style="margin-top:10px;">
-            <div class="small" style="font-weight:900;">Placements</div>
-            <div class="checks">
-              <label class="check"><input type="checkbox" class="sPlace" value="ticker" checked> Ticker</label>
-              <label class="check"><input type="checkbox" class="sPlace" value="rotator" checked> Rotator</label>
-              <label class="check"><input type="checkbox" class="sPlace" value="hero"> Hero</label>
-              <label class="check"><input type="checkbox" class="sPlace" value="bottom"> Bottom</label>
-              <label class="check"><input type="checkbox" class="sPlace" value="scorecard"> Scorecard</label>
-            </div>
-            <div class="small" style="margin-top:6px;">
-              Tip: If placement is empty, it will still show in the ticker by default (leaderboard logic).
-            </div>
-          </div>
-
-          <div class="row" style="grid-template-columns:1fr 1fr; margin-top:12px;">
-            <button class="primary" id="saveSponsorBtn">Save Sponsor</button>
-            <button id="resetSponsorBtn">Reset Form</button>
-          </div>
-
-          <div class="small" style="margin-top:10px;">
-            Editing sponsor ID: <span class="mono" id="editingId">none</span>
-          </div>
-        </div>
-
-        <div class="sponsorList" id="sponsorList"></div>
-      </div>
-      <!-- ====================== /SPONSORS ====================== -->
-
     </div>
   </div>
 
-  <!-- QR library MUST load before the module script -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <script type="module">
@@ -343,394 +177,109 @@
       doc,
       setDoc,
       getDoc,
-      collection,
-      onSnapshot,
-      deleteDoc,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // Same config you already use in index.html
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
-      projectId: "cypresswood-tournaments",
-      storageBucket: "cypresswood-tournaments.firebasestorage.app",
-      messagingSenderId: "162441374966",
-      appId: "1:162441374966:web:157285a2d5c39db1e810d7",
-      measurementId: "G-HL6Y9CLV8K"
+      projectId: "cypresswood-tournaments"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const $ = (id) => document.getElementById(id);
-
-    // Tournament controls
-    const createBtn = $("createBtn");
-    const loadBtn = $("loadBtn");
-    const closeBtn = $("closeBtn");
-
-    const tName = $("tName");
-    const tCourse = $("tCourse");
-    const tDate = $("tDate");
-    const tOrg = $("tOrg");
-
-    const tId = $("tId");
-    const adminToken = $("adminToken");
-
-    const joinLinkEl = $("joinLink");
-    const lbLinkEl = $("lbLink");
-    const joinQREl = $("joinQR");
-    const lbQREl = $("lbQR");
-
-    const copyJoin = $("copyJoin");
-    const copyLb = $("copyLb");
-
-    // Sponsor controls
-    const sponsorHint = $("sponsorHint");
-    const sponsorCount = $("sponsorCount");
-    const sponsorList = $("sponsorList");
-
-    const sName = $("sName");
-    const sTier = $("sTier");
-    const sLink = $("sLink");
-    const sImage = $("sImage");
-    const sText = $("sText");
-    const sWeight = $("sWeight");
-    const sActive = $("sActive");
-    const saveSponsorBtn = $("saveSponsorBtn");
-    const resetSponsorBtn = $("resetSponsorBtn");
-    const editingIdEl = $("editingId");
-
-    let sponsorsUnsub = null;
-    let editingSponsorId = null;
-    let loadedTournamentToken = null; // token from Firestore
+    const $ = id => document.getElementById(id);
 
     function randId(len=10){
-      const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-      let s = "";
-      for(let i=0;i<len;i++) s += chars[Math.floor(Math.random()*chars.length)];
+      const chars="abcdefghijklmnopqrstuvwxyz0123456789";
+      let s="";
+      for(let i=0;i<len;i++) s+=chars[Math.floor(Math.random()*chars.length)];
       return s;
     }
 
-    function safe(s){
-      return String(s || "").replace(/</g,"&lt;");
-    }
-
-    // Safer GitHub Pages base URL (no weird path issues)
     function baseURL(){
-      const url = new URL(location.href);
-      url.hash = "";
-      url.search = "";
-      url.pathname = url.pathname.replace(/\/admin\.html$/,"/");
+      const url=new URL(location.href);
+      url.hash="";
+      url.search="";
+      url.pathname=url.pathname.replace(/\/admin\.html$/,"/");
       return url.toString();
     }
 
-    function renderQR(el, text){
-      if (!el) return;
-      el.innerHTML = "";
-      if (!text) return;
-
-      const holder = document.createElement("div");
+    function renderQR(el,text){
+      el.innerHTML="";
+      if(!text) return;
+      const holder=document.createElement("div");
       el.appendChild(holder);
-
-      new QRCode(holder, {
-        text,
-        width: 180,
-        height: 180,
-        correctLevel: QRCode.CorrectLevel.M
-      });
+      new QRCode(holder,{text,width:180,height:180});
     }
 
-    function buildLinks(id, token){
-      const base = baseURL();
-      const join = `${base}index.html?t=${encodeURIComponent(id)}`;
-      const lb = `${base}leaderboard.html?t=${encodeURIComponent(id)}&admin=${encodeURIComponent(token || "")}`;
-
-      joinLinkEl.textContent = join;
-      lbLinkEl.textContent = lb;
-
-      renderQR(joinQREl, join);
-      renderQR(lbQREl, lb);
+    function buildLinks(id,token){
+      const base=baseURL();
+      const join=`${base}index.html?t=${id}`;
+      const lb=`${base}leaderboard.html?t=${id}&admin=${token}`;
+      $("joinLink").textContent=join;
+      $("lbLink").textContent=lb;
+      renderQR($("joinQR"),join);
+      renderQR($("lbQR"),lb);
     }
 
     async function createTournament(){
-      const id = randId(10);
-      const token = randId(18); // MVP “admin secret”
+      const id=randId(10);
+      const token=randId(18);
 
-      const payload = {
-        name: (tName.value || "Cypresswood Tournament").trim(),
-        courseDefault: tCourse.value,
-        date: (tDate.value || "").trim(),
-        organizer: (tOrg.value || "").trim(),
-        status: "open",        // open | closed
-        adminToken: token,     // MVP gate for admin actions (client-side for now)
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+      const payload={
+        name: $("tName").value.trim(),
+        courseDefault: $("tCourse").value,
+        format: $("tFormat").value,
+        date: $("tDate").value.trim(),
+        organizer: $("tOrg").value.trim(),
+        sponsorName: $("tSponsorName").value.trim(),
+        sponsorLogo: $("tSponsorLogo").value.trim(),
+        status:"open",
+        adminToken:token,
+        createdAt:serverTimestamp(),
+        updatedAt:serverTimestamp()
       };
 
-      await setDoc(doc(db, "tournaments", id), payload, { merge:false });
+      await setDoc(doc(db,"tournaments",id),payload);
 
-      tId.value = id;
-      adminToken.value = token;
-      buildLinks(id, token);
-
-      await loadTournament(); // auto-load after create
+      $("tId").value=id;
+      $("adminToken").value=token;
+      buildLinks(id,token);
       alert("Tournament created!");
     }
 
     async function loadTournament(){
-      const id = (tId.value || "").trim();
+      const id=$("tId").value.trim();
       if(!id) return alert("Paste a Tournament ID first.");
 
-      const snap = await getDoc(doc(db,"tournaments",id));
+      const snap=await getDoc(doc(db,"tournaments",id));
       if(!snap.exists()) return alert("Not found.");
 
-      const data = snap.data() || {};
-      tName.value = data.name || "";
-      tCourse.value = data.courseDefault || "tradition";
-      tDate.value = data.date || "";
-      tOrg.value = data.organizer || "";
-      adminToken.value = data.adminToken || adminToken.value || "";
+      const d=snap.data();
 
-      loadedTournamentToken = (data.adminToken || "").toString();
-      buildLinks(id, adminToken.value || "");
+      $("tName").value=d.name||"";
+      $("tCourse").value=d.courseDefault||"tradition";
+      $("tFormat").value=d.format||"stroke";
+      $("tDate").value=d.date||"";
+      $("tOrg").value=d.organizer||"";
+      $("tSponsorName").value=d.sponsorName||"";
+      $("tSponsorLogo").value=d.sponsorLogo||"";
+      $("adminToken").value=d.adminToken||"";
 
-      sponsorHint.textContent = "Sponsors are live. Add/edit below.";
-      subscribeSponsors(id);
-
-      alert("Loaded.");
+      buildLinks(id,d.adminToken||"");
     }
 
     async function closeTournament(){
-      const id = (tId.value || "").trim();
-      const token = (adminToken.value || "").trim();
-      if(!id) return alert("Missing tournament ID.");
-
-      const snap = await getDoc(doc(db,"tournaments",id));
-      if(!snap.exists()) return alert("Not found.");
-
-      const data = snap.data() || {};
-      if((data.adminToken || "") !== token){
-        return alert("Admin token does not match.");
-      }
-
-      await setDoc(doc(db,"tournaments",id), { status:"closed", updatedAt: serverTimestamp() }, { merge:true });
+      const id=$("tId").value.trim();
+      await setDoc(doc(db,"tournaments",id),{status:"closed"},{merge:true});
       alert("Tournament CLOSED.");
     }
 
-    createBtn.addEventListener("click", createTournament);
-    loadBtn.addEventListener("click", loadTournament);
-    closeBtn.addEventListener("click", closeTournament);
-
-    async function copyText(txt){
-      try{
-        await navigator.clipboard.writeText(txt);
-        alert("Copied!");
-      }catch(e){
-        alert("Copy blocked. Press and hold to select text.");
-      }
-    }
-
-    copyJoin.addEventListener("click", () => copyText(joinLinkEl.textContent || ""));
-    copyLb.addEventListener("click", () => copyText(lbLinkEl.textContent || ""));
-
-    // Optional: load by URL ?t=...
-    const params = new URLSearchParams(location.search);
-    const qid = params.get("t");
-    if(qid){
-      tId.value = qid;
-      loadTournament();
-    }
-
-    // ====================== SPONSORS ======================
-    function currentPlacements(){
-      return Array.from(document.querySelectorAll(".sPlace"))
-        .filter(ch => ch.checked)
-        .map(ch => ch.value);
-    }
-
-    function resetSponsorForm(){
-      editingSponsorId = null;
-      editingIdEl.textContent = "none";
-
-      sName.value = "";
-      sTier.value = "sponsor";
-      sLink.value = "";
-      sImage.value = "";
-      sText.value = "";
-      sWeight.value = "1";
-      sActive.checked = true;
-
-      // default: ticker + rotator checked
-      document.querySelectorAll(".sPlace").forEach(ch => {
-        ch.checked = (ch.value === "ticker" || ch.value === "rotator");
-      });
-    }
-
-    resetSponsorBtn.addEventListener("click", resetSponsorForm);
-
-    function requireAdminTokenOrAlert(){
-      const entered = (adminToken.value || "").trim();
-      const id = (tId.value || "").trim();
-      if(!id) { alert("Load a tournament first."); return false; }
-      if(!entered) { alert("Missing admin token."); return false; }
-      if(loadedTournamentToken && entered !== loadedTournamentToken){
-        alert("Admin token does not match this tournament.");
-        return false;
-      }
-      return true;
-    }
-
-    async function saveSponsor(){
-      if(!requireAdminTokenOrAlert()) return;
-
-      const id = (tId.value || "").trim();
-      const name = (sName.value || "").trim();
-      if(!name) return alert("Sponsor name is required.");
-
-      const sponsorId = editingSponsorId || randId(12);
-      const placements = currentPlacements();
-
-      const payload = {
-        name,
-        tier: (sTier.value || "sponsor").toLowerCase(),
-        active: !!sActive.checked,
-        linkUrl: (sLink.value || "").trim(),
-        imageUrl: (sImage.value || "").trim(),
-        text: (sText.value || "").trim(),
-        placement: placements,
-        weight: Math.max(1, Math.min(10, Number(sWeight.value || 1) || 1)),
-        updatedAt: serverTimestamp()
-      };
-
-      // never store undefined
-      Object.keys(payload).forEach(k => {
-        if (typeof payload[k] === "undefined") payload[k] = "";
-      });
-
-      const ref = doc(db, "tournaments", id, "sponsors", sponsorId);
-      await setDoc(ref, { ...payload, createdAt: serverTimestamp() }, { merge:true });
-
-      resetSponsorForm();
-      alert("Sponsor saved.");
-    }
-
-    saveSponsorBtn.addEventListener("click", saveSponsor);
-
-    function subscribeSponsors(tournamentId){
-      if (sponsorsUnsub) sponsorsUnsub();
-      sponsorsUnsub = null;
-
-      sponsorList.innerHTML = "";
-      sponsorCount.textContent = "0 sponsors";
-
-      const ref = collection(db, "tournaments", tournamentId, "sponsors");
-      sponsorsUnsub = onSnapshot(ref, (snap) => {
-        const list = snap.docs.map(d => ({ id: d.id, ...(d.data() || {}) }));
-
-        // sort client-side (no Firestore index needed)
-        list.sort((a,b) => (a.name||"").localeCompare(b.name||""));
-
-        sponsorCount.textContent = `${list.length} ${list.length===1 ? "sponsor" : "sponsors"}`;
-        sponsorList.innerHTML = "";
-
-        if(!list.length){
-          sponsorList.innerHTML = `<div class="small" style="padding:12px; opacity:.85;">No sponsors yet. Add one above.</div>`;
-          return;
-        }
-
-        for(const s of list){
-          const placements = Array.isArray(s.placement) ? s.placement : [];
-          const tier = (s.tier || "sponsor").toLowerCase();
-          const tierIcon = tier === "gold" ? "🏆" : tier === "silver" ? "🥈" : tier === "bronze" ? "🥉" : "⛳️";
-          const active = !!s.active;
-
-          sponsorList.insertAdjacentHTML("beforeend", `
-            <div class="sponsorItem" data-id="${safe(s.id)}">
-              <div class="sTop">
-                <div class="logoRow">
-                  <div class="logo">${s.imageUrl ? `<img src="${safe(s.imageUrl)}" alt="logo" />` : "⛳️"}</div>
-                  <div>
-                    <div class="sName">${tierIcon} ${safe(s.name)}</div>
-                    <div class="sMeta">
-                      Tier: <b>${safe(tier)}</b> •
-                      Active: <b>${active ? "yes" : "no"}</b> •
-                      Weight: <b>${Number(s.weight || 1) || 1}</b><br/>
-                      Placements: <b>${placements.length ? placements.map(safe).join(", ") : "default(ticker)"}</b>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="sBtns">
-                  <button class="miniBtn ${active ? "ok" : "off"}" data-action="toggle">${active ? "Active" : "Hidden"}</button>
-                  <button class="miniBtn ghost" data-action="edit">Edit</button>
-                  <button class="miniBtn danger" data-action="delete">Delete</button>
-                </div>
-              </div>
-
-              ${s.text ? `<div class="small"><b>Message:</b> ${safe(s.text)}</div>` : ""}
-              ${s.linkUrl ? `<div class="small"><b>Link:</b> <span class="mono">${safe(s.linkUrl)}</span></div>` : ""}
-            </div>
-          `);
-        }
-
-        sponsorList.querySelectorAll(".sponsorItem").forEach(el => {
-          const sid = el.getAttribute("data-id");
-          el.querySelectorAll("button[data-action]").forEach(btn => {
-            btn.addEventListener("click", async () => {
-              if(!requireAdminTokenOrAlert()) return;
-              const action = btn.getAttribute("data-action");
-              if(!sid) return;
-
-              const ref = doc(db, "tournaments", tournamentId, "sponsors", sid);
-
-              if(action === "delete"){
-                if(!confirm("Delete this sponsor?")) return;
-                await deleteDoc(ref);
-                return;
-              }
-
-              if(action === "toggle"){
-                // We need current value — read from DOM snapshot list by data-id
-                const current = list.find(x => x.id === sid) || {};
-                const next = !current.active;
-                await setDoc(ref, { active: next, updatedAt: serverTimestamp() }, { merge:true });
-                return;
-              }
-
-              if(action === "edit"){
-                const s = list.find(x => x.id === sid);
-                if(!s) return;
-
-                editingSponsorId = sid;
-                editingIdEl.textContent = sid;
-
-                sName.value = (s.name || "");
-                sTier.value = (s.tier || "sponsor");
-                sLink.value = (s.linkUrl || "");
-                sImage.value = (s.imageUrl || "");
-                sText.value = (s.text || "");
-                sWeight.value = String(Math.max(1, Math.min(10, Number(s.weight || 1) || 1)));
-                sActive.checked = !!s.active;
-
-                const p = Array.isArray(s.placement) ? s.placement : [];
-                document.querySelectorAll(".sPlace").forEach(ch => ch.checked = p.includes(ch.value));
-
-                // scroll to form top
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }
-            });
-          });
-        });
-      });
-    }
-
-    // init sponsor form defaults
-    resetSponsorForm();
+    $("createBtn").onclick=createTournament;
+    $("loadBtn").onclick=loadTournament;
+    $("closeBtn").onclick=closeTournament;
   </script>
-
-  <!-- optional: if you use the same service worker refresh logic -->
-  <script src="./pwa.js"></script>
 </body>
 </html>
