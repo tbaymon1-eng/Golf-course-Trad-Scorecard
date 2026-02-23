@@ -32,7 +32,6 @@
       --card:#efe7d7;
     }
 
-    /* Remove iOS tap flash */
     *{ -webkit-tap-highlight-color: transparent; }
 
     body{
@@ -56,7 +55,6 @@
       box-shadow: 0 8px 22px rgba(0,0,0,.18);
     }
 
-    /* Header (phone-safe) */
     .header-img{
       width: 100%;
       height: auto !important;
@@ -67,7 +65,6 @@
       background: var(--card);
     }
 
-    /* Tournament Join Screen */
     #joinScreen{
       display:none;
       padding:12px 10px;
@@ -75,7 +72,6 @@
       border-bottom:1px solid rgba(0,0,0,.08);
     }
 
-    /* Course switch bar */
     .coursebar{
       display:flex;
       align-items:center;
@@ -175,7 +171,6 @@
       font-size: 16px;
     }
 
-    /* Tee row colors */
     .row-black td{ background:#0d2a55; color:#fff; }
     .row-blue  td{ background:#1f5ea8; color:#fff; }
     .row-white td{ background:#f7f7f7; color:#111; }
@@ -196,7 +191,6 @@
     .row-hcp td{ background: var(--hcpRow); color:#111; }
     .row-hcp .label{ background: #e9dcaa; }
 
-    /* Inputs */
     .score-input{
       width: 100%;
       height: 100%;
@@ -225,7 +219,6 @@
       -webkit-appearance: none;
       appearance: none;
     }
-    /* Remove grey focus overlay — printed look */
     .score-input:focus,
     .player-name:focus{
       outline: none !important;
@@ -282,7 +275,6 @@
       grid-column: 1 / -1;
     }
 
-    /* Refresh app button style (small) */
     .mini{
       font-size: 14px;
       padding: 10px 10px;
@@ -370,8 +362,6 @@
 
         <button id="share">Share</button>
         <button class="danger" id="clear">Clear Card</button>
-
-        <!-- NEW: easy refresh without hard-reset safari -->
         <button class="mini" id="refreshApp">Refresh App (update)</button>
       </div>
 
@@ -381,7 +371,6 @@
   <!-- html2canvas -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-  <!-- App logic + Firebase -->
   <script type="module">
     // ====================== FIREBASE IMPORTS ======================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -391,13 +380,12 @@
       setDoc,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import {
-  getAuth,
-  signInAnonymously,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getAuth,
+      signInAnonymously
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
     // ====================== FIREBASE CONFIG ======================
-    // IMPORTANT: this must be valid JS (no stray "/" or broken comment lines)
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -409,24 +397,21 @@ import {
     };
 
     // ===== Firebase init =====
-  let db = null;
-let auth = null;
-let authReady = false;
+    let db = null;
+    let auth = null;
+    let authReady = false;
 
-try {
-  const app = initializeApp(firebaseConfig);
-
-  auth = getAuth(app);
-  await signInAnonymously(auth);
-  authReady = true;
-
-  db = getFirestore(app);
-
-  console.log("Firebase ready ✅", auth.currentUser?.uid);
-} catch (e) {
-  console.error("Firebase init/auth failed ❌", e);
-  alert("Firebase init/auth failed: " + (e?.message || e));
-}
+    try {
+      const app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      await signInAnonymously(auth);
+      authReady = true;
+      db = getFirestore(app);
+      console.log("Firebase ready ✅", auth.currentUser?.uid);
+    } catch (e) {
+      console.error("Firebase init/auth failed ❌", e);
+      alert("Firebase init/auth failed: " + (e?.message || e));
+    }
 
     // ====================== COURSES ======================
     const COURSE_TRADITION = {
@@ -510,7 +495,6 @@ try {
     const swipeZone = document.getElementById("courseSwipeZone");
     const courseHeaderImg = document.getElementById("courseHeader");
 
-    // Join screen DOM
     const joinScreen = document.getElementById("joinScreen");
     const joinMeta = document.getElementById("joinMeta");
     const joinBtn = document.getElementById("joinBtn");
@@ -524,7 +508,6 @@ try {
     // ====================== STATE ======================
     let currentCourseId = "tradition";
 
-    // Tournament state
     let tournamentId = null;
     let isTournamentMode = false;
 
@@ -543,12 +526,13 @@ try {
       courseHeaderImg.alt = courseKey === "cypress" ? "Cypress Header" : "Tradition Header";
     }
 
+    // Tournament-specific localStorage key (prevents old tournament data showing)
     function storageKeyFor(courseId){
-  const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
-  return `scorecard_state_${courseId}${tPart}_v3`;
-}
+      const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
+      return `scorecard_state_${courseId}${tPart}_v3`;
+    }
 
-    // randomUUID fallback (older iOS can choke)
+    // device id persisted
     function makeDeviceId(){
       const existing = localStorage.getItem("t_device_id");
       if (existing) return existing;
@@ -665,22 +649,19 @@ try {
 
     function recalcPlayer(i){
       let out=0, inn=0;
-
       for (const h of holesFront){
         const v = document.getElementById(`p${i}_h${h}`)?.value || "";
-        out += parseInt(v, 10) || 0; // totals ignore letters/symbols
+        out += parseInt(v, 10) || 0;
       }
       for (const h of holesBack){
         const v = document.getElementById(`p${i}_h${h}`)?.value || "";
         inn += parseInt(v, 10) || 0;
       }
-
       const tot = out + inn;
 
       const outEl = document.querySelector(`[data-out="${i}"]`);
       const inEl  = document.querySelector(`[data-in="${i}"]`);
       const totEl = document.querySelector(`[data-tot="${i}"]`);
-
       if(outEl) outEl.textContent = out;
       if(inEl) inEl.textContent = inn;
       if(totEl) totEl.textContent = tot;
@@ -699,7 +680,6 @@ try {
         )
       };
       localStorage.setItem(key, JSON.stringify(state));
-
       if (isTournamentMode) scheduleTournamentPush();
     }
 
@@ -717,7 +697,7 @@ try {
         });
 
         (state.scores || []).forEach((row, p) => {
-          row.forEach((v, hIdx) => {
+          (row || []).forEach((v, hIdx) => {
             const el = document.getElementById(`p${p}_h${hIdx+1}`);
             if(el) el.value = v || "";
           });
@@ -735,9 +715,9 @@ try {
       for (let i=0;i<players;i++){
         for (let h=1;h<=18;h++){
           const el = document.getElementById(`p${i}_h${h}`);
-          if(!el) continue; // prevents crash -> table disappears
+          if(!el) continue;
           el.addEventListener("input", () => {
-            el.value = (el.value || "").slice(0,3); // allow letters/symbols too
+            el.value = (el.value || "").slice(0,3);
             recalcPlayer(i);
             saveState();
           });
@@ -776,7 +756,7 @@ try {
     function setCourse(courseId){
       if (!COURSES[courseId]) return;
 
-      // Tournament mode MVP: once joined, keep course locked
+      // once joined, keep course locked
       if (isTournamentMode && joinScreen.style.display === "none" && courseId !== currentCourseId){
         return;
       }
@@ -787,7 +767,6 @@ try {
 
     courseSelect.addEventListener("change", () => setCourse(courseSelect.value));
 
-    // swipe left/right on coursebar
     let touchStartX = null;
     swipeZone.addEventListener("touchstart", (e) => {
       touchStartX = e.changedTouches[0].clientX;
@@ -804,7 +783,7 @@ try {
     }, { passive:true });
 
     // ====================== SAVE/SHARE IMAGE ======================
-    function captureFullCardCanvas(){
+    async function captureFullCardCanvas(){
       const card = document.getElementById("card");
       const scroll = document.querySelector(".scroll-x");
       const table = document.getElementById("scoreTable");
@@ -819,17 +798,19 @@ try {
       scroll.style.width = table.scrollWidth + "px";
       card.style.width = (table.scrollWidth + 40) + "px";
 
-      return html2canvas(card, {
-        scale: 2,
-        backgroundColor: null,
-        windowWidth: card.scrollWidth,
-        windowHeight: card.scrollHeight
-      }).finally(() => {
+      try{
+        return await html2canvas(card, {
+          scale: 2,
+          backgroundColor: null,
+          windowWidth: card.scrollWidth,
+          windowHeight: card.scrollHeight
+        });
+      } finally {
         scroll.style.overflowX = oldOverflowX;
         scroll.style.overflowY = oldOverflowY;
         scroll.style.width = oldWidth;
         card.style.width = oldCardWidth;
-      });
+      }
     }
 
     function wireButtons(){
@@ -884,10 +865,10 @@ try {
       });
     }
 
-    // ====================== TOURNAMENT MODE (MVP) ======================
+    // ====================== TOURNAMENT MODE ======================
     function checkTournamentFromURL(){
       const params = new URLSearchParams(location.search);
-      const tId = params.get("t");
+      const tId = (params.get("t") || "").trim();
       if (!tId) return;
 
       tournamentId = tId;
@@ -902,10 +883,8 @@ try {
 
       const playerName = joinName.value.trim() || "Player";
 
-      // Hide join screen, keep tournament mode active
       joinScreen.style.display = "none";
 
-      // Send a tiny “joined” ping (optional)
       if (db){
         try{
           const tRef = doc(db, "tournaments", tournamentId);
@@ -913,6 +892,8 @@ try {
         }catch(e){}
       }
 
+      // After joining, save with tournament-specific key and push once
+      saveState();
       scheduleTournamentPush();
     });
 
@@ -921,29 +902,29 @@ try {
       isTournamentMode = false;
       tournamentId = null;
     });
-function readScoresFromDOM(){
-  const names = Array.from(document.querySelectorAll(".player-name")).map(i => i.value || "");
 
-  // ✅ Flat map: p{player}_h{hole} => value
-  const scoresFlat = {};
-  for(let p=0; p<players; p++){
-    for(let h=1; h<=18; h++){
-      const el = document.getElementById(`p${p}_h${h}`);
-      const key = `p${p}_h${h}`;
-      scoresFlat[key] = el ? (el.value || "") : "";
+    // ✅ FLAT MAP (no nested arrays) + totals
+    function readScoresFromDOM(){
+      const names = Array.from(document.querySelectorAll(".player-name")).map(i => i.value || "");
+
+      const scoresFlat = {};
+      for(let p=0; p<players; p++){
+        for(let h=1; h<=18; h++){
+          const el = document.getElementById(`p${p}_h${h}`);
+          const key = `p${p}_h${h}`;
+          // never undefined
+          scoresFlat[key] = el && typeof el.value !== "undefined" ? String(el.value || "") : "";
+        }
+      }
+
+      const totals = Array.from({length: players}, (_,i) => ({
+        out: Number(document.querySelector(`[data-out="${i}"]`)?.textContent || 0) || 0,
+        inn: Number(document.querySelector(`[data-in="${i}"]`)?.textContent || 0) || 0,
+        tot: Number(document.querySelector(`[data-tot="${i}"]`)?.textContent || 0) || 0
+      }));
+
+      return { names, scoresFlat, totals };
     }
-  }
-
-  // ✅ totals (leaderboard still needs these)
-  const totals = Array.from({length: players}, (_,i) => ({
-    out: Number(document.querySelector(`[data-out="${i}"]`)?.textContent || 0) || 0,
-    inn: Number(document.querySelector(`[data-in="${i}"]`)?.textContent || 0) || 0,
-    tot: Number(document.querySelector(`[data-tot="${i}"]`)?.textContent || 0) || 0
-  }));
-
-  return { names, scoresFlat, totals };
-}
-    
 
     let pushTimer = null;
     function scheduleTournamentPush(){
@@ -972,18 +953,17 @@ function readScoresFromDOM(){
           group,
           startHole,
           names: payload.names,
-          scoresFlat: payload.scoresFlat,
+          scoresFlat: payload.scoresFlat,   // ✅ correct field
           totals: payload.totals,
           updatedAt: serverTimestamp()
         }, { merge:true });
       } catch (e) {
-  console.error("WRITE FAILED ❌", e);
-  alert("Firestore write failed: " + (e?.message || e));
-}
+        console.error("WRITE FAILED ❌", e);
+        alert("Firestore write failed: " + (e?.message || e));
+      }
     }
 
     // ====================== REFRESH APP BUTTON ======================
-    // This clears SW + caches without user wiping Safari history.
     async function hardRefreshApp(){
       try{
         if ('serviceWorker' in navigator){
@@ -999,9 +979,6 @@ function readScoresFromDOM(){
         }
       }catch(e){}
 
-      // Also bust any local UI “stuck” state if desired:
-      // localStorage.clear();
-
       location.reload();
     }
 
@@ -1016,7 +993,6 @@ function readScoresFromDOM(){
     checkTournamentFromURL();
   </script>
 
-  <!-- Service worker registration -->
   <script src="./pwa.js"></script>
 </body>
 </html>
