@@ -372,12 +372,12 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <script type="module">
-    // ====================== FIREBASE IMPORTS ======================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getFirestore,
       doc,
       setDoc,
+      getDoc,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import {
@@ -396,7 +396,6 @@
       measurementId: "G-HL6Y9CLV8K"
     };
 
-    // ===== Firebase init =====
     let db = null;
     let auth = null;
     let authReady = false;
@@ -485,7 +484,9 @@
     // ====================== CONFIG ======================
     const holesFront = [1,2,3,4,5,6,7,8,9];
     const holesBack  = [10,11,12,13,14,15,16,17,18];
-    const players = 6;
+
+    // ✅ THIS IS NOW DYNAMIC (tournament sets it)
+    let playersCount = 6;
 
     // ====================== DOM ======================
     const tbody = document.getElementById("tbody");
@@ -502,7 +503,6 @@
     const joinName = document.getElementById("joinName");
     const joinGroup = document.getElementById("joinGroup");
     const joinStartHole = document.getElementById("joinStartHole");
-
     const refreshBtn = document.getElementById("refreshApp");
 
     // ====================== STATE ======================
@@ -510,6 +510,21 @@
 
     let tournamentId = null;
     let isTournamentMode = false;
+
+    // Loaded from tournament doc:
+    let tournamentSettings = {
+      format: "stroke",
+      playersPerCard: 6,
+      courseDefault: "tradition",
+      status: "open"
+    };
+
+    function formatLabel(fmt){
+      const f = (fmt || "").toLowerCase();
+      if (f === "scramble") return "Scramble";
+      if (f === "bestball") return "Best Ball";
+      return "Stroke Play";
+    }
 
     // ====================== HELPERS ======================
     function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
@@ -526,13 +541,13 @@
       courseHeaderImg.alt = courseKey === "cypress" ? "Cypress Header" : "Tradition Header";
     }
 
-    // Tournament-specific localStorage key (prevents old tournament data showing)
     function storageKeyFor(courseId){
       const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
-      return `scorecard_state_${courseId}${tPart}_v3`;
+      // include playersCount so scramble vs stroke don’t overwrite each other
+      const pPart = `_p${playersCount}`;
+      return `scorecard_state_${courseId}${tPart}${pPart}_v4`;
     }
 
-    // device id persisted
     function makeDeviceId(){
       const existing = localStorage.getItem("t_device_id");
       if (existing) return existing;
@@ -632,9 +647,15 @@
     }
 
     function buildPlayerRow(i){
+      const fmt = (tournamentSettings.format || "stroke").toLowerCase();
+      const placeholder =
+        fmt === "scramble" ? "Team Score" :
+        fmt === "bestball" ? `Player ${i+1}` :
+        `Player ${i+1}`;
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td class="label"><input class="player-name" placeholder="Player ${i+1}" /></td>
+        <td class="label"><input class="player-name" placeholder="${placeholder}" /></td>
         ${holesFront.map(h=>cellInput(i,h)).join("")}
         <td class="total" data-out="${i}">0</td>
         <td></td>
@@ -672,7 +693,7 @@
       const key = storageKeyFor(currentCourseId);
       const state = {
         names: Array.from(document.querySelectorAll(".player-name")).map(i => i.value || ""),
-        scores: Array.from({length: players}, (_,p) =>
+        scores: Array.from({length: playersCount}, (_,p) =>
           Array.from({length: 18}, (_,h) => {
             const el = document.getElementById(`p${p}_h${h+1}`);
             return el ? (el.value || "") : "";
@@ -692,18 +713,18 @@
         const state = JSON.parse(raw);
 
         const nameInputs = document.querySelectorAll(".player-name");
-        (state.names || []).forEach((v, idx) => {
+        (state.names || []).slice(0, playersCount).forEach((v, idx) => {
           if(nameInputs[idx]) nameInputs[idx].value = v;
         });
 
-        (state.scores || []).forEach((row, p) => {
+        (state.scores || []).slice(0, playersCount).forEach((row, p) => {
           (row || []).forEach((v, hIdx) => {
             const el = document.getElementById(`p${p}_h${hIdx+1}`);
             if(el) el.value = v || "";
           });
         });
 
-        for(let i=0;i<players;i++) recalcPlayer(i);
+        for(let i=0;i<playersCount;i++) recalcPlayer(i);
       }catch(e){}
     }
 
@@ -712,7 +733,7 @@
     }
 
     function wireInputs(){
-      for (let i=0;i<players;i++){
+      for (let i=0;i<playersCount;i++){
         for (let h=1;h<=18;h++){
           const el = document.getElementById(`p${i}_h${h}`);
           if(!el) continue;
@@ -743,7 +764,7 @@
       tbody.appendChild(buildParRow(course));
       tbody.appendChild(buildHcpRow(course));
 
-      for (let i=0;i<players;i++) tbody.appendChild(buildPlayerRow(i));
+      for (let i=0;i<playersCount;i++) tbody.appendChild(buildPlayerRow(i));
 
       if (course.extraRow) tbody.appendChild(buildYardageRow(course.extraRow));
       tbody.appendChild(buildYardageRow(course.bottomRow));
@@ -756,7 +777,7 @@
     function setCourse(courseId){
       if (!COURSES[courseId]) return;
 
-      // once joined, keep course locked
+      // In tournament mode: once joined, lock course
       if (isTournamentMode && joinScreen.style.display === "none" && courseId !== currentCourseId){
         return;
       }
@@ -860,13 +881,47 @@
         document.querySelectorAll(".score-input").forEach(i => i.value = "");
         document.querySelectorAll(".player-name").forEach(i => i.value = "");
         clearState();
-        for (let i=0;i<players;i++) recalcPlayer(i);
+        for (let i=0;i<playersCount;i++) recalcPlayer(i);
         if (isTournamentMode) scheduleTournamentPush();
       });
     }
 
     // ====================== TOURNAMENT MODE ======================
-    function checkTournamentFromURL(){
+    async function loadTournamentSettings(tId){
+      if (!db || !tId) return null;
+
+      try{
+        const snap = await getDoc(doc(db, "tournaments", tId));
+        if(!snap.exists()) return null;
+
+        const t = snap.data() || {};
+        const fmt = (t.format || "stroke").toLowerCase();
+
+        // Important: Firestore can store null; never let undefined through
+        const ppc = Number(t.playersPerCard || 6) || 6;
+        const courseDefault = (t.courseDefault || "tradition").toString().trim() || "tradition";
+        const status = (t.status || "open").toString().trim() || "open";
+
+        tournamentSettings = {
+          format: fmt,
+          playersPerCard: ppc,
+          courseDefault,
+          status
+        };
+
+        // Apply to UI
+        playersCount = Math.max(1, Math.min(6, ppc)); // cap safety; adjust later if you ever allow >6
+        // Force course to tournament default BEFORE building UI
+        if (COURSES[courseDefault]) currentCourseId = courseDefault;
+
+        return tournamentSettings;
+      }catch(e){
+        console.warn("Could not load tournament settings", e);
+        return null;
+      }
+    }
+
+    async function checkTournamentFromURL(){
       const params = new URLSearchParams(location.search);
       const tId = (params.get("t") || "").trim();
       if (!tId) return;
@@ -874,17 +929,43 @@
       tournamentId = tId;
       isTournamentMode = true;
 
+      // Load tournament settings first so the scorecard renders correct rows
+      const settings = await loadTournamentSettings(tournamentId);
+
+      // Rebuild card with correct playersCount/courseDefault
+      build();
+
+      const fmtText = settings ? formatLabel(settings.format) : "Tournament";
+      const rowsText = settings ? `${playersCount} row${playersCount===1?"":"s"}` : "";
+      const closedText = settings && settings.status === "closed" ? " • CLOSED" : "";
+
       joinScreen.style.display = "block";
-      joinMeta.textContent = `Tournament ID: ${tournamentId}`;
+      joinMeta.textContent = `Tournament ID: ${tournamentId} • ${fmtText}${rowsText ? ` • ${rowsText}` : ""}${closedText}`;
     }
 
     joinBtn.addEventListener("click", async () => {
       if (!tournamentId) return;
 
+      // If tournament closed, block joining (client-side)
+      if (tournamentSettings.status === "closed"){
+        alert("This tournament is closed.");
+        return;
+      }
+
       const playerName = joinName.value.trim() || "Player";
 
+      // Hide join screen
       joinScreen.style.display = "none";
 
+      // Hard lock course to tournament default once joined (prevents course mismatch on leaderboard)
+      if (isTournamentMode && tournamentSettings.courseDefault && COURSES[tournamentSettings.courseDefault]){
+        currentCourseId = tournamentSettings.courseDefault;
+        courseSelect.value = currentCourseId;
+        setCourseHeader(currentCourseId);
+        build(); // rebuild after join so everything matches
+      }
+
+      // Optional “joined” ping
       if (db){
         try{
           const tRef = doc(db, "tournaments", tournamentId);
@@ -892,7 +973,7 @@
         }catch(e){}
       }
 
-      // After joining, save with tournament-specific key and push once
+      // Save with tournament-specific key and push once
       saveState();
       scheduleTournamentPush();
     });
@@ -901,6 +982,7 @@
       joinScreen.style.display = "none";
       isTournamentMode = false;
       tournamentId = null;
+      // keep whatever was on screen
     });
 
     // ✅ FLAT MAP (no nested arrays) + totals
@@ -908,16 +990,15 @@
       const names = Array.from(document.querySelectorAll(".player-name")).map(i => i.value || "");
 
       const scoresFlat = {};
-      for(let p=0; p<players; p++){
+      for(let p=0; p<playersCount; p++){
         for(let h=1; h<=18; h++){
           const el = document.getElementById(`p${p}_h${h}`);
           const key = `p${p}_h${h}`;
-          // never undefined
           scoresFlat[key] = el && typeof el.value !== "undefined" ? String(el.value || "") : "";
         }
       }
 
-      const totals = Array.from({length: players}, (_,i) => ({
+      const totals = Array.from({length: playersCount}, (_,i) => ({
         out: Number(document.querySelector(`[data-out="${i}"]`)?.textContent || 0) || 0,
         inn: Number(document.querySelector(`[data-in="${i}"]`)?.textContent || 0) || 0,
         tot: Number(document.querySelector(`[data-tot="${i}"]`)?.textContent || 0) || 0
@@ -929,12 +1010,14 @@
     let pushTimer = null;
     function scheduleTournamentPush(){
       if (!db || !tournamentId || !authReady) return;
+      if (tournamentSettings.status === "closed") return;
       if (pushTimer) clearTimeout(pushTimer);
       pushTimer = setTimeout(pushTournamentNow, 250);
     }
 
     async function pushTournamentNow(){
       if (!db || !tournamentId) return;
+      if (tournamentSettings.status === "closed") return;
 
       const deviceId = makeDeviceId();
       const payload = readScoresFromDOM();
@@ -952,6 +1035,11 @@
           playerName,
           group,
           startHole,
+
+          // helpful for admin/debug
+          format: tournamentSettings.format || "stroke",
+          playersPerCard: playersCount,
+
           names: payload.names,
           scoresFlat: payload.scoresFlat,   // ✅ correct field
           totals: payload.totals,
@@ -989,8 +1077,8 @@
 
     // ====================== INIT ======================
     wireButtons();
-    build();
-    checkTournamentFromURL();
+    build();                 // default (non-tournament)
+    await checkTournamentFromURL(); // if tournament, it will rebuild with correct format
   </script>
 
   <script src="./pwa.js"></script>
