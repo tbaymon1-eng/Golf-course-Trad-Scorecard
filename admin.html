@@ -52,6 +52,17 @@
     }
     .qrTitle{ font-weight: 900; font-size: 13px; margin-bottom: 8px; }
     .qrWrap{ display:flex; justify-content:center; }
+
+    .hint{
+      margin-top:8px;
+      padding:10px;
+      border:2px solid rgba(0,0,0,.12);
+      border-radius:10px;
+      background:rgba(255,255,255,.45);
+      font-size:13px;
+      opacity:.9;
+    }
+    .hidden{ display:none !important; }
   </style>
 </head>
 
@@ -86,6 +97,31 @@
           Organizer Name (optional)
           <input id="tOrg" placeholder="Tirrel" />
         </label>
+      </div>
+
+      <!-- ✅ NEW: format + team size -->
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <label>
+          Format
+          <select id="tFormat">
+            <option value="stroke">Stroke Play (everyone enters own scores)</option>
+            <option value="scramble">Scramble (ONE team score row)</option>
+            <option value="bestball">Best Ball (2–4 players enter)</option>
+          </select>
+        </label>
+
+        <label id="teamSizeWrap" class="hidden">
+          Team Size (Best Ball)
+          <select id="tTeamSize">
+            <option value="2">2 players</option>
+            <option value="3">3 players</option>
+            <option value="4" selected>4 players</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="hint" id="formatHint">
+        Stroke Play: shows 6 player rows. Scramble: shows 1 team row. Best Ball: shows 2–4 rows (based on Team Size).
       </div>
 
       <div class="row" style="grid-template-columns:1fr 1fr;">
@@ -178,6 +214,12 @@
     const tDate = $("tDate");
     const tOrg = $("tOrg");
 
+    // ✅ NEW
+    const tFormat = $("tFormat");
+    const teamSizeWrap = $("teamSizeWrap");
+    const tTeamSize = $("tTeamSize");
+    const formatHint = $("formatHint");
+
     const tId = $("tId");
     const adminToken = $("adminToken");
 
@@ -210,7 +252,6 @@
       el.innerHTML = "";
       if (!text) return;
 
-      // qrcodejs expects a plain element (not display:flex wrapper), so we render in a child
       const holder = document.createElement("div");
       el.appendChild(holder);
 
@@ -234,21 +275,58 @@
       renderQR(lbQREl, lb);
     }
 
+    // ✅ Decide playersPerCard based on format
+    function computePlayersPerCard(format, teamSize){
+      if (format === "scramble") return 1;
+      if (format === "bestball") return Math.max(2, Math.min(4, Number(teamSize || 2) || 2));
+      // stroke default
+      return 6;
+    }
+
+    function updateFormatUI(){
+      const f = (tFormat.value || "stroke").toLowerCase();
+      if (f === "bestball") teamSizeWrap.classList.remove("hidden");
+      else teamSizeWrap.classList.add("hidden");
+
+      const ppc = computePlayersPerCard(f, tTeamSize.value);
+      const label =
+        f === "scramble" ? "Scramble: 1 row (team score)" :
+        f === "bestball" ? `Best Ball: ${ppc} rows` :
+        "Stroke Play: 6 rows";
+
+      formatHint.textContent = `${label}. (This is saved to Firestore as playersPerCard.)`;
+    }
+
+    tFormat.addEventListener("change", updateFormatUI);
+    tTeamSize.addEventListener("change", updateFormatUI);
+    updateFormatUI();
+
     async function createTournament(){
       const id = randId(10);
       const token = randId(18); // MVP “admin secret”
+
+      const format = (tFormat.value || "stroke").toLowerCase();
+      const teamSize = Math.max(2, Math.min(4, Number(tTeamSize.value || 4) || 4));
+      const playersPerCard = computePlayersPerCard(format, teamSize);
 
       const payload = {
         name: (tName.value || "Cypresswood Tournament").trim(),
         courseDefault: tCourse.value,
         date: (tDate.value || "").trim(),
         organizer: (tOrg.value || "").trim(),
+
+        // ✅ NEW tournament settings
+        format,                // "stroke" | "scramble" | "bestball"
+        teamSize: format === "bestball" ? teamSize : null, // keep null when not needed
+        playersPerCard,        // index.html can use directly
+
         status: "open",        // open | closed
         adminToken: token,     // MVP gate for admin actions (client-side for now)
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
 
+      // Firestore does NOT allow undefined, but allows null.
       await setDoc(doc(db, "tournaments", id), payload, { merge:false });
 
       tId.value = id;
@@ -265,11 +343,17 @@
       if(!snap.exists()) return alert("Not found.");
 
       const data = snap.data();
+
       tName.value = data.name || "";
       tCourse.value = data.courseDefault || "tradition";
       tDate.value = data.date || "";
       tOrg.value = data.organizer || "";
       adminToken.value = data.adminToken || "";
+
+      // ✅ load format settings
+      tFormat.value = (data.format || "stroke").toLowerCase();
+      if (data.teamSize) tTeamSize.value = String(data.teamSize);
+      updateFormatUI();
 
       buildLinks(id, adminToken.value || "");
       alert("Loaded.");
@@ -317,7 +401,6 @@
     }
   </script>
 
-  <!-- optional: if you use the same service worker refresh logic -->
   <script src="./pwa.js"></script>
 </body>
 </html>
