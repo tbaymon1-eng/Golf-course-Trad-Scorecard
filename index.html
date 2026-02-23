@@ -921,22 +921,29 @@ try {
       isTournamentMode = false;
       tournamentId = null;
     });
+function readScoresFromDOM(){
+  const names = Array.from(document.querySelectorAll(".player-name")).map(i => i.value || "");
 
-    function readScoresFromDOM(){
-      const names = Array.from(document.querySelectorAll(".player-name")).map(i => i.value || "");
-      const scores = Array.from({length: players}, (_,p) =>
-        Array.from({length: 18}, (_,h) => {
-          const el = document.getElementById(`p${p}_h${h+1}`);
-          return el ? (el.value || "") : "";
-        })
-      );
-      const totals = Array.from({length: players}, (_,i) => ({
-        out: Number(document.querySelector(`[data-out="${i}"]`)?.textContent || 0) || 0,
-        inn: Number(document.querySelector(`[data-in="${i}"]`)?.textContent || 0) || 0,
-        tot: Number(document.querySelector(`[data-tot="${i}"]`)?.textContent || 0) || 0
-      }));
-      return { names, scores, totals };
+  // ✅ Flat map: p{player}_h{hole} => value
+  const scoresFlat = {};
+  for(let p=0; p<players; p++){
+    for(let h=1; h<=18; h++){
+      const el = document.getElementById(`p${p}_h${h}`);
+      const key = `p${p}_h${h}`;
+      scoresFlat[key] = el ? (el.value || "") : "";
     }
+  }
+
+  // ✅ totals (leaderboard still needs these)
+  const totals = Array.from({length: players}, (_,i) => ({
+    out: Number(document.querySelector(`[data-out="${i}"]`)?.textContent || 0) || 0,
+    inn: Number(document.querySelector(`[data-in="${i}"]`)?.textContent || 0) || 0,
+    tot: Number(document.querySelector(`[data-tot="${i}"]`)?.textContent || 0) || 0
+  }));
+
+  return { names, scoresFlat, totals };
+}
+    
 
     let pushTimer = null;
     function scheduleTournamentPush(){
