@@ -544,8 +544,9 @@ try {
     }
 
     function storageKeyFor(courseId){
-      return `scorecard_state_${courseId}_v3`;
-    }
+  const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
+  return `scorecard_state_${courseId}${tPart}_v3`;
+}
 
     // randomUUID fallback (older iOS can choke)
     function makeDeviceId(){
