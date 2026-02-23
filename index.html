@@ -972,7 +972,7 @@ function readScoresFromDOM(){
           group,
           startHole,
           names: payload.names,
-          scores: payload.scores,
+          scoresFlat: payload.scoresFlat,
           totals: payload.totals,
           updatedAt: serverTimestamp()
         }, { merge:true });
