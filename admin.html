@@ -30,19 +30,24 @@
     button:active{ transform: translateY(1px); }
     .primary{ background:#2f6b2f; color:#fff; }
     .danger{ background:#b6422d; color:#fff; border-color:#7a2b20; }
+
     .box{
       margin-top:12px; padding:10px; border:2px dashed rgba(0,0,0,.25); border-radius:10px;
       background:rgba(255,255,255,.35);
       word-break: break-word;
     }
     .small{ font-size:13px; opacity:.85; }
-    .mono{ font-family: ui-monospace, monospace; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
+
     .qrRow{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
       margin-top: 10px;
       align-items: start;
+    }
+    @media (max-width:720px){
+      .qrRow{ grid-template-columns:1fr; }
     }
     .qrBox{
       background: rgba(255,255,255,.55);
@@ -59,7 +64,7 @@
   <div class="wrap">
     <div class="card">
       <h1>Admin Tournament Setup</h1>
-      <div class="small">Create a tournament, then share the Join link + Leaderboard.</div>
+      <div class="small">Create a tournament, then share the Join link + Leaderboard link (and their QRs).</div>
 
       <!-- NAME + COURSE -->
       <div class="row" style="grid-template-columns:1fr 1fr;">
@@ -77,7 +82,7 @@
         </label>
       </div>
 
-      <!-- ✅ FORMAT + DATE -->
+      <!-- FORMAT + DATE -->
       <div class="row" style="grid-template-columns:1fr 1fr;">
         <label>
           Format of Play
@@ -103,7 +108,7 @@
         </label>
       </div>
 
-      <!-- ✅ SPONSOR -->
+      <!-- SPONSOR (simple MVP fields) -->
       <div class="row" style="grid-template-columns:1fr 1fr;">
         <label>
           Sponsor Name (optional)
@@ -126,22 +131,22 @@
       <div class="row" style="grid-template-columns:1fr 1fr;">
         <label>
           Tournament ID
-          <input id="tId" class="mono"/>
+          <input id="tId" placeholder="(auto or paste here)" class="mono"/>
         </label>
         <label>
-          Admin Token
-          <input id="adminToken" class="mono"/>
+          Admin Token (auto)
+          <input id="adminToken" placeholder="(auto)" class="mono"/>
         </label>
       </div>
 
       <!-- LINKS -->
       <div class="box">
-        <div class="small"><b>Join Link</b></div>
+        <div class="small"><b>Join Link (players)</b></div>
         <div id="joinLink" class="mono small"></div>
 
         <div style="height:10px"></div>
 
-        <div class="small"><b>Leaderboard Link</b></div>
+        <div class="small"><b>Leaderboard Link (organizer)</b></div>
         <div id="lbLink" class="mono small"></div>
 
         <div class="qrRow">
@@ -149,7 +154,6 @@
             <div class="qrTitle">Join QR</div>
             <div id="joinQR" class="qrWrap"></div>
           </div>
-
           <div class="qrBox">
             <div class="qrTitle">Leaderboard QR</div>
             <div id="lbQR" class="qrWrap"></div>
@@ -164,10 +168,12 @@
 
       <div class="row">
         <button class="danger" id="closeBtn">Close Tournament</button>
+        <div class="small">Close is enforced client-side for now (rules later).</div>
       </div>
     </div>
   </div>
 
+  <!-- QR library MUST load before the module script -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <script type="module">
@@ -180,106 +186,174 @@
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    // ✅ full config (recommended)
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
-      projectId: "cypresswood-tournaments"
+      projectId: "cypresswood-tournaments",
+      storageBucket: "cypresswood-tournaments.firebasestorage.app",
+      messagingSenderId: "162441374966",
+      appId: "1:162441374966:web:157285a2d5c39db1e810d7",
+      measurementId: "G-HL6Y9CLV8K"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const $ = id => document.getElementById(id);
+    const $ = (id) => document.getElementById(id);
 
     function randId(len=10){
-      const chars="abcdefghijklmnopqrstuvwxyz0123456789";
-      let s="";
-      for(let i=0;i<len;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+      const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+      let s = "";
+      for(let i=0;i<len;i++) s += chars[Math.floor(Math.random()*chars.length)];
       return s;
     }
 
     function baseURL(){
-      const url=new URL(location.href);
-      url.hash="";
-      url.search="";
-      url.pathname=url.pathname.replace(/\/admin\.html$/,"/");
+      const url = new URL(location.href);
+      url.hash = "";
+      url.search = "";
+      url.pathname = url.pathname.replace(/\/admin\.html$/,"/");
       return url.toString();
     }
 
-    function renderQR(el,text){
-      el.innerHTML="";
-      if(!text) return;
-      const holder=document.createElement("div");
+    function renderQR(el, text){
+      if (!el) return;
+      el.innerHTML = "";
+      if (!text) return;
+
+      const holder = document.createElement("div");
       el.appendChild(holder);
-      new QRCode(holder,{text,width:180,height:180});
+
+      new QRCode(holder, {
+        text,
+        width: 180,
+        height: 180,
+        correctLevel: QRCode.CorrectLevel.M
+      });
     }
 
-    function buildLinks(id,token){
-      const base=baseURL();
-      const join=`${base}index.html?t=${id}`;
-      const lb=`${base}leaderboard.html?t=${id}&admin=${token}`;
-      $("joinLink").textContent=join;
-      $("lbLink").textContent=lb;
-      renderQR($("joinQR"),join);
-      renderQR($("lbQR"),lb);
+    function buildLinks(id, token){
+      const base = baseURL();
+      const join = `${base}index.html?t=${encodeURIComponent(id)}`;
+      const lb   = `${base}leaderboard.html?t=${encodeURIComponent(id)}&admin=${encodeURIComponent(token || "")}`;
+
+      $("joinLink").textContent = join;
+      $("lbLink").textContent = lb;
+
+      renderQR($("joinQR"), join);
+      renderQR($("lbQR"), lb);
+    }
+
+    async function copyText(txt){
+      const text = String(txt || "").trim();
+      if(!text) return alert("Nothing to copy yet.");
+      try{
+        if (navigator.clipboard?.writeText){
+          await navigator.clipboard.writeText(text);
+          alert("Copied!");
+          return;
+        }
+      }catch(e){}
+
+      // fallback
+      try{
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.top = "-1000px";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        alert("Copied!");
+      }catch(e){
+        alert("Copy blocked. Press and hold to select the link text.");
+      }
     }
 
     async function createTournament(){
-      const id=randId(10);
-      const token=randId(18);
+      const id = randId(10);
+      const token = randId(18);
 
-      const payload={
-        name: $("tName").value.trim(),
+      const payload = {
+        name: ($("tName").value || "Cypresswood Tournament").trim(),
         courseDefault: $("tCourse").value,
         format: $("tFormat").value,
-        date: $("tDate").value.trim(),
-        organizer: $("tOrg").value.trim(),
-        sponsorName: $("tSponsorName").value.trim(),
-        sponsorLogo: $("tSponsorLogo").value.trim(),
-        status:"open",
-        adminToken:token,
-        createdAt:serverTimestamp(),
-        updatedAt:serverTimestamp()
+        date: ($("tDate").value || "").trim(),
+        organizer: ($("tOrg").value || "").trim(),
+        sponsorName: ($("tSponsorName").value || "").trim(),
+        sponsorLogo: ($("tSponsorLogo").value || "").trim(),
+        status: "open",
+        adminToken: token,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       };
 
-      await setDoc(doc(db,"tournaments",id),payload);
+      await setDoc(doc(db, "tournaments", id), payload, { merge:false });
 
-      $("tId").value=id;
-      $("adminToken").value=token;
-      buildLinks(id,token);
+      $("tId").value = id;
+      $("adminToken").value = token;
+      buildLinks(id, token);
       alert("Tournament created!");
     }
 
     async function loadTournament(){
-      const id=$("tId").value.trim();
+      const id = ($("tId").value || "").trim();
       if(!id) return alert("Paste a Tournament ID first.");
 
-      const snap=await getDoc(doc(db,"tournaments",id));
+      const snap = await getDoc(doc(db,"tournaments",id));
       if(!snap.exists()) return alert("Not found.");
 
-      const d=snap.data();
+      const d = snap.data() || {};
+      $("tName").value = d.name || "";
+      $("tCourse").value = d.courseDefault || "tradition";
+      $("tFormat").value = d.format || "stroke";
+      $("tDate").value = d.date || "";
+      $("tOrg").value = d.organizer || "";
+      $("tSponsorName").value = d.sponsorName || "";
+      $("tSponsorLogo").value = d.sponsorLogo || "";
+      $("adminToken").value = d.adminToken || "";
 
-      $("tName").value=d.name||"";
-      $("tCourse").value=d.courseDefault||"tradition";
-      $("tFormat").value=d.format||"stroke";
-      $("tDate").value=d.date||"";
-      $("tOrg").value=d.organizer||"";
-      $("tSponsorName").value=d.sponsorName||"";
-      $("tSponsorLogo").value=d.sponsorLogo||"";
-      $("adminToken").value=d.adminToken||"";
-
-      buildLinks(id,d.adminToken||"");
+      buildLinks(id, d.adminToken || "");
+      alert("Loaded.");
     }
 
     async function closeTournament(){
-      const id=$("tId").value.trim();
-      await setDoc(doc(db,"tournaments",id),{status:"closed"},{merge:true});
+      const id = ($("tId").value || "").trim();
+      const token = ($("adminToken").value || "").trim();
+      if(!id) return alert("Missing tournament ID.");
+
+      const snap = await getDoc(doc(db,"tournaments",id));
+      if(!snap.exists()) return alert("Not found.");
+
+      const d = snap.data() || {};
+      if((d.adminToken || "") !== token){
+        return alert("Admin token does not match.");
+      }
+
+      await setDoc(doc(db,"tournaments",id), { status:"closed", updatedAt: serverTimestamp() }, { merge:true });
       alert("Tournament CLOSED.");
     }
 
-    $("createBtn").onclick=createTournament;
-    $("loadBtn").onclick=loadTournament;
-    $("closeBtn").onclick=closeTournament;
+    // Wire buttons
+    $("createBtn").addEventListener("click", createTournament);
+    $("loadBtn").addEventListener("click", loadTournament);
+    $("closeBtn").addEventListener("click", closeTournament);
+
+    $("copyJoin").addEventListener("click", () => copyText($("joinLink").textContent));
+    $("copyLb").addEventListener("click", () => copyText($("lbLink").textContent));
+
+    // Optional: load by URL ?t=...
+    const params = new URLSearchParams(location.search);
+    const qid = (params.get("t") || "").trim();
+    if(qid){
+      $("tId").value = qid;
+      loadTournament();
+    }
   </script>
+
+  <script src="./pwa.js"></script>
 </body>
 </html>
