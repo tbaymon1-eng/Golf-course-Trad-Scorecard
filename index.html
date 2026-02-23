@@ -391,7 +391,11 @@
       setDoc,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+import {
+  getAuth,
+  signInAnonymously,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     // ====================== FIREBASE CONFIG ======================
     // IMPORTANT: this must be valid JS (no stray "/" or broken comment lines)
     const firebaseConfig = {
