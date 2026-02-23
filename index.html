@@ -944,7 +944,7 @@ try{
 
     let pushTimer = null;
     function scheduleTournamentPush(){
-      if (!db || !tournamentId) return;
+      if (!db || !tournamentId || !authReady) return;
       if (pushTimer) clearTimeout(pushTimer);
       pushTimer = setTimeout(pushTournamentNow, 250);
     }
