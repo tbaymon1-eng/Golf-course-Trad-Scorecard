@@ -32,6 +32,27 @@
       border-radius:12px;
       box-shadow:0 8px 22px rgba(0,0,0,.18);
       overflow:hidden;
+      position:relative;
+    }
+
+    /* ✅ Cypresswood branding watermark */
+    .brand-watermark{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+      opacity:.11;
+      background-repeat:no-repeat;
+      background-position:center 170px;
+      background-size: 520px auto;
+      /* Put your tree logo file here */
+      background-image: url("./assets/cypresswood_tree.png");
+      filter: saturate(0.9) contrast(1.05);
+    }
+
+    .top, .section, .spotlight, .table-wrap, #sponsorTicker, #sponsorRotator{
+      position:relative;
+      z-index:1;
     }
 
     .top{
@@ -39,6 +60,41 @@
       border-bottom:1px solid rgba(0,0,0,.08);
       background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
     }
+
+    /* ✅ Cypresswood title row */
+    .clubline{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:8px;
+    }
+    .clublogo{
+      width:34px;
+      height:34px;
+      border-radius:10px;
+      border:2px solid rgba(0,0,0,.12);
+      background: rgba(255,255,255,.65);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      flex:0 0 auto;
+    }
+    .clublogo img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .clubname{
+      font-family:Cinzel, serif;
+      font-weight:900;
+      font-size:14px;
+      letter-spacing:.35px;
+      opacity:.9;
+      line-height:1.1;
+    }
+
     h1{
       margin:0;
       font-family:Cinzel, serif;
@@ -47,6 +103,7 @@
       letter-spacing:.3px;
     }
     .meta{ margin-top:6px; font-size:13px; opacity:.85; }
+
     .bar{
       display:flex;
       align-items:center;
@@ -88,7 +145,40 @@
     .primary{ background:var(--good); color:#fff; }
     .danger{ background:var(--bad); color:#fff; border-color:#7a2b20; }
 
-    /* Sponsors */
+    /* ✅ Sponsor hero (from admin tournament doc sponsorName/sponsorLogo) */
+    #sponsorHero{
+      display:none;
+      margin-top:10px;
+      padding:10px 12px;
+      border-top:1px solid rgba(0,0,0,.08);
+      background:rgba(255,255,255,.35);
+      border-radius:12px;
+    }
+    #sponsorHero .title{
+      font-family:Cinzel, serif;
+      font-weight:900;
+      font-size:13px;
+    }
+    #sponsorHero .row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-top:8px;
+    }
+    #sponsorHeroLogo{
+      width:44px;
+      height:44px;
+      border-radius:10px;
+      object-fit:cover;
+      display:none;
+      border:2px solid rgba(0,0,0,.12);
+      background:rgba(255,255,255,.65);
+    }
+    #sponsorHeroName{
+      font-weight:900;
+    }
+
+    /* Sponsor ticker */
     #sponsorTicker{
       display:none;
       margin: 0 12px 12px;
@@ -112,6 +202,7 @@
       cursor:pointer;
     }
     .sponsor-chip:active{ transform: translateY(1px); }
+
     @keyframes tickerScroll {
       0% { transform: translateX(0); }
       100% { transform: translateX(-50%); }
@@ -203,6 +294,7 @@
     }
     @media (max-width:680px){
       .spotlight-grid{ grid-template-columns:1fr; }
+      .brand-watermark{ background-size: 420px auto; background-position:center 210px; }
     }
     .podium{
       border:2px solid rgba(0,0,0,.12);
@@ -298,99 +390,28 @@
       font-size:14px;
       opacity:.85;
     }
-
-    /* Hole detail modal */
-    #holeModal{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.35);
-      display:none;
-      align-items:flex-end;
-      justify-content:center;
-      z-index:9999;
-    }
-    #holeSheet{
-      width:min(980px, 100%);
-      background:var(--card);
-      border-top-left-radius:16px;
-      border-top-right-radius:16px;
-      border:3px solid var(--border);
-      border-bottom:none;
-      box-shadow:0 -10px 30px rgba(0,0,0,.25);
-      max-height:85vh;
-      overflow:auto;
-    }
-    #holeSheetHeader{
-      padding:12px;
-      border-bottom:1px solid rgba(0,0,0,.12);
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-    }
-    #holeSheetTitle{
-      font-family:Cinzel, serif;
-      font-weight:900;
-      font-size:16px;
-      margin:0;
-    }
-    #holeSheetSub{
-      margin-top:4px;
-      font-size:12px;
-      opacity:.85;
-    }
-    #holeGrid{
-      padding:12px;
-      display:grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap:8px;
-    }
-    @media (max-width:680px){
-      #holeGrid{ grid-template-columns: repeat(3, 1fr); }
-    }
-    .holeCell{
-      border:2px solid rgba(0,0,0,.15);
-      border-radius:12px;
-      background:rgba(255,255,255,.6);
-      padding:10px;
-      text-align:center;
-    }
-    .holeCell .h{
-      font-family:Cinzel, serif;
-      font-weight:900;
-      font-size:12px;
-      opacity:.85;
-    }
-    .holeCell .v{
-      margin-top:6px;
-      font-weight:900;
-      font-size:18px;
-    }
-    #holeSheetActions{
-      padding:12px;
-      border-top:1px solid rgba(0,0,0,.12);
-      display:flex;
-      gap:10px;
-      justify-content:flex-end;
-    }
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <div class="card">
+      <div class="brand-watermark" aria-hidden="true"></div>
+
       <div class="top">
+        <!-- ✅ Cypresswood brand label -->
+        <div class="clubline">
+          <div class="clublogo">
+            <!-- Put your tree logo here too (optional). If you want no icon, delete this img. -->
+            <img src="./assets/cypresswood_tree.png" alt="Cypresswood" />
+          </div>
+          <div class="clubname">Cypresswood Golf Club</div>
+        </div>
+
         <h1 id="pageTitle">Live Leaderboard</h1>
         <div class="meta" id="pageMeta">Loading…</div>
 
         <div class="bar">
-          <div id="sponsorHero" style="display:none; padding:10px 12px; border-top:1px solid rgba(0,0,0,.08); background:rgba(255,255,255,.35);">
-  <div style="font-family:Cinzel,serif; font-weight:900; font-size:13px;">Tournament Sponsor</div>
-  <div style="display:flex; align-items:center; gap:10px; margin-top:8px;">
-    <img id="sponsorHeroLogo" alt="Sponsor" style="width:44px; height:44px; border-radius:10px; object-fit:cover; display:none; border:2px solid rgba(0,0,0,.12);" />
-    <div id="sponsorHeroName" style="font-weight:900;"></div>
-  </div>
-</div>
           <div class="pill" id="statusPill">⛳️ LIVE</div>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <button id="refreshBtn">🔄 Refresh</button>
@@ -398,9 +419,18 @@
             <button id="copyBtn">📋 Copy Leaderboard Link</button>
           </div>
         </div>
+
+        <!-- ✅ Sponsor hero -->
+        <div id="sponsorHero">
+          <div class="title">Tournament Sponsor</div>
+          <div class="row">
+            <img id="sponsorHeroLogo" alt="Sponsor" />
+            <div id="sponsorHeroName"></div>
+          </div>
+        </div>
       </div>
 
-      <!-- Sponsors -->
+      <!-- Sponsors (collection-based, optional if you implement sponsors subcollection later) -->
       <div id="sponsorTicker">
         <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid rgba(0,0,0,.1);">
           <div style="font-family:Cinzel,serif; font-weight:900;">Sponsored by</div>
@@ -461,24 +491,6 @@
     </div>
   </div>
 
-  <!-- Hole detail modal -->
-  <div id="holeModal">
-    <div id="holeSheet">
-      <div id="holeSheetHeader">
-        <div>
-          <div id="holeSheetTitle">Team</div>
-          <div id="holeSheetSub">—</div>
-        </div>
-        <button id="holeCloseBtn">✖️ Close</button>
-      </div>
-      <div id="holeGrid"></div>
-      <div id="holeSheetActions">
-        <button id="holeCopyBtn">📋 Copy Scores</button>
-        <button id="holeDoneBtn" class="primary">Done</button>
-      </div>
-    </div>
-  </div>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
@@ -491,7 +503,7 @@
       onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // ✅ Same config as index.html/admin.html
+    // ✅ Full config (match index.html)
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -520,7 +532,12 @@
     const teamCount = $("teamCount");
     const lastUpdated = $("lastUpdated");
 
-    // Sponsors
+    // Sponsor hero elements
+    const sponsorHero = $("sponsorHero");
+    const sponsorHeroName = $("sponsorHeroName");
+    const sponsorHeroLogo = $("sponsorHeroLogo");
+
+    // Sponsors (collection-based widgets)
     const sponsorTicker = $("sponsorTicker");
     const tickerTrack = $("tickerTrack");
     const sponsorRotator = $("sponsorRotator");
@@ -529,15 +546,6 @@
     const rotatorName = $("rotatorName");
     const rotatorText = $("rotatorText");
     const rotatorBadge = $("rotatorBadge");
-
-    // Hole modal
-    const holeModal = $("holeModal");
-    const holeSheetTitle = $("holeSheetTitle");
-    const holeSheetSub = $("holeSheetSub");
-    const holeGrid = $("holeGrid");
-    const holeCloseBtn = $("holeCloseBtn");
-    const holeDoneBtn = $("holeDoneBtn");
-    const holeCopyBtn = $("holeCopyBtn");
 
     // ===== URL Params =====
     const params = new URLSearchParams(location.search);
@@ -561,26 +569,22 @@
       return String(s || "").replace(/</g,"&lt;");
     }
 
-    function scoresRowFromFlat(scoresFlat, playerIndex = 0){
-      const row = [];
-      for(let h=1; h<=18; h++){
-        row.push((scoresFlat?.[`p${playerIndex}_h${h}`] ?? "").toString());
-      }
-      return row;
-    }
-
-    function calcTotalsFromScoresRow(scoresRow){
+    function calcTotalsFromFlat(scoresFlat){
+      // scoresFlat keys: p{player}_h{hole} (hole 1-18)
+      // MVP: leaderboard uses player 0 as the "team row"
       let out = 0, inn = 0;
-      for(let i=0;i<18;i++){
-        const v = (scoresRow?.[i] ?? "").toString().trim();
-        const n = parseInt(v,10);
+      for(let h=1; h<=18; h++){
+        const key = `p0_h${h}`;
+        const v = (scoresFlat?.[key] ?? "").toString().trim();
+        const n = parseInt(v, 10);
         if(Number.isFinite(n)){
-          if(i<9) out += n; else inn += n;
+          if(h<=9) out += n; else inn += n;
         }
       }
-      return { out, inn, tot: out+inn };
+      return { out, inn, tot: out + inn };
     }
 
+    // ===== Copy Link =====
     async function copyText(txt){
       try{
         await navigator.clipboard.writeText(txt);
@@ -603,15 +607,50 @@
 
     joinBtn.href = `${baseURL()}index.html?t=${encodeURIComponent(tournamentId)}`;
 
-    // ====================== TOURNAMENT DOC (title + status) ======================
+    // ===== Sponsor hero from tournament doc (admin fields sponsorName/sponsorLogo) =====
+    function renderSponsorHero(t){
+      const name = (t?.sponsorName || "").trim();
+      const logo = (t?.sponsorLogo || "").trim();
+
+      if(!sponsorHero) return;
+
+      if(!name && !logo){
+        sponsorHero.style.display = "none";
+        return;
+      }
+
+      sponsorHero.style.display = "block";
+      if (sponsorHeroName) sponsorHeroName.textContent = name || "Sponsor";
+
+      if (sponsorHeroLogo){
+        if (logo){
+          sponsorHeroLogo.src = logo;
+          sponsorHeroLogo.style.display = "block";
+        } else {
+          sponsorHeroLogo.style.display = "none";
+        }
+      }
+    }
+
+    // ====================== TOURNAMENT DOC (title + status + sponsor hero) ======================
     const tRef = doc(db, "tournaments", tournamentId);
+
     try{
       const snap = await getDoc(tRef);
       if(snap.exists()){
         const t = snap.data();
+
         pageTitle.textContent = `Live Leaderboard`;
         pageMeta.textContent = `${t.name || "Tournament"} • ID: ${tournamentId}`;
-        statusPill.textContent = ((t.status || "open") === "closed") ? "🔒 CLOSED" : "⛳️ LIVE";
+
+        if((t.status || "open") === "closed"){
+          statusPill.textContent = "🔒 CLOSED";
+        }else{
+          statusPill.textContent = "⛳️ LIVE";
+        }
+
+        // ✅ show sponsor hero
+        renderSponsorHero(t);
       }else{
         pageMeta.textContent = `Tournament not found • ID: ${tournamentId}`;
         statusPill.textContent = "⚠️ Not Found";
@@ -622,12 +661,10 @@
     }
 
     // ====================== SUBMISSIONS -> LEADERBOARD ======================
-    // Read from: tournaments/{t}/submissions/{deviceId}
     const subRef = collection(db, "tournaments", tournamentId, "submissions");
     const subQuery = query(subRef);
 
     let latestUpdate = null;
-    let lastTeams = []; // keep latest list for modal lookup
 
     function renderPodium(list){
       const top = list.slice(0,3);
@@ -665,11 +702,11 @@
 
       list.forEach((t, idx) => {
         rowsTbody.insertAdjacentHTML("beforeend", `
-          <tr data-team-id="${safe(t.id)}" style="cursor:pointer;">
+          <tr>
             <td class="center"><span class="badge">#${idx+1}</span></td>
             <td>
               <div style="font-weight:900;">${safe(t.teamName)}</div>
-              <div class="muted">${safe(t.courseId || "")} <span class="muted">• tap for holes</span></div>
+              <div class="muted">${safe(t.courseId || "")}</div>
             </td>
             <td class="center">${t.group ? `<span class="badge">${safe(t.group)}</span>` : "—"}</td>
             <td class="right">${t.out}</td>
@@ -679,81 +716,31 @@
           </tr>
         `);
       });
-
-      // click -> open hole modal
-      rowsTbody.querySelectorAll("tr[data-team-id]").forEach(tr => {
-        tr.addEventListener("click", () => {
-          const id = tr.getAttribute("data-team-id");
-          const t = lastTeams.find(x => x.id === id);
-          if(t) openHoleModal(t);
-        });
-      });
     }
-
-    function openHoleModal(team){
-      holeSheetTitle.textContent = team.teamName || "Team";
-      holeSheetSub.textContent =
-        `${team.courseId || ""}${team.group ? ` • Group ${team.group}` : ""} • Updated ${team.updatedLabel}`;
-
-      holeGrid.innerHTML = "";
-
-      const row = team.scoresRow || Array.from({length:18}, ()=>"");
-      for(let i=0;i<18;i++){
-        const v = (row[i] ?? "").toString().trim() || "—";
-        holeGrid.insertAdjacentHTML("beforeend", `
-          <div class="holeCell">
-            <div class="h">Hole ${i+1}</div>
-            <div class="v">${safe(v)}</div>
-          </div>
-        `);
-      }
-
-      holeCopyBtn.onclick = () => {
-        const txt = row.map((v,i)=>`H${i+1}:${(v??"").toString().trim() || "-"}`).join("  ");
-        copyText(`${team.teamName} (${team.courseId})\n${txt}`);
-      };
-
-      holeModal.style.display = "flex";
-    }
-
-    function closeHoleModal(){
-      holeModal.style.display = "none";
-    }
-
-    holeCloseBtn.addEventListener("click", closeHoleModal);
-    holeDoneBtn.addEventListener("click", closeHoleModal);
-    holeModal.addEventListener("click", (e) => {
-      if(e.target === holeModal) closeHoleModal();
-    });
 
     onSnapshot(subQuery, (snap) => {
       const teams = [];
-      latestUpdate = null;
 
       snap.forEach((d) => {
         const data = d.data() || {};
-
         const names = Array.isArray(data.names) ? data.names : [];
+        const totalsArr = Array.isArray(data.totals) ? data.totals : [];
         const scoresFlat = (data.scoresFlat && typeof data.scoresFlat === "object") ? data.scoresFlat : null;
-        const scores = Array.isArray(data.scores) ? data.scores : [];
 
-        // Team name
         const teamName =
           (data.playerName || "").trim() ||
           (names[0] || "").trim() ||
           `Team ${d.id.slice(0,5)}`;
 
-        // Per-hole row for display (player 0)
-        const scoresRow = scoresFlat ? scoresRowFromFlat(scoresFlat, 0) : (scores[0] || Array.from({length:18}, ()=>""));
-
-        // Totals
         let out = 0, inn = 0, tot = 0;
-        if (Array.isArray(data.totals) && data.totals[0] && typeof data.totals[0] === "object") {
-          out = Number(data.totals[0].out || 0) || 0;
-          inn = Number(data.totals[0].inn || 0) || 0;
-          tot = Number(data.totals[0].tot || (out+inn)) || (out+inn);
-        } else {
-          const computed = calcTotalsFromScoresRow(scoresRow);
+
+        // Prefer totals[0] if present (your index sends totals array)
+        if (totalsArr[0] && typeof totalsArr[0] === "object") {
+          out = Number(totalsArr[0].out || 0) || 0;
+          inn = Number(totalsArr[0].inn || 0) || 0;
+          tot = Number(totalsArr[0].tot || (out+inn)) || (out+inn);
+        } else if (scoresFlat) {
+          const computed = calcTotalsFromFlat(scoresFlat);
           out = computed.out; inn = computed.inn; tot = computed.tot;
         }
 
@@ -770,12 +757,11 @@
           courseId: (data.courseId || "").toString().trim(),
           out, inn, tot,
           updatedLabel: updatedAt ? fmtTime(updatedAt) : "—",
-          updatedAt,
-          scoresRow
+          updatedAt
         });
       });
 
-      // Sort (golf: lower is better), tie-break by updatedAt desc
+      // Sort by total asc (lower is better), tie-break by updatedAt desc
       teams.sort((a,b) => {
         if(a.tot !== b.tot) return a.tot - b.tot;
         const at = a.updatedAt?.toDate ? a.updatedAt.toDate().getTime() : 0;
@@ -783,20 +769,18 @@
         return bt - at;
       });
 
-      lastTeams = teams;
-
       renderPodium(teams);
       renderTable(teams);
+
       lastUpdated.textContent = latestUpdate ? `Last update: ${latestUpdate.toLocaleString()}` : "Last update: —";
-    }, (err) => {
-      pageMeta.textContent = `Realtime listener error: ${err?.message || err}`;
-      statusPill.textContent = "⚠️ Listener Error";
     });
 
-    // ====================== SPONSORS (ticker + rotator) ======================
+    // ====================== OPTIONAL: sponsors subcollection ticker/rotator ======================
+    // If you later create: tournaments/{t}/sponsors/{id} with {active:true, name, tier, weight, linkUrl, imageUrl, text, placement:["ticker","rotator"]}
     const sponsorRef = collection(db, "tournaments", tournamentId, "sponsors");
     const sponsorQuery = query(sponsorRef, where("active","==",true));
 
+    let sponsors = [];
     let rotatorTimer = null;
     let rotatorIndex = 0;
 
@@ -829,7 +813,7 @@
       tickerTrack.innerHTML = `<div id="tickerInner" class="ticker-animate">${chipsHTML}${chipsHTML}</div>`;
 
       requestAnimationFrame(() => {
-        const inner = $("tickerInner");
+        const inner = document.getElementById("tickerInner");
         if(!inner) return;
         if(inner.scrollWidth < 900){
           inner.classList.remove("ticker-animate");
@@ -890,7 +874,7 @@
     }
 
     onSnapshot(sponsorQuery, (snap) => {
-      const sponsors = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+      sponsors = snap.docs.map(d => ({ id:d.id, ...d.data() }));
 
       const tick = sponsors.filter(s => {
         const p = s.placement || [];
@@ -902,7 +886,7 @@
     });
   </script>
 
-  <!-- Optional: keeps SW up to date if you already use pwa.js -->
+  <!-- Optional: if you already use the same SW updater -->
   <script src="./pwa.js"></script>
 </body>
 </html>
