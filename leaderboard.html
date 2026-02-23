@@ -88,11 +88,7 @@
     .primary{ background:var(--good); color:#fff; }
     .danger{ background:var(--bad); color:#fff; border-color:#7a2b20; }
 
-    .section{
-      padding:12px;
-    }
-
-    /* Sponsor ticker */
+    /* Sponsors */
     #sponsorTicker{
       display:none;
       margin: 0 12px 12px;
@@ -116,7 +112,6 @@
       cursor:pointer;
     }
     .sponsor-chip:active{ transform: translateY(1px); }
-
     @keyframes tickerScroll {
       0% { transform: translateX(0); }
       100% { transform: translateX(-50%); }
@@ -303,6 +298,81 @@
       font-size:14px;
       opacity:.85;
     }
+
+    /* Hole detail modal */
+    #holeModal{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.35);
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      z-index:9999;
+    }
+    #holeSheet{
+      width:min(980px, 100%);
+      background:var(--card);
+      border-top-left-radius:16px;
+      border-top-right-radius:16px;
+      border:3px solid var(--border);
+      border-bottom:none;
+      box-shadow:0 -10px 30px rgba(0,0,0,.25);
+      max-height:85vh;
+      overflow:auto;
+    }
+    #holeSheetHeader{
+      padding:12px;
+      border-bottom:1px solid rgba(0,0,0,.12);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    #holeSheetTitle{
+      font-family:Cinzel, serif;
+      font-weight:900;
+      font-size:16px;
+      margin:0;
+    }
+    #holeSheetSub{
+      margin-top:4px;
+      font-size:12px;
+      opacity:.85;
+    }
+    #holeGrid{
+      padding:12px;
+      display:grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap:8px;
+    }
+    @media (max-width:680px){
+      #holeGrid{ grid-template-columns: repeat(3, 1fr); }
+    }
+    .holeCell{
+      border:2px solid rgba(0,0,0,.15);
+      border-radius:12px;
+      background:rgba(255,255,255,.6);
+      padding:10px;
+      text-align:center;
+    }
+    .holeCell .h{
+      font-family:Cinzel, serif;
+      font-weight:900;
+      font-size:12px;
+      opacity:.85;
+    }
+    .holeCell .v{
+      margin-top:6px;
+      font-weight:900;
+      font-size:18px;
+    }
+    #holeSheetActions{
+      padding:12px;
+      border-top:1px solid rgba(0,0,0,.12);
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+    }
   </style>
 </head>
 
@@ -384,6 +454,24 @@
     </div>
   </div>
 
+  <!-- Hole detail modal -->
+  <div id="holeModal">
+    <div id="holeSheet">
+      <div id="holeSheetHeader">
+        <div>
+          <div id="holeSheetTitle">Team</div>
+          <div id="holeSheetSub">—</div>
+        </div>
+        <button id="holeCloseBtn">✖️ Close</button>
+      </div>
+      <div id="holeGrid"></div>
+      <div id="holeSheetActions">
+        <button id="holeCopyBtn">📋 Copy Scores</button>
+        <button id="holeDoneBtn" class="primary">Done</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
@@ -393,11 +481,10 @@
       collection,
       query,
       where,
-      onSnapshot,
-      orderBy
+      onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // ✅ Same config you used in index.html/admin.html
+    // ✅ Same config as index.html/admin.html
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -436,6 +523,15 @@
     const rotatorText = $("rotatorText");
     const rotatorBadge = $("rotatorBadge");
 
+    // Hole modal
+    const holeModal = $("holeModal");
+    const holeSheetTitle = $("holeSheetTitle");
+    const holeSheetSub = $("holeSheetSub");
+    const holeGrid = $("holeGrid");
+    const holeCloseBtn = $("holeCloseBtn");
+    const holeDoneBtn = $("holeDoneBtn");
+    const holeCopyBtn = $("holeCopyBtn");
+
     // ===== URL Params =====
     const params = new URLSearchParams(location.search);
     const tournamentId = (params.get("t") || "").trim();
@@ -458,8 +554,15 @@
       return String(s || "").replace(/</g,"&lt;");
     }
 
-    function calcTotalsFromScores(scoresRow){
-      // scoresRow is array of 18 strings (may include letters/symbols)
+    function scoresRowFromFlat(scoresFlat, playerIndex = 0){
+      const row = [];
+      for(let h=1; h<=18; h++){
+        row.push((scoresFlat?.[`p${playerIndex}_h${h}`] ?? "").toString());
+      }
+      return row;
+    }
+
+    function calcTotalsFromScoresRow(scoresRow){
       let out = 0, inn = 0;
       for(let i=0;i<18;i++){
         const v = (scoresRow?.[i] ?? "").toString().trim();
@@ -471,7 +574,6 @@
       return { out, inn, tot: out+inn };
     }
 
-    // ===== Copy Link =====
     async function copyText(txt){
       try{
         await navigator.clipboard.writeText(txt);
@@ -482,18 +584,13 @@
     }
 
     copyBtn.addEventListener("click", () => copyText(location.href));
-
-    refreshBtn.addEventListener("click", () => {
-      // soft refresh (no cache wipe)
-      location.reload();
-    });
+    refreshBtn.addEventListener("click", () => location.reload());
 
     // ===== Guard =====
     if(!tournamentId){
       pageTitle.textContent = "Leaderboard";
       pageMeta.textContent = "Missing tournament id. Open the link from admin.html.";
       statusPill.textContent = "⚠️ Missing ID";
-      statusPill.style.background = "rgba(255,255,255,.55)";
       throw new Error("Missing tournamentId");
     }
 
@@ -507,11 +604,7 @@
         const t = snap.data();
         pageTitle.textContent = `Live Leaderboard`;
         pageMeta.textContent = `${t.name || "Tournament"} • ID: ${tournamentId}`;
-        if((t.status || "open") === "closed"){
-          statusPill.textContent = "🔒 CLOSED";
-        }else{
-          statusPill.textContent = "⛳️ LIVE";
-        }
+        statusPill.textContent = ((t.status || "open") === "closed") ? "🔒 CLOSED" : "⛳️ LIVE";
       }else{
         pageMeta.textContent = `Tournament not found • ID: ${tournamentId}`;
         statusPill.textContent = "⚠️ Not Found";
@@ -522,13 +615,12 @@
     }
 
     // ====================== SUBMISSIONS -> LEADERBOARD ======================
-    // We read from: tournaments/{t}/submissions/{deviceId}
-    // Each submission acts like a "team" for MVP.
+    // Read from: tournaments/{t}/submissions/{deviceId}
     const subRef = collection(db, "tournaments", tournamentId, "submissions");
-    // orderBy requires index sometimes; we do not orderBy to avoid index issues.
     const subQuery = query(subRef);
 
     let latestUpdate = null;
+    let lastTeams = []; // keep latest list for modal lookup
 
     function renderPodium(list){
       const top = list.slice(0,3);
@@ -566,11 +658,11 @@
 
       list.forEach((t, idx) => {
         rowsTbody.insertAdjacentHTML("beforeend", `
-          <tr>
+          <tr data-team-id="${safe(t.id)}" style="cursor:pointer;">
             <td class="center"><span class="badge">#${idx+1}</span></td>
             <td>
               <div style="font-weight:900;">${safe(t.teamName)}</div>
-              <div class="muted">${safe(t.courseId || "")}</div>
+              <div class="muted">${safe(t.courseId || "")} <span class="muted">• tap for holes</span></div>
             </td>
             <td class="center">${t.group ? `<span class="badge">${safe(t.group)}</span>` : "—"}</td>
             <td class="right">${t.out}</td>
@@ -580,33 +672,81 @@
           </tr>
         `);
       });
+
+      // click -> open hole modal
+      rowsTbody.querySelectorAll("tr[data-team-id]").forEach(tr => {
+        tr.addEventListener("click", () => {
+          const id = tr.getAttribute("data-team-id");
+          const t = lastTeams.find(x => x.id === id);
+          if(t) openHoleModal(t);
+        });
+      });
     }
+
+    function openHoleModal(team){
+      holeSheetTitle.textContent = team.teamName || "Team";
+      holeSheetSub.textContent =
+        `${team.courseId || ""}${team.group ? ` • Group ${team.group}` : ""} • Updated ${team.updatedLabel}`;
+
+      holeGrid.innerHTML = "";
+
+      const row = team.scoresRow || Array.from({length:18}, ()=>"");
+      for(let i=0;i<18;i++){
+        const v = (row[i] ?? "").toString().trim() || "—";
+        holeGrid.insertAdjacentHTML("beforeend", `
+          <div class="holeCell">
+            <div class="h">Hole ${i+1}</div>
+            <div class="v">${safe(v)}</div>
+          </div>
+        `);
+      }
+
+      holeCopyBtn.onclick = () => {
+        const txt = row.map((v,i)=>`H${i+1}:${(v??"").toString().trim() || "-"}`).join("  ");
+        copyText(`${team.teamName} (${team.courseId})\n${txt}`);
+      };
+
+      holeModal.style.display = "flex";
+    }
+
+    function closeHoleModal(){
+      holeModal.style.display = "none";
+    }
+
+    holeCloseBtn.addEventListener("click", closeHoleModal);
+    holeDoneBtn.addEventListener("click", closeHoleModal);
+    holeModal.addEventListener("click", (e) => {
+      if(e.target === holeModal) closeHoleModal();
+    });
 
     onSnapshot(subQuery, (snap) => {
       const teams = [];
+      latestUpdate = null;
 
       snap.forEach((d) => {
         const data = d.data() || {};
+
         const names = Array.isArray(data.names) ? data.names : [];
+        const scoresFlat = (data.scoresFlat && typeof data.scoresFlat === "object") ? data.scoresFlat : null;
         const scores = Array.isArray(data.scores) ? data.scores : [];
 
-        // Decide "team name":
-        // Prefer playerName field (from join screen), else first name input, else "Team <id>"
+        // Team name
         const teamName =
           (data.playerName || "").trim() ||
           (names[0] || "").trim() ||
           `Team ${d.id.slice(0,5)}`;
 
-        // For totals:
-        // Prefer explicit totals from payload if present, else compute from scores[0]
-        let out = 0, inn = 0, tot = 0;
+        // Per-hole row for display (player 0)
+        const scoresRow = scoresFlat ? scoresRowFromFlat(scoresFlat, 0) : (scores[0] || Array.from({length:18}, ()=>""));
 
+        // Totals
+        let out = 0, inn = 0, tot = 0;
         if (Array.isArray(data.totals) && data.totals[0] && typeof data.totals[0] === "object") {
           out = Number(data.totals[0].out || 0) || 0;
           inn = Number(data.totals[0].inn || 0) || 0;
           tot = Number(data.totals[0].tot || (out+inn)) || (out+inn);
         } else {
-          const computed = calcTotalsFromScores(scores[0]);
+          const computed = calcTotalsFromScoresRow(scoresRow);
           out = computed.out; inn = computed.inn; tot = computed.tot;
         }
 
@@ -623,11 +763,12 @@
           courseId: (data.courseId || "").toString().trim(),
           out, inn, tot,
           updatedLabel: updatedAt ? fmtTime(updatedAt) : "—",
-          updatedAt
+          updatedAt,
+          scoresRow
         });
       });
 
-      // Sort by total asc (golf: lower is better), tie-break by updatedAt desc
+      // Sort (golf: lower is better), tie-break by updatedAt desc
       teams.sort((a,b) => {
         if(a.tot !== b.tot) return a.tot - b.tot;
         const at = a.updatedAt?.toDate ? a.updatedAt.toDate().getTime() : 0;
@@ -635,18 +776,20 @@
         return bt - at;
       });
 
+      lastTeams = teams;
+
       renderPodium(teams);
       renderTable(teams);
-
       lastUpdated.textContent = latestUpdate ? `Last update: ${latestUpdate.toLocaleString()}` : "Last update: —";
+    }, (err) => {
+      pageMeta.textContent = `Realtime listener error: ${err?.message || err}`;
+      statusPill.textContent = "⚠️ Listener Error";
     });
 
     // ====================== SPONSORS (ticker + rotator) ======================
-    // Reads: tournaments/{t}/sponsors/{sponsorId}
     const sponsorRef = collection(db, "tournaments", tournamentId, "sponsors");
     const sponsorQuery = query(sponsorRef, where("active","==",true));
 
-    let sponsors = [];
     let rotatorTimer = null;
     let rotatorIndex = 0;
 
@@ -678,7 +821,6 @@
 
       tickerTrack.innerHTML = `<div id="tickerInner" class="ticker-animate">${chipsHTML}${chipsHTML}</div>`;
 
-      // If it’s short, don’t animate
       requestAnimationFrame(() => {
         const inner = $("tickerInner");
         if(!inner) return;
@@ -741,9 +883,8 @@
     }
 
     onSnapshot(sponsorQuery, (snap) => {
-      sponsors = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+      const sponsors = snap.docs.map(d => ({ id:d.id, ...d.data() }));
 
-      // ticker = anyone with ticker placement OR no placement array
       const tick = sponsors.filter(s => {
         const p = s.placement || [];
         return p.length === 0 || p.includes("ticker");
