@@ -25,82 +25,37 @@
       color:var(--ink);
       font-family: Georgia, "Times New Roman", serif;
     }
+
     .wrap{ max-width: 980px; margin:0 auto; padding:12px; }
+
     .card{
+      position:relative;
       background:var(--card);
       border:3px solid var(--border);
       border-radius:12px;
       box-shadow:0 8px 22px rgba(0,0,0,.18);
       overflow:hidden;
-      position:relative;
     }
 
-    /* ✅ Cypresswood branding watermark */
-    .brand-watermark{
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  z-index:0;
-
-  /* MUCH lighter, premium look */
-  opacity:.07;
-
-  background-repeat:no-repeat;
-  background-position:center 120px;
-  background-size: 900px auto;
-
-  /* ✅ USE YOUR CYPRESS HEADER */
-  background-image: url("./assets/cypress_header.png");
-
-  /* soft wash so it looks embedded in paper */
-  filter: grayscale(10%) contrast(0.95) brightness(1.05);
-}
-
-    .top, .section, .spotlight, .table-wrap, #sponsorTicker, #sponsorRotator{
-      position:relative;
-      z-index:1;
+    /* ✅ Subtle Cypress header watermark (uses your local asset) */
+    .card::before{
+      content:"";
+      position:absolute; inset:0;
+      background-image: url("./assets/cypress_header.png");
+      background-repeat:no-repeat;
+      background-position: center 18%;
+      background-size: 1200px auto;
+      opacity: .08;
+      pointer-events:none;
+      filter: saturate(0.95) contrast(1.05);
     }
+    .card > *{ position:relative; z-index:1; }
 
     .top{
       padding:12px;
       border-bottom:1px solid rgba(0,0,0,.08);
       background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
     }
-
-    /* ✅ Cypresswood title row */
-    .clubline{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      margin-bottom:8px;
-    }
-    .clublogo{
-      width:34px;
-      height:34px;
-      border-radius:10px;
-      border:2px solid rgba(0,0,0,.12);
-      background: rgba(255,255,255,.65);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-      flex:0 0 auto;
-    }
-    .clublogo img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
-    .clubname{
-      font-family:Cinzel, serif;
-      font-weight:900;
-      font-size:14px;
-      letter-spacing:.35px;
-      opacity:.9;
-      line-height:1.1;
-    }
-
     h1{
       margin:0;
       font-family:Cinzel, serif;
@@ -129,6 +84,7 @@
       font-weight:900;
       font-size:13px;
       font-family:Cinzel, serif;
+      white-space:nowrap;
     }
 
     button, a.btn{
@@ -151,38 +107,41 @@
     .primary{ background:var(--good); color:#fff; }
     .danger{ background:var(--bad); color:#fff; border-color:#7a2b20; }
 
-    /* ✅ Sponsor hero (from admin tournament doc sponsorName/sponsorLogo) */
+    /* Sponsor Hero (from tournament doc fields: sponsorName/sponsorLogo) */
     #sponsorHero{
       display:none;
       margin-top:10px;
       padding:10px 12px;
-      border-top:1px solid rgba(0,0,0,.08);
-      background:rgba(255,255,255,.35);
+      border:2px solid rgba(0,0,0,.12);
       border-radius:12px;
+      background: rgba(255,255,255,.55);
     }
-    #sponsorHero .title{
+    #sponsorHeroTitle{
       font-family:Cinzel, serif;
       font-weight:900;
       font-size:13px;
+      opacity:.9;
     }
-    #sponsorHero .row{
+    #sponsorHeroRow{
       display:flex;
       align-items:center;
       gap:10px;
       margin-top:8px;
     }
     #sponsorHeroLogo{
-      width:44px;
-      height:44px;
+      width:44px; height:44px;
       border-radius:10px;
       object-fit:cover;
       display:none;
       border:2px solid rgba(0,0,0,.12);
-      background:rgba(255,255,255,.65);
+      background: rgba(0,0,0,.04);
     }
     #sponsorHeroName{
       font-weight:900;
+      font-size:14px;
     }
+
+    .section{ padding:12px; }
 
     /* Sponsor ticker */
     #sponsorTicker{
@@ -300,7 +259,6 @@
     }
     @media (max-width:680px){
       .spotlight-grid{ grid-template-columns:1fr; }
-      .brand-watermark{ background-size: 420px auto; background-position:center 210px; }
     }
     .podium{
       border:2px solid rgba(0,0,0,.12);
@@ -358,6 +316,12 @@
       overflow-x:auto;
       -webkit-overflow-scrolling:touch;
     }
+    /* ✅ We’ll vertically auto-scroll THIS container in TV mode */
+    .scroll-y{
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+
     table{
       border-collapse:collapse;
       width:100%;
@@ -375,6 +339,9 @@
       font-family:Cinzel, serif;
       font-weight:900;
       white-space:nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 2;
     }
     .right{ text-align:right; }
     .center{ text-align:center; }
@@ -396,26 +363,78 @@
       font-size:14px;
       opacity:.85;
     }
+
+    /* ====================== TV MODE ====================== */
+    body.tv{
+      background:#111;
+    }
+    body.tv .wrap{
+      max-width: 1400px;
+      padding: 18px;
+    }
+    body.tv .card{
+      border-width: 6px;
+      border-radius: 18px;
+    }
+    body.tv .card::before{
+      opacity: .06;
+      background-position: center 12%;
+      background-size: 1600px auto;
+    }
+    body.tv h1{
+      font-size: 34px;
+      letter-spacing: .6px;
+    }
+    body.tv .meta{
+      font-size: 18px;
+    }
+    body.tv .pill{
+      font-size: 18px;
+      padding: 10px 14px;
+    }
+    /* Hide buttons on TV (clean screen) */
+    body.tv #refreshBtn,
+    body.tv #copyBtn,
+    body.tv #joinBtn{
+      display:none !important;
+    }
+    body.tv #sponsorHeroTitle{ font-size: 16px; }
+    body.tv #sponsorHeroName{ font-size: 20px; }
+
+    body.tv .spotlight-title{ font-size: 18px; }
+    body.tv .podium .name{ font-size: 22px; }
+    body.tv .podium .score{ font-size: 34px; }
+    body.tv .podium .sub{ font-size: 14px; }
+
+    body.tv th{ font-size: 18px; }
+    body.tv td{ font-size: 18px; padding: 14px 12px; }
+    body.tv .badge{ font-size: 16px; }
+
+    /* Make the table area tall for auto-scroll */
+    body.tv #tableScrollY{
+      max-height: calc(100vh - 420px);
+    }
+    @media (max-width: 900px){
+      body.tv #tableScrollY{ max-height: calc(100vh - 520px); }
+    }
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <div class="card">
-      <div class="brand-watermark" aria-hidden="true"></div>
-
       <div class="top">
-        <!-- ✅ Cypresswood brand label -->
-        <div class="clubline">
-          <div class="clublogo">
-            <!-- Put your tree logo here too (optional). If you want no icon, delete this img. -->
-            <img src="./assets/cypresswood_tree.png" alt="Cypresswood" />
-          </div>
-          <div class="clubname">Cypresswood Golf Club</div>
-        </div>
-
         <h1 id="pageTitle">Live Leaderboard</h1>
         <div class="meta" id="pageMeta">Loading…</div>
+
+        <!-- Sponsor hero (from admin.html single sponsor fields) -->
+        <div id="sponsorHero">
+          <div id="sponsorHeroTitle">Tournament Sponsor</div>
+          <div id="sponsorHeroRow">
+            <img id="sponsorHeroLogo" alt="Sponsor Logo"/>
+            <div id="sponsorHeroName"></div>
+          </div>
+        </div>
 
         <div class="bar">
           <div class="pill" id="statusPill">⛳️ LIVE</div>
@@ -425,18 +444,9 @@
             <button id="copyBtn">📋 Copy Leaderboard Link</button>
           </div>
         </div>
-
-        <!-- ✅ Sponsor hero -->
-        <div id="sponsorHero">
-          <div class="title">Tournament Sponsor</div>
-          <div class="row">
-            <img id="sponsorHeroLogo" alt="Sponsor" />
-            <div id="sponsorHeroName"></div>
-          </div>
-        </div>
       </div>
 
-      <!-- Sponsors (collection-based, optional if you implement sponsors subcollection later) -->
+      <!-- Sponsors (collection) -->
       <div id="sponsorTicker">
         <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid rgba(0,0,0,.1);">
           <div style="font-family:Cinzel,serif; font-weight:900;">Sponsored by</div>
@@ -474,22 +484,27 @@
           <div class="table-title">All Teams</div>
           <div class="muted" id="teamCount">0 teams</div>
         </div>
-        <div class="scroll-x">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:60px;" class="center">Rank</th>
-                <th>Team / Player</th>
-                <th style="width:90px;" class="center">Group</th>
-                <th style="width:110px;" class="right">Out</th>
-                <th style="width:110px;" class="right">In</th>
-                <th style="width:110px;" class="right">Total</th>
-                <th style="width:170px;">Last Update</th>
-              </tr>
-            </thead>
-            <tbody id="rows"></tbody>
-          </table>
+
+        <!-- ✅ This wrapper is what auto-scrolls vertically in TV mode -->
+        <div id="tableScrollY" class="scroll-y">
+          <div class="scroll-x">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:60px;" class="center">Rank</th>
+                  <th>Team / Player</th>
+                  <th style="width:90px;" class="center">Group</th>
+                  <th style="width:110px;" class="right">Out</th>
+                  <th style="width:110px;" class="right">In</th>
+                  <th style="width:110px;" class="right">Total</th>
+                  <th style="width:170px;">Last Update</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
         </div>
+
         <div id="emptyState" class="empty" style="display:none;">
           No scores yet. Once teams enter scores in the scorecard, they’ll appear here automatically.
         </div>
@@ -509,7 +524,7 @@
       onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // ✅ Full config (match index.html)
+    // ✅ Same config as your other pages
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -538,12 +553,12 @@
     const teamCount = $("teamCount");
     const lastUpdated = $("lastUpdated");
 
-    // Sponsor hero elements
+    // Sponsor hero
     const sponsorHero = $("sponsorHero");
-    const sponsorHeroName = $("sponsorHeroName");
     const sponsorHeroLogo = $("sponsorHeroLogo");
+    const sponsorHeroName = $("sponsorHeroName");
 
-    // Sponsors (collection-based widgets)
+    // Sponsors (collection)
     const sponsorTicker = $("sponsorTicker");
     const tickerTrack = $("tickerTrack");
     const sponsorRotator = $("sponsorRotator");
@@ -553,9 +568,19 @@
     const rotatorText = $("rotatorText");
     const rotatorBadge = $("rotatorBadge");
 
+    // Table scroll container (TV auto-scroll)
+    const tableScrollY = $("tableScrollY");
+
     // ===== URL Params =====
     const params = new URLSearchParams(location.search);
     const tournamentId = (params.get("t") || "").trim();
+    const isTV = (params.get("tv") || "").trim() === "1";
+
+    // TV settings
+    const autoScrollOnTV = (params.get("scroll") || "1") !== "0"; // default ON
+    const scrollSpeed = Math.max(0.25, Math.min(2.5, Number(params.get("speed") || 0.8))); // px per frame-ish
+
+    if (isTV) document.body.classList.add("tv");
 
     function baseURL(){
       return location.origin + location.pathname.replace(/leaderboard\.html.*$/,"");
@@ -575,19 +600,17 @@
       return String(s || "").replace(/</g,"&lt;");
     }
 
-    function calcTotalsFromFlat(scoresFlat){
-      // scoresFlat keys: p{player}_h{hole} (hole 1-18)
-      // MVP: leaderboard uses player 0 as the "team row"
+    function calcTotalsFromScoresFlat(scoresFlat, playerIdx=0){
+      // scoresFlat: { "p0_h1":"4", ... }
       let out = 0, inn = 0;
       for(let h=1; h<=18; h++){
-        const key = `p0_h${h}`;
-        const v = (scoresFlat?.[key] ?? "").toString().trim();
-        const n = parseInt(v, 10);
+        const v = (scoresFlat?.[`p${playerIdx}_h${h}`] ?? "").toString().trim();
+        const n = parseInt(v,10);
         if(Number.isFinite(n)){
           if(h<=9) out += n; else inn += n;
         }
       }
-      return { out, inn, tot: out + inn };
+      return { out, inn, tot: out+inn };
     }
 
     // ===== Copy Link =====
@@ -611,42 +634,18 @@
       throw new Error("Missing tournamentId");
     }
 
+    // Join link should include tournament id
     joinBtn.href = `${baseURL()}index.html?t=${encodeURIComponent(tournamentId)}`;
-
-    // ===== Sponsor hero from tournament doc (admin fields sponsorName/sponsorLogo) =====
-    function renderSponsorHero(t){
-      const name = (t?.sponsorName || "").trim();
-      const logo = (t?.sponsorLogo || "").trim();
-
-      if(!sponsorHero) return;
-
-      if(!name && !logo){
-        sponsorHero.style.display = "none";
-        return;
-      }
-
-      sponsorHero.style.display = "block";
-      if (sponsorHeroName) sponsorHeroName.textContent = name || "Sponsor";
-
-      if (sponsorHeroLogo){
-        if (logo){
-          sponsorHeroLogo.src = logo;
-          sponsorHeroLogo.style.display = "block";
-        } else {
-          sponsorHeroLogo.style.display = "none";
-        }
-      }
-    }
 
     // ====================== TOURNAMENT DOC (title + status + sponsor hero) ======================
     const tRef = doc(db, "tournaments", tournamentId);
-
     try{
       const snap = await getDoc(tRef);
       if(snap.exists()){
         const t = snap.data();
 
-        pageTitle.textContent = `Live Leaderboard`;
+        // Branding label
+        pageTitle.textContent = `Cypresswood Golf Club • Live Leaderboard`;
         pageMeta.textContent = `${t.name || "Tournament"} • ID: ${tournamentId}`;
 
         if((t.status || "open") === "closed"){
@@ -655,8 +654,23 @@
           statusPill.textContent = "⛳️ LIVE";
         }
 
-        // ✅ show sponsor hero
-        renderSponsorHero(t);
+        // Sponsor hero from admin.html fields
+        const sName = (t.sponsorName || "").toString().trim();
+        const sLogo = (t.sponsorLogo || "").toString().trim();
+
+        if (sName || sLogo){
+          sponsorHero.style.display = "block";
+          sponsorHeroName.textContent = sName || "Tournament Sponsor";
+
+          if (sLogo){
+            sponsorHeroLogo.src = sLogo;
+            sponsorHeroLogo.style.display = "block";
+          } else {
+            sponsorHeroLogo.style.display = "none";
+          }
+        } else {
+          sponsorHero.style.display = "none";
+        }
       }else{
         pageMeta.textContent = `Tournament not found • ID: ${tournamentId}`;
         statusPill.textContent = "⚠️ Not Found";
@@ -667,6 +681,7 @@
     }
 
     // ====================== SUBMISSIONS -> LEADERBOARD ======================
+    // Read from: tournaments/{t}/submissions/{deviceId}
     const subRef = collection(db, "tournaments", tournamentId, "submissions");
     const subQuery = query(subRef);
 
@@ -724,8 +739,62 @@
       });
     }
 
+    // ====================== TV AUTO-SCROLL (All Teams) ======================
+    let scrollRAF = null;
+    let scrollDir = 1;
+    let lastTick = 0;
+
+    function stopAutoScroll(){
+      if (scrollRAF) cancelAnimationFrame(scrollRAF);
+      scrollRAF = null;
+    }
+
+    function startAutoScroll(){
+      stopAutoScroll();
+      if (!isTV || !autoScrollOnTV) return;
+      if (!tableScrollY) return;
+
+      // If not scrollable, skip
+      const max = tableScrollY.scrollHeight - tableScrollY.clientHeight;
+      if (max <= 2) return;
+
+      // Start near top
+      tableScrollY.scrollTop = 0;
+      scrollDir = 1;
+      lastTick = performance.now();
+
+      const step = (tNow) => {
+        const dt = Math.min(64, tNow - lastTick); // cap dt
+        lastTick = tNow;
+
+        const maxScroll = tableScrollY.scrollHeight - tableScrollY.clientHeight;
+        if (maxScroll <= 2){
+          scrollRAF = requestAnimationFrame(step);
+          return;
+        }
+
+        // px per ~16ms, scaled by dt
+        const inc = scrollSpeed * (dt / 16);
+        tableScrollY.scrollTop = tableScrollY.scrollTop + (inc * scrollDir);
+
+        // bounce at ends (smoother for TV)
+        if (tableScrollY.scrollTop >= maxScroll - 2){
+          scrollDir = -1;
+          tableScrollY.scrollTop = maxScroll;
+        } else if (tableScrollY.scrollTop <= 2){
+          scrollDir = 1;
+          tableScrollY.scrollTop = 0;
+        }
+
+        scrollRAF = requestAnimationFrame(step);
+      };
+
+      scrollRAF = requestAnimationFrame(step);
+    }
+
     onSnapshot(subQuery, (snap) => {
       const teams = [];
+      latestUpdate = null;
 
       snap.forEach((d) => {
         const data = d.data() || {};
@@ -733,20 +802,22 @@
         const totalsArr = Array.isArray(data.totals) ? data.totals : [];
         const scoresFlat = (data.scoresFlat && typeof data.scoresFlat === "object") ? data.scoresFlat : null;
 
+        // Team name preference
         const teamName =
           (data.playerName || "").trim() ||
           (names[0] || "").trim() ||
           `Team ${d.id.slice(0,5)}`;
 
+        // Totals:
+        // Prefer payload totals[0], else compute from scoresFlat for player 0
         let out = 0, inn = 0, tot = 0;
 
-        // Prefer totals[0] if present (your index sends totals array)
         if (totalsArr[0] && typeof totalsArr[0] === "object") {
           out = Number(totalsArr[0].out || 0) || 0;
           inn = Number(totalsArr[0].inn || 0) || 0;
           tot = Number(totalsArr[0].tot || (out+inn)) || (out+inn);
         } else if (scoresFlat) {
-          const computed = calcTotalsFromFlat(scoresFlat);
+          const computed = calcTotalsFromScoresFlat(scoresFlat, 0);
           out = computed.out; inn = computed.inn; tot = computed.tot;
         }
 
@@ -778,11 +849,16 @@
       renderPodium(teams);
       renderTable(teams);
 
-      lastUpdated.textContent = latestUpdate ? `Last update: ${latestUpdate.toLocaleString()}` : "Last update: —";
+      lastUpdated.textContent = latestUpdate
+        ? `Last update: ${latestUpdate.toLocaleString()}`
+        : "Last update: —";
+
+      // Restart auto-scroll after render so it always scrolls current content
+      startAutoScroll();
     });
 
-    // ====================== OPTIONAL: sponsors subcollection ticker/rotator ======================
-    // If you later create: tournaments/{t}/sponsors/{id} with {active:true, name, tier, weight, linkUrl, imageUrl, text, placement:["ticker","rotator"]}
+    // ====================== SPONSORS (ticker + rotator) ======================
+    // Reads: tournaments/{t}/sponsors/{sponsorId}
     const sponsorRef = collection(db, "tournaments", tournamentId, "sponsors");
     const sponsorQuery = query(sponsorRef, where("active","==",true));
 
@@ -818,8 +894,9 @@
 
       tickerTrack.innerHTML = `<div id="tickerInner" class="ticker-animate">${chipsHTML}${chipsHTML}</div>`;
 
+      // If it’s short, don’t animate
       requestAnimationFrame(() => {
-        const inner = document.getElementById("tickerInner");
+        const inner = $("tickerInner");
         if(!inner) return;
         if(inner.scrollWidth < 900){
           inner.classList.remove("ticker-animate");
@@ -882,6 +959,7 @@
     onSnapshot(sponsorQuery, (snap) => {
       sponsors = snap.docs.map(d => ({ id:d.id, ...d.data() }));
 
+      // ticker = anyone with ticker placement OR no placement array
       const tick = sponsors.filter(s => {
         const p = s.placement || [];
         return p.length === 0 || p.includes("ticker");
@@ -890,9 +968,12 @@
       renderTicker(tick);
       renderRotator(sponsors);
     });
+
+    // Helpful: start auto-scroll if TV mode loads before first snapshot
+    startAutoScroll();
   </script>
 
-  <!-- Optional: if you already use the same SW updater -->
+  <!-- Optional: keeps SW up to date if you already use pwa.js -->
   <script src="./pwa.js"></script>
 </body>
 </html>
