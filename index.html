@@ -409,13 +409,29 @@ import {
     };
 
     // ===== Firebase init =====
-    let db = null;
-    try{
-      const app = initializeApp(firebaseConfig);
-      db = getFirestore(app);
-    }catch(e){
-      console.warn("Firebase init failed (ok if not set yet):", e);
+  let db = null;
+let auth = null;
+let authReady = false;
+
+try{
+  const app = initializeApp(firebaseConfig);
+
+  // ✅ NEW — Auth init
+  auth = getAuth(app);
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      signInAnonymously(auth).catch(() => {});
+    } else {
+      authReady = true;
     }
+  });
+
+  db = getFirestore(app);
+
+}catch(e){
+  console.warn("Firebase init failed (ok if not set yet):", e);
+}
 
     // ====================== COURSES ======================
     const COURSE_TRADITION = {
