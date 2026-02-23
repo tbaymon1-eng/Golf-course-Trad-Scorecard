@@ -413,24 +413,19 @@ import {
 let auth = null;
 let authReady = false;
 
-try{
+try {
   const app = initializeApp(firebaseConfig);
 
-  // ✅ NEW — Auth init
   auth = getAuth(app);
-
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      signInAnonymously(auth).catch(() => {});
-    } else {
-      authReady = true;
-    }
-  });
+  await signInAnonymously(auth);
+  authReady = true;
 
   db = getFirestore(app);
 
-}catch(e){
-  console.warn("Firebase init failed (ok if not set yet):", e);
+  console.log("Firebase ready ✅", auth.currentUser?.uid);
+} catch (e) {
+  console.error("Firebase init/auth failed ❌", e);
+  alert("Firebase init/auth failed: " + (e?.message || e));
 }
 
     // ====================== COURSES ======================
@@ -973,10 +968,10 @@ try{
           totals: payload.totals,
           updatedAt: serverTimestamp()
         }, { merge:true });
-      }catch(e){
-        // If rules block writes or network down, we just fail quietly
-      }
-    }
+      } catch (e) {
+  console.error("WRITE FAILED ❌", e);
+  alert("Firestore write failed: " + (e?.message || e));
+}
 
     // ====================== REFRESH APP BUTTON ======================
     // This clears SW + caches without user wiping Safari history.
