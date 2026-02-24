@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Live Leaderboard</title>
-  <meta name="theme-color" content="#7a4a0b">
+  <meta name="theme-color" content="#7a4a0b" />
 
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
 
@@ -14,347 +14,345 @@
       --ink:#111;
       --border:#7a4a0b;
       --card:#efe7d7;
-      --panel:#f6f0e4;
-      --soft:rgba(0,0,0,.08);
-      --soft2:rgba(0,0,0,.12);
+      --panel:rgba(255,255,255,.55);
+      --line:rgba(0,0,0,.12);
+      --shadow:0 10px 26px rgba(0,0,0,.18);
     }
-    *{ -webkit-tap-highlight-color: transparent; }
+    *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
     body{
-      margin:0;
-      background:var(--paper);
-      color:var(--ink);
-      font-family: Georgia, 'Times New Roman', serif;
+      margin:0; background:var(--paper); color:var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
     }
-    .wrap{ max-width:980px; margin:0 auto; padding:12px; }
+    .wrap{ max-width: 980px; margin:0 auto; padding: 12px 10px 28px; }
     .card{
-      background:var(--card);
-      border:3px solid var(--border);
-      border-radius:12px;
-      overflow:hidden;
-      box-shadow:0 8px 22px rgba(0,0,0,.18);
-    }
-
-    /* course header image */
-    .topHeaderImg{
-      width:100%;
-      max-height:120px;
-      object-fit:contain;
-      display:block;
       background: var(--card);
-      border-bottom:1px solid var(--soft);
+      border: 3px solid var(--border);
+      border-radius: 14px;
+      overflow:hidden;
+      box-shadow: var(--shadow);
     }
 
-    .top{ padding:12px; }
+    /* Small header image (course-specific) */
+    .hdr{
+      display:flex;
+      justify-content:center;
+      padding:10px 10px 0;
+      background:var(--card);
+    }
+    .hdr img{
+      width:100%;
+      max-width: 900px;
+      height:auto;
+      max-height: 110px;            /* 👈 small */
+      object-fit:contain;
+      border-radius: 10px;
+      border: 2px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.25);
+    }
+
+    .top{
+      padding: 12px 12px 0;
+    }
     h1{
-      margin:0;
-      font-family:Cinzel,serif;
-      font-weight:900;
-      letter-spacing:.6px;
-      font-size:26px;
+      margin: 6px 0 2px;
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      letter-spacing: .6px;
+      font-size: 34px;
     }
     .meta{
-      margin-top:6px;
-      opacity:.85;
-      font-size:14px;
+      font-size: 16px;
+      opacity: .9;
+      margin-bottom: 8px;
     }
-    .clubLine{
-      margin-top:6px;
-      font-family:Cinzel,serif;
-      font-weight:900;
-      letter-spacing:.4px;
-      font-size:18px;
-      text-transform:uppercase;
-    }
-
-    .bar{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-      margin-top:12px;
-    }
-    .pill{
-      border:2px solid rgba(0,0,0,.16);
-      background:rgba(255,255,255,.55);
-      border-radius:999px;
-      padding:8px 12px;
-      font-weight:900;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+    .club{
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      letter-spacing: .6px;
+      font-size: 20px;
+      margin: 2px 0 10px;
+      text-transform: uppercase;
     }
 
-    button, .btn{
-      border:2px solid var(--border);
-      background:#e7ddcb;
-      border-radius:10px;
-      padding:12px 12px;
-      font-weight:900;
-      font-size:16px;
-      cursor:pointer;
-      text-decoration:none;
-      color:inherit;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-    }
-    button:active, .btn:active{ transform: translateY(1px); }
-    .primary{ background:#2f6b2f; color:#fff; }
-    .tvBtn{ background:#202020; color:#fff; border-color:#000; }
-    .copyBtn{ min-width:260px; justify-content:center; }
-
-    /* sponsor hero */
+    /* Sponsor hero */
     #sponsorHero{
       display:none;
-      margin-top:12px;
-      border-radius:12px;
-      border:2px solid var(--soft2);
-      background:rgba(255,255,255,.60);
-      padding:12px;
-      cursor:pointer;
+      margin: 10px 0 10px;
+      border: 2px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      padding: 12px 12px;
+      cursor: pointer;
     }
     #sponsorHero:active{ transform: translateY(1px); }
     #sponsorHeroTitle{
-      font-family:Cinzel,serif;
-      font-weight:900;
-      font-size:14px;
-      letter-spacing:.4px;
-      text-transform:uppercase;
-      opacity:.92;
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 18px;
+      letter-spacing: .5px;
+      text-transform: uppercase;
     }
-    #sponsorHeroRow{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      margin-top:10px;
-    }
+    #sponsorHeroRow{ display:flex; align-items:center; gap:12px; margin-top:10px; }
     #sponsorHeroLogo{
-      width:56px; height:56px;
-      border-radius:12px;
-      object-fit:cover;
-      border:2px solid rgba(0,0,0,.12);
-      background:rgba(0,0,0,.06);
+      width:56px; height:56px; border-radius:14px; object-fit:cover;
+      border:2px solid rgba(0,0,0,.14);
+      background: rgba(0,0,0,.06);
       display:none;
-      flex:none;
+      flex:0 0 auto;
     }
     #sponsorHeroName{
-      font-weight:900;
-      font-size:20px;
-    }
-    #sponsorHeroHint{
-      margin-top:6px;
-      font-size:12px;
-      opacity:.75;
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 22px;
     }
 
-    /* sections */
-    .section{
-      margin-top:12px;
-      background: var(--panel);
-      border-top:1px solid var(--soft);
-      padding:12px;
+    .pillRow{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin: 8px 0 10px;
+      flex-wrap: wrap;
     }
-    .sectionHeader{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:10px 12px;
-      border:2px solid rgba(0,0,0,.12);
-      border-radius:12px;
-      background:rgba(255,255,255,.55);
-    }
-    .sectionTitle{
-      font-family:Cinzel,serif;
-      font-weight:900;
-      font-size:20px;
-      letter-spacing:.4px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .sectionSub{
-      opacity:.85;
-      font-size:14px;
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(0,0,0,.18);
+      background: rgba(255,255,255,.45);
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      letter-spacing: .4px;
     }
 
-    /* top cards */
-    .topGrid{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:12px;
-      margin-top:12px;
+    .btnRow{
+      display:flex; gap:10px; flex-wrap:wrap;
+      padding: 6px 0 14px;
     }
-    .teamCard{
-      border:2px solid rgba(0,0,0,.12);
-      border-radius:16px;
-      background:rgba(255,255,255,.65);
-      padding:14px;
+    button, .btn{
+      border: 2px solid var(--border);
+      background: #e7ddcb;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: 900;
+      font-size: 18px;
       cursor:pointer;
-      position:relative;
-    }
-    .teamCard:active{ transform: translateY(1px); }
-
-    .rankBadge{
-      font-family:Cinzel,serif;
-      font-weight:900;
-      font-size:18px;
-      display:flex;
+      text-decoration:none;
+      color:#111;
+      display:inline-flex;
       align-items:center;
       gap:10px;
     }
-    .teamName{
-      font-family: Georgia, 'Times New Roman', serif;
-      font-weight:900;
-      font-size:34px;
-      margin-top:10px;
-      line-height:1.05;
+    button:active, .btn:active{ transform: translateY(1px); }
+
+    .tvBtn{
+      background:#1c1c1c;
+      color:#fff;
+      border-color:#000;
     }
-    .teamScore{
-      font-family: Georgia, 'Times New Roman', serif;
-      font-weight:900;
-      font-size:44px;
-      margin-top:6px;
-    }
-    .teamMeta{
-      margin-top:8px;
-      opacity:.85;
-      font-size:16px;
+    .autoBtn{
+      min-width: 210px;
+      justify-content:center;
     }
 
-    /* all teams table */
-    .tableWrap{
-      margin-top:12px;
-      overflow:auto;
-      border-radius:12px;
-      border:2px solid rgba(0,0,0,.12);
-      background:rgba(255,255,255,.45);
+    .section{
+      margin: 10px 12px 14px;
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,.40);
+      overflow:hidden;
     }
-    table{ width:100%; border-collapse:collapse; min-width:700px; }
+    .sectionHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content: space-between;
+      gap:10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(0,0,0,.12);
+      background: rgba(255,255,255,.35);
+    }
+    .sectionHead .title{
+      display:flex; align-items:center; gap:10px;
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 26px;
+    }
+    .sectionHead .sub{
+      font-size: 16px;
+      opacity: .9;
+      margin-top: 2px;
+    }
+
+    /* Top team card */
+    .topCard{
+      margin: 12px 14px;
+      padding: 14px 14px;
+      border: 2px solid rgba(0,0,0,.12);
+      border-radius: 16px;
+      background: rgba(255,255,255,.55);
+      cursor:pointer;
+    }
+    .topCard:active{ transform: translateY(1px); }
+    .rankLine{
+      display:flex; align-items:center; gap:10px;
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 22px;
+    }
+    .topName{
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 34px;
+      margin: 6px 0 2px;
+    }
+    .topScore{
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 56px;
+      line-height: 1;
+      margin: 2px 0 8px;
+    }
+    .topMeta{
+      font-size: 20px;
+      opacity: .92;
+    }
+
+    /* All teams table */
+    .tableWrap{
+      overflow:auto;
+      max-height: 420px; /* auto-scroll target */
+      background: rgba(255,255,255,.35);
+    }
+    table{ width:100%; border-collapse: collapse; }
     th, td{
-      border:1px solid rgba(0,0,0,.18);
-      padding:12px;
+      border-top: 1px solid rgba(0,0,0,.10);
+      padding: 14px 12px;
       text-align:left;
-      font-size:16px;
+      vertical-align: middle;
+      font-size: 18px;
     }
     th{
-      background:rgba(255,255,255,.55);
-      font-family:Cinzel,serif;
-      font-weight:900;
-      font-size:16px;
-      position:sticky;
-      top:0;
-      z-index:2;
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 20px;
+      background: rgba(255,255,255,.45);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      border-top:none;
     }
-    tr.rowTap{ cursor:pointer; }
-    tr.rowTap:hover{ background:rgba(255,255,255,.35); }
-    .muted{ opacity:.75; font-size:14px; }
+    td .subline{ opacity:.85; font-size: 15px; margin-top: 2px; }
+    .rankBadge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width: 54px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 2px solid rgba(0,0,0,.12);
+      background: rgba(255,255,255,.55);
+      font-family: Cinzel, serif;
+      font-weight: 900;
+    }
+    .groupPill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width: 52px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 2px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.50);
+      font-family: Cinzel, serif;
+      font-weight: 900;
+    }
 
-    /* modal - golf styled */
-    .modalOverlay{
+    /* Modal (golf-like) */
+    .modalBack{
       position:fixed; inset:0;
-      background:rgba(0,0,0,.55);
+      background: rgba(0,0,0,.55);
       display:none;
       align-items:center;
       justify-content:center;
-      padding:16px;
-      z-index:9999;
+      padding: 18px;
+      z-index: 9999;
     }
     .modal{
-      width:min(780px, 96vw);
-      border-radius:18px;
-      border:3px solid rgba(255,255,255,.18);
-      background: linear-gradient(180deg, rgba(239,231,215,.98), rgba(245,240,228,.98));
-      box-shadow:0 18px 60px rgba(0,0,0,.35);
+      width: min(920px, 100%);
+      background: var(--card);
+      border: 3px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
       overflow:hidden;
     }
-    .modalTop{
-      padding:14px 16px;
+    .modalHead{
+      padding: 14px 14px;
+      background: rgba(255,255,255,.35);
+      border-bottom: 1px solid rgba(0,0,0,.12);
       display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      border-bottom:1px solid rgba(0,0,0,.12);
-      background:rgba(255,255,255,.40);
+      align-items:flex-start;
+      justify-content: space-between;
+      gap: 12px;
     }
     .modalTitle{
-      font-family:Cinzel,serif;
-      font-weight:900;
-      font-size:18px;
-      letter-spacing:.4px;
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 26px;
+      line-height: 1.1;
     }
-    .modalClose{
-      border:2px solid var(--border);
-      background:#e7ddcb;
-      border-radius:12px;
-      padding:10px 12px;
-      font-weight:900;
+    .modalSmall{
+      margin-top: 4px;
+      font-size: 15px;
+      opacity: .9;
+    }
+    .closeBtn{
+      background:#b6422d;
+      color:#fff;
+      border-color:#7a2b20;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 900;
+      font-size: 16px;
       cursor:pointer;
+      white-space: nowrap;
     }
-    .modalBody{ padding:14px 16px 16px; }
-    .scoreMiniRow{
-      display:flex;
-      align-items:baseline;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
-    }
-    .bigScore{
-      font-family: Georgia, 'Times New Roman', serif;
-      font-weight:900;
-      font-size:40px;
-    }
-    .miniMeta{
-      font-size:14px;
-      opacity:.82;
-      text-align:right;
-      line-height:1.2;
-    }
+
     .holesGrid{
-      margin-top:12px;
+      padding: 14px 14px 16px;
+    }
+    .grid{
       display:grid;
       grid-template-columns: repeat(9, 1fr);
-      gap:8px;
+      gap: 8px;
     }
-    .holeChip{
-      border:2px solid rgba(0,0,0,.12);
-      border-radius:14px;
-      background:rgba(255,255,255,.65);
-      padding:10px 8px;
+    .cell{
+      border: 2px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.55);
+      border-radius: 12px;
+      padding: 10px 8px;
       text-align:center;
     }
-    .holeNum{
-      font-family:Cinzel,serif;
-      font-weight:900;
-      font-size:12px;
-      opacity:.8;
+    .cell .h{
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 14px;
+      opacity:.85;
     }
-    .holeVal{
-      font-weight:900;
-      font-size:20px;
-      margin-top:2px;
+    .cell .v{
+      margin-top: 6px;
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 22px;
+      line-height: 1;
     }
-    .holeBlank{ opacity:.35; }
+    .cell .v.miss{ opacity:.35; }
 
-    /* TV Mode */
-    body.tv{
-      background:#0b0b0b;
-      color:#fff;
-    }
-    body.tv .wrap{ max-width:1600px; padding:18px; }
-    body.tv .card{ border-color:#222; background:#111; box-shadow:none; }
-    body.tv .topHeaderImg{ background:#111; border-bottom:1px solid rgba(255,255,255,.08); }
-    body.tv .section, body.tv .top{ background:#111; }
-    body.tv .sectionHeader, body.tv #sponsorHero, body.tv .teamCard, body.tv .tableWrap{
-      background:rgba(255,255,255,.06);
-      border-color:rgba(255,255,255,.14);
-    }
-    body.tv .pill{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.16); }
-    body.tv button, body.tv .btn{ background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.18); color:#fff; }
-    body.tv th{ background:rgba(255,255,255,.08); }
-    body.tv th, body.tv td{ border-color:rgba(255,255,255,.12); }
-    body.tv .teamName{ font-size:44px; }
-    body.tv .teamScore{ font-size:56px; }
+    /* TV mode */
+    body.tv .wrap{ max-width: 1400px; }
+    body.tv h1{ font-size: 52px; }
+    body.tv .club{ font-size: 28px; }
+    body.tv .topName{ font-size: 46px; }
+    body.tv .topScore{ font-size: 84px; }
+    body.tv th{ font-size: 26px; }
+    body.tv td{ font-size: 22px; }
+    body.tv .tableWrap{ max-height: 72vh; }
   </style>
 </head>
 
@@ -362,90 +360,91 @@
   <div class="wrap">
     <div class="card">
 
-      <!-- header image auto-switches based on tournament courseDefault -->
-      <img id="courseHeaderImg" class="topHeaderImg" src="./assets/cypress_header.png" alt="Course Header">
+      <div class="hdr">
+        <img id="courseHeader" src="./assets/cypresswood_header.png" alt="Course Header" />
+      </div>
 
       <div class="top">
-        <h1 id="pageTitle">Live Leaderboard</h1>
+        <h1 id="pageTitle">LIVE LEADERBOARD</h1>
         <div class="meta" id="pageMeta">Loading…</div>
-        <div class="clubLine" id="clubLine">Cypresswood Golf Club</div>
+        <div class="club" id="clubLine">CYPRESSWOOD GOLF CLUB</div>
 
-        <div id="sponsorHero" aria-label="Tournament Sponsor">
+        <!-- Sponsor hero -->
+        <div id="sponsorHero" role="button" aria-label="Tournament Sponsor">
           <div id="sponsorHeroTitle">Tournament Sponsor</div>
           <div id="sponsorHeroRow">
-            <img id="sponsorHeroLogo" alt="Sponsor Logo">
+            <img id="sponsorHeroLogo" alt="Sponsor Logo" />
             <div>
               <div id="sponsorHeroName"></div>
-              <div id="sponsorHeroHint">Tap to open sponsor</div>
+              <div class="meta" style="margin:2px 0 0; font-size:14px; opacity:.8;" id="sponsorHeroHint"></div>
             </div>
           </div>
         </div>
 
-        <div class="bar">
+        <div class="pillRow">
           <div class="pill" id="statusPill">⛳️ LIVE</div>
+          <div class="pill" id="formatPill">Format: —</div>
+        </div>
 
+        <div class="btnRow">
           <button id="refreshBtn">🔄 Refresh</button>
           <a id="joinBtn" class="btn" href="./index.html">👥 Join Link</a>
-          <button id="copyBtn" class="copyBtn">📋 Copy Leaderboard Link</button>
+          <button id="copyBtn">📋 Copy Leaderboard Link</button>
           <button id="tvBtn" class="tvBtn">📺 TV Mode</button>
-          <button id="autoBtn">⬇️ Auto Scroll: Off</button>
+          <button id="autoBtn" class="autoBtn">⬇️ Auto Scroll: Off</button>
         </div>
       </div>
 
+      <!-- Top Teams -->
       <div class="section">
-        <div class="sectionHeader">
-          <div class="sectionTitle">🏆 Top Teams</div>
-          <div class="sectionSub" id="lastUpdate">Last update: —</div>
+        <div class="sectionHead">
+          <div>
+            <div class="title">🏆 TOP TEAMS</div>
+            <div class="sub" id="lastUpdate">Last update: —</div>
+          </div>
+          <div class="sub" id="topCount"></div>
         </div>
+        <div id="topSlot"></div>
+      </div>
 
-        <div class="topGrid" id="topGrid"></div>
-
-        <div style="height:12px"></div>
-
-        <div class="sectionHeader">
-          <div class="sectionTitle">All Teams</div>
-          <div class="sectionSub" id="teamCount">0 teams</div>
+      <!-- All Teams -->
+      <div class="section">
+        <div class="sectionHead">
+          <div class="title">ALL TEAMS</div>
+          <div class="sub" id="allCount">0 teams</div>
         </div>
 
         <div class="tableWrap" id="tableWrap">
           <table>
             <thead>
               <tr>
-                <th style="width:90px;">Rank</th>
-                <th>Team / Player</th>
-                <th style="width:120px;">Group</th>
-                <th style="width:110px;">Out</th>
-                <th style="width:110px;">In</th>
-                <th style="width:110px;">Total</th>
+                <th style="width:110px;">RANK</th>
+                <th>TEAM / PLAYER</th>
+                <th style="width:120px;">GROUP</th>
               </tr>
             </thead>
-            <tbody id="allBody"></tbody>
+            <tbody id="rows"></tbody>
           </table>
         </div>
       </div>
+
     </div>
   </div>
 
-  <!-- Golf-styled modal -->
-  <div class="modalOverlay" id="modalOverlay" role="dialog" aria-modal="true">
+  <!-- Modal -->
+  <div class="modalBack" id="modalBack" role="dialog" aria-modal="true">
     <div class="modal">
-      <div class="modalTop">
-        <div class="modalTitle" id="modalTitle">Team</div>
-        <button class="modalClose" id="modalClose">Close</button>
-      </div>
-      <div class="modalBody">
-        <div class="scoreMiniRow">
-          <div class="bigScore" id="modalScore">—</div>
-          <div class="miniMeta" id="modalMeta">—</div>
+      <div class="modalHead">
+        <div>
+          <div class="modalTitle" id="modalTitle">Team</div>
+          <div class="modalSmall" id="modalSub">—</div>
         </div>
-
-        <div style="font-family:Cinzel,serif; font-weight:900; opacity:.9;">Front 9</div>
-        <div class="holesGrid" id="frontGrid"></div>
-
-        <div style="height:12px"></div>
-
-        <div style="font-family:Cinzel,serif; font-weight:900; opacity:.9;">Back 9</div>
-        <div class="holesGrid" id="backGrid"></div>
+        <button class="closeBtn" id="modalClose">Close</button>
+      </div>
+      <div class="holesGrid">
+        <div class="grid" id="gridFront"></div>
+        <div style="height:10px"></div>
+        <div class="grid" id="gridBack"></div>
       </div>
     </div>
   </div>
@@ -458,10 +457,11 @@
       getDoc,
       collection,
       getDocs,
-      query,
-      orderBy
+      onSnapshot,
+      query
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    // ===== Firebase config (same project) =====
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -475,12 +475,17 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const $ = (id) => document.getElementById(id);
+    const $ = (id)=>document.getElementById(id);
 
-    const pageTitle = $("pageTitle");
+    // ===== URL params =====
+    const params = new URLSearchParams(location.search);
+    const tournamentId = (params.get("t") || "").trim();
+
+    // ===== DOM =====
     const pageMeta = $("pageMeta");
-    const clubLine = $("clubLine");
+    const courseHeader = $("courseHeader");
     const statusPill = $("statusPill");
+    const formatPill = $("formatPill");
     const joinBtn = $("joinBtn");
     const copyBtn = $("copyBtn");
     const refreshBtn = $("refreshBtn");
@@ -490,38 +495,26 @@
     const sponsorHero = $("sponsorHero");
     const sponsorHeroLogo = $("sponsorHeroLogo");
     const sponsorHeroName = $("sponsorHeroName");
+    const sponsorHeroHint = $("sponsorHeroHint");
 
-    const courseHeaderImg = $("courseHeaderImg");
-
-    const topGrid = $("topGrid");
-    const allBody = $("allBody");
-    const teamCount = $("teamCount");
     const lastUpdate = $("lastUpdate");
-    const tableWrap = $("tableWrap");
+    const topSlot = $("topSlot");
+    const rows = $("rows");
+    const allCount = $("allCount");
 
-    const modalOverlay = $("modalOverlay");
+    // modal
+    const modalBack = $("modalBack");
     const modalClose = $("modalClose");
     const modalTitle = $("modalTitle");
-    const modalScore = $("modalScore");
-    const modalMeta = $("modalMeta");
-    const frontGrid = $("frontGrid");
-    const backGrid = $("backGrid");
+    const modalSub = $("modalSub");
+    const gridFront = $("gridFront");
+    const gridBack = $("gridBack");
 
-    const params = new URLSearchParams(location.search);
-    const tId = (params.get("t") || "").trim();
-    const adminToken = (params.get("admin") || "").trim();
-
-    // ----- header mapping -----
-    function setHeaderForCourse(courseDefault){
-      // You said: cypress => cypress header; tradition => tradition header
-      const c = (courseDefault || "").toLowerCase().trim();
-      if(c === "tradition"){
-        courseHeaderImg.src = "./assets/cypresswood_header.png";
-        courseHeaderImg.alt = "Tradition Header";
-      }else{
-        courseHeaderImg.src = "./assets/cypress_header.png";
-        courseHeaderImg.alt = "Cypress Header";
-      }
+    // ===== helpers =====
+    function escapeHtml(s){
+      return String(s ?? "").replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[m]));
     }
 
     function normalizeUrl(u){
@@ -531,325 +524,307 @@
       return "https://" + s;
     }
 
-    function safeText(x){ return (x == null) ? "" : String(x); }
+    // ✅ This is the fix: always prefer playerName (then first row name) — group is NOT the name
+    function pickDisplayName(sub){
+      const playerName = String(sub.playerName || "").trim();
+      const namesArr = Array.isArray(sub.names) ? sub.names : [];
+      const firstRowName = String(namesArr.find(n => String(n||"").trim()) || "").trim();
+      const group = String(sub.group || "").trim();
+      return playerName || firstRowName || (group ? `Team ${group}` : "Player");
+    }
 
-    function fmtDate(d){
+    function getScore(sub){
+      // rank by first row total (works for scramble and your current “one submission = one team” model)
+      const totals = Array.isArray(sub.totals) ? sub.totals : [];
+      const t0 = totals[0] || {};
+      const tot = Number(t0.tot ?? 0) || 0;
+      const out = Number(t0.out ?? 0) || 0;
+      const inn = Number(t0.inn ?? 0) || 0;
+      return { tot, out, inn };
+    }
+
+    function prettyTime(ts){
       try{
-        return new Date(d).toLocaleString();
-      }catch(e){
-        return String(d || "");
+        const d = ts?.toDate ? ts.toDate() : (ts instanceof Date ? ts : null);
+        if(!d) return "—";
+        return d.toLocaleString();
+      }catch(e){ return "—"; }
+    }
+
+    function courseHeaderFor(courseDefault){
+      // Match the tournament default course header
+      if(String(courseDefault).toLowerCase() === "cypress") return "./assets/cypress_header.png";
+      return "./assets/cypresswood_header.png"; // tradition header in your repo naming
+    }
+
+    function renderSponsor(t){
+      const name = String(t?.sponsorName || "").trim();
+      const logo = String(t?.sponsorLogo || "").trim();
+      const url  = normalizeUrl(t?.sponsorUrl || t?.sponsorWebsite || "");
+
+      if(!name && !logo){
+        sponsorHero.style.display = "none";
+        sponsorHero.onclick = null;
+        return;
       }
+
+      sponsorHero.style.display = "block";
+      sponsorHeroName.textContent = name || "Tournament Sponsor";
+
+      if(logo){
+        sponsorHeroLogo.src = logo;
+        sponsorHeroLogo.style.display = "block";
+      }else{
+        sponsorHeroLogo.style.display = "none";
+      }
+
+      sponsorHeroHint.textContent = url ? "Tap to visit sponsor" : "";
+      sponsorHero.style.cursor = url ? "pointer" : "default";
+      sponsorHero.onclick = () => { if(url) window.open(url, "_blank"); };
     }
 
-    // Auto-scroll for All Teams
-    let autoOn = false;
-    let autoRaf = null;
-    let autoDir = 1;
-    function startAutoScroll(){
-      stopAutoScroll();
-      autoOn = true;
-      autoBtn.textContent = "⬇️ Auto Scroll: On";
+    function openModal(sub){
+      const name = pickDisplayName(sub);
+      const group = String(sub.group || "").trim();
+      const course = String(sub.courseId || "").trim();
+      const fmt = String(sub.format || "").trim();
 
-      const step = () => {
-        if(!autoOn) return;
+      modalTitle.textContent = name;
+      modalSub.textContent = `${course || "course"}${group ? " • Group " + group : ""}${fmt ? " • " + fmt : ""}`;
 
-        // scroll inside tableWrap
-        const el = tableWrap;
-        const max = el.scrollHeight - el.clientHeight;
+      // Build 18 holes, show p0 values (matches your current leaderboard “team score” approach)
+      const scores = sub.scoresFlat || {};
+      gridFront.innerHTML = "";
+      gridBack.innerHTML = "";
 
-        if(max <= 0){
-          autoRaf = requestAnimationFrame(step);
-          return;
-        }
-
-        el.scrollTop += (document.body.classList.contains("tv") ? 1.6 : 1.0) * autoDir;
-
-        if(el.scrollTop >= max - 2) autoDir = -1;
-        if(el.scrollTop <= 2) autoDir = 1;
-
-        autoRaf = requestAnimationFrame(step);
-      };
-      autoRaf = requestAnimationFrame(step);
-    }
-    function stopAutoScroll(){
-      autoOn = false;
-      autoBtn.textContent = "⬇️ Auto Scroll: Off";
-      if(autoRaf) cancelAnimationFrame(autoRaf);
-      autoRaf = null;
-      autoDir = 1;
-    }
-
-    autoBtn.addEventListener("click", () => {
-      if(autoOn) stopAutoScroll();
-      else startAutoScroll();
-    });
-
-    // TV Mode toggle
-    function setTV(on){
-      if(on) document.body.classList.add("tv");
-      else document.body.classList.remove("tv");
-      localStorage.setItem("lb_tv_mode", on ? "1" : "0");
-    }
-    tvBtn.addEventListener("click", () => {
-      const on = !document.body.classList.contains("tv");
-      setTV(on);
-    });
-    setTV(localStorage.getItem("lb_tv_mode") === "1");
-
-    // Modal
-    function openModal(team){
-      modalTitle.textContent = team.displayName || "Team";
-      modalScore.textContent = String(team.total ?? 0);
-
-      const line1 = `Out ${team.out ?? 0} • In ${team.inn ?? 0} • Group ${team.group || "-"}`;
-      const line2 = team.courseId ? `Course: ${team.courseId}` : "";
-      modalMeta.textContent = line2 ? (line1 + "\n" + line2) : line1;
-
-      // build hole chips
-      frontGrid.innerHTML = "";
-      backGrid.innerHTML = "";
       for(let h=1; h<=9; h++){
-        frontGrid.appendChild(holeChip(h, team.holes?.[h] ?? ""));
+        const key = `p0_h${h}`;
+        const v = String(scores[key] ?? "").trim();
+        gridFront.appendChild(holeCell(h, v));
       }
       for(let h=10; h<=18; h++){
-        backGrid.appendChild(holeChip(h, team.holes?.[h] ?? ""));
+        const key = `p0_h${h}`;
+        const v = String(scores[key] ?? "").trim();
+        gridBack.appendChild(holeCell(h, v));
       }
 
-      modalOverlay.style.display = "flex";
+      modalBack.style.display = "flex";
     }
 
-    function closeModal(){
-      modalOverlay.style.display = "none";
-    }
-    modalClose.addEventListener("click", closeModal);
-    modalOverlay.addEventListener("click", (e) => {
-      if(e.target === modalOverlay) closeModal();
-    });
-
-    function holeChip(holeNum, val){
+    function holeCell(h, v){
       const div = document.createElement("div");
-      div.className = "holeChip";
-      const v = String(val || "");
-      const blank = v.trim() === "" || v.trim() === "-";
+      div.className = "cell";
+      const missing = !v;
       div.innerHTML = `
-        <div class="holeNum">Hole ${holeNum}</div>
-        <div class="holeVal ${blank ? "holeBlank" : ""}">${blank ? "—" : v}</div>
+        <div class="h">Hole ${h}</div>
+        <div class="v ${missing ? "miss":""}">${escapeHtml(v || "—")}</div>
       `;
       return div;
     }
 
-    // Copy leaderboard link
+    function closeModal(){
+      modalBack.style.display = "none";
+    }
+    modalClose.addEventListener("click", closeModal);
+    modalBack.addEventListener("click", (e)=>{ if(e.target === modalBack) closeModal(); });
+
+    // ===== TV mode =====
+    function setTVMode(on){
+      document.body.classList.toggle("tv", !!on);
+      tvBtn.textContent = on ? "📺 TV Mode: On" : "📺 TV Mode";
+    }
+    let tvOn = false;
+    tvBtn.addEventListener("click", async ()=>{
+      tvOn = !tvOn;
+      setTVMode(tvOn);
+      // optional: try fullscreen
+      try{
+        if(tvOn && document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+        if(!tvOn && document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen();
+      }catch(e){}
+    });
+
+    // ===== Auto scroll =====
+    let autoOn = false;
+    let autoDir = 1;
+    let autoTimer = null;
+
+    function setAuto(on){
+      autoOn = !!on;
+      autoBtn.textContent = autoOn ? "⬇️ Auto Scroll: On" : "⬇️ Auto Scroll: Off";
+      if(autoTimer) clearInterval(autoTimer);
+      if(!autoOn) return;
+
+      const wrap = $("tableWrap");
+      autoTimer = setInterval(()=>{
+        const max = wrap.scrollHeight - wrap.clientHeight;
+        if(max <= 0) return;
+
+        wrap.scrollTop += (1.2 * autoDir);
+        if(wrap.scrollTop >= max - 2) autoDir = -1;
+        if(wrap.scrollTop <= 0 + 2) autoDir = 1;
+      }, 20);
+    }
+    autoBtn.addEventListener("click", ()=> setAuto(!autoOn));
+
+    // ===== Links / copy =====
+    function baseURL(){
+      const url = new URL(location.href);
+      url.hash = "";
+      url.search = "";
+      url.pathname = url.pathname.replace(/\/leaderboard\.html$/,"/");
+      return url.toString();
+    }
+
+    function buildJoinLink(tId){
+      return `${baseURL()}index.html?t=${encodeURIComponent(tId)}`;
+    }
+    function buildLbLink(tId){
+      return `${baseURL()}leaderboard.html?t=${encodeURIComponent(tId)}`;
+    }
+
     async function copyText(txt){
       try{
         await navigator.clipboard.writeText(txt);
         alert("Copied!");
       }catch(e){
-        alert("Copy blocked. Press and hold to select the URL.");
+        // fallback
+        const ta = document.createElement("textarea");
+        ta.value = txt;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        alert("Copied!");
       }
     }
 
-    // Build this page URL (no hash weirdness)
-    function currentURL(){
-      const u = new URL(location.href);
-      u.hash = "";
-      return u.toString();
+    copyBtn.addEventListener("click", ()=>{
+      const tId = tournamentId || "";
+      if(!tId) return alert("Missing tournament ID in the URL (?t=...).");
+      copyText(buildLbLink(tId));
+    });
+
+    refreshBtn.addEventListener("click", ()=> location.reload());
+
+    // ===== main load =====
+    if(!tournamentId){
+      pageMeta.textContent = "Missing tournament ID. Open with ?t=YOUR_ID";
+      statusPill.textContent = "⚠️ Missing ID";
+    }else{
+      pageMeta.textContent = `Tournament ID: ${tournamentId}`;
+      joinBtn.href = buildJoinLink(tournamentId);
     }
 
-    // Determine how to compute “team” score by tournament format
-    function formatToPlayersCount(fmt){
-      if(fmt === "scramble") return 1;
-      if(fmt === "bestball") return 2;
-      return 6;
-    }
-
-    // Pull holes from a submission:
-    // - We store scoresFlat keys like "p0_h1"
-    // For scramble, we only care p0; for stroke we display p0 by default in modal.
-    function extractHolesFromScoresFlat(scoresFlat, playerIndex=0){
-      const holes = {};
-      for(let h=1; h<=18; h++){
-        const key = `p${playerIndex}_h${h}`;
-        holes[h] = (scoresFlat && scoresFlat[key] != null) ? String(scoresFlat[key] || "") : "";
-      }
-      return holes;
-    }
-
-    // Rank total:
-    // - scramble => p0 total
-    // - stroke/skins => use submission totals[0] by default (the “playerName” leader)
-    // You can later adjust to aggregate by group/team.
-    function getPrimaryTotals(sub){
-      const totals = Array.isArray(sub.totals) ? sub.totals : [];
-      const t0 = totals[0] || { out:0, inn:0, tot:0 };
-      return {
-        out: Number(t0.out || 0) || 0,
-        inn: Number(t0.inn || 0) || 0,
-        tot: Number(t0.tot || 0) || 0
-      };
-    }
-
-    function buildTeamDisplay(sub, tFormat){
-      const playerName = safeText(sub.playerName || sub.names?.[0] || "Player");
-      const group = safeText(sub.group || "");
-      const courseId = safeText(sub.courseId || "");
-      const totals = getPrimaryTotals(sub);
-
-      // displayName: scramble can show group as team label if provided
-      const displayName =
-        (tFormat === "scramble" && group) ? group :
-        playerName;
-
-      // holes from p0 (for now)
-      const holes = extractHolesFromScoresFlat(sub.scoresFlat || {}, 0);
-
-      return {
-        displayName,
-        playerName,
-        group,
-        courseId,
-        out: totals.out,
-        inn: totals.inn,
-        total: totals.tot,
-        holes,
-        updatedAt: sub.updatedAt
-      };
-    }
-
-    // Render
-    function renderAll(teams){
-      // sort low total is best
-      const sorted = [...teams].sort((a,b) => (a.total - b.total) || (a.displayName.localeCompare(b.displayName)));
-
-      teamCount.textContent = `${sorted.length} team${sorted.length === 1 ? "" : "s"}`;
-
-      // Top Teams cards (top 3)
-      topGrid.innerHTML = "";
-      const top = sorted.slice(0, 3);
-      top.forEach((t, idx) => {
-        const card = document.createElement("div");
-        card.className = "teamCard";
-        card.innerHTML = `
-          <div class="rankBadge">🏅 <span>${idx === 0 ? "1ST" : idx === 1 ? "2ND" : "3RD"}</span></div>
-          <div class="teamName">${escapeHtml(t.displayName)}</div>
-          <div class="teamScore">${escapeHtml(String(t.total))}</div>
-          <div class="teamMeta">Out ${t.out} • In ${t.inn} • ${t.group ? "Group " + escapeHtml(t.group) : "Group -"}</div>
-        `;
-        card.addEventListener("click", () => openModal(t));
-        topGrid.appendChild(card);
-      });
-
-      // All Teams table
-      allBody.innerHTML = "";
-      sorted.forEach((t, idx) => {
-        const tr = document.createElement("tr");
-        tr.className = "rowTap";
-        tr.innerHTML = `
-          <td><b>#${idx+1}</b></td>
-          <td>
-            <div style="font-weight:900; font-size:18px;">${escapeHtml(t.displayName)}</div>
-            <div class="muted">${escapeHtml(t.courseId)} • tap for holes</div>
-          </td>
-          <td>${escapeHtml(t.group || "-")}</td>
-          <td>${t.out}</td>
-          <td>${t.inn}</td>
-          <td><b>${t.total}</b></td>
-        `;
-        tr.addEventListener("click", () => openModal(t));
-        allBody.appendChild(tr);
-      });
-    }
-
-    function escapeHtml(str){
-      return String(str)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    async function load(){
-      if(!tId){
-        pageMeta.textContent = "Missing tournament id (?t=...)";
-        statusPill.textContent = "⚠️ NO TOURNAMENT";
+    // Load tournament settings (course header, sponsor, format)
+    async function loadTournament(){
+      if(!tournamentId) return;
+      const snap = await getDoc(doc(db, "tournaments", tournamentId));
+      if(!snap.exists()){
+        statusPill.textContent = "⚠️ Not found";
         return;
       }
+      const t = snap.data() || {};
+      const courseDefault = String(t.courseDefault || "tradition").trim();
+      const fmt = String(t.format || "stroke").trim();
+      const status = String(t.status || "open").trim();
 
-      // build join link
-      joinBtn.href = `./index.html?t=${encodeURIComponent(tId)}`;
+      courseHeader.src = courseHeaderFor(courseDefault);
+      courseHeader.alt = courseDefault === "cypress" ? "Cypress Header" : "Tradition Header";
 
-      // copy current leaderboard link
-      copyBtn.addEventListener("click", () => copyText(currentURL()));
+      formatPill.textContent = `Format: ${fmt || "stroke"}`;
+      statusPill.textContent = status === "closed" ? "⛔️ CLOSED" : "⛳️ LIVE";
 
-      // read tournament doc (name, courseDefault, format, sponsor)
-      let tData = null;
-      try{
-        const snap = await getDoc(doc(db, "tournaments", tId));
-        if(snap.exists()) tData = snap.data() || {};
-      }catch(e){
-        console.warn("tournament doc load failed", e);
-      }
-
-      const tName = safeText(tData?.name || "Tournament");
-      const courseDefault = safeText(tData?.courseDefault || "cypress");
-      const tFormat = safeText(tData?.format || "stroke");
-      const sponsorName = safeText(tData?.sponsorName || "");
-      const sponsorLogo = safeText(tData?.sponsorLogo || "");
-      const sponsorUrl = normalizeUrl(tData?.sponsorUrl || "");
-
-      pageTitle.textContent = "Live Leaderboard";
-      pageMeta.textContent = `${courseDefault} • ID: ${tId}`;
-      clubLine.textContent = "Cypresswood Golf Club";
-
-      setHeaderForCourse(courseDefault);
-
-      // sponsor hero
-      if(sponsorName || sponsorLogo){
-        sponsorHero.style.display = "block";
-        sponsorHeroName.textContent = sponsorName || "Tournament Sponsor";
-
-        if(sponsorLogo){
-          sponsorHeroLogo.src = sponsorLogo;
-          sponsorHeroLogo.style.display = "block";
-        }else{
-          sponsorHeroLogo.style.display = "none";
-        }
-
-        sponsorHero.style.cursor = sponsorUrl ? "pointer" : "default";
-        sponsorHero.onclick = () => {
-          if(sponsorUrl) window.open(sponsorUrl, "_blank");
-        };
-      }else{
-        sponsorHero.style.display = "none";
-      }
-
-      // load submissions
-      const subs = [];
-      try{
-        const qRef = query(collection(db, "tournaments", tId, "submissions"), orderBy("updatedAt", "desc"));
-        const snap = await getDocs(qRef);
-        snap.forEach(d => subs.push({ id:d.id, ...d.data() }));
-      }catch(e){
-        console.warn("submissions load failed", e);
-      }
-
-      // last update
-      const newest = subs[0]?.updatedAt?.toDate ? subs[0].updatedAt.toDate() : null;
-      lastUpdate.textContent = "Last update: " + (newest ? newest.toLocaleString() : "—");
-
-      // build team objects
-      const teams = subs.map(s => buildTeamDisplay(s, tFormat));
-      renderAll(teams);
-
-      // status
-      statusPill.textContent = `⛳️ LIVE • ${tName}`;
+      renderSponsor(t);
     }
 
-    refreshBtn.addEventListener("click", load);
+    // Render leaderboard
+    function render(subs){
+      // sort by total asc
+      const scored = subs.map(s => {
+        const sc = getScore(s);
+        return { sub:s, ...sc };
+      }).sort((a,b)=> a.tot - b.tot);
 
-    load();
+      allCount.textContent = `${scored.length} team${scored.length===1?"":"s"}`;
+
+      // last update
+      const newest = subs
+        .map(s => s.updatedAt)
+        .filter(Boolean)
+        .sort((a,b)=> (b?.seconds||0) - (a?.seconds||0))[0];
+
+      lastUpdate.textContent = `Last update: ${prettyTime(newest)}`;
+
+      // top card
+      topSlot.innerHTML = "";
+      if(scored.length){
+        const top = scored[0];
+        const name = pickDisplayName(top.sub);
+        const group = String(top.sub.group || "").trim();
+        const course = String(top.sub.courseId || "").trim() || "course";
+
+        const card = document.createElement("div");
+        card.className = "topCard";
+        card.innerHTML = `
+          <div class="rankLine">🥇 1st</div>
+          <div class="topName">${escapeHtml(name)}</div>
+          <div class="topScore">${escapeHtml(top.tot)}</div>
+          <div class="topMeta">Out ${escapeHtml(top.out)} • In ${escapeHtml(top.inn)}${group ? " • Group " + escapeHtml(group) : ""}</div>
+          <div class="subline" style="margin-top:6px; opacity:.85;">${escapeHtml(course)} • tap for holes</div>
+        `;
+        card.addEventListener("click", ()=> openModal(top.sub));
+        topSlot.appendChild(card);
+      }else{
+        const empty = document.createElement("div");
+        empty.style.padding = "14px";
+        empty.style.opacity = ".85";
+        empty.textContent = "No teams yet — once someone joins and enters a score, it will appear here.";
+        topSlot.appendChild(empty);
+      }
+
+      // table
+      rows.innerHTML = "";
+      scored.forEach((x, idx)=>{
+        const s = x.sub;
+        const name = pickDisplayName(s);        // ✅ FIXED
+        const group = String(s.group || "").trim();
+        const course = String(s.courseId || "").trim();
+        const tr = document.createElement("tr");
+        tr.style.cursor = "pointer";
+        tr.innerHTML = `
+          <td><span class="rankBadge">#${idx+1}</span></td>
+          <td>
+            <div style="font-family:Cinzel,serif; font-weight:900; font-size:22px;">${escapeHtml(name)}</div>
+            <div class="subline">${escapeHtml(course || "course")} • tap for holes</div>
+          </td>
+          <td>${group ? `<span class="groupPill">${escapeHtml(group)}</span>` : `<span class="groupPill">—</span>`}</td>
+        `;
+        tr.addEventListener("click", ()=> openModal(s));
+        rows.appendChild(tr);
+      });
+    }
+
+    async function startLive(){
+      await loadTournament();
+
+      if(!tournamentId) return;
+
+      // Live updates from submissions
+      const subCol = collection(db, "tournaments", tournamentId, "submissions");
+      const qy = query(subCol);
+
+      onSnapshot(qy, (snap)=>{
+        const subs = [];
+        snap.forEach(docSnap => subs.push(docSnap.data() || {}));
+        render(subs);
+      }, (err)=>{
+        console.error("Leaderboard listen failed", err);
+        statusPill.textContent = "⚠️ Error";
+      });
+    }
+
+    startLive();
   </script>
-
-  <script src="./pwa.js"></script>
 </body>
 </html>
