@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Live Leaderboard</title>
   <meta name="theme-color" content="#7a4a0b">
+
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
 
   <style>
@@ -13,495 +14,347 @@
       --ink:#111;
       --border:#7a4a0b;
       --card:#efe7d7;
-      --soft:#ffffff80;
-      --grid:#2b2b2b;
-      --good:#2f6b2f;
-      --bad:#b6422d;
+      --panel:#f6f0e4;
+      --soft:rgba(0,0,0,.08);
+      --soft2:rgba(0,0,0,.12);
     }
     *{ -webkit-tap-highlight-color: transparent; }
     body{
       margin:0;
       background:var(--paper);
       color:var(--ink);
-      font-family: Georgia, "Times New Roman", serif;
+      font-family: Georgia, 'Times New Roman', serif;
     }
-    .wrap{ max-width: 980px; margin:0 auto; padding:12px; }
+    .wrap{ max-width:980px; margin:0 auto; padding:12px; }
     .card{
       background:var(--card);
       border:3px solid var(--border);
       border-radius:12px;
-      box-shadow:0 8px 22px rgba(0,0,0,.18);
       overflow:hidden;
+      box-shadow:0 8px 22px rgba(0,0,0,.18);
     }
 
-    /* Course header image (small, not watermark) */
-    .course-head{
-      border-bottom:1px solid rgba(0,0,0,.08);
-      background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
-      padding:10px 12px 0;
-    }
-    .course-head img{
+    /* course header image */
+    .topHeaderImg{
       width:100%;
-      max-height:90px;
+      max-height:120px;
       object-fit:contain;
       display:block;
-      border-radius:10px;
-      background: rgba(255,255,255,.35);
-      border:2px solid rgba(0,0,0,.12);
+      background: var(--card);
+      border-bottom:1px solid var(--soft);
     }
 
-    .top{
-      padding:12px;
-      border-bottom:1px solid rgba(0,0,0,.08);
-      background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
-    }
+    .top{ padding:12px; }
     h1{
       margin:0;
-      font-family:Cinzel, serif;
+      font-family:Cinzel,serif;
       font-weight:900;
-      font-size:20px;
-      letter-spacing:.3px;
+      letter-spacing:.6px;
+      font-size:26px;
     }
-    .meta{ margin-top:6px; font-size:13px; opacity:.85; }
-    .brandLine{
+    .meta{
       margin-top:6px;
-      font-family:Cinzel, serif;
+      opacity:.85;
+      font-size:14px;
+    }
+    .clubLine{
+      margin-top:6px;
+      font-family:Cinzel,serif;
       font-weight:900;
-      font-size:13px;
-      letter-spacing:.3px;
-      opacity:.92;
+      letter-spacing:.4px;
+      font-size:18px;
+      text-transform:uppercase;
     }
 
     .bar{
       display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-top:10px;
       flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      margin-top:12px;
     }
     .pill{
+      border:2px solid rgba(0,0,0,.16);
+      background:rgba(255,255,255,.55);
+      border-radius:999px;
+      padding:8px 12px;
+      font-weight:900;
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:2px solid rgba(0,0,0,.18);
-      background:rgba(255,255,255,.55);
-      font-weight:900;
-      font-size:13px;
-      font-family:Cinzel, serif;
     }
 
-    button, a.btn{
+    button, .btn{
       border:2px solid var(--border);
       background:#e7ddcb;
       border-radius:10px;
-      padding:10px 10px;
+      padding:12px 12px;
       font-weight:900;
-      font-size:14px;
+      font-size:16px;
+      cursor:pointer;
       text-decoration:none;
-      color:var(--ink);
+      color:inherit;
       display:inline-flex;
       align-items:center;
-      justify-content:center;
       gap:8px;
-      cursor:pointer;
-      user-select:none;
     }
-    button:active, a.btn:active{ transform: translateY(1px); }
+    button:active, .btn:active{ transform: translateY(1px); }
+    .primary{ background:#2f6b2f; color:#fff; }
+    .tvBtn{ background:#202020; color:#fff; border-color:#000; }
+    .copyBtn{ min-width:260px; justify-content:center; }
 
-    .primary{ background:var(--good); color:#fff; }
-    .danger{ background:var(--bad); color:#fff; border-color:#7a2b20; }
-
-    /* Sponsor Hero (single sponsor on tournament doc) */
+    /* sponsor hero */
     #sponsorHero{
       display:none;
-      margin-top:10px;
-      padding:10px 12px;
-      border:2px solid rgba(0,0,0,.12);
+      margin-top:12px;
       border-radius:12px;
-      background:rgba(255,255,255,.55);
+      border:2px solid var(--soft2);
+      background:rgba(255,255,255,.60);
+      padding:12px;
+      cursor:pointer;
     }
+    #sponsorHero:active{ transform: translateY(1px); }
     #sponsorHeroTitle{
-      font-family:Cinzel, serif;
+      font-family:Cinzel,serif;
       font-weight:900;
-      font-size:13px;
-      opacity:.9;
-      letter-spacing:.2px;
+      font-size:14px;
+      letter-spacing:.4px;
+      text-transform:uppercase;
+      opacity:.92;
     }
     #sponsorHeroRow{
       display:flex;
       align-items:center;
-      gap:10px;
-      margin-top:8px;
-      min-width:0;
+      gap:12px;
+      margin-top:10px;
     }
     #sponsorHeroLogo{
-      width:44px; height:44px;
-      border-radius:10px;
+      width:56px; height:56px;
+      border-radius:12px;
       object-fit:cover;
       border:2px solid rgba(0,0,0,.12);
       background:rgba(0,0,0,.06);
       display:none;
-      flex:0 0 auto;
+      flex:none;
     }
     #sponsorHeroName{
       font-weight:900;
-      font-size:16px;
-      min-width:0;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-
-    .section{ padding:12px; }
-
-    /* Sponsor ticker */
-    #sponsorTicker{
-      display:none;
-      margin: 0 12px 12px;
-      border:2px solid rgba(0,0,0,.18);
-      border-radius:12px;
-      background:rgba(255,255,255,.55);
-      overflow:hidden;
-    }
-    #tickerTrack{ white-space:nowrap; overflow:hidden; }
-    .sponsor-chip{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:6px 10px;
-      margin-right:10px;
-      border-radius:999px;
-      border:2px solid rgba(0,0,0,.18);
-      background:rgba(255,255,255,.7);
-      font-weight:900;
-      font-size:13px;
-      cursor:pointer;
-    }
-    .sponsor-chip:active{ transform: translateY(1px); }
-
-    @keyframes tickerScroll {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-    .ticker-animate{
-      animation: tickerScroll 28s linear infinite;
-      will-change: transform;
-      display:inline-block;
-    }
-
-    /* Sponsor rotator */
-    #sponsorRotator{
-      display:none;
-      margin: 0 12px 12px;
-      border:2px solid rgba(0,0,0,.18);
-      border-radius:12px;
-      background:rgba(255,255,255,.55);
-      overflow:hidden;
-      position:relative;
-    }
-    #sponsorRotator.wave:after{
-      content:"";
-      position:absolute; inset:0;
-      background: linear-gradient(110deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 100%);
-      background-size: 200% 100%;
-      animation: waveShine 3.5s ease-in-out infinite;
-      pointer-events:none;
-      opacity:.65;
-    }
-    @keyframes waveShine{
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-    #rotatorInner{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding:12px;
-      position:relative;
-      z-index:1;
-    }
-    #rotatorLogo{
-      width:64px; height:64px;
-      border-radius:12px;
-      background:rgba(0,0,0,.06);
-      display:flex; align-items:center; justify-content:center;
-      overflow:hidden;
-      flex:0 0 auto;
-    }
-    #rotatorName{
-      font-family:Cinzel, serif;
-      font-weight:900;
-      font-size:16px;
-    }
-    #rotatorText{ margin-top:4px; font-size:13px; opacity:.85; }
-    #rotatorHint{ margin-top:6px; font-size:12px; opacity:.75; }
-    #rotatorBadge{
-      font-family:Cinzel, serif;
-      font-weight:900;
-      border:2px solid rgba(0,0,0,.2);
-      border-radius:999px;
-      padding:6px 10px;
-      background:rgba(255,255,255,.6);
-      flex:0 0 auto;
-    }
-
-    /* Spotlight */
-    .spotlight{
-      margin:0 12px 12px;
-      border:2px solid rgba(0,0,0,.18);
-      border-radius:12px;
-      background:rgba(255,255,255,.55);
-      overflow:hidden;
-    }
-    .spotlight-head{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:10px 12px;
-      border-bottom:1px solid rgba(0,0,0,.1);
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .spotlight-title{
-      font-family:Cinzel, serif;
-      font-weight:900;
-    }
-    .spotlight-grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap:10px;
-      padding:12px;
-    }
-    @media (max-width:680px){
-      .spotlight-grid{ grid-template-columns:1fr; }
-    }
-    .podium{
-      border:2px solid rgba(0,0,0,.12);
-      border-radius:12px;
-      background:rgba(255,255,255,.55);
-      padding:12px;
-      position:relative;
-      overflow:hidden;
-    }
-    .podium .rank{
-      font-family:Cinzel, serif;
-      font-weight:900;
-      font-size:14px;
-      opacity:.85;
-    }
-    .podium .name{
-      margin-top:6px;
-      font-weight:900;
-      font-size:16px;
-    }
-    .podium .score{
-      margin-top:6px;
-      font-family:Cinzel, serif;
-      font-weight:900;
       font-size:20px;
     }
-    .podium .sub{
-      margin-top:4px;
+    #sponsorHeroHint{
+      margin-top:6px;
       font-size:12px;
-      opacity:.85;
+      opacity:.75;
     }
 
-    /* Table */
-    .table-wrap{
-      margin:0 12px 12px;
-      border:2px solid rgba(0,0,0,.18);
-      border-radius:12px;
-      overflow:hidden;
-      background:rgba(255,255,255,.55);
+    /* sections */
+    .section{
+      margin-top:12px;
+      background: var(--panel);
+      border-top:1px solid var(--soft);
+      padding:12px;
     }
-    .table-head{
-      padding:10px 12px;
-      border-bottom:1px solid rgba(0,0,0,.1);
+    .sectionHeader{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
-      flex-wrap:wrap;
-    }
-    .table-title{
-      font-family:Cinzel, serif;
-      font-weight:900;
-    }
-    .scroll-y{
-      max-height: 56vh;
-      overflow-y:auto;
-      -webkit-overflow-scrolling:touch;
-    }
-    .scroll-x{
-      overflow-x:auto;
-      -webkit-overflow-scrolling:touch;
-    }
-    table{
-      border-collapse:collapse;
-      width:100%;
-      min-width: 760px;
-    }
-    th, td{
-      border: 1.5px solid rgba(0,0,0,.18);
-      padding:10px 10px;
-      text-align:left;
+      padding:10px 12px;
+      border:2px solid rgba(0,0,0,.12);
+      border-radius:12px;
       background:rgba(255,255,255,.55);
+    }
+    .sectionTitle{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:20px;
+      letter-spacing:.4px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .sectionSub{
+      opacity:.85;
       font-size:14px;
+    }
+
+    /* top cards */
+    .topGrid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+      margin-top:12px;
+    }
+    .teamCard{
+      border:2px solid rgba(0,0,0,.12);
+      border-radius:16px;
+      background:rgba(255,255,255,.65);
+      padding:14px;
+      cursor:pointer;
+      position:relative;
+    }
+    .teamCard:active{ transform: translateY(1px); }
+
+    .rankBadge{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:18px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .teamName{
+      font-family: Georgia, 'Times New Roman', serif;
+      font-weight:900;
+      font-size:34px;
+      margin-top:10px;
+      line-height:1.05;
+    }
+    .teamScore{
+      font-family: Georgia, 'Times New Roman', serif;
+      font-weight:900;
+      font-size:44px;
+      margin-top:6px;
+    }
+    .teamMeta{
+      margin-top:8px;
+      opacity:.85;
+      font-size:16px;
+    }
+
+    /* all teams table */
+    .tableWrap{
+      margin-top:12px;
+      overflow:auto;
+      border-radius:12px;
+      border:2px solid rgba(0,0,0,.12);
+      background:rgba(255,255,255,.45);
+    }
+    table{ width:100%; border-collapse:collapse; min-width:700px; }
+    th, td{
+      border:1px solid rgba(0,0,0,.18);
+      padding:12px;
+      text-align:left;
+      font-size:16px;
     }
     th{
-      background:rgba(0,0,0,.06);
-      font-family:Cinzel, serif;
+      background:rgba(255,255,255,.55);
+      font-family:Cinzel,serif;
       font-weight:900;
-      white-space:nowrap;
+      font-size:16px;
+      position:sticky;
+      top:0;
+      z-index:2;
     }
-    tr[data-id]{ cursor:pointer; }
-    tr[data-id]:active{ transform: translateY(1px); }
+    tr.rowTap{ cursor:pointer; }
+    tr.rowTap:hover{ background:rgba(255,255,255,.35); }
+    .muted{ opacity:.75; font-size:14px; }
 
-    .right{ text-align:right; }
-    .center{ text-align:center; }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:4px 8px;
-      border-radius:999px;
-      border:2px solid rgba(0,0,0,.12);
-      background:rgba(255,255,255,.7);
-      font-weight:900;
-      font-size:12px;
-      white-space:nowrap;
-    }
-    .muted{ opacity:.8; font-size:12px; }
-    .empty{
-      padding:14px 12px;
-      font-size:14px;
-      opacity:.85;
-    }
-
-    /* ✅ Golf-style modal */
-    .modal-backdrop{
-      position:fixed;
-      inset:0;
-      z-index:9999;
-      background: rgba(0,0,0,.45);
-      display:flex;
+    /* modal - golf styled */
+    .modalOverlay{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.55);
+      display:none;
       align-items:center;
       justify-content:center;
-      padding: 14px;
+      padding:16px;
+      z-index:9999;
     }
-    .modal-card{
-      width: min(760px, 100%);
-      border: 3px solid var(--border);
-      border-radius: 16px;
-      background: linear-gradient(180deg, rgba(255,255,255,.80), rgba(255,255,255,.92));
-      box-shadow: 0 18px 70px rgba(0,0,0,.35);
+    .modal{
+      width:min(780px, 96vw);
+      border-radius:18px;
+      border:3px solid rgba(255,255,255,.18);
+      background: linear-gradient(180deg, rgba(239,231,215,.98), rgba(245,240,228,.98));
+      box-shadow:0 18px 60px rgba(0,0,0,.35);
       overflow:hidden;
     }
-    .modal-head{
+    .modalTop{
+      padding:14px 16px;
       display:flex;
-      align-items:flex-start;
       justify-content:space-between;
+      align-items:center;
       gap:10px;
-      padding: 12px 14px;
-      background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
-      border-bottom: 1px solid rgba(0,0,0,.10);
+      border-bottom:1px solid rgba(0,0,0,.12);
+      background:rgba(255,255,255,.40);
     }
-    .m-title{
-      font-family:Cinzel, serif;
+    .modalTitle{
+      font-family:Cinzel,serif;
       font-weight:900;
-      font-size:20px;
-      letter-spacing:.3px;
+      font-size:18px;
+      letter-spacing:.4px;
     }
-    .m-meta{
-      margin-top:4px;
-      font-size:12px;
-      opacity:.78;
-    }
-    .m-close{
-      border:2px solid rgba(0,0,0,.18);
-      background: rgba(255,255,255,.65);
-      border-radius: 12px;
-      padding: 8px 10px;
-      font-weight: 900;
+    .modalClose{
+      border:2px solid var(--border);
+      background:#e7ddcb;
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:900;
       cursor:pointer;
     }
-
-    .mini-scorecard{ padding: 12px 14px 8px; }
-    .mini-row-title{
-      font-family:Cinzel, serif;
-      font-weight:900;
-      font-size:13px;
-      opacity:.9;
-      margin: 6px 0 10px;
-      letter-spacing:.3px;
+    .modalBody{ padding:14px 16px 16px; }
+    .scoreMiniRow{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
     }
-    .mini-grid{
+    .bigScore{
+      font-family: Georgia, 'Times New Roman', serif;
+      font-weight:900;
+      font-size:40px;
+    }
+    .miniMeta{
+      font-size:14px;
+      opacity:.82;
+      text-align:right;
+      line-height:1.2;
+    }
+    .holesGrid{
+      margin-top:12px;
       display:grid;
       grid-template-columns: repeat(9, 1fr);
       gap:8px;
     }
-    @media (max-width:720px){
-      .mini-grid{ grid-template-columns: repeat(5, 1fr); }
-    }
-    .cell{
-      border: 2px solid rgba(0,0,0,.16);
-      border-radius: 12px;
-      background: rgba(255,255,255,.65);
-      padding: 8px 8px 10px;
+    .holeChip{
+      border:2px solid rgba(0,0,0,.12);
+      border-radius:14px;
+      background:rgba(255,255,255,.65);
+      padding:10px 8px;
       text-align:center;
     }
-    .cell .h{
-      font-family:Cinzel, serif;
+    .holeNum{
+      font-family:Cinzel,serif;
       font-weight:900;
       font-size:12px;
-      opacity:.75;
+      opacity:.8;
     }
-    .cell .s{
-      margin-top:4px;
-      font-weight:900;
-      font-size:18px;
-    }
-    .cell.miss .s{ opacity:.35; }
-    .mini-divider{
-      height:1px;
-      background: rgba(0,0,0,.12);
-      margin: 12px 0;
-    }
-    .mini-totals{
-      display:flex;
-      gap:10px;
-      padding: 10px 14px 14px;
-      border-top: 1px solid rgba(0,0,0,.10);
-    }
-    .tbox{
-      flex:1;
-      border: 2px solid rgba(0,0,0,.12);
-      border-radius: 12px;
-      background: rgba(255,255,255,.70);
-      padding: 10px;
-      text-align:center;
-    }
-    .tbox .k{
-      font-family:Cinzel, serif;
-      font-weight:900;
-      font-size:12px;
-      opacity:.75;
-    }
-    .tbox .v{
-      margin-top:4px;
-      font-family:Cinzel, serif;
+    .holeVal{
       font-weight:900;
       font-size:20px;
+      margin-top:2px;
     }
+    .holeBlank{ opacity:.35; }
 
     /* TV Mode */
-    body.tv .wrap{ max-width: 1400px; }
-    body.tv .card{ border-radius: 18px; }
-    body.tv h1{ font-size: 28px; }
-    body.tv th, body.tv td{ font-size: 18px; padding: 12px; }
-    body.tv .scroll-y{ max-height: 70vh; }
-    body.tv #sponsorTicker, body.tv #sponsorRotator{ display:none !important; } /* clean TV look */
+    body.tv{
+      background:#0b0b0b;
+      color:#fff;
+    }
+    body.tv .wrap{ max-width:1600px; padding:18px; }
+    body.tv .card{ border-color:#222; background:#111; box-shadow:none; }
+    body.tv .topHeaderImg{ background:#111; border-bottom:1px solid rgba(255,255,255,.08); }
+    body.tv .section, body.tv .top{ background:#111; }
+    body.tv .sectionHeader, body.tv #sponsorHero, body.tv .teamCard, body.tv .tableWrap{
+      background:rgba(255,255,255,.06);
+      border-color:rgba(255,255,255,.14);
+    }
+    body.tv .pill{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.16); }
+    body.tv button, body.tv .btn{ background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.18); color:#fff; }
+    body.tv th{ background:rgba(255,255,255,.08); }
+    body.tv th, body.tv td{ border-color:rgba(255,255,255,.12); }
+    body.tv .teamName{ font-size:44px; }
+    body.tv .teamScore{ font-size:56px; }
   </style>
 </head>
 
@@ -509,126 +362,90 @@
   <div class="wrap">
     <div class="card">
 
-      <!-- Small course header image (auto from tournament courseDefault) -->
-      <div class="course-head">
-        <img id="courseHeaderImg" src="./assets/cypresswood_header.png" alt="Course Header" />
-      </div>
+      <!-- header image auto-switches based on tournament courseDefault -->
+      <img id="courseHeaderImg" class="topHeaderImg" src="./assets/cypress_header.png" alt="Course Header">
 
       <div class="top">
         <h1 id="pageTitle">Live Leaderboard</h1>
         <div class="meta" id="pageMeta">Loading…</div>
-        <div class="brandLine">Cypresswood Golf Club</div>
+        <div class="clubLine" id="clubLine">Cypresswood Golf Club</div>
 
-        <!-- Sponsor Hero -->
-        <div id="sponsorHero">
+        <div id="sponsorHero" aria-label="Tournament Sponsor">
           <div id="sponsorHeroTitle">Tournament Sponsor</div>
           <div id="sponsorHeroRow">
-            <img id="sponsorHeroLogo" alt="Sponsor Logo" />
-            <div id="sponsorHeroName"></div>
+            <img id="sponsorHeroLogo" alt="Sponsor Logo">
+            <div>
+              <div id="sponsorHeroName"></div>
+              <div id="sponsorHeroHint">Tap to open sponsor</div>
+            </div>
           </div>
         </div>
 
         <div class="bar">
           <div class="pill" id="statusPill">⛳️ LIVE</div>
-          <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button id="refreshBtn">🔄 Refresh</button>
-            <a id="joinBtn" class="btn" href="./index.html">👥 Join Link</a>
-            <button id="copyBtn">📋 Copy Leaderboard Link</button>
-            <button id="tvBtn">📺 TV Mode</button>
-          </div>
+
+          <button id="refreshBtn">🔄 Refresh</button>
+          <a id="joinBtn" class="btn" href="./index.html">👥 Join Link</a>
+          <button id="copyBtn" class="copyBtn">📋 Copy Leaderboard Link</button>
+          <button id="tvBtn" class="tvBtn">📺 TV Mode</button>
+          <button id="autoBtn">⬇️ Auto Scroll: Off</button>
         </div>
       </div>
 
-      <!-- Sponsors -->
-      <div id="sponsorTicker">
-        <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid rgba(0,0,0,.1);">
-          <div style="font-family:Cinzel,serif; font-weight:900;">Sponsored by</div>
-          <div style="font-size:12px; opacity:.85;">(tap a sponsor to open)</div>
-        </div>
-        <div style="position:relative; white-space:nowrap; overflow:hidden;">
-          <div id="tickerTrack" style="display:inline-block; padding:10px 12px;"></div>
-        </div>
-      </div>
-
-      <div id="sponsorRotator">
-        <div id="rotatorInner">
-          <div id="rotatorLogo">⛳️</div>
-          <div style="flex:1; min-width:0;">
-            <div id="rotatorName">—</div>
-            <div id="rotatorText">—</div>
-            <div id="rotatorHint">Tap to learn more</div>
-          </div>
-          <div id="rotatorBadge">Sponsor</div>
-        </div>
-      </div>
-
-      <!-- Spotlight -->
-      <div class="spotlight">
-        <div class="spotlight-head">
-          <div class="spotlight-title">🏆 Top Teams</div>
-          <div class="muted" id="lastUpdated">—</div>
-        </div>
-        <div class="spotlight-grid" id="podiumGrid"></div>
-      </div>
-
-      <!-- Table -->
-      <div class="table-wrap">
-        <div class="table-head">
-          <div class="table-title">All Teams</div>
-          <div class="muted" id="teamCount">0 teams</div>
+      <div class="section">
+        <div class="sectionHeader">
+          <div class="sectionTitle">🏆 Top Teams</div>
+          <div class="sectionSub" id="lastUpdate">Last update: —</div>
         </div>
 
-        <div class="scroll-y" id="scrollY">
-          <div class="scroll-x">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:60px;" class="center">Rank</th>
-                  <th>Team / Player</th>
-                  <th style="width:90px;" class="center">Group</th>
-                  <th style="width:110px;" class="right">Out</th>
-                  <th style="width:110px;" class="right">In</th>
-                  <th style="width:110px;" class="right">Total</th>
-                  <th style="width:170px;">Last Update</th>
-                </tr>
-              </thead>
-              <tbody id="rows"></tbody>
-            </table>
-          </div>
+        <div class="topGrid" id="topGrid"></div>
+
+        <div style="height:12px"></div>
+
+        <div class="sectionHeader">
+          <div class="sectionTitle">All Teams</div>
+          <div class="sectionSub" id="teamCount">0 teams</div>
         </div>
 
-        <div id="emptyState" class="empty" style="display:none;">
-          No scores yet. Once teams enter scores in the scorecard, they’ll appear here automatically.
+        <div class="tableWrap" id="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:90px;">Rank</th>
+                <th>Team / Player</th>
+                <th style="width:120px;">Group</th>
+                <th style="width:110px;">Out</th>
+                <th style="width:110px;">In</th>
+                <th style="width:110px;">Total</th>
+              </tr>
+            </thead>
+            <tbody id="allBody"></tbody>
+          </table>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ✅ Golf-style modal -->
-  <div id="scoreModalBackdrop" class="modal-backdrop" style="display:none;">
-    <div id="scoreModal" class="modal-card" role="dialog" aria-modal="true" aria-label="Hole details">
-      <div class="modal-head">
-        <div>
-          <div id="mTeam" class="m-title">Team</div>
-          <div id="mMeta" class="m-meta">Course • Group • Last update</div>
+  <!-- Golf-styled modal -->
+  <div class="modalOverlay" id="modalOverlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modalTop">
+        <div class="modalTitle" id="modalTitle">Team</div>
+        <button class="modalClose" id="modalClose">Close</button>
+      </div>
+      <div class="modalBody">
+        <div class="scoreMiniRow">
+          <div class="bigScore" id="modalScore">—</div>
+          <div class="miniMeta" id="modalMeta">—</div>
         </div>
-        <button id="mClose" class="m-close" aria-label="Close">✕</button>
-      </div>
 
-      <div class="mini-scorecard">
-        <div class="mini-row-title">Front 9</div>
-        <div id="mFront" class="mini-grid"></div>
+        <div style="font-family:Cinzel,serif; font-weight:900; opacity:.9;">Front 9</div>
+        <div class="holesGrid" id="frontGrid"></div>
 
-        <div class="mini-divider"></div>
+        <div style="height:12px"></div>
 
-        <div class="mini-row-title">Back 9</div>
-        <div id="mBack" class="mini-grid"></div>
-      </div>
-
-      <div class="mini-totals">
-        <div class="tbox"><div class="k">Out</div><div id="mOut" class="v">0</div></div>
-        <div class="tbox"><div class="k">In</div><div id="mIn" class="v">0</div></div>
-        <div class="tbox"><div class="k">Total</div><div id="mTot" class="v">0</div></div>
+        <div style="font-family:Cinzel,serif; font-weight:900; opacity:.9;">Back 9</div>
+        <div class="holesGrid" id="backGrid"></div>
       </div>
     </div>
   </div>
@@ -640,12 +457,11 @@
       doc,
       getDoc,
       collection,
+      getDocs,
       query,
-      where,
-      onSnapshot
+      orderBy
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // ✅ Same Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -663,484 +479,377 @@
 
     const pageTitle = $("pageTitle");
     const pageMeta = $("pageMeta");
+    const clubLine = $("clubLine");
     const statusPill = $("statusPill");
-    const refreshBtn = $("refreshBtn");
-    const copyBtn = $("copyBtn");
     const joinBtn = $("joinBtn");
+    const copyBtn = $("copyBtn");
+    const refreshBtn = $("refreshBtn");
     const tvBtn = $("tvBtn");
+    const autoBtn = $("autoBtn");
 
-    const podiumGrid = $("podiumGrid");
-    const rowsTbody = $("rows");
-    const emptyState = $("emptyState");
-    const teamCount = $("teamCount");
-    const lastUpdated = $("lastUpdated");
-
-    const courseHeaderImg = $("courseHeaderImg");
-
-    // Sponsor Hero
     const sponsorHero = $("sponsorHero");
     const sponsorHeroLogo = $("sponsorHeroLogo");
     const sponsorHeroName = $("sponsorHeroName");
 
-    // Sponsors ticker/rotator
-    const sponsorTicker = $("sponsorTicker");
-    const tickerTrack = $("tickerTrack");
-    const sponsorRotator = $("sponsorRotator");
-    const rotatorInner = $("rotatorInner");
-    const rotatorLogo = $("rotatorLogo");
-    const rotatorName = $("rotatorName");
-    const rotatorText = $("rotatorText");
-    const rotatorBadge = $("rotatorBadge");
+    const courseHeaderImg = $("courseHeaderImg");
+
+    const topGrid = $("topGrid");
+    const allBody = $("allBody");
+    const teamCount = $("teamCount");
+    const lastUpdate = $("lastUpdate");
+    const tableWrap = $("tableWrap");
+
+    const modalOverlay = $("modalOverlay");
+    const modalClose = $("modalClose");
+    const modalTitle = $("modalTitle");
+    const modalScore = $("modalScore");
+    const modalMeta = $("modalMeta");
+    const frontGrid = $("frontGrid");
+    const backGrid = $("backGrid");
+
+    const params = new URLSearchParams(location.search);
+    const tId = (params.get("t") || "").trim();
+    const adminToken = (params.get("admin") || "").trim();
+
+    // ----- header mapping -----
+    function setHeaderForCourse(courseDefault){
+      // You said: cypress => cypress header; tradition => tradition header
+      const c = (courseDefault || "").toLowerCase().trim();
+      if(c === "tradition"){
+        courseHeaderImg.src = "./assets/cypresswood_header.png";
+        courseHeaderImg.alt = "Tradition Header";
+      }else{
+        courseHeaderImg.src = "./assets/cypress_header.png";
+        courseHeaderImg.alt = "Cypress Header";
+      }
+    }
+
+    function normalizeUrl(u){
+      const s = (u || "").trim();
+      if(!s) return "";
+      if(/^https?:\/\//i.test(s)) return s;
+      return "https://" + s;
+    }
+
+    function safeText(x){ return (x == null) ? "" : String(x); }
+
+    function fmtDate(d){
+      try{
+        return new Date(d).toLocaleString();
+      }catch(e){
+        return String(d || "");
+      }
+    }
+
+    // Auto-scroll for All Teams
+    let autoOn = false;
+    let autoRaf = null;
+    let autoDir = 1;
+    function startAutoScroll(){
+      stopAutoScroll();
+      autoOn = true;
+      autoBtn.textContent = "⬇️ Auto Scroll: On";
+
+      const step = () => {
+        if(!autoOn) return;
+
+        // scroll inside tableWrap
+        const el = tableWrap;
+        const max = el.scrollHeight - el.clientHeight;
+
+        if(max <= 0){
+          autoRaf = requestAnimationFrame(step);
+          return;
+        }
+
+        el.scrollTop += (document.body.classList.contains("tv") ? 1.6 : 1.0) * autoDir;
+
+        if(el.scrollTop >= max - 2) autoDir = -1;
+        if(el.scrollTop <= 2) autoDir = 1;
+
+        autoRaf = requestAnimationFrame(step);
+      };
+      autoRaf = requestAnimationFrame(step);
+    }
+    function stopAutoScroll(){
+      autoOn = false;
+      autoBtn.textContent = "⬇️ Auto Scroll: Off";
+      if(autoRaf) cancelAnimationFrame(autoRaf);
+      autoRaf = null;
+      autoDir = 1;
+    }
+
+    autoBtn.addEventListener("click", () => {
+      if(autoOn) stopAutoScroll();
+      else startAutoScroll();
+    });
+
+    // TV Mode toggle
+    function setTV(on){
+      if(on) document.body.classList.add("tv");
+      else document.body.classList.remove("tv");
+      localStorage.setItem("lb_tv_mode", on ? "1" : "0");
+    }
+    tvBtn.addEventListener("click", () => {
+      const on = !document.body.classList.contains("tv");
+      setTV(on);
+    });
+    setTV(localStorage.getItem("lb_tv_mode") === "1");
 
     // Modal
-    const modalBackdrop = $("scoreModalBackdrop");
-    const mClose = $("mClose");
-    const mTeam = $("mTeam");
-    const mMeta = $("mMeta");
-    const mFront = $("mFront");
-    const mBack  = $("mBack");
-    const mOut = $("mOut");
-    const mIn  = $("mIn");
-    const mTot = $("mTot");
+    function openModal(team){
+      modalTitle.textContent = team.displayName || "Team";
+      modalScore.textContent = String(team.total ?? 0);
 
-    const scrollY = $("scrollY");
+      const line1 = `Out ${team.out ?? 0} • In ${team.inn ?? 0} • Group ${team.group || "-"}`;
+      const line2 = team.courseId ? `Course: ${team.courseId}` : "";
+      modalMeta.textContent = line2 ? (line1 + "\n" + line2) : line1;
 
-    // ===== URL Params =====
-    const params = new URLSearchParams(location.search);
-    const tournamentId = (params.get("t") || "").trim();
-
-    function baseURL(){
-      return location.origin + location.pathname.replace(/leaderboard\.html.*$/,"");
-    }
-
-    function fmtTime(ts){
-      try{
-        if(!ts) return "—";
-        const d = ts.toDate ? ts.toDate() : new Date(ts);
-        return d.toLocaleString();
-      }catch(e){
-        return "—";
+      // build hole chips
+      frontGrid.innerHTML = "";
+      backGrid.innerHTML = "";
+      for(let h=1; h<=9; h++){
+        frontGrid.appendChild(holeChip(h, team.holes?.[h] ?? ""));
       }
-    }
-
-    function safe(s){
-      return String(s || "").replace(/</g,"&lt;");
-    }
-
-    function calcTotalsFromScoresFlat(scoresFlat, playerIndex){
-      // playerIndex default 0 for MVP
-      let out = 0, inn = 0;
-      for(let h=1; h<=18; h++){
-        const v = (scoresFlat?.[`p${playerIndex}_h${h}`] ?? "").toString().trim();
-        const n = parseInt(v,10);
-        if(Number.isFinite(n)){
-          if(h<=9) out += n; else inn += n;
-        }
+      for(let h=10; h<=18; h++){
+        backGrid.appendChild(holeChip(h, team.holes?.[h] ?? ""));
       }
-      return { out, inn, tot: out+inn };
+
+      modalOverlay.style.display = "flex";
     }
 
-    // ===== Copy Link =====
+    function closeModal(){
+      modalOverlay.style.display = "none";
+    }
+    modalClose.addEventListener("click", closeModal);
+    modalOverlay.addEventListener("click", (e) => {
+      if(e.target === modalOverlay) closeModal();
+    });
+
+    function holeChip(holeNum, val){
+      const div = document.createElement("div");
+      div.className = "holeChip";
+      const v = String(val || "");
+      const blank = v.trim() === "" || v.trim() === "-";
+      div.innerHTML = `
+        <div class="holeNum">Hole ${holeNum}</div>
+        <div class="holeVal ${blank ? "holeBlank" : ""}">${blank ? "—" : v}</div>
+      `;
+      return div;
+    }
+
+    // Copy leaderboard link
     async function copyText(txt){
       try{
         await navigator.clipboard.writeText(txt);
         alert("Copied!");
       }catch(e){
-        alert("Copy blocked. Press and hold to select the link.");
-      }
-    }
-    copyBtn.addEventListener("click", () => copyText(location.href));
-    refreshBtn.addEventListener("click", () => location.reload());
-
-    // ===== Guard =====
-    if(!tournamentId){
-      pageTitle.textContent = "Leaderboard";
-      pageMeta.textContent = "Missing tournament id. Open the link from admin.html.";
-      statusPill.textContent = "⚠️ Missing ID";
-      throw new Error("Missing tournamentId");
-    }
-    joinBtn.href = `${baseURL()}index.html?t=${encodeURIComponent(tournamentId)}`;
-
-    // ===== Tournament doc (title/status/course header/sponsor hero) =====
-    const tRef = doc(db, "tournaments", tournamentId);
-    let tournamentCourseDefault = "tradition";
-
-    function setHeaderForCourse(courseId){
-      // Match your existing assets
-      if(courseId === "cypress"){
-        courseHeaderImg.src = "./assets/cypress_header.png";
-        courseHeaderImg.alt = "Cypress Course Header";
-      } else {
-        courseHeaderImg.src = "./assets/cypresswood_header.png";
-        courseHeaderImg.alt = "Tradition Course Header";
+        alert("Copy blocked. Press and hold to select the URL.");
       }
     }
 
-    try{
-      const snap = await getDoc(tRef);
-      if(snap.exists()){
-        const t = snap.data() || {};
-        tournamentCourseDefault = (t.courseDefault || "tradition").toString().trim() || "tradition";
-        setHeaderForCourse(tournamentCourseDefault);
-
-        pageTitle.textContent = `Live Leaderboard`;
-        pageMeta.textContent = `${t.name || "Tournament"} • ID: ${tournamentId}`;
-
-        if((t.status || "open") === "closed"){
-          statusPill.textContent = "🔒 CLOSED";
-        }else{
-          statusPill.textContent = "⛳️ LIVE";
-        }
-
-        // Sponsor Hero (single sponsor stored on tournament doc)
-        const sName = (t.sponsorName || "").trim();
-        const sLogo = (t.sponsorLogo || "").trim();
-        if(sName){
-          sponsorHero.style.display = "block";
-          sponsorHeroName.textContent = sName;
-
-          if(sLogo){
-            sponsorHeroLogo.src = sLogo;
-            sponsorHeroLogo.style.display = "block";
-          } else {
-            sponsorHeroLogo.style.display = "none";
-          }
-        } else {
-          sponsorHero.style.display = "none";
-        }
-      }else{
-        pageMeta.textContent = `Tournament not found • ID: ${tournamentId}`;
-        statusPill.textContent = "⚠️ Not Found";
-      }
-    }catch(e){
-      pageMeta.textContent = `Could not load tournament • ID: ${tournamentId}`;
-      statusPill.textContent = "⚠️ Error";
+    // Build this page URL (no hash weirdness)
+    function currentURL(){
+      const u = new URL(location.href);
+      u.hash = "";
+      return u.toString();
     }
 
-    // ===== Leaderboard live list =====
-    const subRef = collection(db, "tournaments", tournamentId, "submissions");
-    const subQuery = query(subRef);
-
-    let latestUpdate = null;
-    window.__teams = [];
-
-    function renderPodium(list){
-      const top = list.slice(0,3);
-      const labels = ["🥇 1st", "🥈 2nd", "🥉 3rd"];
-      podiumGrid.innerHTML = "";
-
-      if(!top.length){
-        podiumGrid.innerHTML = `
-          <div class="podium">
-            <div class="rank">—</div>
-            <div class="name">Waiting for scores…</div>
-            <div class="score">—</div>
-            <div class="sub">Teams will appear here in real time.</div>
-          </div>
-        `;
-        return;
-      }
-
-      top.forEach((t,i) => {
-        podiumGrid.insertAdjacentHTML("beforeend", `
-          <div class="podium">
-            <div class="rank">${labels[i] || `#${i+1}`}</div>
-            <div class="name">${safe(t.teamName)}</div>
-            <div class="score">${t.tot}</div>
-            <div class="sub">Out ${t.out} • In ${t.inn} ${t.group ? `• Group ${safe(t.group)}` : ""}</div>
-          </div>
-        `);
-      });
+    // Determine how to compute “team” score by tournament format
+    function formatToPlayersCount(fmt){
+      if(fmt === "scramble") return 1;
+      if(fmt === "bestball") return 2;
+      return 6;
     }
 
-    function renderTable(list){
-      rowsTbody.innerHTML = "";
-      emptyState.style.display = list.length ? "none" : "block";
-      teamCount.textContent = `${list.length} ${list.length===1 ? "team" : "teams"}`;
-
-      list.forEach((t, idx) => {
-        rowsTbody.insertAdjacentHTML("beforeend", `
-          <tr data-id="${safe(t.id)}">
-            <td class="center"><span class="badge">#${idx+1}</span></td>
-            <td>
-              <div style="font-weight:900;">${safe(t.teamName)}</div>
-              <div class="muted">${safe(t.courseId || "")} • tap for holes</div>
-            </td>
-            <td class="center">${t.group ? `<span class="badge">${safe(t.group)}</span>` : "—"}</td>
-            <td class="right">${t.out}</td>
-            <td class="right">${t.inn}</td>
-            <td class="right"><span class="badge">⛳️ ${t.tot}</span></td>
-            <td>${safe(t.updatedLabel)}</td>
-          </tr>
-        `);
-      });
-    }
-
-    // ===== Modal (golf-style) =====
-    function openScoreModal(team){
-      mTeam.textContent = team.teamName || "Team";
-      const bits = [];
-      if(team.courseId) bits.push(team.courseId);
-      if(team.group) bits.push(`Group ${team.group}`);
-      if(team.updatedLabel) bits.push(team.updatedLabel);
-      mMeta.textContent = bits.join(" • ");
-
-      mFront.innerHTML = "";
-      mBack.innerHTML = "";
-
-      // MVP: show Player 1 (p0) hole-by-hole
+    // Pull holes from a submission:
+    // - We store scoresFlat keys like "p0_h1"
+    // For scramble, we only care p0; for stroke we display p0 by default in modal.
+    function extractHolesFromScoresFlat(scoresFlat, playerIndex=0){
+      const holes = {};
       for(let h=1; h<=18; h++){
-        const key = `p0_h${h}`;
-        const raw = (team.scoresFlat && team.scoresFlat[key] != null) ? String(team.scoresFlat[key]).trim() : "";
-        const score = raw || "–";
-        const miss = !raw;
-
-        const html = `
-          <div class="cell ${miss ? "miss" : ""}">
-            <div class="h">H${h}</div>
-            <div class="s">${score}</div>
-          </div>
-        `;
-        if(h <= 9) mFront.insertAdjacentHTML("beforeend", html);
-        else mBack.insertAdjacentHTML("beforeend", html);
+        const key = `p${playerIndex}_h${h}`;
+        holes[h] = (scoresFlat && scoresFlat[key] != null) ? String(scoresFlat[key] || "") : "";
       }
-
-      mOut.textContent = team.out ?? 0;
-      mIn.textContent  = team.inn ?? 0;
-      mTot.textContent = team.tot ?? 0;
-
-      modalBackdrop.style.display = "flex";
+      return holes;
     }
 
-    function closeScoreModal(){ modalBackdrop.style.display = "none"; }
-
-    mClose.addEventListener("click", closeScoreModal);
-    modalBackdrop.addEventListener("click", (e) => {
-      if(e.target === modalBackdrop) closeScoreModal();
-    });
-
-    rowsTbody.addEventListener("click", (e) => {
-      const tr = e.target.closest("tr");
-      if(!tr) return;
-      const id = tr.getAttribute("data-id");
-      const team = (window.__teams || []).find(x => x.id === id);
-      if(team) openScoreModal(team);
-    });
-
-    onSnapshot(subQuery, (snap) => {
-      const teams = [];
-      latestUpdate = null;
-
-      snap.forEach((d) => {
-        const data = d.data() || {};
-        const names = Array.isArray(data.names) ? data.names : [];
-        const scoresFlat = (data.scoresFlat && typeof data.scoresFlat === "object") ? data.scoresFlat : null;
-
-        const teamName =
-          (data.playerName || "").trim() ||
-          (names[0] || "").trim() ||
-          `Team ${d.id.slice(0,5)}`;
-
-        // totals: prefer stored totals[0], else compute from scoresFlat p0
-        let out = 0, inn = 0, tot = 0;
-        if (Array.isArray(data.totals) && data.totals[0] && typeof data.totals[0] === "object") {
-          out = Number(data.totals[0].out || 0) || 0;
-          inn = Number(data.totals[0].inn || 0) || 0;
-          tot = Number(data.totals[0].tot || (out+inn)) || (out+inn);
-        } else {
-          const computed = calcTotalsFromScoresFlat(scoresFlat, 0);
-          out = computed.out; inn = computed.inn; tot = computed.tot;
-        }
-
-        const updatedAt = data.updatedAt || data.lastJoin || null;
-        if (updatedAt && updatedAt.toDate){
-          const dt = updatedAt.toDate();
-          if(!latestUpdate || dt > latestUpdate) latestUpdate = dt;
-        }
-
-        teams.push({
-          id: d.id,
-          teamName,
-          group: (data.group || "").toString().trim(),
-          courseId: (data.courseId || tournamentCourseDefault || "").toString().trim(),
-          out, inn, tot,
-          scoresFlat: scoresFlat || {},
-          updatedLabel: updatedAt ? fmtTime(updatedAt) : "—",
-          updatedAt
-        });
-      });
-
-      // Sort by total asc (lower is better), tie-break updatedAt desc
-      teams.sort((a,b) => {
-        if(a.tot !== b.tot) return a.tot - b.tot;
-        const at = a.updatedAt?.toDate ? a.updatedAt.toDate().getTime() : 0;
-        const bt = b.updatedAt?.toDate ? b.updatedAt.toDate().getTime() : 0;
-        return bt - at;
-      });
-
-      window.__teams = teams;
-
-      renderPodium(teams);
-      renderTable(teams);
-
-      lastUpdated.textContent = latestUpdate ? `Last update: ${latestUpdate.toLocaleString()}` : "Last update: —";
-    });
-
-    // ===== Sponsors (ticker + rotator) =====
-    const sponsorRef = collection(db, "tournaments", tournamentId, "sponsors");
-    const sponsorQuery = query(sponsorRef, where("active","==",true));
-
-    let sponsors = [];
-    let rotatorTimer = null;
-    let rotatorIndex = 0;
-
-    function weightedList(items){
-      const out = [];
-      for(const s of items){
-        const w = Math.max(1, Number(s.weight || 1));
-        for(let i=0;i<w;i++) out.push(s);
-      }
-      return out;
-    }
-
-    function openSponsor(s){
-      if (s.linkUrl) window.open(s.linkUrl, "_blank");
-    }
-
-    function renderTicker(list){
-      if(!list.length){
-        sponsorTicker.style.display = "none";
-        return;
-      }
-      sponsorTicker.style.display = "block";
-
-      const chipsHTML = list.map(s => {
-        const tier = (s.tier || "").toLowerCase();
-        const label = tier === "gold" ? "🏆" : tier === "silver" ? "🥈" : tier === "bronze" ? "🥉" : "⛳️";
-        return `<span class="sponsor-chip" data-id="${safe(s.id)}">${label} ${safe(s.name || "Sponsor")}</span>`;
-      }).join("");
-
-      tickerTrack.innerHTML = `<div id="tickerInner" class="ticker-animate">${chipsHTML}${chipsHTML}</div>`;
-
-      requestAnimationFrame(() => {
-        const inner = $("tickerInner");
-        if(!inner) return;
-        if(inner.scrollWidth < 900){
-          inner.classList.remove("ticker-animate");
-        }
-      });
-
-      tickerTrack.querySelectorAll(".sponsor-chip").forEach(el => {
-        el.addEventListener("click", () => {
-          const id = el.getAttribute("data-id");
-          const s = list.find(x => x.id === id);
-          if (s) openSponsor(s);
-        });
-      });
-    }
-
-    function renderRotator(list){
-      const rot = list.filter(s => (s.placement || []).includes("rotator"));
-      if(!rot.length){
-        sponsorRotator.style.display = "none";
-        if(rotatorTimer) clearInterval(rotatorTimer);
-        rotatorTimer = null;
-        return;
-      }
-
-      sponsorRotator.style.display = "block";
-      sponsorRotator.classList.add("wave");
-
-      const pool = weightedList(rot);
-
-      function show(i){
-        const s = pool[i % pool.length];
-        rotatorName.textContent = s.name || "Sponsor";
-        rotatorText.textContent = s.text || "Thanks for supporting today’s tournament!";
-        const tier = (s.tier || "sponsor").toLowerCase();
-        rotatorBadge.textContent = tier === "gold" ? "Gold" : tier === "silver" ? "Silver" : tier === "bronze" ? "Bronze" : "Sponsor";
-
-        rotatorLogo.innerHTML = "";
-        if(s.imageUrl){
-          const img = document.createElement("img");
-          img.src = s.imageUrl;
-          img.alt = s.name || "Sponsor";
-          img.style.width = "100%";
-          img.style.height = "100%";
-          img.style.objectFit = "cover";
-          rotatorLogo.appendChild(img);
-        } else {
-          rotatorLogo.textContent = "⛳️";
-          rotatorLogo.style.fontSize = "28px";
-        }
-
-        rotatorInner.style.cursor = s.linkUrl ? "pointer" : "default";
-        rotatorInner.onclick = () => s.linkUrl && openSponsor(s);
-      }
-
-      show(rotatorIndex++);
-      if(rotatorTimer) clearInterval(rotatorTimer);
-      rotatorTimer = setInterval(() => show(rotatorIndex++), 8000);
-    }
-
-    onSnapshot(sponsorQuery, (snap) => {
-      sponsors = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-
-      const tick = sponsors.filter(s => {
-        const p = s.placement || [];
-        return p.length === 0 || p.includes("ticker");
-      }).sort((a,b) => (a.name||"").localeCompare(b.name||""));
-
-      renderTicker(tick);
-      renderRotator(sponsors);
-    });
-
-    // ===== TV Mode + Auto-scroll All Teams =====
-    let tvOn = false;
-    let autoScrollTimer = null;
-
-    function stopAutoScroll(){
-      if(autoScrollTimer) cancelAnimationFrame(autoScrollTimer);
-      autoScrollTimer = null;
-    }
-
-    function startAutoScroll(){
-      stopAutoScroll();
-      const el = scrollY;
-      if(!el) return;
-
-      let dir = 1;
-      const speed = 0.55; // pixels per frame (smooth)
-
-      const step = () => {
-        if(!tvOn) return;
-
-        // scroll down/up and bounce
-        el.scrollTop += dir * speed;
-
-        const atBottom = (el.scrollTop + el.clientHeight) >= (el.scrollHeight - 2);
-        const atTop = el.scrollTop <= 1;
-
-        if(atBottom) dir = -1;
-        if(atTop) dir = 1;
-
-        autoScrollTimer = requestAnimationFrame(step);
+    // Rank total:
+    // - scramble => p0 total
+    // - stroke/skins => use submission totals[0] by default (the “playerName” leader)
+    // You can later adjust to aggregate by group/team.
+    function getPrimaryTotals(sub){
+      const totals = Array.isArray(sub.totals) ? sub.totals : [];
+      const t0 = totals[0] || { out:0, inn:0, tot:0 };
+      return {
+        out: Number(t0.out || 0) || 0,
+        inn: Number(t0.inn || 0) || 0,
+        tot: Number(t0.tot || 0) || 0
       };
-      autoScrollTimer = requestAnimationFrame(step);
     }
 
-    function setTVMode(on){
-      tvOn = !!on;
-      document.body.classList.toggle("tv", tvOn);
-      tvBtn.textContent = tvOn ? "📺 Exit TV" : "📺 TV Mode";
-      if(tvOn) startAutoScroll();
-      else stopAutoScroll();
+    function buildTeamDisplay(sub, tFormat){
+      const playerName = safeText(sub.playerName || sub.names?.[0] || "Player");
+      const group = safeText(sub.group || "");
+      const courseId = safeText(sub.courseId || "");
+      const totals = getPrimaryTotals(sub);
+
+      // displayName: scramble can show group as team label if provided
+      const displayName =
+        (tFormat === "scramble" && group) ? group :
+        playerName;
+
+      // holes from p0 (for now)
+      const holes = extractHolesFromScoresFlat(sub.scoresFlat || {}, 0);
+
+      return {
+        displayName,
+        playerName,
+        group,
+        courseId,
+        out: totals.out,
+        inn: totals.inn,
+        total: totals.tot,
+        holes,
+        updatedAt: sub.updatedAt
+      };
     }
 
-    tvBtn.addEventListener("click", () => setTVMode(!tvOn));
+    // Render
+    function renderAll(teams){
+      // sort low total is best
+      const sorted = [...teams].sort((a,b) => (a.total - b.total) || (a.displayName.localeCompare(b.displayName)));
+
+      teamCount.textContent = `${sorted.length} team${sorted.length === 1 ? "" : "s"}`;
+
+      // Top Teams cards (top 3)
+      topGrid.innerHTML = "";
+      const top = sorted.slice(0, 3);
+      top.forEach((t, idx) => {
+        const card = document.createElement("div");
+        card.className = "teamCard";
+        card.innerHTML = `
+          <div class="rankBadge">🏅 <span>${idx === 0 ? "1ST" : idx === 1 ? "2ND" : "3RD"}</span></div>
+          <div class="teamName">${escapeHtml(t.displayName)}</div>
+          <div class="teamScore">${escapeHtml(String(t.total))}</div>
+          <div class="teamMeta">Out ${t.out} • In ${t.inn} • ${t.group ? "Group " + escapeHtml(t.group) : "Group -"}</div>
+        `;
+        card.addEventListener("click", () => openModal(t));
+        topGrid.appendChild(card);
+      });
+
+      // All Teams table
+      allBody.innerHTML = "";
+      sorted.forEach((t, idx) => {
+        const tr = document.createElement("tr");
+        tr.className = "rowTap";
+        tr.innerHTML = `
+          <td><b>#${idx+1}</b></td>
+          <td>
+            <div style="font-weight:900; font-size:18px;">${escapeHtml(t.displayName)}</div>
+            <div class="muted">${escapeHtml(t.courseId)} • tap for holes</div>
+          </td>
+          <td>${escapeHtml(t.group || "-")}</td>
+          <td>${t.out}</td>
+          <td>${t.inn}</td>
+          <td><b>${t.total}</b></td>
+        `;
+        tr.addEventListener("click", () => openModal(t));
+        allBody.appendChild(tr);
+      });
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    async function load(){
+      if(!tId){
+        pageMeta.textContent = "Missing tournament id (?t=...)";
+        statusPill.textContent = "⚠️ NO TOURNAMENT";
+        return;
+      }
+
+      // build join link
+      joinBtn.href = `./index.html?t=${encodeURIComponent(tId)}`;
+
+      // copy current leaderboard link
+      copyBtn.addEventListener("click", () => copyText(currentURL()));
+
+      // read tournament doc (name, courseDefault, format, sponsor)
+      let tData = null;
+      try{
+        const snap = await getDoc(doc(db, "tournaments", tId));
+        if(snap.exists()) tData = snap.data() || {};
+      }catch(e){
+        console.warn("tournament doc load failed", e);
+      }
+
+      const tName = safeText(tData?.name || "Tournament");
+      const courseDefault = safeText(tData?.courseDefault || "cypress");
+      const tFormat = safeText(tData?.format || "stroke");
+      const sponsorName = safeText(tData?.sponsorName || "");
+      const sponsorLogo = safeText(tData?.sponsorLogo || "");
+      const sponsorUrl = normalizeUrl(tData?.sponsorUrl || "");
+
+      pageTitle.textContent = "Live Leaderboard";
+      pageMeta.textContent = `${courseDefault} • ID: ${tId}`;
+      clubLine.textContent = "Cypresswood Golf Club";
+
+      setHeaderForCourse(courseDefault);
+
+      // sponsor hero
+      if(sponsorName || sponsorLogo){
+        sponsorHero.style.display = "block";
+        sponsorHeroName.textContent = sponsorName || "Tournament Sponsor";
+
+        if(sponsorLogo){
+          sponsorHeroLogo.src = sponsorLogo;
+          sponsorHeroLogo.style.display = "block";
+        }else{
+          sponsorHeroLogo.style.display = "none";
+        }
+
+        sponsorHero.style.cursor = sponsorUrl ? "pointer" : "default";
+        sponsorHero.onclick = () => {
+          if(sponsorUrl) window.open(sponsorUrl, "_blank");
+        };
+      }else{
+        sponsorHero.style.display = "none";
+      }
+
+      // load submissions
+      const subs = [];
+      try{
+        const qRef = query(collection(db, "tournaments", tId, "submissions"), orderBy("updatedAt", "desc"));
+        const snap = await getDocs(qRef);
+        snap.forEach(d => subs.push({ id:d.id, ...d.data() }));
+      }catch(e){
+        console.warn("submissions load failed", e);
+      }
+
+      // last update
+      const newest = subs[0]?.updatedAt?.toDate ? subs[0].updatedAt.toDate() : null;
+      lastUpdate.textContent = "Last update: " + (newest ? newest.toLocaleString() : "—");
+
+      // build team objects
+      const teams = subs.map(s => buildTeamDisplay(s, tFormat));
+      renderAll(teams);
+
+      // status
+      statusPill.textContent = `⛳️ LIVE • ${tName}`;
+    }
+
+    refreshBtn.addEventListener("click", load);
+
+    load();
   </script>
 
-  <!-- Optional: keeps SW up to date if you already use pwa.js -->
   <script src="./pwa.js"></script>
 </body>
 </html>
