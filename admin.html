@@ -26,28 +26,24 @@
     button{
       border:2px solid var(--border); background:#e7ddcb;
       border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;
+      cursor:pointer;
     }
     button:active{ transform: translateY(1px); }
     .primary{ background:#2f6b2f; color:#fff; }
     .danger{ background:#b6422d; color:#fff; border-color:#7a2b20; }
-
     .box{
       margin-top:12px; padding:10px; border:2px dashed rgba(0,0,0,.25); border-radius:10px;
       background:rgba(255,255,255,.35);
       word-break: break-word;
     }
     .small{ font-size:13px; opacity:.85; }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
-
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
     .qrRow{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
       margin-top: 10px;
       align-items: start;
-    }
-    @media (max-width:720px){
-      .qrRow{ grid-template-columns:1fr; }
     }
     .qrBox{
       background: rgba(255,255,255,.55);
@@ -64,9 +60,8 @@
   <div class="wrap">
     <div class="card">
       <h1>Admin Tournament Setup</h1>
-      <div class="small">Create a tournament, then share the Join link + Leaderboard link (and their QRs).</div>
+      <div class="small">Create a tournament, then share the Join link (QR) + Live Leaderboard link.</div>
 
-      <!-- NAME + COURSE -->
       <div class="row" style="grid-template-columns:1fr 1fr;">
         <label>
           Tournament Name
@@ -82,7 +77,6 @@
         </label>
       </div>
 
-      <!-- FORMAT + DATE -->
       <div class="row" style="grid-template-columns:1fr 1fr;">
         <label>
           Format of Play
@@ -100,7 +94,6 @@
         </label>
       </div>
 
-      <!-- ORGANIZER -->
       <div class="row">
         <label>
           Organizer Name (optional)
@@ -108,7 +101,6 @@
         </label>
       </div>
 
-      <!-- SPONSOR (simple MVP fields) -->
       <div class="row" style="grid-template-columns:1fr 1fr;">
         <label>
           Sponsor Name (optional)
@@ -117,17 +109,22 @@
 
         <label>
           Sponsor Logo URL (optional)
-          <input id="tSponsorLogo" placeholder="https://..." />
+          <input id="tSponsorLogo" placeholder="https://... (image url)" />
         </label>
       </div>
 
-      <!-- BUTTONS -->
+      <div class="row">
+        <label>
+          Sponsor Website URL (optional)
+          <input id="tSponsorUrl" placeholder="https://sponsor.com" />
+        </label>
+      </div>
+
       <div class="row" style="grid-template-columns:1fr 1fr;">
         <button class="primary" id="createBtn">Create Tournament</button>
         <button id="loadBtn">Load Existing (by ID)</button>
       </div>
 
-      <!-- IDS -->
       <div class="row" style="grid-template-columns:1fr 1fr;">
         <label>
           Tournament ID
@@ -135,18 +132,17 @@
         </label>
         <label>
           Admin Token (auto)
-          <input id="adminToken" placeholder="(auto)" class="mono"/>
+          <input id="adminToken" placeholder="(auto)" class="mono" />
         </label>
       </div>
 
-      <!-- LINKS -->
       <div class="box">
-        <div class="small"><b>Join Link (players)</b></div>
+        <div class="small"><b>Join Link (players scan this QR)</b></div>
         <div id="joinLink" class="mono small"></div>
 
         <div style="height:10px"></div>
 
-        <div class="small"><b>Leaderboard Link (organizer)</b></div>
+        <div class="small"><b>Leaderboard Link (organizer view)</b></div>
         <div id="lbLink" class="mono small"></div>
 
         <div class="qrRow">
@@ -154,6 +150,7 @@
             <div class="qrTitle">Join QR</div>
             <div id="joinQR" class="qrWrap"></div>
           </div>
+
           <div class="qrBox">
             <div class="qrTitle">Leaderboard QR</div>
             <div id="lbQR" class="qrWrap"></div>
@@ -167,13 +164,14 @@
       </div>
 
       <div class="row">
-        <button class="danger" id="closeBtn">Close Tournament</button>
-        <div class="small">Close is enforced client-side for now (rules later).</div>
+        <button class="danger" id="closeBtn">Close Tournament (stop accepting updates)</button>
+        <div class="small">
+          *Right now “close” is enforced by the client. We can enforce by Firestore Rules next.
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- QR library MUST load before the module script -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <script type="module">
@@ -186,7 +184,6 @@
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // ✅ full config (recommended)
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -199,8 +196,12 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
     const $ = (id) => document.getElementById(id);
+
+    const joinLinkEl = $("joinLink");
+    const lbLinkEl = $("lbLink");
+    const joinQREl = $("joinQR");
+    const lbQREl = $("lbQR");
 
     function randId(len=10){
       const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -221,16 +222,9 @@
       if (!el) return;
       el.innerHTML = "";
       if (!text) return;
-
       const holder = document.createElement("div");
       el.appendChild(holder);
-
-      new QRCode(holder, {
-        text,
-        width: 180,
-        height: 180,
-        correctLevel: QRCode.CorrectLevel.M
-      });
+      new QRCode(holder, { text, width:180, height:180, correctLevel: QRCode.CorrectLevel.M });
     }
 
     function buildLinks(id, token){
@@ -238,39 +232,11 @@
       const join = `${base}index.html?t=${encodeURIComponent(id)}`;
       const lb   = `${base}leaderboard.html?t=${encodeURIComponent(id)}&admin=${encodeURIComponent(token || "")}`;
 
-      $("joinLink").textContent = join;
-      $("lbLink").textContent = lb;
+      joinLinkEl.textContent = join;
+      lbLinkEl.textContent = lb;
 
-      renderQR($("joinQR"), join);
-      renderQR($("lbQR"), lb);
-    }
-
-    async function copyText(txt){
-      const text = String(txt || "").trim();
-      if(!text) return alert("Nothing to copy yet.");
-      try{
-        if (navigator.clipboard?.writeText){
-          await navigator.clipboard.writeText(text);
-          alert("Copied!");
-          return;
-        }
-      }catch(e){}
-
-      // fallback
-      try{
-        const ta = document.createElement("textarea");
-        ta.value = text;
-        ta.setAttribute("readonly", "");
-        ta.style.position = "fixed";
-        ta.style.top = "-1000px";
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        document.body.removeChild(ta);
-        alert("Copied!");
-      }catch(e){
-        alert("Copy blocked. Press and hold to select the link text.");
-      }
+      renderQR(joinQREl, join);
+      renderQR(lbQREl, lb);
     }
 
     async function createTournament(){
@@ -280,11 +246,14 @@
       const payload = {
         name: ($("tName").value || "Cypresswood Tournament").trim(),
         courseDefault: $("tCourse").value,
-        format: $("tFormat").value,
+        format: $("tFormat").value, // ✅ saved
         date: ($("tDate").value || "").trim(),
         organizer: ($("tOrg").value || "").trim(),
+
         sponsorName: ($("tSponsorName").value || "").trim(),
         sponsorLogo: ($("tSponsorLogo").value || "").trim(),
+        sponsorUrl:  ($("tSponsorUrl").value  || "").trim(),
+
         status: "open",
         adminToken: token,
         createdAt: serverTimestamp(),
@@ -307,16 +276,19 @@
       if(!snap.exists()) return alert("Not found.");
 
       const d = snap.data() || {};
+
       $("tName").value = d.name || "";
       $("tCourse").value = d.courseDefault || "tradition";
       $("tFormat").value = d.format || "stroke";
       $("tDate").value = d.date || "";
       $("tOrg").value = d.organizer || "";
+
       $("tSponsorName").value = d.sponsorName || "";
       $("tSponsorLogo").value = d.sponsorLogo || "";
-      $("adminToken").value = d.adminToken || "";
+      $("tSponsorUrl").value  = d.sponsorUrl  || "";
 
-      buildLinks(id, d.adminToken || "");
+      $("adminToken").value = d.adminToken || "";
+      buildLinks(id, $("adminToken").value || "");
       alert("Loaded.");
     }
 
@@ -329,7 +301,7 @@
       if(!snap.exists()) return alert("Not found.");
 
       const d = snap.data() || {};
-      if((d.adminToken || "") !== token){
+      if ((d.adminToken || "") !== token){
         return alert("Admin token does not match.");
       }
 
@@ -337,17 +309,25 @@
       alert("Tournament CLOSED.");
     }
 
-    // Wire buttons
+    async function copyText(txt){
+      try{
+        await navigator.clipboard.writeText(txt);
+        alert("Copied!");
+      }catch(e){
+        alert("Copy blocked. Press and hold to select text.");
+      }
+    }
+
     $("createBtn").addEventListener("click", createTournament);
     $("loadBtn").addEventListener("click", loadTournament);
     $("closeBtn").addEventListener("click", closeTournament);
 
-    $("copyJoin").addEventListener("click", () => copyText($("joinLink").textContent));
-    $("copyLb").addEventListener("click", () => copyText($("lbLink").textContent));
+    $("copyJoin").addEventListener("click", () => copyText(joinLinkEl.textContent || ""));
+    $("copyLb").addEventListener("click", () => copyText(lbLinkEl.textContent || ""));
 
     // Optional: load by URL ?t=...
     const params = new URLSearchParams(location.search);
-    const qid = (params.get("t") || "").trim();
+    const qid = params.get("t");
     if(qid){
       $("tId").value = qid;
       loadTournament();
