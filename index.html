@@ -5,170 +5,99 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Cypresswood Scorecard</title>
 
-  <!-- PWA -->
   <link rel="manifest" href="./manifest.webmanifest">
   <meta name="theme-color" content="#7a4a0b">
 
-  <!-- iOS add-to-home-screen support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Scorecard">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
 
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --paper:#e9e2d4;
-      --ink:#111;
-      --grid:#2b2b2b;
-      --headerRow:#d8d1c3;
-      --parRow:#a85a13;
-      --parRowText:#fff;
-      --hcpRow:#f2e6b9;
-      --cellBg:#f8f4ea;
-      --border:#7a4a0b;
-      --card:#efe7d7;
+      --paper:#e9e2d4; --ink:#111; --grid:#2b2b2b;
+      --headerRow:#d8d1c3; --parRow:#a85a13; --parRowText:#fff;
+      --hcpRow:#f2e6b9; --cellBg:#f8f4ea; --border:#7a4a0b; --card:#efe7d7;
     }
-
     *{ -webkit-tap-highlight-color: transparent; }
-
-    body{
-      margin:0;
-      background: var(--paper);
-      color: var(--ink);
-      font-family: Georgia, 'Times New Roman', serif;
-    }
-
-    .wrap{
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 10px 10px 24px;
-    }
-
-    .card{
-      background: var(--card);
-      border: 3px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 8px 22px rgba(0,0,0,.18);
-    }
+    body{ margin:0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
+    .wrap{ max-width: 980px; margin: 0 auto; padding: 10px 10px 24px; }
+    .card{ background: var(--card); border: 3px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 8px 22px rgba(0,0,0,.18); }
 
     .header-img{
-      width: 100%;
-      height: auto !important;
-      max-height: 210px;
-      display: block;
-      object-fit: contain !important;
-      object-position: center !important;
-      background: var(--card);
+      width: 100%; height: auto !important; max-height: 210px; display: block;
+      object-fit: contain !important; object-position: center !important; background: var(--card);
     }
 
-    #joinScreen{
+    #joinScreen{ display:none; padding:12px 10px; background: var(--card); border-bottom:1px solid rgba(0,0,0,.08); }
+
+    /* Sponsor strip (Scorecard) */
+    #scoreSponsor{
       display:none;
-      padding:12px 10px;
-      background: var(--card);
-      border-bottom:1px solid rgba(0,0,0,.08);
+      margin: 10px 10px 0;
+      border:2px solid rgba(0,0,0,.14);
+      border-radius:12px;
+      background:rgba(255,255,255,.55);
+      padding:10px 12px;
+      cursor:pointer;
     }
+    #scoreSponsor:active{ transform: translateY(1px); }
+    #scoreSponsorTitle{ font-family:Cinzel,serif; font-weight:900; font-size:13px; opacity:.9; }
+    #scoreSponsorRow{ display:flex; align-items:center; gap:10px; margin-top:8px; }
+    #scoreSponsorLogo{
+      width:44px; height:44px; border-radius:10px; object-fit:cover;
+      border:2px solid rgba(0,0,0,.12); background:rgba(0,0,0,.06);
+      display:none;
+    }
+    #scoreSponsorName{ font-weight:900; font-size:16px; }
 
     .coursebar{
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap:10px;
-      padding: 8px 10px;
-      background: var(--card);
-      border-top: 1px solid rgba(0,0,0,.08);
-      border-bottom: 1px solid rgba(0,0,0,.08);
+      display:flex; align-items:center; justify-content: space-between; gap:10px;
+      padding: 8px 10px; background: var(--card);
+      border-top: 1px solid rgba(0,0,0,.08); border-bottom: 1px solid rgba(0,0,0,.08);
     }
-    .course-title{
-      font-family:'Cinzel', serif;
-      font-weight: 900;
-      letter-spacing: .5px;
-      font-size: 14px;
-      line-height: 1.1;
-    }
-    .course-hint{
-      font-size: 12px;
-      opacity:.8;
-    }
+    .course-title{ font-family:'Cinzel', serif; font-weight: 900; letter-spacing: .5px; font-size: 14px; line-height: 1.1; }
+    .course-hint{ font-size: 12px; opacity:.8; }
     .course-select{
-      border: 2px solid var(--border);
-      background: #e7ddcb;
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-weight: 900;
-      font-size: 14px;
+      border: 2px solid var(--border); background: #e7ddcb; border-radius: 10px;
+      padding: 8px 10px; font-weight: 900; font-size: 14px;
     }
 
     .table-shell{ padding: 0px; background: var(--card); }
-
-    .hint{
-      padding: 8px 12px 0;
-      font-size: 13px;
-      opacity:.85;
-    }
+    .hint{ padding: 8px 12px 0; font-size: 13px; opacity:.85; }
 
     .scroll-x{
-      overflow-x: auto;
-      overflow-y: visible;
-      -webkit-overflow-scrolling: touch;
-      border: 2px solid var(--border);
-      border-radius: 10px;
+      overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch;
+      border: 2px solid var(--border); border-radius: 10px;
       background: rgba(255,255,255,.12);
       margin: 10px 10px 0;
       width: calc(100% - 20px);
       box-sizing: border-box;
     }
 
-    table{
-      border-collapse: collapse;
-      min-width: 1120px;
-      width: 100%;
-    }
+    table{ border-collapse: collapse; min-width: 1120px; width: 100%; }
+    th, td{ border: 2px solid var(--grid); padding: 0; height: 34px; background: var(--cellBg); }
 
-    th, td{
-      border: 2px solid var(--grid);
-      padding: 0;
-      height: 34px;
-      background: var(--cellBg);
-    }
-
-    .label,
-    thead th{
-      font-family: 'Cinzel', serif;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-
+    .label, thead th{ font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.5px; }
     .label{
-      width: 140px;
-      font-weight: 900;
-      padding: 0 10px;
-      text-align: left;
-      background: #e1d8c8;
-      white-space: nowrap;
+      width: 140px; font-weight: 900; padding: 0 10px; text-align: left;
+      background: #e1d8c8; white-space: nowrap;
     }
 
     thead th{
-      position: sticky;
-      top: 0;
-      z-index: 5;
-      background: var(--headerRow);
-      font-weight: 900;
-      height: 42px;
-      text-align:center;
+      position: sticky; top: 0; z-index: 5;
+      background: var(--headerRow); font-weight: 900;
+      height: 42px; text-align:center;
     }
 
     .hole{ width: 44px; text-align:center; font-weight: 900; }
     .sum{ width: 60px; text-align:center; font-weight: 900; }
 
     .yard{
-      text-align:center;
-      font-family: Georgia, 'Times New Roman', serif;
-      font-weight: 900;
-      font-size: 16px;
+      text-align:center; font-family: Georgia, 'Times New Roman', serif;
+      font-weight: 900; font-size: 16px;
     }
 
     .row-black td{ background:#0d2a55; color:#fff; }
@@ -192,10 +121,8 @@
     .row-hcp .label{ background: #e9dcaa; }
 
     .score-input{
-      width: 100%;
-      height: 100%;
-      border: 0;
-      outline: none;
+      width: 100%; height: 100%;
+      border: 0; outline: none;
       background: transparent !important;
       text-align: center;
       font-weight: 950;
@@ -204,13 +131,10 @@
       -webkit-appearance: none;
       appearance: none;
       font-family: Georgia, 'Times New Roman', serif;
-      caret-color: auto;
     }
     .player-name{
-      width: 100%;
-      height: 100%;
-      border: 0;
-      outline: none;
+      width: 100%; height: 100%;
+      border: 0; outline: none;
       background: transparent !important;
       font-weight: 950;
       padding: 0 10px;
@@ -219,11 +143,8 @@
       -webkit-appearance: none;
       appearance: none;
     }
-    .score-input:focus,
-    .player-name:focus{
-      outline: none !important;
-      box-shadow: none !important;
-      background: transparent !important;
+    .score-input:focus, .player-name:focus{
+      outline: none !important; box-shadow: none !important; background: transparent !important;
     }
 
     .total{
@@ -249,16 +170,14 @@
       padding: 12px 10px;
       font-weight: 900;
       font-size: 16px;
+      cursor:pointer;
     }
     button:active{ transform: translateY(1px); }
 
     .book-btn{
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      display:flex; align-items:center; justify-content:center;
       border: 2px solid var(--border);
-      background: #2f6b2f;
-      color:#fff;
+      background: #2f6b2f; color:#fff;
       border-radius: 10px;
       padding: 12px 10px;
       font-weight: 900;
@@ -269,27 +188,18 @@
     .book-btn:active{ transform: translateY(1px); }
 
     .danger{
-      background:#b6422d;
-      color:#fff;
-      border-color:#7a2b20;
+      background:#b6422d; color:#fff; border-color:#7a2b20;
       grid-column: 1 / -1;
     }
-
-    .mini{
-      font-size: 14px;
-      padding: 10px 10px;
-      opacity: .95;
-    }
+    .mini{ font-size: 14px; padding: 10px 10px; opacity: .95; }
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <div class="card" id="card">
-
       <img id="courseHeader" class="header-img" src="./assets/cypresswood_header.png" alt="Scorecard Header" />
 
-      <!-- Tournament Join Screen -->
       <div id="joinScreen">
         <div style="font-family:Cinzel,serif; font-weight:900; font-size:16px;">Join Tournament</div>
         <div id="joinMeta" style="margin-top:6px; font-size:13px; opacity:.85;"></div>
@@ -325,6 +235,15 @@
         </div>
       </div>
 
+      <!-- Sponsor strip shows for tournament if sponsor exists -->
+      <div id="scoreSponsor" role="button" aria-label="Tournament Sponsor">
+        <div id="scoreSponsorTitle">Tournament Sponsor</div>
+        <div id="scoreSponsorRow">
+          <img id="scoreSponsorLogo" alt="Sponsor Logo" />
+          <div id="scoreSponsorName"></div>
+        </div>
+      </div>
+
       <div class="coursebar" id="courseSwipeZone">
         <div>
           <div class="course-title" id="courseTitle">Tradition Course</div>
@@ -338,7 +257,7 @@
       </div>
 
       <div class="table-shell">
-        <div class="hint">Swipe left/right inside the table to scroll. Tap a box to type. Out/In/Tot auto-calc.</div>
+        <div class="hint" id="hintLine">Swipe left/right inside the table to scroll. Tap a box to type. Out/In/Tot auto-calc.</div>
 
         <div class="scroll-x">
           <table id="scoreTable">
@@ -364,11 +283,9 @@
         <button class="danger" id="clear">Clear Card</button>
         <button class="mini" id="refreshApp">Refresh App (update)</button>
       </div>
-
     </div>
   </div>
 
-  <!-- html2canvas -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <script type="module">
@@ -380,12 +297,8 @@
       getDoc,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import {
-      getAuth,
-      signInAnonymously
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    // ====================== FIREBASE CONFIG ======================
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -397,22 +310,21 @@
     };
 
     let db = null;
-    let auth = null;
     let authReady = false;
 
-    try {
+    try{
       const app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
+      const auth = getAuth(app);
       await signInAnonymously(auth);
-      authReady = true;
       db = getFirestore(app);
-      console.log("Firebase ready ✅", auth.currentUser?.uid);
-    } catch (e) {
+      authReady = true;
+      console.log("Firebase ready ✅");
+    }catch(e){
       console.error("Firebase init/auth failed ❌", e);
       alert("Firebase init/auth failed: " + (e?.message || e));
     }
 
-    // ====================== COURSES ======================
+    // ===== Courses =====
     const COURSE_TRADITION = {
       id: "tradition",
       title: "Tradition Course",
@@ -481,20 +393,21 @@
 
     const COURSES = { tradition: COURSE_TRADITION, cypress: COURSE_CYPRESS };
 
-    // ====================== CONFIG ======================
+    // ===== Config =====
     const holesFront = [1,2,3,4,5,6,7,8,9];
     const holesBack  = [10,11,12,13,14,15,16,17,18];
 
-    // ✅ THIS IS NOW DYNAMIC (tournament sets it)
+    // 🔥 dynamic player rows
     let playersCount = 6;
 
-    // ====================== DOM ======================
+    // ===== DOM =====
     const tbody = document.getElementById("tbody");
     const hdrRow = document.getElementById("hdrRow");
     const courseSelect = document.getElementById("courseSelect");
     const courseTitle = document.getElementById("courseTitle");
     const swipeZone = document.getElementById("courseSwipeZone");
     const courseHeaderImg = document.getElementById("courseHeader");
+    const hintLine = document.getElementById("hintLine");
 
     const joinScreen = document.getElementById("joinScreen");
     const joinMeta = document.getElementById("joinMeta");
@@ -505,28 +418,20 @@
     const joinStartHole = document.getElementById("joinStartHole");
     const refreshBtn = document.getElementById("refreshApp");
 
-    // ====================== STATE ======================
-    let currentCourseId = "tradition";
+    // sponsor UI
+    const scoreSponsor = document.getElementById("scoreSponsor");
+    const scoreSponsorLogo = document.getElementById("scoreSponsorLogo");
+    const scoreSponsorName = document.getElementById("scoreSponsorName");
 
+    // ===== State =====
+    let currentCourseId = "tradition";
     let tournamentId = null;
     let isTournamentMode = false;
+    let tournamentFormat = "stroke";
 
-    // Loaded from tournament doc:
-    let tournamentSettings = {
-      format: "stroke",
-      playersPerCard: 6,
-      courseDefault: "tradition",
-      status: "open"
-    };
+    // Sponsor state
+    let sponsorUrl = "";
 
-    function formatLabel(fmt){
-      const f = (fmt || "").toLowerCase();
-      if (f === "scramble") return "Scramble";
-      if (f === "bestball") return "Best Ball";
-      return "Stroke Play";
-    }
-
-    // ====================== HELPERS ======================
     function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
 
     function yardCell(v){
@@ -541,11 +446,43 @@
       courseHeaderImg.alt = courseKey === "cypress" ? "Cypress Header" : "Tradition Header";
     }
 
+    function normalizeUrl(u){
+      const s = (u || "").trim();
+      if(!s) return "";
+      if(/^https?:\/\//i.test(s)) return s;
+      return "https://" + s; // ✅ auto-fix missing scheme
+    }
+
+    function applySponsorUI(name, logo, url){
+      const n = (name || "").trim();
+      const l = (logo || "").trim();
+      sponsorUrl = normalizeUrl(url);
+
+      if(!n && !l){
+        scoreSponsor.style.display = "none";
+        return;
+      }
+
+      scoreSponsor.style.display = "block";
+      scoreSponsorName.textContent = n || "Tournament Sponsor";
+
+      if(l){
+        scoreSponsorLogo.src = l;
+        scoreSponsorLogo.style.display = "block";
+      }else{
+        scoreSponsorLogo.style.display = "none";
+      }
+
+      scoreSponsor.style.cursor = sponsorUrl ? "pointer" : "default";
+      scoreSponsor.onclick = () => {
+        if(sponsorUrl) window.open(sponsorUrl, "_blank");
+      };
+    }
+
     function storageKeyFor(courseId){
       const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
-      // include playersCount so scramble vs stroke don’t overwrite each other
-      const pPart = `_p${playersCount}`;
-      return `scorecard_state_${courseId}${tPart}${pPart}_v4`;
+      const fPart = tournamentFormat ? `_f_${tournamentFormat}` : "";
+      return `scorecard_state_${courseId}${tPart}${fPart}_v4`;
     }
 
     function makeDeviceId(){
@@ -553,18 +490,25 @@
       if (existing) return existing;
 
       let id = "";
-      try{
-        id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : "";
-      }catch(e){}
-
-      if(!id){
-        id = "dev_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
-      }
+      try{ id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ""; }catch(e){}
+      if(!id) id = "dev_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
       localStorage.setItem("t_device_id", id);
       return id;
     }
 
-    // ====================== TABLE BUILD ======================
+    function formatToPlayersCount(fmt){
+      // ✅ you can adjust later, but this fixes scramble immediately:
+      if(fmt === "scramble") return 1;
+      if(fmt === "bestball") return 2;
+      return 6; // stroke/skins default
+    }
+
+    function playerRowLabel(i){
+      if(tournamentFormat === "scramble") return "Team Score";
+      if(tournamentFormat === "bestball") return `Player ${i+1}`;
+      return `Player ${i+1}`;
+    }
+
     function buildHeader(){
       hdrRow.innerHTML = `
         <th class="label">Hole</th>
@@ -635,27 +579,15 @@
       const id = `p${playerIdx}_h${holeNum}`;
       return `
         <td>
-          <input
-            id="${id}"
-            class="score-input"
-            inputmode="text"
-            maxlength="3"
-            autocomplete="off"
-          />
+          <input id="${id}" class="score-input" inputmode="text" maxlength="3" autocomplete="off" />
         </td>
       `;
     }
 
     function buildPlayerRow(i){
-      const fmt = (tournamentSettings.format || "stroke").toLowerCase();
-      const placeholder =
-        fmt === "scramble" ? "Team Score" :
-        fmt === "bestball" ? `Player ${i+1}` :
-        `Player ${i+1}`;
-
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td class="label"><input class="player-name" placeholder="${placeholder}" /></td>
+        <td class="label"><input class="player-name" placeholder="${playerRowLabel(i)}" /></td>
         ${holesFront.map(h=>cellInput(i,h)).join("")}
         <td class="total" data-out="${i}">0</td>
         <td></td>
@@ -688,7 +620,6 @@
       if(totEl) totEl.textContent = tot;
     }
 
-    // ====================== LOCAL STORAGE ======================
     function saveState(){
       const key = storageKeyFor(currentCourseId);
       const state = {
@@ -713,11 +644,9 @@
         const state = JSON.parse(raw);
 
         const nameInputs = document.querySelectorAll(".player-name");
-        (state.names || []).slice(0, playersCount).forEach((v, idx) => {
-          if(nameInputs[idx]) nameInputs[idx].value = v;
-        });
+        (state.names || []).forEach((v, idx) => { if(nameInputs[idx]) nameInputs[idx].value = v; });
 
-        (state.scores || []).slice(0, playersCount).forEach((row, p) => {
+        (state.scores || []).forEach((row, p) => {
           (row || []).forEach((v, hIdx) => {
             const el = document.getElementById(`p${p}_h${hIdx+1}`);
             if(el) el.value = v || "";
@@ -745,10 +674,7 @@
         }
         recalcPlayer(i);
       }
-
-      document.querySelectorAll(".player-name").forEach(inp => {
-        inp.addEventListener("input", saveState);
-      });
+      document.querySelectorAll(".player-name").forEach(inp => inp.addEventListener("input", saveState));
     }
 
     function build(){
@@ -756,6 +682,12 @@
       courseTitle.textContent = course.title;
       courseSelect.value = currentCourseId;
       setCourseHeader(currentCourseId);
+
+      // tweak hint for scramble
+      hintLine.textContent =
+        tournamentFormat === "scramble"
+          ? "Scramble: enter ONE team score row. Swipe to scroll. Tap a box to type. Out/In/Tot auto-calc."
+          : "Swipe left/right inside the table to scroll. Tap a box to type. Out/In/Tot auto-calc.";
 
       tbody.innerHTML = "";
       buildHeader();
@@ -773,37 +705,28 @@
       loadState();
     }
 
-    // ====================== COURSE SWITCH ======================
+    // switching course disabled once joined tournament
     function setCourse(courseId){
       if (!COURSES[courseId]) return;
-
-      // In tournament mode: once joined, lock course
-      if (isTournamentMode && joinScreen.style.display === "none" && courseId !== currentCourseId){
-        return;
-      }
-
+      if (isTournamentMode && joinScreen.style.display === "none" && courseId !== currentCourseId) return;
       currentCourseId = courseId;
       build();
     }
 
     courseSelect.addEventListener("change", () => setCourse(courseSelect.value));
 
+    // swipe left/right on coursebar
     let touchStartX = null;
-    swipeZone.addEventListener("touchstart", (e) => {
-      touchStartX = e.changedTouches[0].clientX;
-    }, { passive:true });
-
+    swipeZone.addEventListener("touchstart", (e) => { touchStartX = e.changedTouches[0].clientX; }, { passive:true });
     swipeZone.addEventListener("touchend", (e) => {
       if (touchStartX === null) return;
       const dx = e.changedTouches[0].clientX - touchStartX;
       touchStartX = null;
       if (Math.abs(dx) < 50) return;
-
       if (dx < 0) setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
       else        setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
     }, { passive:true });
 
-    // ====================== SAVE/SHARE IMAGE ======================
     async function captureFullCardCanvas(){
       const card = document.getElementById("card");
       const scroll = document.querySelector(".scroll-x");
@@ -886,41 +809,7 @@
       });
     }
 
-    // ====================== TOURNAMENT MODE ======================
-    async function loadTournamentSettings(tId){
-      if (!db || !tId) return null;
-
-      try{
-        const snap = await getDoc(doc(db, "tournaments", tId));
-        if(!snap.exists()) return null;
-
-        const t = snap.data() || {};
-        const fmt = (t.format || "stroke").toLowerCase();
-
-        // Important: Firestore can store null; never let undefined through
-        const ppc = Number(t.playersPerCard || 6) || 6;
-        const courseDefault = (t.courseDefault || "tradition").toString().trim() || "tradition";
-        const status = (t.status || "open").toString().trim() || "open";
-
-        tournamentSettings = {
-          format: fmt,
-          playersPerCard: ppc,
-          courseDefault,
-          status
-        };
-
-        // Apply to UI
-        playersCount = Math.max(1, Math.min(6, ppc)); // cap safety; adjust later if you ever allow >6
-        // Force course to tournament default BEFORE building UI
-        if (COURSES[courseDefault]) currentCourseId = courseDefault;
-
-        return tournamentSettings;
-      }catch(e){
-        console.warn("Could not load tournament settings", e);
-        return null;
-      }
-    }
-
+    // ===== Tournament mode =====
     async function checkTournamentFromURL(){
       const params = new URLSearchParams(location.search);
       const tId = (params.get("t") || "").trim();
@@ -929,51 +818,39 @@
       tournamentId = tId;
       isTournamentMode = true;
 
-      // Load tournament settings first so the scorecard renders correct rows
-      const settings = await loadTournamentSettings(tournamentId);
-
-      // Rebuild card with correct playersCount/courseDefault
-      build();
-
-      const fmtText = settings ? formatLabel(settings.format) : "Tournament";
-      const rowsText = settings ? `${playersCount} row${playersCount===1?"":"s"}` : "";
-      const closedText = settings && settings.status === "closed" ? " • CLOSED" : "";
-
       joinScreen.style.display = "block";
-      joinMeta.textContent = `Tournament ID: ${tournamentId} • ${fmtText}${rowsText ? ` • ${rowsText}` : ""}${closedText}`;
+      joinMeta.textContent = `Tournament ID: ${tournamentId}`;
+
+      // Pull tournament settings (format, courseDefault, sponsor)
+      if(db){
+        try{
+          const snap = await getDoc(doc(db, "tournaments", tournamentId));
+          if(snap.exists()){
+            const t = snap.data() || {};
+            tournamentFormat = (t.format || "stroke").toString().trim();
+            playersCount = formatToPlayersCount(tournamentFormat);
+
+            // lock default course to the tournament choice
+            const courseDefault = (t.courseDefault || "tradition").toString().trim();
+            currentCourseId = COURSES[courseDefault] ? courseDefault : "tradition";
+
+            // sponsor
+            applySponsorUI(t.sponsorName || "", t.sponsorLogo || "", t.sponsorUrl || "");
+
+            // build with new settings
+            build();
+          }
+        }catch(e){
+          console.warn("Tournament settings load failed", e);
+        }
+      }
     }
 
     joinBtn.addEventListener("click", async () => {
       if (!tournamentId) return;
-
-      // If tournament closed, block joining (client-side)
-      if (tournamentSettings.status === "closed"){
-        alert("This tournament is closed.");
-        return;
-      }
-
-      const playerName = joinName.value.trim() || "Player";
-
-      // Hide join screen
       joinScreen.style.display = "none";
 
-      // Hard lock course to tournament default once joined (prevents course mismatch on leaderboard)
-      if (isTournamentMode && tournamentSettings.courseDefault && COURSES[tournamentSettings.courseDefault]){
-        currentCourseId = tournamentSettings.courseDefault;
-        courseSelect.value = currentCourseId;
-        setCourseHeader(currentCourseId);
-        build(); // rebuild after join so everything matches
-      }
-
-      // Optional “joined” ping
-      if (db){
-        try{
-          const tRef = doc(db, "tournaments", tournamentId);
-          await setDoc(tRef, { lastJoin: serverTimestamp(), lastPlayer: playerName }, { merge:true });
-        }catch(e){}
-      }
-
-      // Save with tournament-specific key and push once
+      // Save with tournament key + push once
       saveState();
       scheduleTournamentPush();
     });
@@ -982,10 +859,13 @@
       joinScreen.style.display = "none";
       isTournamentMode = false;
       tournamentId = null;
-      // keep whatever was on screen
+      tournamentFormat = "stroke";
+      playersCount = 6;
+      applySponsorUI("","","");
+      build();
     });
 
-    // ✅ FLAT MAP (no nested arrays) + totals
+    // ✅ Flat map (no nested arrays) + totals
     function readScoresFromDOM(){
       const names = Array.from(document.querySelectorAll(".player-name")).map(i => i.value || "");
 
@@ -1010,14 +890,12 @@
     let pushTimer = null;
     function scheduleTournamentPush(){
       if (!db || !tournamentId || !authReady) return;
-      if (tournamentSettings.status === "closed") return;
       if (pushTimer) clearTimeout(pushTimer);
       pushTimer = setTimeout(pushTournamentNow, 250);
     }
 
     async function pushTournamentNow(){
       if (!db || !tournamentId) return;
-      if (tournamentSettings.status === "closed") return;
 
       const deviceId = makeDeviceId();
       const payload = readScoresFromDOM();
@@ -1032,26 +910,21 @@
         await setDoc(subRef, {
           deviceId,
           courseId: currentCourseId,
+          format: tournamentFormat, // helpful for admin/leaderboard
           playerName,
           group,
           startHole,
-
-          // helpful for admin/debug
-          format: tournamentSettings.format || "stroke",
-          playersPerCard: playersCount,
-
           names: payload.names,
-          scoresFlat: payload.scoresFlat,   // ✅ correct field
+          scoresFlat: payload.scoresFlat,
           totals: payload.totals,
           updatedAt: serverTimestamp()
         }, { merge:true });
-      } catch (e) {
+      }catch(e){
         console.error("WRITE FAILED ❌", e);
         alert("Firestore write failed: " + (e?.message || e));
       }
     }
 
-    // ====================== REFRESH APP BUTTON ======================
     async function hardRefreshApp(){
       try{
         if ('serviceWorker' in navigator){
@@ -1059,14 +932,12 @@
           await Promise.all(regs.map(r => r.unregister()));
         }
       }catch(e){}
-
       try{
         if (window.caches){
           const keys = await caches.keys();
           await Promise.all(keys.map(k => caches.delete(k)));
         }
       }catch(e){}
-
       location.reload();
     }
 
@@ -1075,10 +946,10 @@
       hardRefreshApp();
     });
 
-    // ====================== INIT ======================
+    // Init
     wireButtons();
-    build();                 // default (non-tournament)
-    await checkTournamentFromURL(); // if tournament, it will rebuild with correct format
+    build();                 // initial build
+    await checkTournamentFromURL(); // if tournament, it will rebuild with format/course/sponsor
   </script>
 
   <script src="./pwa.js"></script>
