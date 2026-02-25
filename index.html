@@ -864,8 +864,20 @@ if (!document.getElementById("agreeTerms")?.checked) {
   return;
 }
     joinBtn.addEventListener("click", async () => {
-      if (!tournamentId) return;
-      joinScreen.style.display = "none";
+
+  // ✅ Terms enforcement (CORRECT LOCATION)
+  if (!document.getElementById("agreeTerms")?.checked) {
+    alert("Please agree to the Terms and Privacy Policy.");
+    return;
+  }
+
+  if (!tournamentId) return;
+  joinScreen.style.display = "none";
+
+  // Save with tournament key + push once
+  saveState();
+  scheduleTournamentPush();
+});
 
       // Save with tournament key + push once
       saveState();
