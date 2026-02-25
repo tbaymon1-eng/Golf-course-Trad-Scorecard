@@ -5,33 +5,72 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Cypresswood Scorecard</title>
 
+  <!-- PWA -->
   <link rel="manifest" href="./manifest.webmanifest">
   <meta name="theme-color" content="#7a4a0b">
 
+  <!-- iOS add-to-home-screen support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Scorecard">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
 
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --paper:#e9e2d4; --ink:#111; --grid:#2b2b2b;
-      --headerRow:#d8d1c3; --parRow:#a85a13; --parRowText:#fff;
-      --hcpRow:#f2e6b9; --cellBg:#f8f4ea; --border:#7a4a0b; --card:#efe7d7;
+      --paper:#e9e2d4;
+      --ink:#111;
+      --grid:#2b2b2b;
+      --headerRow:#d8d1c3;
+      --parRow:#a85a13;
+      --parRowText:#fff;
+      --hcpRow:#f2e6b9;
+      --cellBg:#f8f4ea;
+      --border:#7a4a0b;
+      --card:#efe7d7;
+      --chip:#ffffff55;
     }
+
     *{ -webkit-tap-highlight-color: transparent; }
-    body{ margin:0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
-    .wrap{ max-width: 980px; margin: 0 auto; padding: 10px 10px 24px; }
-    .card{ background: var(--card); border: 3px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 8px 22px rgba(0,0,0,.18); }
-
-    .header-img{
-      width: 100%; height: auto !important; max-height: 210px; display: block;
-      object-fit: contain !important; object-position: center !important; background: var(--card);
+    body{
+      margin:0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 10px 10px 24px;
+    }
+    .card{
+      background: var(--card);
+      border: 3px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 22px rgba(0,0,0,.18);
     }
 
-    #joinScreen{ display:none; padding:12px 10px; background: var(--card); border-bottom:1px solid rgba(0,0,0,.08); }
+    /* Header */
+    .header-img{
+      width: 100%;
+      height: auto !important;
+      max-height: 210px;
+      display: block;
+      object-fit: contain !important;
+      object-position: center !important;
+      background: var(--card);
+    }
+
+    /* Tournament Join Screen */
+    #joinScreen{
+      display:none;
+      padding:12px 10px;
+      background: var(--card);
+      border-bottom:1px solid rgba(0,0,0,.08);
+    }
 
     /* Sponsor strip (Scorecard) */
     #scoreSponsor{
@@ -44,62 +83,134 @@
       cursor:pointer;
     }
     #scoreSponsor:active{ transform: translateY(1px); }
-    #scoreSponsorTitle{ font-family:Cinzel,serif; font-weight:900; font-size:13px; opacity:.9; }
-    #scoreSponsorRow{ display:flex; align-items:center; gap:10px; margin-top:8px; }
+    #scoreSponsorTitle{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:13px;
+      opacity:.9;
+    }
+    #scoreSponsorRow{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-top:8px;
+    }
     #scoreSponsorLogo{
-      width:44px; height:44px; border-radius:10px; object-fit:cover;
-      border:2px solid rgba(0,0,0,.12); background:rgba(0,0,0,.06);
+      width:44px;
+      height:44px;
+      border-radius:10px;
+      object-fit:cover;
+      border:2px solid rgba(0,0,0,.12);
+      background:rgba(0,0,0,.06);
       display:none;
     }
-    #scoreSponsorName{ font-weight:900; font-size:16px; }
-
-    .coursebar{
-      display:flex; align-items:center; justify-content: space-between; gap:10px;
-      padding: 8px 10px; background: var(--card);
-      border-top: 1px solid rgba(0,0,0,.08); border-bottom: 1px solid rgba(0,0,0,.08);
+    #scoreSponsorName{
+      font-weight:900;
+      font-size:16px;
     }
-    .course-title{ font-family:'Cinzel', serif; font-weight: 900; letter-spacing: .5px; font-size: 14px; line-height: 1.1; }
-    .course-hint{ font-size: 12px; opacity:.8; }
+
+    /* Course switch bar */
+    .coursebar{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap:10px;
+      padding: 8px 10px;
+      background: var(--card);
+      border-top: 1px solid rgba(0,0,0,.08);
+      border-bottom: 1px solid rgba(0,0,0,.08);
+    }
+    .course-title{
+      font-family:'Cinzel', serif;
+      font-weight: 900;
+      letter-spacing: .5px;
+      font-size: 14px;
+      line-height: 1.1;
+    }
+    .course-hint{
+      font-size: 12px;
+      opacity:.8;
+    }
     .course-select{
-      border: 2px solid var(--border); background: #e7ddcb; border-radius: 10px;
-      padding: 8px 10px; font-weight: 900; font-size: 14px;
+      border: 2px solid var(--border);
+      background: #e7ddcb;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-weight: 900;
+      font-size: 14px;
     }
 
     .table-shell{ padding: 0px; background: var(--card); }
-    .hint{ padding: 8px 12px 0; font-size: 13px; opacity:.85; }
+    .hint{
+      padding: 8px 12px 0;
+      font-size: 13px;
+      opacity:.85;
+    }
 
     .scroll-x{
-      overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch;
-      border: 2px solid var(--border); border-radius: 10px;
+      overflow-x: auto;
+      overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+      border: 2px solid var(--border);
+      border-radius: 10px;
       background: rgba(255,255,255,.12);
       margin: 10px 10px 0;
       width: calc(100% - 20px);
       box-sizing: border-box;
     }
 
-    table{ border-collapse: collapse; min-width: 1120px; width: 100%; }
-    th, td{ border: 2px solid var(--grid); padding: 0; height: 34px; background: var(--cellBg); }
+    table{
+      border-collapse: collapse;
+      min-width: 1120px;
+      width: 100%;
+    }
 
-    .label, thead th{ font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.5px; }
+    th, td{
+      border: 2px solid var(--grid);
+      padding: 0;
+      height: 36px;
+      background: var(--cellBg);
+    }
+
+    .label,
+    thead th{
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
     .label{
-      width: 140px; font-weight: 900; padding: 0 10px; text-align: left;
-      background: #e1d8c8; white-space: nowrap;
+      width: 140px;
+      font-weight: 900;
+      padding: 0 10px;
+      text-align: left;
+      background: #e1d8c8;
+      white-space: nowrap;
     }
 
     thead th{
-      position: sticky; top: 0; z-index: 5;
-      background: var(--headerRow); font-weight: 900;
-      height: 42px; text-align:center;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--headerRow);
+      font-weight: 900;
+      height: 44px;
+      text-align:center;
+      box-shadow: inset 0 -2px 0 rgba(0,0,0,.18);
     }
 
     .hole{ width: 44px; text-align:center; font-weight: 900; }
     .sum{ width: 60px; text-align:center; font-weight: 900; }
 
     .yard{
-      text-align:center; font-family: Georgia, 'Times New Roman', serif;
-      font-weight: 900; font-size: 16px;
+      text-align:center;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-weight: 900;
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
     }
 
+    /* Tee row colors */
     .row-black td{ background:#0d2a55; color:#fff; }
     .row-blue  td{ background:#1f5ea8; color:#fff; }
     .row-white td{ background:#f7f7f7; color:#111; }
@@ -120,10 +231,13 @@
     .row-hcp td{ background: var(--hcpRow); color:#111; }
     .row-hcp .label{ background: #e9dcaa; }
 
+    /* Inputs (more “defined” feel) */
     .score-input{
-      width: 100%; height: 100%;
-      border: 0; outline: none;
-      background: transparent !important;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      outline: none;
+      background: rgba(255,255,255,.35) !important;
       text-align: center;
       font-weight: 950;
       font-size: 18px;
@@ -131,10 +245,21 @@
       -webkit-appearance: none;
       appearance: none;
       font-family: Georgia, 'Times New Roman', serif;
+      font-variant-numeric: tabular-nums;
     }
+    td:has(.score-input){
+      background: linear-gradient(to bottom, rgba(255,255,255,.45), rgba(255,255,255,.15));
+    }
+    .score-input:focus{
+      box-shadow: inset 0 0 0 2px rgba(122,74,11,.55);
+      background: rgba(255,255,255,.55) !important;
+    }
+
     .player-name{
-      width: 100%; height: 100%;
-      border: 0; outline: none;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      outline: none;
       background: transparent !important;
       font-weight: 950;
       padding: 0 10px;
@@ -143,8 +268,10 @@
       -webkit-appearance: none;
       appearance: none;
     }
-    .score-input:focus, .player-name:focus{
-      outline: none !important; box-shadow: none !important; background: transparent !important;
+    .player-name:focus{
+      box-shadow: inset 0 0 0 2px rgba(122,74,11,.35);
+      border-radius: 8px;
+      background: rgba(255,255,255,.35) !important;
     }
 
     .total{
@@ -153,6 +280,7 @@
       font-size: 18px;
       background:#f1eadb;
       font-family: Georgia, 'Times New Roman', serif;
+      font-variant-numeric: tabular-nums;
     }
 
     .actions{
@@ -175,9 +303,12 @@
     button:active{ transform: translateY(1px); }
 
     .book-btn{
-      display:flex; align-items:center; justify-content:center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
       border: 2px solid var(--border);
-      background: #2f6b2f; color:#fff;
+      background: #2f6b2f;
+      color:#fff;
       border-radius: 10px;
       padding: 12px 10px;
       font-weight: 900;
@@ -188,18 +319,45 @@
     .book-btn:active{ transform: translateY(1px); }
 
     .danger{
-      background:#b6422d; color:#fff; border-color:#7a2b20;
+      background:#b6422d;
+      color:#fff;
+      border-color:#7a2b20;
       grid-column: 1 / -1;
     }
     .mini{ font-size: 14px; padding: 10px 10px; opacity: .95; }
+
+    /* Footer legal */
+    .legal{
+      padding: 10px 12px 14px;
+      border-top: 1px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.18);
+      font-size: 12px;
+      opacity: .9;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content: space-between;
+    }
+    .legal a{
+      color: #3d2a09;
+      font-weight: 900;
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(61,42,9,.4);
+    }
+    .legal a:active{ transform: translateY(1px); }
+    .legal .left{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .legal .right{ opacity:.9; }
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <div class="card" id="card">
+
       <img id="courseHeader" class="header-img" src="./assets/cypresswood_header.png" alt="Scorecard Header" />
 
+      <!-- Tournament Join Screen -->
       <div id="joinScreen">
         <div style="font-family:Cinzel,serif; font-weight:900; font-size:16px;">Join Tournament</div>
         <div id="joinMeta" style="margin-top:6px; font-size:13px; opacity:.85;"></div>
@@ -213,35 +371,17 @@
 
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <label style="font-weight:900; font-size:13px;">
-              Group (optional)
+              Group / Team Name (optional)
               <input id="joinGroup"
                 style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
             </label>
 
             <label style="font-weight:900; font-size:13px;">
-              Start Hole <span style="opacity:.75;">(required)</span>
-              <input
-                id="joinStartHole"
-                placeholder="1"
-                inputmode="numeric"
-                type="number"
-                min="1"
-                max="18"
-                required
+              Start Hole (required)
+              <input id="joinStartHole" placeholder="1" inputmode="numeric"
                 style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
             </label>
           </div>
-
-          <!-- Terms checkbox (keep yours if already present elsewhere) -->
-          <label style="font-size:13px; display:flex; gap:8px; align-items:flex-start; margin-top:6px;">
-            <input type="checkbox" id="agreeTerms" />
-            <span>
-              I agree to the
-              <a href="./terms.html" target="_blank" rel="noopener">Terms</a>
-              and
-              <a href="./privacy.html" target="_blank" rel="noopener">Privacy</a>
-            </span>
-          </label>
 
           <button id="joinBtn" style="border:2px solid #7a4a0b; background:#2f6b2f; color:#fff; border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
             Join & Start Scoring
@@ -250,6 +390,10 @@
           <button id="joinCancel" style="border:2px solid #7a4a0b; background:#e7ddcb; border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
             Exit Tournament
           </button>
+
+          <div style="font-size:12px; opacity:.85; line-height:1.3;">
+            By joining, you agree to our <a href="./terms.html">Terms</a> and <a href="./privacy.html">Privacy Policy</a>.
+          </div>
         </div>
       </div>
 
@@ -293,25 +437,51 @@
           href="https://foresightcypress.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225"
           target="_blank"
           class="book-btn"
-          rel="noopener"
         >
           Book Your Next Tee Time Here!
         </a>
 
         <button id="share">Share</button>
         <button class="danger" id="clear">Clear Card</button>
+
+        <!-- easy refresh -->
         <button class="mini" id="refreshApp">Refresh App (update)</button>
       </div>
+
+      <!-- Legal footer -->
+      <div class="legal">
+        <div class="left">
+          <a href="./privacy.html">Privacy</a>
+          <a href="./terms.html">Terms</a>
+        </div>
+        <div class="right">
+          © <span id="yr"></span> Electronic Scorecard Solutions (DBA) • Elb Solutions LLC
+        </div>
+      </div>
+
     </div>
   </div>
 
+  <!-- html2canvas -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
+  <!-- App logic + Firebase -->
   <script type="module">
+    // ====================== FIREBASE IMPORTS ======================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      getAuth,
+      signInAnonymously
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+    // ====================== FIREBASE CONFIG ======================
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -322,22 +492,23 @@
       measurementId: "G-HL6Y9CLV8K"
     };
 
+    // ===== Firebase init =====
     let db = null;
     let authReady = false;
 
-    try{
+    try {
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       await signInAnonymously(auth);
       db = getFirestore(app);
       authReady = true;
       console.log("Firebase ready ✅");
-    }catch(e){
+    } catch (e) {
       console.error("Firebase init/auth failed ❌", e);
       alert("Firebase init/auth failed: " + (e?.message || e));
     }
 
-    // ===== Courses =====
+    // ====================== COURSES ======================
     const COURSE_TRADITION = {
       id: "tradition",
       title: "Tradition Course",
@@ -406,14 +577,14 @@
 
     const COURSES = { tradition: COURSE_TRADITION, cypress: COURSE_CYPRESS };
 
-    // ===== Config =====
+    // ====================== CONFIG ======================
     const holesFront = [1,2,3,4,5,6,7,8,9];
     const holesBack  = [10,11,12,13,14,15,16,17,18];
 
-    // dynamic player rows
+    // ✅ Dynamic rows: Gross. Scramble = p0 team row.
     let playersCount = 6;
 
-    // ===== DOM =====
+    // ====================== DOM ======================
     const tbody = document.getElementById("tbody");
     const hdrRow = document.getElementById("hdrRow");
     const courseSelect = document.getElementById("courseSelect");
@@ -423,6 +594,7 @@
     const hintLine = document.getElementById("hintLine");
     const scrollX = document.getElementById("scrollX");
 
+    // Join screen DOM
     const joinScreen = document.getElementById("joinScreen");
     const joinMeta = document.getElementById("joinMeta");
     const joinBtn = document.getElementById("joinBtn");
@@ -430,21 +602,28 @@
     const joinName = document.getElementById("joinName");
     const joinGroup = document.getElementById("joinGroup");
     const joinStartHole = document.getElementById("joinStartHole");
+
     const refreshBtn = document.getElementById("refreshApp");
 
-    // sponsor UI
+    // Sponsor UI
     const scoreSponsor = document.getElementById("scoreSponsor");
     const scoreSponsorLogo = document.getElementById("scoreSponsorLogo");
     const scoreSponsorName = document.getElementById("scoreSponsorName");
 
-    // ===== State =====
+    // ====================== STATE ======================
     let currentCourseId = "tradition";
     let tournamentId = null;
     let isTournamentMode = false;
     let tournamentFormat = "stroke";
 
-    // Sponsor state
+    // start hole (required for tournament join)
+    let startHoleSelected = null;
+
+    // sponsor link
     let sponsorUrl = "";
+
+    // ====================== HELPERS ======================
+    document.getElementById("yr").textContent = String(new Date().getFullYear());
 
     function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
 
@@ -489,7 +668,9 @@
       }
 
       scoreSponsor.style.cursor = sponsorUrl ? "pointer" : "default";
-      scoreSponsor.onclick = () => { if(sponsorUrl) window.open(sponsorUrl, "_blank", "noopener"); };
+      scoreSponsor.onclick = () => {
+        if(sponsorUrl) window.open(sponsorUrl, "_blank");
+      };
     }
 
     function storageKeyFor(courseId){
@@ -498,42 +679,32 @@
       return `scorecard_state_${courseId}${tPart}${fPart}_v5`;
     }
 
+    function startHoleKey(){
+      const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
+      return `scorecard_startHole${tPart}_v1`;
+    }
+
+    // randomUUID fallback
     function makeDeviceId(){
       const existing = localStorage.getItem("t_device_id");
       if (existing) return existing;
 
       let id = "";
-      try{ id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ""; }catch(e){}
-      if(!id) id = "dev_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+      try{
+        id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : "";
+      }catch(e){}
+
+      if(!id){
+        id = "dev_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+      }
       localStorage.setItem("t_device_id", id);
       return id;
     }
 
-    function startHoleKey(){
-      const dev = makeDeviceId();
-      return tournamentId ? `t_start_hole_${tournamentId}_${dev}` : "";
-    }
-
-    function setStartHole(h){
-      if(!tournamentId) return;
-      const k = startHoleKey();
-      if(k) localStorage.setItem(k, String(h));
-      window.startHole = h;
-    }
-
-    function getStartHole(){
-      if(!tournamentId) return null;
-      const k = startHoleKey();
-      const v = k ? localStorage.getItem(k) : null;
-      const n = parseInt(v || "", 10);
-      if(!n || n < 1 || n > 18) return null;
-      return n;
-    }
-
     function formatToPlayersCount(fmt){
-      if(fmt === "scramble") return 1;
-      if(fmt === "bestball") return 2;
-      return 6;
+      if(fmt === "scramble") return 1;     // ✅ team row only
+      if(fmt === "bestball") return 2;     // optional (you can change later)
+      return 6;                            // stroke/skins default
     }
 
     function playerRowLabel(i){
@@ -541,13 +712,34 @@
       return `Player ${i+1}`;
     }
 
+    function scrollToStartHole(hole){
+      const h = Number(hole);
+      if(!h || h < 1 || h > 18) return;
+
+      // Prefer scrolling to the first input in that hole
+      const target = document.getElementById(`p0_h${h}`);
+      if(target && typeof target.scrollIntoView === "function"){
+        target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+        return;
+      }
+
+      // Fallback: approximate by header cell
+      const ths = Array.from(document.querySelectorAll("#hdrRow th.hole"));
+      const th = ths.find(x => String(x.textContent).trim() === String(h));
+      if(th && scrollX){
+        const left = th.offsetLeft - 180;
+        scrollX.scrollTo({ left: Math.max(0,left), behavior:"smooth" });
+      }
+    }
+
+    // ====================== TABLE BUILD ======================
     function buildHeader(){
       hdrRow.innerHTML = `
         <th class="label">Hole</th>
-        ${holesFront.map(h=>`<th class="hole" data-hole="${h}">${h}</th>`).join("")}
+        ${holesFront.map(h=>`<th class="hole">${h}</th>`).join("")}
         <th class="sum">Out</th>
         <th class="sum">I<br>N<br>I<br>T</th>
-        ${holesBack.map(h=>`<th class="hole" data-hole="${h}">${h}</th>`).join("")}
+        ${holesBack.map(h=>`<th class="hole">${h}</th>`).join("")}
         <th class="sum">In</th>
         <th class="sum">Tot</th>
         <th class="sum">Hcp</th>
@@ -611,7 +803,13 @@
       const id = `p${playerIdx}_h${holeNum}`;
       return `
         <td>
-          <input id="${id}" class="score-input" inputmode="text" maxlength="3" autocomplete="off" />
+          <input
+            id="${id}"
+            class="score-input"
+            inputmode="text"
+            maxlength="3"
+            autocomplete="off"
+          />
         </td>
       `;
     }
@@ -634,6 +832,7 @@
 
     function recalcPlayer(i){
       let out=0, inn=0;
+
       for (const h of holesFront){
         const v = document.getElementById(`p${i}_h${h}`)?.value || "";
         out += parseInt(v, 10) || 0;
@@ -642,16 +841,19 @@
         const v = document.getElementById(`p${i}_h${h}`)?.value || "";
         inn += parseInt(v, 10) || 0;
       }
+
       const tot = out + inn;
 
       const outEl = document.querySelector(`[data-out="${i}"]`);
       const inEl  = document.querySelector(`[data-in="${i}"]`);
       const totEl = document.querySelector(`[data-tot="${i}"]`);
+
       if(outEl) outEl.textContent = out;
-      if(inEl) inEl.textContent = inn;
+      if(inEl)  inEl.textContent = inn;
       if(totEl) totEl.textContent = tot;
     }
 
+    // ====================== LOCAL STORAGE ======================
     function saveState(){
       const key = storageKeyFor(currentCourseId);
       const state = {
@@ -664,6 +866,7 @@
         )
       };
       localStorage.setItem(key, JSON.stringify(state));
+
       if (isTournamentMode) scheduleTournamentPush();
     }
 
@@ -676,7 +879,9 @@
         const state = JSON.parse(raw);
 
         const nameInputs = document.querySelectorAll(".player-name");
-        (state.names || []).forEach((v, idx) => { if(nameInputs[idx]) nameInputs[idx].value = v; });
+        (state.names || []).forEach((v, idx) => {
+          if(nameInputs[idx]) nameInputs[idx].value = v;
+        });
 
         (state.scores || []).forEach((row, p) => {
           (row || []).forEach((v, hIdx) => {
@@ -698,6 +903,7 @@
         for (let h=1;h<=18;h++){
           const el = document.getElementById(`p${i}_h${h}`);
           if(!el) continue;
+
           el.addEventListener("input", () => {
             el.value = (el.value || "").slice(0,3);
             recalcPlayer(i);
@@ -706,26 +912,10 @@
         }
         recalcPlayer(i);
       }
-      document.querySelectorAll(".player-name").forEach(inp => inp.addEventListener("input", saveState));
-    }
 
-    function scrollToHole(hole){
-      if(!scrollX) return;
-      const th = hdrRow.querySelector(`th[data-hole="${hole}"]`);
-      if(!th) return;
-
-      // Scroll so that the hole header is comfortably visible
-      const pad = 90;
-      const left = Math.max(0, th.offsetLeft - pad);
-      scrollX.scrollTo({ left, behavior: "smooth" });
-
-      // Focus first scorer row (player 0)
-      setTimeout(() => {
-        const inp = document.getElementById(`p0_h${hole}`);
-        if(inp){
-          inp.focus({ preventScroll: true });
-        }
-      }, 280);
+      document.querySelectorAll(".player-name").forEach(inp => {
+        inp.addEventListener("input", saveState);
+      });
     }
 
     function build(){
@@ -736,8 +926,8 @@
 
       hintLine.textContent =
         tournamentFormat === "scramble"
-          ? "Scramble: enter ONE team score row. Swipe to scroll. Tap a box to type. Out/In/Tot auto-calc."
-          : "Swipe left/right inside the table to scroll. Tap a box to type. Out/In/Tot auto-calc.";
+          ? "Scramble: enter ONE team score row. Start Hole jumps you to your first hole. Out/In/Tot auto-calc."
+          : "Start Hole jumps you to your first hole. Swipe to scroll. Tap a box to type. Out/In/Tot auto-calc.";
 
       tbody.innerHTML = "";
       buildHeader();
@@ -754,15 +944,25 @@
       wireInputs();
       loadState();
 
-      // If in tournament mode and a start hole exists, snap to it
-      const sh = getStartHole();
-      if(sh) scrollToHole(sh);
+      // If we already have a selected start hole, jump to it
+      if(isTournamentMode){
+        const saved = Number(localStorage.getItem(startHoleKey()) || "");
+        if(saved >= 1 && saved <= 18){
+          startHoleSelected = saved;
+          setTimeout(() => scrollToStartHole(saved), 250);
+        }
+      }
     }
 
-    // switching course disabled once joined tournament
+    // ====================== COURSE SWITCH ======================
     function setCourse(courseId){
       if (!COURSES[courseId]) return;
-      if (isTournamentMode && joinScreen.style.display === "none" && courseId !== currentCourseId) return;
+
+      // Tournament: keep course locked after join
+      if (isTournamentMode && joinScreen.style.display === "none" && courseId !== currentCourseId){
+        return;
+      }
+
       currentCourseId = courseId;
       build();
     }
@@ -771,19 +971,24 @@
 
     // swipe left/right on coursebar
     let touchStartX = null;
-    swipeZone.addEventListener("touchstart", (e) => { touchStartX = e.changedTouches[0].clientX; }, { passive:true });
+    swipeZone.addEventListener("touchstart", (e) => {
+      touchStartX = e.changedTouches[0].clientX;
+    }, { passive:true });
+
     swipeZone.addEventListener("touchend", (e) => {
       if (touchStartX === null) return;
       const dx = e.changedTouches[0].clientX - touchStartX;
       touchStartX = null;
       if (Math.abs(dx) < 50) return;
+
       if (dx < 0) setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
       else        setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
     }, { passive:true });
 
+    // ====================== SAVE/SHARE IMAGE ======================
     async function captureFullCardCanvas(){
       const card = document.getElementById("card");
-      const scroll = document.getElementById("scrollX");
+      const scroll = document.querySelector(".scroll-x");
       const table = document.getElementById("scoreTable");
 
       const oldOverflowX = scroll.style.overflowX;
@@ -863,7 +1068,7 @@
       });
     }
 
-    // ===== Tournament mode =====
+    // ====================== TOURNAMENT MODE ======================
     async function checkTournamentFromURL(){
       const params = new URLSearchParams(location.search);
       const tId = (params.get("t") || "").trim();
@@ -881,22 +1086,27 @@
           const snap = await getDoc(doc(db, "tournaments", tournamentId));
           if(snap.exists()){
             const t = snap.data() || {};
+
             tournamentFormat = (t.format || "stroke").toString().trim();
             playersCount = formatToPlayersCount(tournamentFormat);
 
-            // lock default course to the tournament choice
             const courseDefault = (t.courseDefault || "tradition").toString().trim();
             currentCourseId = COURSES[courseDefault] ? courseDefault : "tradition";
 
-            // sponsor
-            applySponsorUI(t.sponsorName || "", t.sponsorLogo || "", t.sponsorUrl || "");
+            // Sponsor (supports several keys so it won't break if admin changes)
+            const sName = t.sponsorName || "";
+            const sLogo = t.sponsorLogo || "";
+            const sUrl  = t.sponsorUrl || t.sponsorWebsite || t.sponsorLink || "";
+            applySponsorUI(sName, sLogo, sUrl);
 
-            // build with new settings
+            // Build with tournament settings
             build();
 
-            // if we already have a saved start hole for this device+tourny, preload it
-            const sh = getStartHole();
-            if(sh) joinStartHole.value = String(sh);
+            // If start hole already saved, prefill join field
+            const saved = Number(localStorage.getItem(startHoleKey()) || "");
+            if(saved >= 1 && saved <= 18){
+              joinStartHole.value = String(saved);
+            }
           }
         }catch(e){
           console.warn("Tournament settings load failed", e);
@@ -904,42 +1114,29 @@
       }
     }
 
-    function requireStartHole(){
-      const v = (joinStartHole.value || "").trim();
-      const n = parseInt(v, 10);
-      if(!n || n < 1 || n > 18) return null;
-      return n;
-    }
-
     joinBtn.addEventListener("click", async () => {
-      // ✅ Terms enforcement
-      if (!document.getElementById("agreeTerms")?.checked) {
-        alert("Please agree to the Terms and Privacy.");
-        return;
-      }
+      if (!tournamentId) return;
 
-      // ✅ Start hole REQUIRED
-      const sh = requireStartHole();
-      if(!sh){
+      // ✅ Require start hole (mandatory)
+      const startHoleVal = (joinStartHole.value || "").trim();
+      const startHole = parseInt(startHoleVal, 10);
+
+      if (!startHole || startHole < 1 || startHole > 18) {
         alert("Please enter a valid starting hole (1–18).");
         return;
       }
 
-      // must be in tournament mode
-      if (!tournamentId) return;
+      startHoleSelected = startHole;
+      localStorage.setItem(startHoleKey(), String(startHoleSelected));
 
-      // store + use it immediately
-      setStartHole(sh);
-
-      // proceed
+      // Hide join screen and jump user to their starting hole
       joinScreen.style.display = "none";
 
-      // build may have already run; just snap to the hole now too
-      scrollToHole(sh);
-
-      // Save with tournament key + push once
+      // Save with tournament-specific key and push once
       saveState();
       scheduleTournamentPush();
+
+      setTimeout(() => scrollToStartHole(startHoleSelected), 250);
     });
 
     joinCancel.addEventListener("click", () => {
@@ -948,11 +1145,12 @@
       tournamentId = null;
       tournamentFormat = "stroke";
       playersCount = 6;
+      startHoleSelected = null;
       applySponsorUI("","","");
       build();
     });
 
-    // ✅ Flat map (no nested arrays) + totals
+    // ✅ Flat map + totals
     function readScoresFromDOM(){
       const names = Array.from(document.querySelectorAll(".player-name")).map(i => i.value || "");
 
@@ -989,8 +1187,7 @@
 
       const playerName = (joinName.value || payload.names[0] || "Player").trim();
       const group = (joinGroup.value || "").trim();
-
-      const startHole = getStartHole() || requireStartHole() || "";
+      const startHole = String(startHoleSelected || parseInt(joinStartHole.value, 10) || "");
 
       const subRef = doc(db, "tournaments", tournamentId, "submissions", deviceId);
 
@@ -1007,12 +1204,13 @@
           totals: payload.totals,
           updatedAt: serverTimestamp()
         }, { merge:true });
-      }catch(e){
+      } catch (e) {
         console.error("WRITE FAILED ❌", e);
         alert("Firestore write failed: " + (e?.message || e));
       }
     }
 
+    // ====================== REFRESH APP BUTTON ======================
     async function hardRefreshApp(){
       try{
         if ('serviceWorker' in navigator){
@@ -1020,12 +1218,14 @@
           await Promise.all(regs.map(r => r.unregister()));
         }
       }catch(e){}
+
       try{
         if (window.caches){
           const keys = await caches.keys();
           await Promise.all(keys.map(k => caches.delete(k)));
         }
       }catch(e){}
+
       location.reload();
     }
 
@@ -1034,23 +1234,13 @@
       hardRefreshApp();
     });
 
-    // Init
+    // ====================== INIT ======================
     wireButtons();
     build();
     await checkTournamentFromURL();
   </script>
-  <footer style="
-  text-align:center;
-  font-size:12px;
-  opacity:.78;
-  padding:18px 10px 28px;
-  font-family:Cinzel,serif;
-">
-  © 2026 Electronic Scorecard Solutions •
-  <a href="./privacy.html" style="color:inherit; text-decoration:underline;">Privacy</a> •
-  <a href="./terms.html" style="color:inherit; text-decoration:underline;">Terms</a>
-</footer>
 
+  <!-- Service worker registration -->
   <script src="./pwa.js"></script>
 </body>
 </html>
