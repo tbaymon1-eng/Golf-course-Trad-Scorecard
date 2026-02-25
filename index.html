@@ -876,12 +876,7 @@
   scheduleTournamentPush();
 });
 
-      // Save with tournament key + push once
-      saveState();
-      scheduleTournamentPush();
-    });
-
-    joinCancel.addEventListener("click", () => {
+       joinCancel.addEventListener("click", () => {
       joinScreen.style.display = "none";
       isTournamentMode = false;
       tournamentId = null;
