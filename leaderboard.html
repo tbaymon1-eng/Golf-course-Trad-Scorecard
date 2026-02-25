@@ -5,686 +5,272 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Live Leaderboard</title>
 
-  <meta name="theme-color" content="#7a4a0b" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --paper:#e9e2d4; --ink:#111; --border:#7a4a0b; --card:#efe7d7;
-      --panel:#f7f2e6; --muted: rgba(0,0,0,.65);
+      --paper:#e9e2d4;
+      --card:#efe7d7;
+      --ink:#111;
+      --border:#7a4a0b;
+      --grid:#2b2b2b;
+
+      --soft:#f8f4ea;
+      --soft2:#f1eadb;
+      --hdr:#d8d1c3;
+
+      --good:#2f6b2f;
+      --danger:#b6422d;
     }
-    *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
+
+    *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
     body{ margin:0; background:var(--paper); color:var(--ink); font-family: Georgia, 'Times New Roman', serif; }
-    .wrap{ max-width: 980px; margin:0 auto; padding: 10px 10px 28px; }
+    a{ color:inherit; }
+    .wrap{ max-width:980px; margin:0 auto; padding:10px 10px 24px; }
     .card{
-      background: var(--card);
-      border: 3px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 8px 22px rgba(0,0,0,.18);
-    }
-    .head{
-      padding: 14px 14px 6px;
-      background: rgba(255,255,255,.25);
-      border-bottom:1px solid rgba(0,0,0,.08);
-    }
-    .title{
-      font-family: Cinzel, serif;
-      font-weight: 900;
-      letter-spacing: .5px;
-      font-size: 34px;
-      margin:0;
-    }
-    .meta{
-      margin-top: 8px;
-      font-size: 18px;
-      opacity: .9;
-    }
-    .submeta{
-      margin-top: 6px;
-      font-family: Cinzel, serif;
-      font-weight: 900;
-      font-size: 24px;
-      letter-spacing: .4px;
+      background:var(--card);
+      border:3px solid var(--border);
+      border-radius:12px;
+      overflow:hidden;
+      box-shadow:0 8px 22px rgba(0,0,0,.18);
     }
 
-    .sponsorBox{
-      margin: 12px 14px 0;
-      background: rgba(255,255,255,.55);
-      border:2px solid rgba(0,0,0,.14);
-      border-radius: 14px;
-      padding: 12px 12px;
-    }
-    .sponsorTitle{
-      font-family: Cinzel, serif;
-      font-weight: 900;
-      font-size: 18px;
-      letter-spacing:.4px;
-      margin:0;
-    }
-    .sponsorRow{
-      display:flex;
-      gap:12px;
-      align-items:center;
-      margin-top:10px;
-      cursor: pointer;
-      user-select:none;
-    }
-    .sponsorLogo{
-      width:56px; height:56px;
-      border-radius: 12px;
-      border:2px solid rgba(0,0,0,.12);
-      background: rgba(0,0,0,.06);
-      object-fit: cover;
+    /* ===== Course header (small, not watermark) ===== */
+    .course-header{
       display:none;
+      padding:10px 12px;
+      border-bottom:1px solid rgba(0,0,0,.08);
+      background:rgba(255,255,255,.18);
+      align-items:center;
+      gap:10px;
     }
-    .sponsorName{
-      font-weight: 900;
-      font-size: 26px;
+    .course-header img{
+      width:48px; height:48px; border-radius:12px;
+      object-fit:contain;
+      border:2px solid rgba(0,0,0,.12);
+      background:rgba(255,255,255,.35);
+    }
+    .course-header .ch-title{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      letter-spacing:.3px;
+      font-size:14px;
+      line-height:1.1;
+    }
+    .course-header .ch-sub{
+      font-size:12px; opacity:.85; margin-top:2px;
     }
 
-    .pillRow{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      padding: 12px 14px 12px;
+    .top{
+      padding:14px 12px 12px;
+      border-bottom:1px solid rgba(0,0,0,.12);
     }
+    h1{
+      margin:0;
+      font-family:Cinzel,serif;
+      font-weight:900;
+      letter-spacing:.5px;
+    }
+    .meta{ margin-top:6px; font-size:14px; opacity:.85; }
+
+    .bar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top:10px;
+      flex-wrap:wrap;
+    }
+
     .pill{
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 2px solid rgba(0,0,0,.14);
-      background: rgba(255,255,255,.55);
-      font-family: Cinzel, serif;
-      font-weight: 900;
-      letter-spacing:.3px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:2px solid rgba(0,0,0,.14);
+      background:rgba(255,255,255,.35);
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:12px;
     }
-    .actions{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      padding: 10px 14px 14px;
+
+    button, .btn{
+      border:2px solid var(--border);
+      background:#e7ddcb;
+      border-radius:10px;
+      padding:12px 10px;
+      font-weight:900;
+      font-size:16px;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      white-space:nowrap;
     }
-    button{
-      border: 2px solid var(--border);
-      background: #e7ddcb;
-      border-radius: 12px;
-      padding: 12px 12px;
-      font-weight: 900;
-      font-size: 18px;
+    button:active, .btn:active{ transform:translateY(1px); }
+
+    .btn-dark{
+      background:#151515;
+      color:#fff;
+      border-color:#1d1d1d;
+    }
+    .btn-toggle{
+      min-width: 210px;
+      justify-content:center;
+    }
+
+    /* ===== Sponsor hero ===== */
+    #sponsorHero{
+      display:none;
+      margin-top:12px;
+      padding:10px 12px;
+      border-top:1px solid rgba(0,0,0,.08);
+      border-bottom:1px solid rgba(0,0,0,.08);
+      background:rgba(255,255,255,.35);
       cursor:pointer;
     }
-    button:active{ transform: translateY(1px); }
-    .darkBtn{ background:#1a1a1a; color:#fff; border-color:#000; }
-    .wide{ grid-column: 1 / -1; }
-
-    .panel{
-      margin: 14px;
-      border-radius: 16px;
-      border:2px solid rgba(0,0,0,.12);
-      background: var(--panel);
-      overflow:hidden;
+    #sponsorHero:active{ transform:translateY(1px); }
+    #sponsorHeroTitle{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:13px;
+      opacity:.9;
     }
-    .panelHead{
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      padding: 12px 14px;
-      border-bottom:1px solid rgba(0,0,0,.10);
-    }
-    .panelHead h2{
-      margin:0;
-      font-family: Cinzel, serif;
-      font-weight: 900;
-      font-size: 30px;
-      letter-spacing:.4px;
+    #sponsorHeroRow{
       display:flex;
       align-items:center;
       gap:10px;
+      margin-top:8px;
     }
-    .lastUpdate{
-      font-size: 18px;
-      color: var(--muted);
-      font-family: Georgia, 'Times New Roman', serif;
-      font-weight: 700;
-    }
-
-    .topCard{
-      margin: 14px;
-      border-radius: 18px;
+    #sponsorHeroLogo{
+      width:44px; height:44px; border-radius:10px;
+      object-fit:cover;
+      display:none;
       border:2px solid rgba(0,0,0,.12);
-      background: #fbf7ef;
-      padding: 14px 14px;
+      background:rgba(0,0,0,.06);
     }
-    .rankLine{
-      font-family: Cinzel, serif;
-      font-weight: 900;
-      font-size: 34px;
+    #sponsorHeroName{ font-weight:900; font-size:16px; }
+
+    /* ===== Sections ===== */
+    .section{
+      padding:12px;
+    }
+    .box{
+      background:rgba(255,255,255,.35);
+      border:2px solid rgba(0,0,0,.14);
+      border-radius:12px;
+      padding:12px;
+    }
+    .section-title{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:18px;
+      letter-spacing:.3px;
+    }
+    .small{ font-size:13px; opacity:.8; font-family: Georgia, 'Times New Roman', serif; }
+
+    /* ===== Top teams cards ===== */
+    .top-cards{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+    .team-card{
+      background:rgba(248,244,234,.92);
+      border:2px solid rgba(0,0,0,.12);
+      border-radius:14px;
+      padding:12px 12px;
+      cursor:pointer;
+    }
+    .team-card:active{ transform:translateY(1px); }
+    .team-rank{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      opacity:.95;
       display:flex;
       align-items:center;
-      gap: 10px;
+      gap:8px;
+      font-size:16px;
     }
-    .bigScore{
-      font-family: Georgia, 'Times New Roman', serif;
-      font-weight: 900;
-      font-size: 64px;
-      margin-top: 6px;
-      line-height: 1;
+    .team-name{
+      margin-top:6px;
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:22px;
+      line-height:1.05;
     }
-    .bigName{
-      font-family: Cinzel, serif;
-      font-weight: 900;
-      font-size: 36px;
-      margin-top: 8px;
+    .team-score{
+      margin-top:6px;
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:46px;
+      line-height:1;
     }
-    .miniLine{
-      margin-top: 8px;
-      font-size: 22px;
-      color: var(--muted);
-      font-weight: 700;
+    .team-sub{
+      margin-top:8px;
+      font-size:14px;
+      opacity:.9;
     }
 
-    table{
-      width:100%;
-      border-collapse: collapse;
-      background:#fff;
+    /* ===== Table ===== */
+    .table-shell{
+      margin-top:10px;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      border:2px solid rgba(0,0,0,.14);
+      border-radius:12px;
+      background:rgba(255,255,255,.18);
     }
+    table{ border-collapse:collapse; width:100%; min-width:640px; }
     th, td{
-      border-top:1px solid rgba(0,0,0,.10);
-      padding: 14px 14px;
-      text-align:left;
-      vertical-align: middle;
+      border:1px solid rgba(0,0,0,.16);
+      padding:10px 10px;
+      vertical-align:middle;
+      background:rgba(248,244,234,.92);
     }
     th{
-      font-family: Cinzel, serif;
-      font-weight: 900;
-      font-size: 26px;
-      background: rgba(255,255,255,.65);
+      position:sticky; top:0; z-index:2;
+      background:rgba(216,209,195,.95);
+      font-family:Cinzel,serif;
+      font-weight:900;
+      letter-spacing:.3px;
+      font-size:14px;
     }
-    td{
-      font-size: 22px;
-      font-weight: 800;
-    }
-    .rowTap{ cursor:pointer; }
-    .small{ font-size: 18px; font-weight: 800; color: var(--muted); }
+    td{ font-size:15px; }
+    .td-rank{ width:84px; font-family:Cinzel,serif; font-weight:900; }
+    .td-score{ width:90px; font-family:Cinzel,serif; font-weight:900; text-align:center; font-size:18px; }
+    .td-group{ width:120px; text-align:center; }
+    .td-name b{ font-family:Cinzel,serif; font-weight:900; font-size:16px; }
+    .muted{ opacity:.75; font-size:12px; margin-top:2px; }
 
+    .note{
+      margin-top:10px;
+      font-size:13px;
+      opacity:.82;
+    }
+
+    /* ===== Footer ===== */
     .footer{
       text-align:center;
       font-size:12px;
-      opacity:.75;
-      padding: 18px 10px 28px;
-      font-family: Cinzel, serif;
+      padding:18px 10px 22px;
+      opacity:.78;
+      font-family:Cinzel,serif;
     }
-    .footer a{ color:#000; text-decoration: underline; }
-  </style>
-</head>
-
-<body>
-  <div class="wrap">
-    <div class="card">
-      <div class="head">
-        <h1 class="title">Live Leaderboard</h1>
-        <div class="meta" id="metaLine">—</div>
-        <div class="submeta" id="clubLine">—</div>
-      </div>
-
-      <div id="sponsorBox" class="sponsorBox" style="display:none;">
-        <div class="sponsorTitle">Tournament Sponsor</div>
-        <div id="sponsorRow" class="sponsorRow" role="button" aria-label="Sponsor link">
-          <img id="sponsorLogo" class="sponsorLogo" alt="Sponsor Logo" />
-          <div id="sponsorName" class="sponsorName"></div>
-        </div>
-      </div>
-
-      <div class="pillRow">
-        <div class="pill" id="statusPill">⛳ LIVE</div>
-      </div>
-
-      <div class="actions">
-        <button id="refreshBtn">🔄 Refresh</button>
-        <button id="joinLinkBtn">👥 Join Link</button>
-        <button class="wide" id="copyLbBtn">📋 Copy Leaderboard Link</button>
-        <button class="darkBtn" id="tvBtn">📺 TV Mode</button>
-        <button id="autoScrollBtn">⬇️ Auto Scroll: Off</button>
-      </div>
-
-      <div class="panel">
-        <div class="panelHead">
-          <h2>🏆 Top Teams</h2>
-          <div class="lastUpdate" id="lastUpdate">Last update: —</div>
-        </div>
-
-        <div id="topCard" class="topCard" style="display:none;"></div>
-      </div>
-
-      <div class="panel">
-        <div class="panelHead">
-          <h2>All Teams</h2>
-          <div class="lastUpdate" id="teamCount">0 teams</div>
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th style="width:22%;">Rank</th>
-              <th>Team / Player</th>
-              <th style="width:22%;">Group</th>
-            </tr>
-          </thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="footer">
-      © 2026 Cypresswood Golf Scorecard •
-      <a href="./privacy.html">Privacy</a> •
-      <a href="./terms.html">Terms</a>
-    </div>
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
-      authDomain: "cypresswood-tournaments.firebaseapp.com",
-      projectId: "cypresswood-tournaments",
-      storageBucket: "cypresswood-tournaments.firebasestorage.app",
-      messagingSenderId: "162441374966",
-      appId: "1:162441374966:web:157285a2d5c39db1e810d7",
-      measurementId: "G-HL6Y9CLV8K"
-    };
-
-    // ===== Courses handicap maps (rank -> hole number) =====
-    const COURSE_HANDICAPS = {
-      tradition: {
-        title: "Tradition",
-        hcpFront: [7,17,11,1,3,13,9,15,5],
-        hcpBack:  [14,8,10,6,18,12,2,16,4]
-      },
-      cypress: {
-        title: "Cypress",
-        hcpFront: [3,13,11,7,15,9,17,1,5],
-        hcpBack:  [6,10,12,14,18,2,16,4,8]
-      }
-    };
-
-    function buildRankToHole(courseId){
-      const c = COURSE_HANDICAPS[courseId] || COURSE_HANDICAPS.tradition;
-      const map = new Map(); // rank -> hole
-      // holes 1-9
-      c.hcpFront.forEach((rank, idx) => map.set(rank, idx+1));
-      // holes 10-18
-      c.hcpBack.forEach((rank, idx) => map.set(rank, idx+10));
-      return map;
-    }
-
-    function normalizeUrl(u){
-      const s = (u || "").trim();
-      if(!s) return "";
-      if(/^https?:\/\//i.test(s)) return s;
-      return "https://" + s;
-    }
-
-    function safeDate(ts){
-      try{
-        if(!ts) return null;
-        // Firestore Timestamp -> Date
-        if(typeof ts.toDate === "function") return ts.toDate();
-        const d = new Date(ts);
-        return isNaN(d.getTime()) ? null : d;
-      }catch(e){ return null; }
-    }
-
-    function fmtDate(d){
-      if(!d) return "—";
-      return d.toLocaleString(undefined, { year:"numeric", month:"numeric", day:"numeric", hour:"numeric", minute:"2-digit", second:"2-digit" });
-    }
-
-    function scoreFromFlat(scoresFlat, hole){
-      const key = `p0_h${hole}`; // ✅ scramble uses p0
-      const v = scoresFlat?.[key];
-      const n = parseInt(String(v ?? "").trim(), 10);
-      return Number.isFinite(n) ? n : null;
-    }
-
-    function sumRange(scoresFlat, fromHole, toHole){
-      let s = 0;
-      let any = false;
-      for(let h=fromHole; h<=toHole; h++){
-        const v = scoreFromFlat(scoresFlat, h);
-        if(v !== null){
-          s += v;
-          any = true;
-        }
-      }
-      return any ? s : 0;
-    }
-
-    function grossTotal(sub){
-      // Prefer computed totals if present
-      const t = sub?.totals?.[0];
-      const tot = Number(t?.tot);
-      if(Number.isFinite(tot) && tot > 0) return tot;
-
-      // fallback: compute from p0 scores
-      const sf = sub?.scoresFlat || {};
-      const s = sumRange(sf, 1, 18);
-      return s || 0;
-    }
-
-    function grossOut(sub){
-      const t = sub?.totals?.[0];
-      const out = Number(t?.out);
-      if(Number.isFinite(out) && out >= 0) return out;
-      return sumRange(sub?.scoresFlat || {}, 1, 9);
-    }
-
-    function grossIn(sub){
-      const t = sub?.totals?.[0];
-      const inn = Number(t?.inn);
-      if(Number.isFinite(inn) && inn >= 0) return inn;
-      return sumRange(sub?.scoresFlat || {}, 10, 18);
-    }
-
-    // ✅ Scorecard playoff tiebreaker:
-    // compare handicap rank 1 hole score, then rank 2, ... rank 18
-    function compareScorecardPlayoff(a, b){
-      const courseId = (a.courseId && COURSE_HANDICAPS[a.courseId]) ? a.courseId : "tradition";
-      const rankToHole = buildRankToHole(courseId);
-
-      for(let rank=1; rank<=18; rank++){
-        const hole = rankToHole.get(rank);
-        if(!hole) continue;
-
-        const as = scoreFromFlat(a.scoresFlat || {}, hole);
-        const bs = scoreFromFlat(b.scoresFlat || {}, hole);
-
-        // Treat blank as very high (loses tiebreak)
-        const av = (as === null) ? 999 : as;
-        const bv = (bs === null) ? 999 : bs;
-
-        if(av !== bv) return av - bv; // lower score wins
-      }
-      return 0;
-    }
-
-    function displayName(sub){
-      const pn = String(sub?.playerName || "").trim();
-      if(pn) return pn;
-
-      const n0 = String(sub?.names?.[0] || "").trim();
-      if(n0) return n0;
-
-      const g = String(sub?.group || "").trim();
-      if(g) return `Group ${g}`;
-
-      return "Team";
-    }
-
-    function displayGroup(sub){
-      const g = String(sub?.group || "").trim();
-      return g || "—";
-    }
-
-    function holesSummary(sub){
-      const course = String(sub?.courseId || "tradition");
-      const sf = sub?.scoresFlat || {};
-      const arr = [];
-      for(let h=1; h<=18; h++){
-        const v = scoreFromFlat(sf, h);
-        arr.push(`${h}:${v === null ? "-" : v}`);
-      }
-      return `Course: ${course}\n` + arr.join("  ");
-    }
-
-    // ===== DOM =====
-    const metaLine = document.getElementById("metaLine");
-    const clubLine = document.getElementById("clubLine");
-    const lastUpdate = document.getElementById("lastUpdate");
-    const teamCount = document.getElementById("teamCount");
-    const rowsEl = document.getElementById("rows");
-    const topCard = document.getElementById("topCard");
-
-    const sponsorBox = document.getElementById("sponsorBox");
-    const sponsorRow = document.getElementById("sponsorRow");
-    const sponsorLogo = document.getElementById("sponsorLogo");
-    const sponsorName = document.getElementById("sponsorName");
-
-    const refreshBtn = document.getElementById("refreshBtn");
-    const joinLinkBtn = document.getElementById("joinLinkBtn");
-    const copyLbBtn = document.getElementById("copyLbBtn");
-    const tvBtn = document.getElementById("tvBtn");
-    const autoScrollBtn = document.getElementById("autoScrollBtn");
-
-    let tournamentId = "";
-    let joinUrl = "";
-    let leaderboardUrl = "";
-    let autoScrollOn = false;
-    let autoScrollTimer = null;
-    let tvMode = false;
-
-    function setAutoScroll(on){
-      autoScrollOn = on;
-      autoScrollBtn.textContent = `⬇️ Auto Scroll: ${on ? "On" : "Off"}`;
-      if(autoScrollTimer) clearInterval(autoScrollTimer);
-      if(!on) return;
-
-      autoScrollTimer = setInterval(() => {
-        window.scrollBy({ top: 220, left: 0, behavior: "smooth" });
-        // loop back to top if near bottom
-        const nearBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 40);
-        if(nearBottom) window.scrollTo({ top: 0, behavior: "smooth" });
-      }, 2200);
-    }
-
-    function setTVMode(on){
-      tvMode = on;
-      tvBtn.textContent = on ? "📺 TV Mode: On" : "📺 TV Mode";
-      document.body.style.background = on ? "#000" : "var(--paper)";
-      document.querySelector(".wrap").style.maxWidth = on ? "1100px" : "980px";
-    }
-
-    async function init(){
-      // firebase
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      await signInAnonymously(auth);
-      const db = getFirestore(app);
-
-      // url param
-      const params = new URLSearchParams(location.search);
-      tournamentId = (params.get("t") || "").trim();
-      if(!tournamentId){
-        metaLine.textContent = "Missing tournament ID in URL (?t=...)";
-        clubLine.textContent = "";
-        return;
-      }
-
-      metaLine.textContent = `Tournament ID: ${tournamentId}`;
-      clubLine.textContent = "Cypresswood Golf Club";
-
-      leaderboardUrl = `${location.origin}${location.pathname}?t=${encodeURIComponent(tournamentId)}`;
-      joinUrl = `${location.origin}${location.pathname.replace(/leaderboard\.html$/i,"index.html")}?t=${encodeURIComponent(tournamentId)}`;
-
-      // Load sponsor + tournament meta from tournament doc
-      try{
-        const tSnap = await getDoc(doc(db, "tournaments", tournamentId));
-        if(tSnap.exists()){
-          const t = tSnap.data() || {};
-          const sName = String(t.sponsorName || "").trim();
-          const sLogo = String(t.sponsorLogo || "").trim();
-          const sUrl = normalizeUrl(t.sponsorUrl || "");
-
-          if(sName || sLogo){
-            sponsorBox.style.display = "block";
-            sponsorName.textContent = sName || "Tournament Sponsor";
-            if(sLogo){
-              sponsorLogo.src = sLogo;
-              sponsorLogo.style.display = "block";
-            }else{
-              sponsorLogo.style.display = "none";
-            }
-            sponsorRow.style.cursor = sUrl ? "pointer" : "default";
-            sponsorRow.onclick = () => { if(sUrl) window.open(sUrl, "_blank", "noopener"); };
-          }else{
-            sponsorBox.style.display = "none";
-          }
-        }
-      }catch(e){
-        // ok if sponsor fails
-      }
-
-      // live updates
-      const subCol = collection(db, "tournaments", tournamentId, "submissions");
-      const qy = query(subCol);
-
-      let unsubscribe = null;
-      function startLive(){
-        if(unsubscribe) unsubscribe();
-        unsubscribe = onSnapshot(qy, (snap) => {
-          const subs = [];
-          snap.forEach(d => subs.push({ id:d.id, ...d.data() }));
-
-          render(subs);
-        }, (err) => {
-          console.error("Leaderboard live error", err);
-        });
-      }
-
-      startLive();
-
-      // actions
-      refreshBtn.addEventListener("click", () => location.reload());
-
-      joinLinkBtn.addEventListener("click", async () => {
-        try{
-          if(navigator.share){
-            await navigator.share({ title:"Join Tournament", text:"Join link:", url: joinUrl });
-          }else{
-            window.open(joinUrl, "_blank", "noopener");
-          }
-        }catch(e){}
-      });
-
-      copyLbBtn.addEventListener("click", async () => {
-        try{
-          await navigator.clipboard.writeText(leaderboardUrl);
-          alert("Leaderboard link copied ✅");
-        }catch(e){
-          prompt("Copy this link:", leaderboardUrl);
-        }
-      });
-
-      tvBtn.addEventListener("click", () => setTVMode(!tvMode));
-      autoScrollBtn.addEventListener("click", () => setAutoScroll(!autoScrollOn));
-    }
-
-    function render(subs){
-      // compute derived scores
-      const scored = subs.map(s => {
-        const total = grossTotal(s);   // ✅ GROSS
-        const out = grossOut(s);
-        const inn = grossIn(s);
-        const updated = safeDate(s.updatedAt);
-        return {
-          ...s,
-          _name: displayName(s),
-          _group: displayGroup(s),
-          _total: total,
-          _out: out,
-          _inn: inn,
-          _updated: updated
-        };
-      })
-      // ignore empty entries (no scores at all)
-      .filter(s => (s._total > 0) || String(s._name||"").trim().length);
-
-      // last update time
-      const maxUpdated = scored.reduce((m, s) => {
-        const t = s._updated ? s._updated.getTime() : 0;
-        return Math.max(m, t);
-      }, 0);
-      lastUpdate.textContent = "Last update: " + fmtDate(maxUpdated ? new Date(maxUpdated) : null);
-
-      teamCount.textContent = `${scored.length} team${scored.length === 1 ? "" : "s"}`;
-
-      // ✅ sort: gross total asc, then scorecard playoff, then updatedAt desc (most recent)
-      scored.sort((a,b) => {
-        const dt = (a._total - b._total);
-        if(dt !== 0) return dt;
-
-        const tb = compareScorecardPlayoff(a,b);
-        if(tb !== 0) return tb;
-
-        const at = a._updated ? a._updated.getTime() : 0;
-        const bt = b._updated ? b._updated.getTime() : 0;
-        return bt - at;
-      });
-
-      // top card
-      if(scored.length){
-        const w = scored[0];
-        topCard.style.display = "block";
-        topCard.innerHTML = `
-          <div class="rankLine">🥇 <span>1st</span></div>
-          <div class="bigName">${escapeHtml(w._name)}</div>
-          <div class="bigScore">${escapeHtml(String(w._total))}</div>
-          <div class="miniLine">Out ${escapeHtml(String(w._out))} • In ${escapeHtml(String(w._inn))} • Group ${escapeHtml(String(w._group))}</div>
-          <div class="small" style="margin-top:10px;">Tiebreak: scorecard playoff (hcp #1 → #18)</div>
-        `;
-      }else{
-        topCard.style.display = "none";
-      }
-
-      // table rows
-      rowsEl.innerHTML = "";
-      scored.forEach((s, idx) => {
-        const tr = document.createElement("tr");
-        tr.className = "rowTap";
-        tr.innerHTML = `
-          <td>#${idx+1}</td>
-          <td>
-            <div style="font-family:Cinzel,serif; font-weight:900; font-size:22px;">
-              ${escapeHtml(s._name)}
-            </div>
-            <div class="small">${escapeHtml(String(s.courseId || "tradition"))} • tap for holes • Gross ${escapeHtml(String(s._total))}</div>
-          </td>
-          <td>${escapeHtml(String(s._group))}</td>
-        `;
-        tr.addEventListener("click", () => {
-          alert(holesSummary(s));
-        });
-        rowsEl.appendChild(tr);
-      });
-    }
-
-    function escapeHtml(str){
-      return String(str ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    init();
-  </script>
-  <footer style="
-  text-align:center;
-  font-size:12px;
-  opacity:.78;
-  padding:18px 10px 28px;
-  font-family:Cinzel,serif;
-">
-  © 2026 Electronic Scorecard Solutions •
-  <a href="./privacy.html" style="color:inherit; text-decoration:underline;">Privacy</a> •
-  <a href="./terms.html" style="color:inherit; text-decoration:underline;">Terms</a>
-</footer>
-</body>
-</html>
+    .footer a{ text-decoration:underline; }
+
+    /* ===== TV Mode ===== */
+    body.tv .wrap{ max-width: 1200px; }
+    body.tv .card{ border-radius: 0; border-left:0; border-right:0; }
+    body.tv h1{ font-size:40px; }
+    body.tv .meta{ font-size:18px; }
+    body.tv .team-name{ font-size:30px; }
+    body.tv .team-score{ font-size:64px; }
+    body.tv th{ font-size:
