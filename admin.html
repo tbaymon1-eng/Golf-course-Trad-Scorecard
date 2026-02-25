@@ -3,307 +3,95 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>Live Leaderboard</title>
+  <title>Tournament Admin</title>
   <meta name="theme-color" content="#7a4a0b">
+
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --paper:#e9e2d4;
-      --ink:#111;
-      --border:#7a4a0b;
-      --card:#efe7d7;
-      --chip: rgba(255,255,255,.55);
+      --paper:#e9e2d4; --ink:#111; --border:#7a4a0b; --card:#efe7d7; --chip: rgba(255,255,255,.55);
       --shadow: 0 8px 22px rgba(0,0,0,.18);
-      --green:#2f6b2f;
-      --danger:#b6422d;
-      --muted: rgba(0,0,0,.65);
+      --green:#2f6b2f; --danger:#b6422d;
     }
     *{ -webkit-tap-highlight-color: transparent; }
     body{ margin:0; background:var(--paper); color:var(--ink); font-family:Georgia,'Times New Roman',serif; }
-    .wrap{ max-width:1100px; margin:0 auto; padding:12px; }
+    .wrap{ max-width:980px; margin:0 auto; padding:12px; }
     .card{
       background:var(--card);
       border:3px solid var(--border);
       border-radius:12px;
-      overflow:hidden;
+      padding:12px;
       box-shadow: var(--shadow);
     }
-
-    /* Header (course-matched) */
-    .headerBar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:10px 12px;
-      border-bottom:1px solid rgba(0,0,0,.10);
-      background: rgba(255,255,255,.15);
-    }
-    .brandRow{ display:flex; align-items:center; gap:12px; min-width:0; }
-    .brandImg{
-      width:120px;
-      height:44px;
-      object-fit:contain;
-      background: transparent;
+    h1{ margin:0 0 8px; font-family:Cinzel,serif; font-weight:900; font-size:20px; }
+    .small{ font-size:13px; opacity:.85; }
+    .row{ display:grid; gap:10px; margin-top:10px; }
+    label{ font-weight:900; font-size:13px; display:block; }
+    input, select, textarea{
+      width:100%; box-sizing:border-box;
+      padding:12px 10px;
+      border:2px solid var(--border);
       border-radius:10px;
+      background:#fff;
+      font-size:16px;
+      outline:none;
     }
-    .titleBlock{ min-width:0; }
-    h1{
-      margin:0;
-      font-family:Cinzel,serif;
-      font-weight:900;
-      font-size:18px;
-      letter-spacing:.3px;
-      line-height:1.1;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .meta{
-      margin-top:4px;
-      font-size:12px;
-      color: var(--muted);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      background: rgba(255,255,255,.55);
-      border:2px solid rgba(0,0,0,.12);
-      font-weight:900;
-      font-size:12px;
-      white-space:nowrap;
-    }
-
-    .bar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      flex-wrap:wrap;
-      gap:10px;
-      padding:10px 12px;
-      border-bottom:1px solid rgba(0,0,0,.10);
-      background: rgba(255,255,255,.12);
-    }
-    .controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    button, .btn{
+    textarea{ min-height: 84px; resize: vertical; }
+    button{
       border:2px solid var(--border);
       background:#e7ddcb;
       border-radius:10px;
-      padding:10px 12px;
-      font-weight:900;
-      font-size:14px;
-      cursor:pointer;
-      text-decoration:none;
-      color:inherit;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-    }
-    button:active, .btn:active{ transform: translateY(1px); }
-    .primary{ background: var(--green); color:#fff; }
-    .danger{ background: var(--danger); color:#fff; border-color:#7a2b20; }
-
-    /* Sponsor hero */
-    #sponsorHero{
-      display:none;
-      padding:10px 12px;
-      border-bottom:1px solid rgba(0,0,0,.10);
-      background: rgba(255,255,255,.20);
-    }
-    .sTitle{ font-family:Cinzel,serif; font-weight:900; font-size:13px; }
-    .sRow{ display:flex; align-items:center; gap:10px; margin-top:8px; }
-    #sponsorHeroLogo{
-      width:44px; height:44px;
-      border-radius:10px; object-fit:cover;
-      border:2px solid rgba(0,0,0,.12);
-      display:none;
-      background: rgba(0,0,0,.06);
-    }
-    #sponsorHeroName{ font-weight:900; }
-    #sponsorHeroLink{
-      margin-left:auto;
-      font-size:12px;
-      font-weight:900;
-      opacity:.9;
-      border-bottom:1px dashed rgba(0,0,0,.35);
-      cursor:pointer;
-      display:none;
-    }
-
-    /* Table list */
-    .content{ padding: 10px 12px 14px; }
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-    }
-    .rowCard{
-      background: rgba(255,255,255,.45);
-      border: 2px solid rgba(0,0,0,.12);
-      border-radius: 12px;
-      padding: 10px 12px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      cursor:pointer;
-    }
-    .rowCard:active{ transform: translateY(1px); }
-
-    .left{
-      min-width:0;
-    }
-    .nameLine{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      min-width:0;
-    }
-    .name{
-      font-family:Cinzel,serif;
-      font-weight:900;
-      font-size:15px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .sub{
-      margin-top:3px;
-      font-size:12px;
-      color: var(--muted);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .right{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-shrink:0;
-    }
-    .scoreBox{
-      background: rgba(255,255,255,.65);
-      border:2px solid rgba(0,0,0,.12);
-      border-radius:12px;
-      padding:8px 10px;
-      text-align:center;
-      min-width:84px;
-    }
-    .scoreBig{
-      font-weight:1000;
-      font-size:18px;
-      line-height:1.0;
-      font-variant-numeric: tabular-nums;
-    }
-    .scoreSmall{
-      margin-top:3px;
-      font-size:11px;
-      opacity:.85;
-      font-weight:900;
-    }
-    .tag{
-      background: rgba(122,74,11,.12);
-      border: 1px solid rgba(122,74,11,.35);
-      padding:4px 8px;
-      border-radius:999px;
-      font-size:11px;
-      font-weight:900;
-      white-space:nowrap;
-    }
-
-    /* Detail modal */
-    .modalBack{
-      position:fixed; inset:0;
-      background: rgba(0,0,0,.35);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:14px;
-      z-index:50;
-    }
-    .modal{
-      width: min(960px, 100%);
-      background: var(--card);
-      border:3px solid var(--border);
-      border-radius:12px;
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .modalTop{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:10px 12px;
-      border-bottom:1px solid rgba(0,0,0,.10);
-      background: rgba(255,255,255,.12);
-    }
-    .modalTitle{
-      font-family:Cinzel,serif;
+      padding:12px 10px;
       font-weight:900;
       font-size:16px;
-      min-width:0;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      cursor:pointer;
     }
-    .modalBody{ padding: 10px 12px 12px; }
-    .miniGrid{
-      overflow-x:auto;
-      border:2px solid rgba(0,0,0,.12);
+    button:active{ transform: translateY(1px); }
+    .primary{ background:var(--green); color:#fff; }
+    .danger{ background:var(--danger); color:#fff; border-color:#7a2b20; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    .box{
+      margin-top:12px;
+      padding:10px;
+      border:2px dashed rgba(0,0,0,.25);
       border-radius:10px;
-      background: rgba(255,255,255,.35);
+      background:rgba(255,255,255,.35);
+      word-break: break-word;
     }
-    table{
-      border-collapse:collapse;
-      min-width: 820px;
-      width: 100%;
+
+    .qrRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+      align-items: start;
     }
-    th, td{
-      border:1px solid rgba(0,0,0,.25);
-      padding:6px 6px;
-      text-align:center;
-      font-variant-numeric: tabular-nums;
+    .qrBox{
       background: rgba(255,255,255,.55);
+      border: 2px solid rgba(0,0,0,.15);
+      border-radius: 10px;
+      padding: 10px;
     }
-    th{
-      background: rgba(122,74,11,.12);
-      font-family:Cinzel,serif;
-      font-weight:900;
-    }
-    td.label{
-      text-align:left;
-      font-weight:900;
-      font-family:Cinzel,serif;
-      background: rgba(0,0,0,.05);
-      white-space:nowrap;
-    }
+    .qrTitle{ font-weight: 900; font-size: 13px; margin-bottom: 8px; }
+    .qrWrap{ display:flex; justify-content:center; }
 
-    /* TV Mode */
-    body.tv .wrap{ max-width: 1600px; }
-    body.tv .rowCard{ padding: 14px 16px; }
-    body.tv .name{ font-size: 18px; }
-    body.tv .scoreBig{ font-size: 26px; }
-    body.tv .scoreBox{ min-width: 110px; }
-    body.tv .headerBar{ padding: 14px 16px; }
-    body.tv h1{ font-size: 22px; }
-    body.tv .meta{ font-size: 14px; }
-    body.tv button, body.tv .btn{ font-size: 16px; padding: 12px 14px; }
-
-    /* Legal footer */
+    .chip{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:8px 10px;
+      border-radius:999px;
+      background: var(--chip);
+      border:2px solid rgba(0,0,0,.12);
+      font-weight:900;
+      font-size:12px;
+    }
     .legal{
-      padding: 10px 12px 14px;
-      border-top: 1px solid rgba(0,0,0,.10);
-      background: rgba(255,255,255,.18);
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(0,0,0,.12);
       font-size: 12px;
       opacity: .9;
       display:flex;
@@ -313,18 +101,10 @@
       justify-content: space-between;
     }
     .legal a{
-      color: #3d2a09;
+      color:#3d2a09;
       font-weight: 900;
-      text-decoration: none;
+      text-decoration:none;
       border-bottom: 1px dashed rgba(61,42,9,.4);
-    }
-    .legal .left{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-    .legal .right{ opacity:.9; }
-
-    .note{
-      font-size:12px;
-      opacity:.85;
-      margin-top:8px;
     }
   </style>
 </head>
@@ -332,92 +112,150 @@
 <body>
   <div class="wrap">
     <div class="card">
-      <!-- course-matched brand header image (small, not watermark) -->
-      <div class="headerBar">
-        <div class="brandRow">
-          <img id="brandImg" class="brandImg" src="./assets/cypresswood_header.png" alt="Course Header">
-          <div class="titleBlock">
-            <h1 id="pageTitle">Live Leaderboard</h1>
-            <div class="meta" id="pageMeta">Loading…</div>
+      <h1>Admin Tournament Setup</h1>
+      <div class="small">Create a tournament, then share the Join link (QR) + Live Leaderboard link.</div>
+
+      <!-- NAME + COURSE -->
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <label>
+          Tournament Name
+          <input id="tName" placeholder="Cypresswood Saturday Skins" />
+        </label>
+
+        <label>
+          Default Course
+          <select id="tCourse">
+            <option value="tradition">Tradition</option>
+            <option value="cypress">Cypress</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- FORMAT + DATE -->
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <label>
+          Format of Play
+          <select id="tFormat">
+            <option value="stroke">Stroke Play</option>
+            <option value="scramble">Scramble (Team Score)</option>
+            <option value="bestball">Best Ball</option>
+            <option value="skins">Skins</option>
+          </select>
+        </label>
+
+        <label>
+          Date (optional)
+          <input id="tDate" placeholder="2026-03-01" />
+        </label>
+      </div>
+
+      <!-- ORGANIZER -->
+      <div class="row">
+        <label>
+          Organizer Name (optional)
+          <input id="tOrg" placeholder="Name" />
+        </label>
+      </div>
+
+      <!-- SPONSOR -->
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <label>
+          Sponsor Name (optional)
+          <input id="tSponsorName" placeholder="Title Sponsor" />
+        </label>
+
+        <label>
+          Sponsor Logo URL (optional)
+          <input id="tSponsorLogo" placeholder="https://..." />
+        </label>
+      </div>
+
+      <div class="row">
+        <label>
+          Sponsor Website (optional)
+          <input id="tSponsorUrl" placeholder="https://sponsor.com" />
+        </label>
+      </div>
+
+      <!-- BUTTONS -->
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <button class="primary" id="createBtn">Create Tournament</button>
+        <button id="loadBtn">Load Existing (by ID)</button>
+      </div>
+
+      <!-- IDS -->
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <label>
+          Tournament ID
+          <input id="tId" class="mono" placeholder="(auto or paste here)"/>
+        </label>
+        <label>
+          Admin Token (auto)
+          <input id="adminToken" class="mono" placeholder="(auto)"/>
+        </label>
+      </div>
+
+      <div class="row">
+        <div class="chip" id="statusChip">Status: —</div>
+      </div>
+
+      <!-- LINKS -->
+      <div class="box">
+        <div class="small"><b>Join Link (players scan this QR)</b></div>
+        <div id="joinLink" class="mono small"></div>
+
+        <div style="height:10px"></div>
+
+        <div class="small"><b>Leaderboard Link (organizer view)</b></div>
+        <div id="lbLink" class="mono small"></div>
+
+        <div class="qrRow">
+          <div class="qrBox">
+            <div class="qrTitle">Join QR</div>
+            <div id="joinQR" class="qrWrap"></div>
+          </div>
+
+          <div class="qrBox">
+            <div class="qrTitle">Leaderboard QR</div>
+            <div id="lbQR" class="qrWrap"></div>
           </div>
         </div>
-        <div class="pill" id="statusPill">⛳️ LIVE</div>
       </div>
 
-      <!-- Sponsor hero -->
-      <div id="sponsorHero">
-        <div class="sTitle">Tournament Sponsor</div>
-        <div class="sRow">
-          <img id="sponsorHeroLogo" alt="Sponsor">
-          <div id="sponsorHeroName"></div>
-          <div id="sponsorHeroLink">Visit Sponsor</div>
-        </div>
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <button id="copyJoin">Copy Join Link</button>
+        <button id="copyLb">Copy Leaderboard Link</button>
       </div>
 
-      <!-- Controls -->
-      <div class="bar">
-        <div class="controls">
-          <button id="refreshBtn">🔄 Refresh</button>
-          <a id="joinBtn" class="btn" href="./index.html">👥 Join Link</a>
-          <button id="copyBtn">📋 Copy Leaderboard Link</button>
-          <button id="tvBtn" class="primary">📺 TV Mode</button>
-          <button id="autoScrollBtn">⬇️ Auto Scroll</button>
-        </div>
-
-        <div class="controls">
-          <span class="tag" id="formatTag" style="display:none;"></span>
-          <span class="tag" id="courseTag" style="display:none;"></span>
-        </div>
+      <div class="row" style="grid-template-columns:1fr 1fr;">
+        <button id="saveBtn" class="primary">Save Updates</button>
+        <button class="danger" id="closeBtn">Close Tournament</button>
       </div>
 
-      <div class="content">
-        <div id="list" class="grid"></div>
-        <div class="note" id="hintLine"></div>
-      </div>
-
-      <!-- Legal footer -->
       <div class="legal">
-        <div class="left">
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
           <a href="./privacy.html">Privacy</a>
           <a href="./terms.html">Terms</a>
         </div>
-        <div class="right">
-          © <span id="yr"></span> Electronic Scorecard Solutions (DBA) • Elb Solutions LLC
-        </div>
+        <div>© <span id="yr"></span> Electronic Scorecard Solutions (DBA) • Elb Solutions LLC</div>
       </div>
     </div>
   </div>
 
-  <!-- Detail Modal -->
-  <div class="modalBack" id="modalBack">
-    <div class="modal">
-      <div class="modalTop">
-        <div class="modalTitle" id="modalTitle">Details</div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button id="closeModal">Close</button>
-        </div>
-      </div>
-      <div class="modalBody">
-        <div class="miniGrid">
-          <table id="detailTable"></table>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- QR library MUST load before module -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getFirestore,
       doc,
+      setDoc,
       getDoc,
-      collection,
-      getDocs,
-      query,
-      orderBy
+      serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // ===== Firebase config =====
+    // Same config you already use in index.html / leaderboard.html
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -434,96 +272,190 @@
     const $ = (id) => document.getElementById(id);
     $("yr").textContent = String(new Date().getFullYear());
 
-    const listEl = $("list");
-    const pageTitle = $("pageTitle");
-    const pageMeta = $("pageMeta");
-    const statusPill = $("statusPill");
+    const createBtn = $("createBtn");
+    const loadBtn   = $("loadBtn");
+    const saveBtn   = $("saveBtn");
+    const closeBtn  = $("closeBtn");
 
-    const refreshBtn = $("refreshBtn");
-    const joinBtn = $("joinBtn");
-    const copyBtn = $("copyBtn");
-    const tvBtn = $("tvBtn");
-    const autoScrollBtn = $("autoScrollBtn");
+    const statusChip = $("statusChip");
 
-    const sponsorHero = $("sponsorHero");
-    const sponsorHeroLogo = $("sponsorHeroLogo");
-    const sponsorHeroName = $("sponsorHeroName");
-    const sponsorHeroLink = $("sponsorHeroLink");
+    const tName = $("tName");
+    const tCourse = $("tCourse");
+    const tFormat = $("tFormat");
+    const tDate = $("tDate");
+    const tOrg = $("tOrg");
 
-    const brandImg = $("brandImg");
-    const formatTag = $("formatTag");
-    const courseTag = $("courseTag");
-    const hintLine = $("hintLine");
+    const tSponsorName = $("tSponsorName");
+    const tSponsorLogo = $("tSponsorLogo");
+    const tSponsorUrl  = $("tSponsorUrl");
 
-    const modalBack = $("modalBack");
-    const closeModal = $("closeModal");
-    const modalTitle = $("modalTitle");
-    const detailTable = $("detailTable");
+    const tId = $("tId");
+    const adminToken = $("adminToken");
 
-    let tournamentId = "";
-    let adminToken = "";
-    let tFormat = "stroke";
-    let tCourse = "tradition";
+    const joinLinkEl = $("joinLink");
+    const lbLinkEl = $("lbLink");
+    const joinQREl = $("joinQR");
+    const lbQREl = $("lbQR");
 
-    let sponsorUrl = "";
-    let autoScrollOn = false;
-    let autoScrollTimer = null;
+    const copyJoin = $("copyJoin");
+    const copyLb = $("copyLb");
 
-    // Prefer showing PLAYER name; group is secondary “team/group”
-    function displayNameFor(sub){
-      const pn = (sub.playerName || "").trim();
-      const grp = (sub.group || "").trim();
-
-      // If scramble and group exists, show "Team: <group>" but still keep player as scorer in subline
-      if (tFormat === "scramble" && grp) return grp;
-
-      // Default: show player if present, else group, else device
-      return pn || grp || "Player";
-    }
-
-    function subLineFor(sub){
-      const pn = (sub.playerName || "").trim();
-      const grp = (sub.group || "").trim();
-      const sh = (sub.startHole || "").trim();
-      const parts = [];
-
-      // show team/group if not used as main label
-      if (tFormat !== "scramble" && grp) parts.push(`Group: ${grp}`);
-      if (tFormat === "scramble" && pn) parts.push(`Scorer: ${pn}`);
-
-      if (sh) parts.push(`Start: ${sh}`);
-      parts.push(`Course: ${sub.courseId || tCourse}`);
-
-      return parts.join(" • ");
-    }
-
-    function safeNumber(n){
-      const x = Number(n);
-      return Number.isFinite(x) ? x : 0;
-    }
-
-    function totalFor(sub){
-      // In your submission payload you store totals array; for scramble we use totals[0].tot
-      const totals = Array.isArray(sub.totals) ? sub.totals : [];
-      if (tFormat === "scramble") return safeNumber(totals?.[0]?.tot);
-      // stroke/skins: take player0 total by default (leaderboard = scorer card)
-      return safeNumber(totals?.[0]?.tot);
+    function randId(len=10){
+      const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+      let s = "";
+      for(let i=0;i<len;i++) s += chars[Math.floor(Math.random()*chars.length)];
+      return s;
     }
 
     function baseURL(){
       const url = new URL(location.href);
       url.hash = "";
       url.search = "";
-      url.pathname = url.pathname.replace(/\/leaderboard\.html$/,"/");
+      url.pathname = url.pathname.replace(/\/admin\.html$/,"/");
       return url.toString();
     }
 
-    function buildSelfLink(){
+    function renderQR(el, text){
+      if (!el) return;
+      el.innerHTML = "";
+      if (!text) return;
+
+      const holder = document.createElement("div");
+      el.appendChild(holder);
+
+      new QRCode(holder, {
+        text,
+        width: 180,
+        height: 180,
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+
+    function buildLinks(id, token){
       const base = baseURL();
-      const u = new URL(base + "leaderboard.html");
-      if (tournamentId) u.searchParams.set("t", tournamentId);
-      if (adminToken) u.searchParams.set("admin", adminToken);
-      return u.toString();
+
+      const join = new URL(base + "index.html");
+      join.searchParams.set("t", id);
+
+      const lb = new URL(base + "leaderboard.html");
+      lb.searchParams.set("t", id);
+      if(token) lb.searchParams.set("admin", token);
+
+      joinLinkEl.textContent = join.toString();
+      lbLinkEl.textContent = lb.toString();
+
+      renderQR(joinQREl, join.toString());
+      renderQR(lbQREl, lb.toString());
+    }
+
+    function normalizeUrl(u){
+      const s = (u || "").trim();
+      if(!s) return "";
+      if(/^https?:\/\//i.test(s)) return s;
+      return "https://" + s;
+    }
+
+    function setStatusUI(status){
+      const s = (status || "open").toString();
+      statusChip.textContent = `Status: ${s.toUpperCase()}`;
+      statusChip.style.opacity = "1";
+    }
+
+    async function createTournament(){
+      const id = randId(10);
+      const token = randId(18);
+
+      const payload = {
+        name: (tName.value || "Golf Tournament").trim(),
+        courseDefault: tCourse.value,
+        format: tFormat.value,
+        date: (tDate.value || "").trim(),
+        organizer: (tOrg.value || "Name").trim(),
+
+        sponsorName: (tSponsorName.value || "").trim(),
+        sponsorLogo: (tSponsorLogo.value || "").trim(),
+        sponsorUrl: normalizeUrl(tSponsorUrl.value),
+
+        status: "open",
+        adminToken: token,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      await setDoc(doc(db, "tournaments", id), payload, { merge:false });
+
+      tId.value = id;
+      adminToken.value = token;
+      buildLinks(id, token);
+      setStatusUI("open");
+      alert("Tournament created!");
+    }
+
+    async function loadTournament(){
+      const id = (tId.value || "").trim();
+      if(!id) return alert("Paste a Tournament ID first.");
+
+      const snap = await getDoc(doc(db,"tournaments",id));
+      if(!snap.exists()) return alert("Not found.");
+
+      const d = snap.data() || {};
+
+      tName.value = d.name || "";
+      tCourse.value = d.courseDefault || "tradition";
+      tFormat.value = d.format || "stroke";
+      tDate.value = d.date || "";
+      tOrg.value = d.organizer || "Name";
+
+      tSponsorName.value = d.sponsorName || "";
+      tSponsorLogo.value = d.sponsorLogo || "";
+      tSponsorUrl.value  = d.sponsorUrl || "";
+
+      adminToken.value = d.adminToken || "";
+      buildLinks(id, adminToken.value || "");
+      setStatusUI(d.status || "open");
+      alert("Loaded.");
+    }
+
+    async function saveUpdates(){
+      const id = (tId.value || "").trim();
+      if(!id) return alert("Missing tournament ID.");
+
+      const payload = {
+        name: (tName.value || "Golf Tournament").trim(),
+        courseDefault: tCourse.value,
+        format: tFormat.value,
+        date: (tDate.value || "").trim(),
+        organizer: (tOrg.value || "Name").trim(),
+
+        sponsorName: (tSponsorName.value || "").trim(),
+        sponsorLogo: (tSponsorLogo.value || "").trim(),
+        sponsorUrl: normalizeUrl(tSponsorUrl.value),
+
+        updatedAt: serverTimestamp()
+      };
+
+      await setDoc(doc(db,"tournaments",id), payload, { merge:true });
+
+      buildLinks(id, adminToken.value || "");
+      alert("Saved!");
+    }
+
+    async function closeTournament(){
+      const id = (tId.value || "").trim();
+      const token = (adminToken.value || "").trim();
+      if(!id) return alert("Missing tournament ID.");
+
+      const snap = await getDoc(doc(db,"tournaments",id));
+      if(!snap.exists()) return alert("Not found.");
+
+      const d = snap.data() || {};
+      if((d.adminToken || "") !== token){
+        return alert("Admin token does not match.");
+      }
+
+      await setDoc(doc(db,"tournaments",id), { status:"closed", updatedAt: serverTimestamp() }, { merge:true });
+      setStatusUI("closed");
+      alert("Tournament CLOSED.");
     }
 
     async function copyText(txt){
@@ -535,297 +467,23 @@
       }
     }
 
-    function normalizeUrl(u){
-      const s = (u || "").trim();
-      if(!s) return "";
-      if(/^https?:\/\//i.test(s)) return s;
-      return "https://" + s;
-    }
+    createBtn.addEventListener("click", createTournament);
+    loadBtn.addEventListener("click", loadTournament);
+    saveBtn.addEventListener("click", saveUpdates);
+    closeBtn.addEventListener("click", closeTournament);
 
-    function setBrandByCourse(courseId){
-      tCourse = courseId === "cypress" ? "cypress" : "tradition";
-      brandImg.src = (tCourse === "cypress") ? "./assets/cypress_header.png" : "./assets/cypresswood_header.png";
-      brandImg.alt = (tCourse === "cypress") ? "Cypress Header" : "Tradition Header";
-      courseTag.style.display = "inline-flex";
-      courseTag.textContent = `Course: ${tCourse}`;
-    }
+    copyJoin.addEventListener("click", () => copyText(joinLinkEl.textContent || ""));
+    copyLb.addEventListener("click", () => copyText(lbLinkEl.textContent || ""));
 
-    function setFormatTag(fmt){
-      tFormat = (fmt || "stroke").toString().trim();
-      formatTag.style.display = "inline-flex";
-      formatTag.textContent = `Format: ${tFormat}`;
-    }
-
-    function applySponsorHero(name, logo, url){
-      const n = (name || "").trim();
-      const l = (logo || "").trim();
-      sponsorUrl = normalizeUrl(url);
-
-      if(!n && !l){
-        sponsorHero.style.display = "none";
-        sponsorHeroLink.style.display = "none";
-        sponsorHero.onclick = null;
-        return;
-      }
-
-      sponsorHero.style.display = "block";
-      sponsorHeroName.textContent = n || "Tournament Sponsor";
-
-      if(l){
-        sponsorHeroLogo.src = l;
-        sponsorHeroLogo.style.display = "block";
-      }else{
-        sponsorHeroLogo.style.display = "none";
-      }
-
-      if(sponsorUrl){
-        sponsorHeroLink.style.display = "inline";
-        sponsorHero.onclick = () => window.open(sponsorUrl, "_blank");
-        sponsorHeroLink.onclick = () => window.open(sponsorUrl, "_blank");
-      }else{
-        sponsorHeroLink.style.display = "none";
-        sponsorHero.onclick = null;
-      }
-    }
-
-    function renderList(subs){
-      listEl.innerHTML = "";
-
-      // sort lowest total first
-      subs.sort((a,b) => totalFor(a) - totalFor(b));
-
-      subs.forEach((sub, idx) => {
-        const name = displayNameFor(sub);
-        const subline = subLineFor(sub);
-        const total = totalFor(sub);
-
-        const card = document.createElement("div");
-        card.className = "rowCard";
-        card.innerHTML = `
-          <div class="left">
-            <div class="nameLine">
-              <div class="tag">#${idx+1}</div>
-              <div class="name">${escapeHtml(name)}</div>
-            </div>
-            <div class="sub">${escapeHtml(subline)}</div>
-          </div>
-          <div class="right">
-            <div class="scoreBox">
-              <div class="scoreBig">${escapeHtml(String(total))}</div>
-              <div class="scoreSmall">TOTAL</div>
-            </div>
-            <div class="tag">Tap</div>
-          </div>
-        `;
-
-        card.addEventListener("click", () => openDetail(sub));
-        listEl.appendChild(card);
-      });
-
-      hintLine.textContent =
-        autoScrollOn
-          ? "Auto-scroll is ON (great for TV). Tap Auto Scroll to stop."
-          : "Tap a row to view hole-by-hole details. Use TV Mode for large screens.";
-    }
-
-    function escapeHtml(s){
-      return String(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    function buildDetailTable(sub){
-      const names = Array.isArray(sub.names) ? sub.names : [];
-      const scoresFlat = sub.scoresFlat || {};
-      const totals = Array.isArray(sub.totals) ? sub.totals : [];
-
-      const rows = [];
-
-      // We show only p0 row in scramble; else show all available name rows
-      const rowCount = (tFormat === "scramble") ? 1 : Math.max(1, names.length);
-
-      // header
-      let header = `<tr><th class="label">Hole</th>`;
-      for(let h=1; h<=18; h++) header += `<th>${h}</th>`;
-      header += `<th>Out</th><th>In</th><th>Tot</th></tr>`;
-      rows.push(header);
-
-      for(let p=0; p<rowCount; p++){
-        const label = (tFormat === "scramble")
-          ? "Team Score"
-          : (names[p] || `Player ${p+1}`);
-
-        let tr = `<tr><td class="label">${escapeHtml(label)}</td>`;
-        for(let h=1; h<=18; h++){
-          const v = scoresFlat[`p${p}_h${h}`] ?? "";
-          tr += `<td>${escapeHtml(v)}</td>`;
-        }
-        const out = safeNumber(totals?.[p]?.out);
-        const inn = safeNumber(totals?.[p]?.inn);
-        const tot = safeNumber(totals?.[p]?.tot);
-        tr += `<td><b>${out}</b></td><td><b>${inn}</b></td><td><b>${tot}</b></td></tr>`;
-        rows.push(tr);
-      }
-
-      detailTable.innerHTML = rows.join("");
-    }
-
-    function openDetail(sub){
-      const titleMain = displayNameFor(sub);
-      modalTitle.textContent = `${titleMain} — Scorecard`;
-      buildDetailTable(sub);
-      modalBack.style.display = "flex";
-    }
-    function closeDetail(){
-      modalBack.style.display = "none";
-      detailTable.innerHTML = "";
-    }
-    closeModal.addEventListener("click", closeDetail);
-    modalBack.addEventListener("click", (e) => {
-      if(e.target === modalBack) closeDetail();
-    });
-
-    function setStatus(openClosed){
-      const s = (openClosed || "open").toString();
-      if(s === "closed"){
-        statusPill.textContent = "🔒 CLOSED";
-        statusPill.style.opacity = "0.9";
-      }else{
-        statusPill.textContent = "⛳️ LIVE";
-        statusPill.style.opacity = "1";
-      }
-    }
-
-    async function loadTournamentMeta(){
-      if(!tournamentId){
-        pageTitle.textContent = "Live Leaderboard";
-        pageMeta.textContent = "Missing tournament ID.";
-        return;
-      }
-
-      const snap = await getDoc(doc(db, "tournaments", tournamentId));
-      if(!snap.exists()){
-        pageTitle.textContent = "Live Leaderboard";
-        pageMeta.textContent = "Tournament not found.";
-        return;
-      }
-
-      const t = snap.data() || {};
-      pageTitle.textContent = t.name || "Live Leaderboard";
-      pageMeta.textContent = [
-        (t.organizer ? `Organizer: ${t.organizer}` : ""),
-        (t.date ? `Date: ${t.date}` : ""),
-      ].filter(Boolean).join(" • ") || `Tournament ID: ${tournamentId}`;
-
-      setFormatTag(t.format || "stroke");
-      setBrandByCourse(t.courseDefault || "tradition");
-      setStatus(t.status || "open");
-
-      // Sponsor supports multiple keys
-      const sName = t.sponsorName || "";
-      const sLogo = t.sponsorLogo || "";
-      const sUrl  = t.sponsorUrl || t.sponsorWebsite || t.sponsorLink || "";
-      applySponsorHero(sName, sLogo, sUrl);
-
-      // join link
-      const base = baseURL();
-      const join = new URL(base + "index.html");
-      join.searchParams.set("t", tournamentId);
-      joinBtn.href = join.toString();
-    }
-
-    async function loadSubmissions(){
-      if(!tournamentId) return;
-
-      // read submissions
-      const subsRef = collection(db, "tournaments", tournamentId, "submissions");
-      // orderBy updatedAt helps but requires index; safest is getDocs then sort client-side
-      const snap = await getDocs(subsRef);
-
-      const subs = [];
-      snap.forEach(docSnap => subs.push(docSnap.data() || {}));
-
-      renderList(subs);
-    }
-
-    async function refresh(){
-      try{
-        await loadTournamentMeta();
-        await loadSubmissions();
-      }catch(e){
-        console.error(e);
-        pageMeta.textContent = "Load failed. Check console.";
-      }
-    }
-
-    function toggleTV(){
-      document.body.classList.toggle("tv");
-      tvBtn.textContent = document.body.classList.contains("tv") ? "🖥 Exit TV" : "📺 TV Mode";
-    }
-
-    function startAutoScroll(){
-      autoScrollOn = true;
-      autoScrollBtn.textContent = "⏸ Stop Scroll";
-
-      // smooth slow scroll down then loop
-      if(autoScrollTimer) clearInterval(autoScrollTimer);
-      autoScrollTimer = setInterval(() => {
-        const max = document.documentElement.scrollHeight - window.innerHeight;
-        if(max <= 0) return;
-
-        const y = window.scrollY;
-        const next = Math.min(max, y + 2); // speed
-        window.scrollTo(0, next);
-
-        if(next >= max){
-          window.scrollTo(0, 0);
-        }
-      }, 30);
-    }
-
-    function stopAutoScroll(){
-      autoScrollOn = false;
-      autoScrollBtn.textContent = "⬇️ Auto Scroll";
-      if(autoScrollTimer) clearInterval(autoScrollTimer);
-      autoScrollTimer = null;
-    }
-
-    function toggleAutoScroll(){
-      if(autoScrollOn) stopAutoScroll();
-      else startAutoScroll();
-    }
-
-    // ===== Wire buttons =====
-    refreshBtn.addEventListener("click", refresh);
-    tvBtn.addEventListener("click", toggleTV);
-    autoScrollBtn.addEventListener("click", toggleAutoScroll);
-    copyBtn.addEventListener("click", () => copyText(buildSelfLink()));
-
-    // ===== Read URL params =====
+    // Optional: load by URL ?t=...
     const params = new URLSearchParams(location.search);
-    tournamentId = (params.get("t") || "").trim();
-    adminToken = (params.get("admin") || "").trim();
-
-    // Initial load
-    await refresh();
-
-    // Optional: auto-refresh every 10s in TV mode
-    setInterval(() => {
-      if(document.body.classList.contains("tv")) refresh();
-    }, 10000);
+    const qid = (params.get("t") || "").trim();
+    if(qid){
+      tId.value = qid;
+      loadTournament();
+    }
   </script>
 
-  <script>
-    // ESC closes modal
-    window.addEventListener("keydown", (e) => {
-      if(e.key === "Escape"){
-        const mb = document.getElementById("modalBack");
-        if(mb && mb.style.display === "flex") mb.style.display = "none";
-      }
-    });
-  </script>
+  <script src="./pwa.js"></script>
 </body>
 </html>
