@@ -219,26 +219,30 @@
             </label>
 
             <label style="font-weight:900; font-size:13px;">
-              Start Hole (optional)
-              <input id="joinStartHole" placeholder="1"
+              Start Hole <span style="opacity:.75;">(required)</span>
+              <input
+                id="joinStartHole"
+                placeholder="1"
+                inputmode="numeric"
+                type="number"
+                min="1"
+                max="18"
+                required
                 style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
             </label>
           </div>
-<label style="
-  font-size:13px;
-  display:flex;
-  gap:8px;
-  align-items:flex-start;
-  margin-top:6px;
-">
-  <input type="checkbox" id="agreeTerms" />
-  <span>
-    I agree to the
-    <a href="./terms.html" target="_blank">Terms of Service</a>
-    and
-    <a href="./privacy.html" target="_blank">Privacy Policy</a>
-  </span>
-</label>
+
+          <!-- Terms checkbox (keep yours if already present elsewhere) -->
+          <label style="font-size:13px; display:flex; gap:8px; align-items:flex-start; margin-top:6px;">
+            <input type="checkbox" id="agreeTerms" />
+            <span>
+              I agree to the
+              <a href="./terms.html" target="_blank" rel="noopener">Terms</a>
+              and
+              <a href="./privacy.html" target="_blank" rel="noopener">Privacy</a>
+            </span>
+          </label>
+
           <button id="joinBtn" style="border:2px solid #7a4a0b; background:#2f6b2f; color:#fff; border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
             Join & Start Scoring
           </button>
@@ -273,7 +277,7 @@
       <div class="table-shell">
         <div class="hint" id="hintLine">Swipe left/right inside the table to scroll. Tap a box to type. Out/In/Tot auto-calc.</div>
 
-        <div class="scroll-x">
+        <div class="scroll-x" id="scrollX">
           <table id="scoreTable">
             <thead><tr id="hdrRow"></tr></thead>
             <tbody id="tbody"></tbody>
@@ -289,6 +293,7 @@
           href="https://foresightcypress.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225"
           target="_blank"
           class="book-btn"
+          rel="noopener"
         >
           Book Your Next Tee Time Here!
         </a>
@@ -304,13 +309,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      getDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
@@ -411,7 +410,7 @@
     const holesFront = [1,2,3,4,5,6,7,8,9];
     const holesBack  = [10,11,12,13,14,15,16,17,18];
 
-    // 🔥 dynamic player rows
+    // dynamic player rows
     let playersCount = 6;
 
     // ===== DOM =====
@@ -422,6 +421,7 @@
     const swipeZone = document.getElementById("courseSwipeZone");
     const courseHeaderImg = document.getElementById("courseHeader");
     const hintLine = document.getElementById("hintLine");
+    const scrollX = document.getElementById("scrollX");
 
     const joinScreen = document.getElementById("joinScreen");
     const joinMeta = document.getElementById("joinMeta");
@@ -464,7 +464,7 @@
       const s = (u || "").trim();
       if(!s) return "";
       if(/^https?:\/\//i.test(s)) return s;
-      return "https://" + s; // ✅ auto-fix missing scheme
+      return "https://" + s;
     }
 
     function applySponsorUI(name, logo, url){
@@ -474,6 +474,7 @@
 
       if(!n && !l){
         scoreSponsor.style.display = "none";
+        scoreSponsor.onclick = null;
         return;
       }
 
@@ -488,15 +489,13 @@
       }
 
       scoreSponsor.style.cursor = sponsorUrl ? "pointer" : "default";
-      scoreSponsor.onclick = () => {
-        if(sponsorUrl) window.open(sponsorUrl, "_blank");
-      };
+      scoreSponsor.onclick = () => { if(sponsorUrl) window.open(sponsorUrl, "_blank", "noopener"); };
     }
 
     function storageKeyFor(courseId){
       const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
       const fPart = tournamentFormat ? `_f_${tournamentFormat}` : "";
-      return `scorecard_state_${courseId}${tPart}${fPart}_v4`;
+      return `scorecard_state_${courseId}${tPart}${fPart}_v5`;
     }
 
     function makeDeviceId(){
@@ -510,26 +509,45 @@
       return id;
     }
 
+    function startHoleKey(){
+      const dev = makeDeviceId();
+      return tournamentId ? `t_start_hole_${tournamentId}_${dev}` : "";
+    }
+
+    function setStartHole(h){
+      if(!tournamentId) return;
+      const k = startHoleKey();
+      if(k) localStorage.setItem(k, String(h));
+      window.startHole = h;
+    }
+
+    function getStartHole(){
+      if(!tournamentId) return null;
+      const k = startHoleKey();
+      const v = k ? localStorage.getItem(k) : null;
+      const n = parseInt(v || "", 10);
+      if(!n || n < 1 || n > 18) return null;
+      return n;
+    }
+
     function formatToPlayersCount(fmt){
-      // ✅ you can adjust later, but this fixes scramble immediately:
       if(fmt === "scramble") return 1;
       if(fmt === "bestball") return 2;
-      return 6; // stroke/skins default
+      return 6;
     }
 
     function playerRowLabel(i){
       if(tournamentFormat === "scramble") return "Team Score";
-      if(tournamentFormat === "bestball") return `Player ${i+1}`;
       return `Player ${i+1}`;
     }
 
     function buildHeader(){
       hdrRow.innerHTML = `
         <th class="label">Hole</th>
-        ${holesFront.map(h=>`<th class="hole">${h}</th>`).join("")}
+        ${holesFront.map(h=>`<th class="hole" data-hole="${h}">${h}</th>`).join("")}
         <th class="sum">Out</th>
         <th class="sum">I<br>N<br>I<br>T</th>
-        ${holesBack.map(h=>`<th class="hole">${h}</th>`).join("")}
+        ${holesBack.map(h=>`<th class="hole" data-hole="${h}">${h}</th>`).join("")}
         <th class="sum">In</th>
         <th class="sum">Tot</th>
         <th class="sum">Hcp</th>
@@ -691,13 +709,31 @@
       document.querySelectorAll(".player-name").forEach(inp => inp.addEventListener("input", saveState));
     }
 
+    function scrollToHole(hole){
+      if(!scrollX) return;
+      const th = hdrRow.querySelector(`th[data-hole="${hole}"]`);
+      if(!th) return;
+
+      // Scroll so that the hole header is comfortably visible
+      const pad = 90;
+      const left = Math.max(0, th.offsetLeft - pad);
+      scrollX.scrollTo({ left, behavior: "smooth" });
+
+      // Focus first scorer row (player 0)
+      setTimeout(() => {
+        const inp = document.getElementById(`p0_h${hole}`);
+        if(inp){
+          inp.focus({ preventScroll: true });
+        }
+      }, 280);
+    }
+
     function build(){
       const course = COURSES[currentCourseId];
       courseTitle.textContent = course.title;
       courseSelect.value = currentCourseId;
       setCourseHeader(currentCourseId);
 
-      // tweak hint for scramble
       hintLine.textContent =
         tournamentFormat === "scramble"
           ? "Scramble: enter ONE team score row. Swipe to scroll. Tap a box to type. Out/In/Tot auto-calc."
@@ -717,6 +753,10 @@
 
       wireInputs();
       loadState();
+
+      // If in tournament mode and a start hole exists, snap to it
+      const sh = getStartHole();
+      if(sh) scrollToHole(sh);
     }
 
     // switching course disabled once joined tournament
@@ -743,7 +783,7 @@
 
     async function captureFullCardCanvas(){
       const card = document.getElementById("card");
-      const scroll = document.querySelector(".scroll-x");
+      const scroll = document.getElementById("scrollX");
       const table = document.getElementById("scoreTable");
 
       const oldOverflowX = scroll.style.overflowX;
@@ -853,6 +893,10 @@
 
             // build with new settings
             build();
+
+            // if we already have a saved start hole for this device+tourny, preload it
+            const sh = getStartHole();
+            if(sh) joinStartHole.value = String(sh);
           }
         }catch(e){
           console.warn("Tournament settings load failed", e);
@@ -860,23 +904,45 @@
       }
     }
 
+    function requireStartHole(){
+      const v = (joinStartHole.value || "").trim();
+      const n = parseInt(v, 10);
+      if(!n || n < 1 || n > 18) return null;
+      return n;
+    }
+
     joinBtn.addEventListener("click", async () => {
+      // ✅ Terms enforcement
+      if (!document.getElementById("agreeTerms")?.checked) {
+        alert("Please agree to the Terms and Privacy.");
+        return;
+      }
 
-  // ✅ Terms enforcement (CORRECT LOCATION)
-  if (!document.getElementById("agreeTerms")?.checked) {
-    alert("Please agree to the Terms and Privacy Policy.");
-    return;
-  }
+      // ✅ Start hole REQUIRED
+      const sh = requireStartHole();
+      if(!sh){
+        alert("Please enter a valid starting hole (1–18).");
+        return;
+      }
 
-  if (!tournamentId) return;
-  joinScreen.style.display = "none";
+      // must be in tournament mode
+      if (!tournamentId) return;
 
-  // Save with tournament key + push once
-  saveState();
-  scheduleTournamentPush();
-});
+      // store + use it immediately
+      setStartHole(sh);
 
-       joinCancel.addEventListener("click", () => {
+      // proceed
+      joinScreen.style.display = "none";
+
+      // build may have already run; just snap to the hole now too
+      scrollToHole(sh);
+
+      // Save with tournament key + push once
+      saveState();
+      scheduleTournamentPush();
+    });
+
+    joinCancel.addEventListener("click", () => {
       joinScreen.style.display = "none";
       isTournamentMode = false;
       tournamentId = null;
@@ -923,7 +989,8 @@
 
       const playerName = (joinName.value || payload.names[0] || "Player").trim();
       const group = (joinGroup.value || "").trim();
-      const startHole = (joinStartHole.value || "").trim();
+
+      const startHole = getStartHole() || requireStartHole() || "";
 
       const subRef = doc(db, "tournaments", tournamentId, "submissions", deviceId);
 
@@ -931,7 +998,7 @@
         await setDoc(subRef, {
           deviceId,
           courseId: currentCourseId,
-          format: tournamentFormat, // helpful for admin/leaderboard
+          format: tournamentFormat,
           playerName,
           group,
           startHole,
@@ -969,20 +1036,10 @@
 
     // Init
     wireButtons();
-    build();                 // initial build
-    await checkTournamentFromURL(); // if tournament, it will rebuild with format/course/sponsor
+    build();
+    await checkTournamentFromURL();
   </script>
-<div style="
-  text-align:center;
-  font-size:12px;
-  opacity:.75;
-  padding:18px 10px 28px;
-  font-family:Cinzel, serif;
-">
-  © 2026 Electronic Scorecard Solutions, LLC. All rights reserved.
-  <a href="./privacy.html">Privacy</a> ·
-  <a href="./terms.html">Terms</a>
-</div>
+
   <script src="./pwa.js"></script>
 </body>
 </html>
