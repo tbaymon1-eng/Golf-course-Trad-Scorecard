@@ -5,311 +5,790 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Live Leaderboard</title>
 
-  <meta name="theme-color" content="#7a4a0b" />
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="./assets/icon-192.png" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <meta name="theme-color" content="#0d2a55">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
 
   <style>
     :root{
       --paper:#e9e2d4;
       --card:#efe7d7;
       --ink:#111;
-      --muted:rgba(0,0,0,.65);
+      --muted: rgba(0,0,0,.65);
       --border:#7a4a0b;
-      --line:rgba(0,0,0,.12);
-      --gold:#caa44a;
-      --silver:#b8b8b8;
-      --bronze:#b07a4d;
-      --green:#2f6b2f;
-      --danger:#b6422d;
+
+      --navy:#0d2a55;
+      --navy2:#0b2246;
+      --gold:#caa24a;
+      --gold2:#e6cf8c;
+
+      --row2: rgba(255,255,255,.72);
+
+      --good:#2f6b2f;
+      --bad:#b6422d;
+
+      /* ESPN-ish greens */
+      --fairway1:#0f5a34;
+      --fairway2:#0b3f26;
+      --rough:#08301d;
+      --white: rgba(255,255,255,.92);
     }
 
     *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
-    body{ margin:0; background:var(--paper); color:var(--ink); font-family: Georgia, "Times New Roman", serif; }
+    body{
+      margin:0;
+      background:
+        radial-gradient(circle at 18% 0%, rgba(13,42,85,.12), transparent 55%),
+        radial-gradient(circle at 82% 14%, rgba(202,162,74,.12), transparent 55%),
+        linear-gradient(180deg, rgba(0,0,0,.04), transparent 28%),
+        var(--paper);
+      color: var(--ink);
+      font-family: Georgia, 'Times New Roman', serif;
+    }
 
-    .wrap{ max-width: 980px; margin:0 auto; padding: 10px 10px 24px; }
+    .wrap{ max-width: 1120px; margin: 0 auto; padding: 12px 12px 92px; }
+
     .card{
       background: var(--card);
       border: 3px solid var(--border);
       border-radius: 14px;
-      overflow: hidden;
+      overflow:hidden;
       box-shadow: 0 10px 26px rgba(0,0,0,.18);
     }
 
-    /* Top banner */
+    /* ===== Top Banner ===== */
     .top{
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      background: linear-gradient(to bottom, rgba(239,231,215,1), rgba(239,231,215,.92));
-      backdrop-filter: blur(6px);
-      border-bottom: 1px solid var(--line);
+      position:relative;
+      padding: 12px 12px 10px;
+      background:
+        linear-gradient(135deg, rgba(13,42,85,.24), rgba(13,42,85,.06)),
+        var(--card);
+      border-bottom: 1px solid rgba(0,0,0,.10);
     }
 
-    .courseHeader{
-      width: 100%;
-      display: block;
-      max-height: 110px;
-      object-fit: contain;
-      background: var(--card);
-      border-bottom: 1px solid var(--line);
-    }
-
-    .titleRow{
-      padding: 10px 12px 8px;
+    .topRow{
       display:flex;
-      align-items:flex-start;
+      gap:12px;
+      align-items:center;
       justify-content:space-between;
-      gap: 10px;
+      flex-wrap:wrap;
     }
 
-    .titleBlock h1{
+    .brand{
+      display:flex; gap:10px; align-items:center;
+      min-width: 240px;
+    }
+
+    .courseHeaderMini{
+      width: 150px;
+      height: 44px;
+      object-fit: contain;
+      background: rgba(255,255,255,.55);
+      border: 2px solid rgba(0,0,0,.12);
+      border-radius: 12px;
+      padding: 6px 10px;
+    }
+
+    .titleBlock{
+      display:flex; flex-direction:column; gap:2px;
+    }
+
+    h1{
       margin:0;
       font-family: Cinzel, serif;
       font-weight: 900;
-      letter-spacing: .4px;
+      letter-spacing: .7px;
       font-size: 18px;
-      line-height: 1.15;
+      line-height: 1.05;
     }
-    .titleBlock .sub{
-      margin-top: 4px;
+    .clubName{
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      letter-spacing: .5px;
+      font-size: 12px;
+      opacity:.9;
+    }
+    .meta{
+      margin-top:2px;
       font-size: 12px;
       color: var(--muted);
+      font-weight: 700;
+    }
+
+    .pillRow{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+      justify-content:flex-end;
     }
 
     .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
+      display:inline-flex; align-items:center; gap:8px;
       padding: 8px 10px;
       border-radius: 999px;
-      border: 2px solid rgba(0,0,0,.14);
-      background: rgba(255,255,255,.52);
+      border: 2px solid rgba(0,0,0,.12);
+      background: rgba(255,255,255,.55);
       font-weight: 900;
       font-size: 12px;
-      white-space: nowrap;
+    }
+    .pill.live{
+      border-color: rgba(47,107,47,.35);
+      background: rgba(47,107,47,.10);
+      color: #114011;
+    }
+    .pill.mode{
+      border-color: rgba(13,42,85,.25);
+      background: rgba(13,42,85,.10);
+      color: var(--navy2);
     }
 
-    .bar{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      padding: 10px 12px 12px;
-      align-items:center;
-      justify-content: space-between;
-      border-top: 1px solid var(--line);
+    .actions{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
     }
-
-    .btnRow{
-      display:flex;
-      gap:10px;
-      flex-wrap: wrap;
-      align-items:center;
-    }
-
-    button, .btn{
-      border: 2px solid var(--border);
-      background: #e7ddcb;
-      border-radius: 10px;
+    button, a.btn{
+      border: 2px solid rgba(0,0,0,.15);
+      background: rgba(255,255,255,.55);
+      border-radius: 12px;
       padding: 10px 12px;
       font-weight: 900;
       font-size: 14px;
       cursor:pointer;
       text-decoration:none;
-      color: var(--ink);
+      color: inherit;
       display:inline-flex;
       align-items:center;
       gap:8px;
     }
-    button:active, .btn:active{ transform: translateY(1px); }
+    button:active, a.btn:active{ transform: translateY(1px); }
 
-    .btnPrimary{
-      background: var(--green);
-      color: #fff;
-      border-color: rgba(0,0,0,.2);
+    .primary{
+      border-color: rgba(13,42,85,.30);
+      background: rgba(13,42,85,.12);
+      color: var(--navy2);
+    }
+    .green{
+      border-color: rgba(47,107,47,.30);
+      background: rgba(47,107,47,.12);
+      color: #114011;
     }
 
-    /* Sponsor hero */
+    /* ===== Sponsor Hero ===== */
     #sponsorHero{
       display:none;
-      margin: 10px 12px 0;
-      border:2px solid rgba(0,0,0,.14);
-      border-radius:12px;
-      background:rgba(255,255,255,.55);
-      padding:10px 12px;
-      cursor:pointer;
+      margin-top: 10px;
+      border-radius: 14px;
+      border: 2px solid rgba(0,0,0,.12);
+      background:
+        linear-gradient(135deg, rgba(202,162,74,.18), rgba(13,42,85,.08)),
+        rgba(255,255,255,.55);
+      padding: 10px 12px;
     }
-    #sponsorHero:active{ transform: translateY(1px); }
-    #sponsorHeroTitle{ font-family:Cinzel,serif; font-weight:900; font-size:13px; opacity:.9; }
-    #sponsorHeroRow{ display:flex; align-items:center; gap:10px; margin-top:8px; }
+    #sponsorHeroTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    #sponsorHeroTitle{
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: .5px;
+      opacity: .95;
+    }
+    #sponsorHeroRow{
+      margin-top: 8px;
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    }
     #sponsorHeroLogo{
-      width:44px; height:44px; border-radius:10px; object-fit:cover;
-      border:2px solid rgba(0,0,0,.12); background:rgba(0,0,0,.06);
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 2px solid rgba(0,0,0,.12);
+      background: rgba(0,0,0,.06);
       display:none;
     }
-    #sponsorHeroName{ font-weight:900; font-size:16px; }
+    #sponsorHeroName{
+      font-weight: 1000;
+      font-size: 16px;
+    }
+    #sponsorHeroLink{
+      display:none;
+      border:2px solid rgba(13,42,85,.20);
+      background: rgba(13,42,85,.10);
+      color: var(--navy2);
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-weight: 900;
+      text-decoration:none;
+    }
 
-    /* Board */
+    /* ===== Leaderboard ===== */
     .board{
-      padding: 12px;
+      padding: 10px 10px 14px;
+      background: var(--card);
     }
 
     .hdr{
       display:grid;
-      grid-template-columns: 62px 1fr 110px;
+      grid-template-columns: 58px 1.3fr 110px 90px 90px;
       gap:10px;
+      align-items:center;
       padding: 10px 10px;
-      border: 2px solid rgba(0,0,0,.12);
       border-radius: 12px;
-      background: rgba(255,255,255,.44);
+      background: linear-gradient(90deg, rgba(13,42,85,.12), rgba(202,162,74,.10));
+      border: 2px solid rgba(0,0,0,.12);
       font-family: Cinzel, serif;
       font-weight: 900;
+      letter-spacing: .5px;
       font-size: 12px;
-      letter-spacing:.4px;
-      margin-bottom: 10px;
     }
-    .hdr div{ opacity:.9; }
-    .hdr .right{ text-align:right; }
 
-    .list{ display:grid; gap:10px; }
+    .list{
+      margin-top: 10px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
 
-    /* Each row card */
     .row{
       display:grid;
-      grid-template-columns: 62px 1fr 110px;
+      grid-template-columns: 58px 1.3fr 110px 90px 90px;
       gap:10px;
-      align-items: center;
+      align-items:center;
       padding: 12px 10px;
       border-radius: 14px;
-      border: 2px solid rgba(0,0,0,.12);
-      background: rgba(255,255,255,.55);
-      box-shadow: 0 8px 18px rgba(0,0,0,.10);
-      transition: transform .45s ease, box-shadow .45s ease;
-      will-change: transform;
+      background: var(--row2);
+      border: 2px solid rgba(0,0,0,.10);
+      cursor:pointer;
+      position:relative;
+      overflow:hidden;
     }
 
-    .row.leader{
-      border-color: rgba(202,164,74,.75);
-      box-shadow: 0 0 0 3px rgba(202,164,74,.18), 0 12px 24px rgba(0,0,0,.14);
-      background: linear-gradient(to right, rgba(255,255,255,.72), rgba(255,255,255,.52));
-    }
+    .row:active{ transform: translateY(1px); }
 
-    .rankBadge{
-      width: 62px;
-      height: 62px;
-      border-radius: 16px;
-      display:flex;
-      flex-direction: column;
-      align-items:center;
-      justify-content:center;
-      border: 2px solid rgba(0,0,0,.12);
-      background: rgba(255,255,255,.56);
-    }
-
-    .rankNum{
+    .rankBox{
+      display:flex; align-items:center; justify-content:center;
+      width: 54px; height: 44px;
+      border-radius: 12px;
+      background: rgba(13,42,85,.12);
+      border: 2px solid rgba(13,42,85,.20);
       font-family: Cinzel, serif;
       font-weight: 900;
       font-size: 18px;
-      line-height: 1;
+      position:relative;
     }
-    .rankMove{
-      margin-top: 4px;
-      font-size: 12px;
+    .move{
+      position:absolute;
+      right: -6px;
+      top: -6px;
+      width: 26px;
+      height: 26px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius: 999px;
+      font-size: 14px;
       font-weight: 900;
-      opacity:.9;
+      border: 2px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.75);
     }
-    .up{ color: #1f7a1f; }
-    .down{ color: #9b2d2d; }
-    .same{ color: rgba(0,0,0,.55); }
+    .move.up{ color: #114011; border-color: rgba(47,107,47,.25); background: rgba(47,107,47,.10); }
+    .move.down{ color: #5c1b11; border-color: rgba(182,66,45,.25); background: rgba(182,66,45,.10); }
 
-    .who .name{
+    .name{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+    }
+    .mainName{
       font-weight: 1000;
       font-size: 16px;
-      line-height: 1.1;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 100%;
     }
-    .who .meta{
-      margin-top: 6px;
+    .subName{
       font-size: 12px;
-      color: var(--muted);
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
+      font-weight: 900;
+      color: rgba(0,0,0,.62);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
-
+    .chips{
+      display:flex; gap:6px; flex-wrap:wrap;
+    }
     .chip{
       display:inline-flex;
       align-items:center;
       gap:6px;
       padding: 6px 8px;
       border-radius: 999px;
-      border: 1px solid rgba(0,0,0,.12);
-      background: rgba(255,255,255,.50);
+      font-size: 11px;
       font-weight: 900;
-      font-size: 12px;
+      border: 2px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.70);
       color: rgba(0,0,0,.75);
-      white-space: nowrap;
+    }
+    .chip.gold{
+      background: rgba(202,162,74,.14);
+      border-color: rgba(202,162,74,.25);
+      color: #4a3a10;
+    }
+    .chip.navy{
+      background: rgba(13,42,85,.10);
+      border-color: rgba(13,42,85,.20);
+      color: var(--navy2);
     }
 
     .scoreBox{
-      text-align:right;
       display:flex;
-      flex-direction: column;
+      flex-direction:column;
       align-items:flex-end;
-      gap: 4px;
+      gap:2px;
+    }
+    .score{
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 22px;
+      letter-spacing: .5px;
+      color: var(--navy2);
+    }
+    .scoreSub{
+      font-size: 11px;
+      font-weight: 900;
+      color: rgba(0,0,0,.60);
     }
 
+    .thin{
+      text-align:right;
+      font-weight: 900;
+      font-size: 14px;
+      color: rgba(0,0,0,.78);
+    }
+
+    /* Top 1 glow */
+    .row.top1{
+      background:
+        radial-gradient(circle at 10% 50%, rgba(202,162,74,.18), transparent 55%),
+        radial-gradient(circle at 90% 30%, rgba(13,42,85,.14), transparent 55%),
+        rgba(255,255,255,.72);
+      border-color: rgba(202,162,74,.22);
+    }
+
+    .flash{ animation: flash 800ms ease-out; }
+    @keyframes flash{
+      0%{ box-shadow: 0 0 0 rgba(0,0,0,0); }
+      25%{ box-shadow: 0 0 0 6px rgba(202,162,74,.18); }
+      100%{ box-shadow: 0 0 0 rgba(0,0,0,0); }
+    }
+
+    /* ===== Sponsor ticker ===== */
+    #ticker{
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      border-top: 3px solid var(--border);
+      background:
+        linear-gradient(90deg, rgba(13,42,85,.18), rgba(202,162,74,.16)),
+        rgba(239,231,215,.96);
+      backdrop-filter: blur(6px);
+    }
+    .tickerTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(0,0,0,.10);
+    }
+    .tickerLabel{
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      letter-spacing: .5px;
+      font-size: 12px;
+    }
+    .tickerHint{
+      font-size: 12px;
+      font-weight: 900;
+      color: rgba(0,0,0,.55);
+    }
+    .tickerTrackWrap{ overflow:hidden; white-space:nowrap; }
+    .tickerTrack{
+      display:inline-flex;
+      align-items:center;
+      gap:12px;
+      padding: 10px 12px;
+      animation: marquee 18s linear infinite;
+      will-change: transform;
+    }
+    @keyframes marquee{
+      0%{ transform: translateX(0); }
+      100%{ transform: translateX(-50%); }
+    }
+    .sponsorPill{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 2px solid rgba(0,0,0,.12);
+      background: rgba(255,255,255,.65);
+      text-decoration:none;
+      color: inherit;
+      font-weight: 1000;
+      font-size: 13px;
+      cursor:pointer;
+    }
+    .sponsorPill img{
+      width: 26px; height: 26px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 2px solid rgba(0,0,0,.12);
+      background: rgba(0,0,0,.06);
+    }
+
+    /* ===== Modal (ESPN Mode) ===== */
+    .modal{
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      background: rgba(0,0,0,.62);
+      padding: 12px;
+    }
+    .modal.show{ display:flex; }
+
+    .sheet{
+      width: min(1020px, 100%);
+      max-height: 90vh;
+      overflow:auto;
+      border-radius: 18px;
+      border: 2px solid rgba(255,255,255,.18);
+      background:
+        radial-gradient(circle at 18% 0%, rgba(202,162,74,.22), transparent 60%),
+        radial-gradient(circle at 82% 8%, rgba(13,42,85,.22), transparent 65%),
+        rgba(239,231,215,.98);
+      box-shadow: 0 18px 50px rgba(0,0,0,.45);
+      position: relative;
+    }
+
+    /* Fairway stripe header */
+    .sheetBanner{
+      position: relative;
+      padding: 10px 12px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.20)),
+        linear-gradient(90deg, var(--fairway1), var(--fairway2));
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      overflow:hidden;
+    }
+    .sheetBanner::after{
+      content:"";
+      position:absolute;
+      inset:-40% -30%;
+      background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.08) 50%, transparent 60%);
+      transform: rotate(8deg);
+      animation: sheen 2.2s ease-in-out infinite;
+      pointer-events:none;
+    }
+    @keyframes sheen{
+      0%{ transform: translateX(-20%) rotate(8deg); opacity:.0; }
+      35%{ opacity: .55; }
+      60%{ opacity: .15; }
+      100%{ transform: translateX(22%) rotate(8deg); opacity:0; }
+    }
+    .sheetBannerTop{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .sheetBannerLeft{ min-width: 220px; }
+    .sheetName{
+      margin:0;
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 18px;
+      letter-spacing: .6px;
+      color: rgba(255,255,255,.95);
+      text-shadow: 0 2px 10px rgba(0,0,0,.35);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 100%;
+    }
+    .sheetSub{
+      margin-top:6px;
+      font-weight: 900;
+      font-size: 12px;
+      color: rgba(255,255,255,.80);
+      text-shadow: 0 2px 10px rgba(0,0,0,.35);
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.18);
+      backdrop-filter: blur(6px);
+    }
+
+    .sheetBannerRight{
+      text-align:right;
+      min-width: 160px;
+    }
     .bigScore{
       font-family: Cinzel, serif;
       font-weight: 900;
-      font-size: 20px;
+      font-size: 40px;
+      color: rgba(255,255,255,.96);
+      text-shadow: 0 2px 14px rgba(0,0,0,.40);
       line-height: 1;
-      letter-spacing: .3px;
+      letter-spacing: .6px;
     }
     .smallScore{
-      font-size: 12px;
-      color: var(--muted);
+      margin-top:6px;
       font-weight: 900;
+      font-size: 12px;
+      color: rgba(255,255,255,.78);
+      text-shadow: 0 2px 10px rgba(0,0,0,.35);
     }
 
-    /* Top 3 styling */
-    .row.top1 .rankBadge{ border-color: rgba(202,164,74,.65); }
-    .row.top2 .rankBadge{ border-color: rgba(184,184,184,.9); }
-    .row.top3 .rankBadge{ border-color: rgba(176,122,77,.8); }
-
-    /* ESPN-ish motion */
-    .flash{
-      animation: flash 900ms ease-out 1;
-    }
-    @keyframes flash{
-      0%{ box-shadow: 0 0 0 0 rgba(47,107,47,.0), 0 8px 18px rgba(0,0,0,.10); }
-      40%{ box-shadow: 0 0 0 4px rgba(47,107,47,.18), 0 12px 24px rgba(0,0,0,.14); }
-      100%{ box-shadow: 0 0 0 0 rgba(47,107,47,.0), 0 8px 18px rgba(0,0,0,.10); }
-    }
-
-    /* TV Mode */
-    .tvHint{
-      display:none;
+    .closeBtn{
+      border: 2px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.22);
+      color: rgba(255,255,255,.92);
+      border-radius: 12px;
       padding: 10px 12px;
-      border-top: 1px solid var(--line);
-      font-size: 12px;
-      color: var(--muted);
+      font-weight: 900;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      height: fit-content;
+      backdrop-filter: blur(6px);
     }
-    body.tv .tvHint{ display:block; }
-    body.tv .wrap{ max-width: 1200px; }
-    body.tv .courseHeader{ max-height: 140px; }
+    .closeBtn:active{ transform: translateY(1px); }
 
-    /* Footer links */
-    .footer{
-      padding: 14px 12px 16px;
-      border-top: 1px solid var(--line);
-      text-align:center;
-      font-size: 12px;
-      color: rgba(0,0,0,.68);
+    .sheetBody{
+      padding: 12px;
+      display:grid;
+      gap:12px;
     }
-    .footer a{ color: rgba(0,0,0,.75); font-weight: 900; text-decoration: none; }
-    .footer a:active{ opacity: .7; }
+
+    .cardBlock{
+      border-radius: 18px;
+      border: 2px solid rgba(0,0,0,.12);
+      background: rgba(255,255,255,.70);
+      overflow:hidden;
+    }
+
+    .blockHdr{
+      padding: 10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom: 1px solid rgba(0,0,0,.10);
+      background:
+        linear-gradient(90deg, rgba(13,42,85,.12), rgba(202,162,74,.10));
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      letter-spacing: .5px;
+      font-size: 12px;
+    }
+
+    .scoreGrid{
+      padding: 12px;
+      display:grid;
+      gap:10px;
+    }
+
+    .nine{
+      display:grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 9px;
+    }
+
+    /* Hole tiles */
+    .holeCell{
+      border-radius: 16px;
+      border: 2px solid rgba(0,0,0,.12);
+      background:
+        radial-gradient(circle at 30% 0%, rgba(202,162,74,.10), transparent 60%),
+        rgba(255,255,255,.82);
+      padding: 10px 8px 10px;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .holeCell::before{
+      content:"";
+      position:absolute;
+      inset: -50% -50%;
+      background: radial-gradient(circle at 60% 40%, rgba(13,42,85,.10), transparent 55%);
+      transform: rotate(8deg);
+      pointer-events:none;
+    }
+
+    .holeTop{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      position:relative;
+      z-index:1;
+    }
+    .holeBadge{
+      width: 30px; height: 30px;
+      border-radius: 999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 12px;
+      border: 2px solid rgba(13,42,85,.18);
+      background: rgba(13,42,85,.10);
+      color: var(--navy2);
+    }
+    .flag{
+      width: 26px; height: 26px;
+      border-radius: 10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 14px;
+      border: 2px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.75);
+    }
+
+    .holeScore{
+      margin-top: 8px;
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 22px;
+      color: #111;
+      line-height: 1;
+      position:relative;
+      z-index:1;
+    }
+
+    .holeMeta{
+      margin-top: 8px;
+      display:flex;
+      justify-content:center;
+      gap:6px;
+      flex-wrap:wrap;
+      font-size: 10px;
+      font-weight: 900;
+      color: rgba(0,0,0,.60);
+      position:relative;
+      z-index:1;
+    }
+    .holeMeta span{
+      padding: 4px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.78);
+    }
+
+    /* Outcome styling vs par */
+    .holeCell.par{
+      border-color: rgba(0,0,0,.12);
+    }
+    .holeCell.birdie{
+      border-color: rgba(47,107,47,.35);
+      background:
+        radial-gradient(circle at 30% 0%, rgba(47,107,47,.14), transparent 60%),
+        rgba(255,255,255,.86);
+    }
+    .holeCell.eagle{
+      border-color: rgba(202,162,74,.42);
+      background:
+        radial-gradient(circle at 30% 0%, rgba(202,162,74,.20), transparent 60%),
+        rgba(255,255,255,.88);
+      box-shadow: 0 0 0 4px rgba(202,162,74,.10) inset;
+    }
+    .holeCell.bogey{
+      border-color: rgba(182,66,45,.30);
+      background:
+        radial-gradient(circle at 30% 0%, rgba(182,66,45,.10), transparent 60%),
+        rgba(255,255,255,.86);
+    }
+    .holeCell.double{
+      border-color: rgba(182,66,45,.40);
+      box-shadow: 0 0 0 4px rgba(182,66,45,.09) inset;
+    }
+    .holeCell.blank{
+      opacity:.75;
+      background: rgba(255,255,255,.72);
+    }
+
+    .sumRow{
+      padding: 10px 12px 12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      border-top: 1px solid rgba(0,0,0,.10);
+      background:
+        linear-gradient(90deg, rgba(13,42,85,.06), rgba(202,162,74,.06));
+    }
+    .sumPill{
+      display:flex; align-items:baseline; gap:8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 2px solid rgba(0,0,0,.12);
+      background: rgba(255,255,255,.78);
+      min-width: 160px;
+      justify-content:space-between;
+      font-weight: 1000;
+    }
+    .sumPill b{
+      font-family: Cinzel, serif;
+      letter-spacing: .4px;
+      font-size: 12px;
+      opacity:.9;
+    }
+    .sumPill span{
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 18px;
+      color: var(--navy2);
+    }
+
+    /* ===== TV Mode ===== */
+    body.tv .wrap{ max-width: 1400px; padding: 12px 12px 70px; }
+    body.tv h1{ font-size: 22px; }
+    body.tv .row{ padding: 14px 12px; }
+    body.tv .hdr{ font-size: 13px; }
+    body.tv .score{ font-size: 26px; }
+    body.tv .rankBox{ width: 60px; height: 48px; font-size: 20px; }
+    body.tv .courseHeaderMini{ width: 200px; height: 52px; }
+
+    @media (max-width: 900px){
+      .hdr, .row{ grid-template-columns: 58px 1.2fr 100px 84px 84px; }
+      .nine{ grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 740px){
+      .hdr, .row{ grid-template-columns: 58px 1fr 96px; }
+      .hdr .colThru, .hdr .colUpdated,
+      .row .colThru, .row .colUpdated{ display:none; }
+      .scoreBox{ align-items:flex-end; }
+    }
   </style>
 </head>
 
@@ -317,54 +796,108 @@
   <div class="wrap">
     <div class="card">
       <div class="top">
-        <img id="courseHeader" class="courseHeader" src="./assets/cypresswood_header.png" alt="Course Header" />
-
-        <div class="titleRow">
-          <div class="titleBlock">
-            <h1 id="pageTitle">Cypresswood Golf Club • Live Leaderboard</h1>
-            <div class="sub" id="pageMeta">Loading…</div>
+        <div class="topRow">
+          <div class="brand">
+            <img id="courseHeaderMini" class="courseHeaderMini" src="./assets/cypresswood_header.png" alt="Course Header" />
+            <div class="titleBlock">
+              <h1 id="pageTitle">Live Leaderboard</h1>
+              <div class="clubName">Cypresswood Golf Club</div>
+              <div class="meta" id="pageMeta">Loading…</div>
+            </div>
           </div>
 
-          <div class="pill" id="statusPill">⛳️ LIVE</div>
+          <div class="pillRow">
+            <div class="pill live" id="statusPill">⛳ LIVE</div>
+            <div class="pill mode" id="formatPill">FORMAT: —</div>
+          </div>
+
+          <div class="actions">
+            <button class="primary" id="refreshBtn">🔄 Refresh</button>
+            <a class="btn green" id="joinBtn" href="./index.html">👥 Join</a>
+            <button id="copyBtn">📋 Copy Link</button>
+            <a class="btn" id="tvBtn" href="#">📺 TV</a>
+          </div>
         </div>
 
-        <div id="sponsorHero" role="button" aria-label="Tournament Sponsor">
-          <div id="sponsorHeroTitle">Tournament Sponsor</div>
+        <div id="sponsorHero">
+          <div id="sponsorHeroTop">
+            <div id="sponsorHeroTitle">TOURNAMENT SPONSOR</div>
+            <a id="sponsorHeroLink" href="#" target="_blank" rel="noopener">Visit Sponsor</a>
+          </div>
           <div id="sponsorHeroRow">
             <img id="sponsorHeroLogo" alt="Sponsor Logo" />
             <div id="sponsorHeroName"></div>
           </div>
-        </div>
-
-        <div class="bar">
-          <div class="btnRow">
-            <button id="refreshBtn">🔄 Refresh</button>
-            <a id="joinBtn" class="btn btnPrimary" href="./index.html">👥 Join</a>
-            <button id="copyBtn">📋 Copy Link</button>
-            <button id="tvBtn">📺 TV Mode</button>
-          </div>
-        </div>
-
-        <div class="tvHint" id="tvHint">
-          TV Mode ON • Auto-scroll + Auto-refresh. Add <b>?tv=1</b> to the URL for display screens.
         </div>
       </div>
 
       <div class="board">
         <div class="hdr">
           <div>RANK</div>
-          <div>PLAYER / TEAM</div>
-          <div class="right" id="hdrRight">SCORE</div>
+          <div>TEAM / PLAYER</div>
+          <div style="text-align:right;">SCORE</div>
+          <div class="colThru" style="text-align:right;">THRU</div>
+          <div class="colUpdated" style="text-align:right;">UPDATED</div>
         </div>
 
         <div class="list" id="list"></div>
       </div>
+    </div>
+  </div>
 
-      <div class="footer">
-        <div>
-          <a href="./privacy.html" target="_blank" rel="noopener">Privacy</a>
-          &nbsp;•&nbsp;
-          <a href="./terms.html" target="_blank" rel="noopener">Terms</a>
+  <div id="ticker" style="display:none;">
+    <div class="tickerTop">
+      <div class="tickerLabel">Sponsored by</div>
+      <div class="tickerHint">(tap to open)</div>
+    </div>
+    <div class="tickerTrackWrap">
+      <div class="tickerTrack" id="tickerTrack"></div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="sheet" role="dialog" aria-modal="true">
+      <div class="sheetBanner">
+        <div class="sheetBannerTop">
+          <div class="sheetBannerLeft">
+            <p class="sheetName" id="modalName">—</p>
+            <div class="sheetSub" id="modalSub"></div>
+          </div>
+
+          <div class="sheetBannerRight">
+            <div class="bigScore" id="modalScore">—</div>
+            <div class="smallScore" id="modalScoreSub">—</div>
+          </div>
+
+          <button class="closeBtn" id="closeModal">✕ Close</button>
+        </div>
+      </div>
+
+      <div class="sheetBody">
+        <div class="cardBlock">
+          <div class="blockHdr">
+            <div>Front 9</div>
+            <div>Holes 1–9</div>
+          </div>
+          <div class="scoreGrid">
+            <div class="nine" id="frontNine"></div>
+          </div>
+          <div class="sumRow">
+            <div class="sumPill"><b>OUT</b> <span id="outSum">—</span></div>
+            <div class="sumPill"><b>IN</b> <span id="inSum">—</span></div>
+            <div class="sumPill"><b>TOTAL</b> <span id="totSum">—</span></div>
+          </div>
+        </div>
+
+        <div class="cardBlock">
+          <div class="blockHdr">
+            <div>Back 9</div>
+            <div>Holes 10–18</div>
+          </div>
+          <div class="scoreGrid">
+            <div class="nine" id="backNine"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -372,11 +905,8 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getFirestore, doc, getDoc, collection, onSnapshot
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // ===== Firebase config (same project) =====
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -387,62 +917,86 @@
       measurementId: "G-HL6Y9CLV8K"
     };
 
-    // ===== Course par/hcp data for relative + playoff =====
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ===== Course meta for Par + HCP + playoff ordering =====
     const COURSE_TRADITION = {
       id:"tradition",
-      title:"Tradition Course",
-      headerImg:"./assets/cypresswood_header.png",
-      parFront:[4,4,3,4,5,4,5,3,4],
-      parBack:[4,3,5,4,3,4,4,4,5],
-      hcpFront:[7,17,11,1,3,13,9,15,5],
-      hcpBack:[14,8,10,6,18,12,2,16,4],
+      headerMini:"./assets/cypresswood_header.png",
+      par:[4,4,3,4,5,4,5,3,4, 4,3,5,4,3,4,4,4,5],
+      hcp:[7,17,11,1,3,13,9,15,5, 14,8,10,6,18,12,2,16,4]
     };
 
     const COURSE_CYPRESS = {
       id:"cypress",
-      title:"Cypress Course",
-      headerImg:"./assets/cypress_header.png",
-      parFront:[5,4,4,4,3,4,3,5,4],
-      parBack:[4,4,4,4,3,5,3,5,4],
-      hcpFront:[3,13,11,7,15,9,17,1,5],
-      hcpBack:[6,10,12,14,18,2,16,4,8],
+      headerMini:"./assets/cypress_header.png",
+      par:[5,4,4,4,3,4,3,5,4, 4,4,4,4,3,5,3,5,4],
+      hcp:[3,13,11,7,15,9,17,1,5, 6,10,12,14,18,2,16,4,8]
     };
 
     const COURSES = { tradition: COURSE_TRADITION, cypress: COURSE_CYPRESS };
 
     // ===== DOM =====
-    const $ = (id) => document.getElementById(id);
-    const listEl = $("list");
-    const pageTitle = $("pageTitle");
-    const pageMeta = $("pageMeta");
-    const statusPill = $("statusPill");
-    const joinBtn = $("joinBtn");
-    const copyBtn = $("copyBtn");
-    const refreshBtn = $("refreshBtn");
-    const tvBtn = $("tvBtn");
-    const tvHint = $("tvHint");
-    const hdrRight = $("hdrRight");
-    const courseHeader = $("courseHeader");
+    const listEl = document.getElementById("list");
+    const pageMeta = document.getElementById("pageMeta");
+    const statusPill = document.getElementById("statusPill");
+    const formatPill = document.getElementById("formatPill");
+    const refreshBtn = document.getElementById("refreshBtn");
+    const joinBtn = document.getElementById("joinBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const tvBtn = document.getElementById("tvBtn");
+    const courseHeaderMini = document.getElementById("courseHeaderMini");
 
-    const sponsorHero = $("sponsorHero");
-    const sponsorHeroLogo = $("sponsorHeroLogo");
-    const sponsorHeroName = $("sponsorHeroName");
+    const sponsorHero = document.getElementById("sponsorHero");
+    const sponsorHeroLogo = document.getElementById("sponsorHeroLogo");
+    const sponsorHeroName = document.getElementById("sponsorHeroName");
+    const sponsorHeroLink = document.getElementById("sponsorHeroLink");
+    const ticker = document.getElementById("ticker");
+    const tickerTrack = document.getElementById("tickerTrack");
 
-    // ===== URL params =====
+    const modal = document.getElementById("modal");
+    const closeModalBtn = document.getElementById("closeModal");
+    const modalName = document.getElementById("modalName");
+    const modalSub = document.getElementById("modalSub");
+    const modalScore = document.getElementById("modalScore");
+    const modalScoreSub = document.getElementById("modalScoreSub");
+    const frontNine = document.getElementById("frontNine");
+    const backNine = document.getElementById("backNine");
+    const outSum = document.getElementById("outSum");
+    const inSum = document.getElementById("inSum");
+    const totSum = document.getElementById("totSum");
+
+    // ===== URL + STATE =====
     const params = new URLSearchParams(location.search);
     const tournamentId = (params.get("t") || "").trim();
     const tvMode = params.get("tv") === "1";
+    if (tvMode) document.body.classList.add("tv");
 
-    if(tvMode){
-      document.body.classList.add("tv");
-      tvBtn.textContent = "📺 TV Mode ON";
-      tvHint.style.display = "block";
+    let tournament = {
+      name: "Tournament",
+      date: "",
+      organizer: "",
+      courseDefault: "tradition",
+      format: "stroke",
+      sponsorName: "",
+      sponsorLogo: "",
+      sponsorUrl: "",
+      status: "open"
+    };
+
+    let course = COURSES[tournament.courseDefault] || COURSE_TRADITION;
+    const lastRankByKey = new Map();
+
+    function fmtFormat(f){
+      const x = (f || "stroke").toLowerCase();
+      if (x === "scramble") return "Scramble";
+      if (x === "bestball") return "Best Ball";
+      if (x === "skins") return "Skins";
+      return "Stroke Play";
     }
 
-    // ===== helpers =====
-    const escapeHtml = (s="") => String(s)
-      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    function safeNum(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
 
     function normalizeUrl(u){
       const s = (u || "").trim();
@@ -451,330 +1005,540 @@
       return "https://" + s;
     }
 
-    function buildParArray(courseId){
-      const c = COURSES[courseId] || COURSE_TRADITION;
-      return [...c.parFront, ...c.parBack];
+    function tsToText(ts){
+      try{
+        const d = ts?.toDate ? ts.toDate() : null;
+        if(!d) return "";
+        const hh = d.getHours();
+        const mm = String(d.getMinutes()).padStart(2,"0");
+        const h12 = ((hh + 11) % 12) + 1;
+        const ap = hh >= 12 ? "PM" : "AM";
+        return `${h12}:${mm} ${ap}`;
+      }catch(e){ return ""; }
     }
 
-    function computeRelativeToPar(total, courseId){
-      const pars = buildParArray(courseId);
-      const parTotal = pars.reduce((a,b)=>a+(Number(b)||0),0);
-      return total - parTotal;
+    function holesByHardestHcp(){
+      const pairs = course.hcp.map((hcp, idx) => ({ hole: idx+1, hcp }));
+      pairs.sort((a,b) => a.hcp - b.hcp);
+      return pairs.map(p => p.hole);
     }
 
-    function formatRel(rel){
-      if(rel === 0) return "E";
-      if(rel < 0) return String(rel);
-      return "+" + rel;
+    function getScore(scoresFlat, pIndex, hole){
+      const key = `p${pIndex}_h${hole}`;
+      const raw = scoresFlat?.[key];
+      const n = parseInt(raw, 10);
+      return Number.isFinite(n) ? n : null;
     }
 
-    function buildHcpRankOrder(courseId){
-      const c = COURSES[courseId] || COURSE_TRADITION;
-      const byHole = [];
-      for(let i=0;i<9;i++){
-        byHole.push({ hole:i+1, rank: Number(c.hcpFront[i]) || 99 });
-      }
-      for(let i=0;i<9;i++){
-        byHole.push({ hole:i+10, rank: Number(c.hcpBack[i]) || 99 });
-      }
-      byHole.sort((a,b)=>a.rank-b.rank);
-      return byHole.map(x=>x.hole); // hardest first (rank 1)
+    function calcThruFromScores(scoresArr18){
+      let c = 0;
+      for(let i=0;i<18;i++) if (scoresArr18[i] !== null) c++;
+      return c;
     }
 
-    // scoresFlat accessor
-    function getScoreFlat(sub, playerIndex, hole){
-      const k = `p${playerIndex}_h${hole}`;
-      const v = sub.scoresFlat?.[k];
-      const n = parseInt(v,10);
-      return Number.isFinite(n) ? n : 0;
+    function sumNine(scoresArr18, startIdx){
+      let s = 0;
+      for(let i=0;i<9;i++) s += (scoresArr18[startIdx+i] || 0);
+      return s;
     }
 
-    // THRU = how many holes have a number in p0 row (scramble) or bestball computed row
-    function computeThru(sub, fmt){
-      let filled = 0;
+    function derivePlayerScores(scoresFlat, pIndex){
+      const out = [];
+      for(let h=1; h<=18; h++) out.push(getScore(scoresFlat, pIndex, h));
+      return out;
+    }
+
+    function deriveBestBall(scoresFlat, playerCount=6){
+      const out = [];
       for(let h=1; h<=18; h++){
-        const v = sub.scoresFlat?.[`p0_h${h}`];
-        const n = parseInt(v,10);
-        if(Number.isFinite(n) && n > 0) filled++;
+        let best = null;
+        for(let p=0; p<playerCount; p++){
+          const s = getScore(scoresFlat, p, h);
+          if (s === null) continue;
+          if (best === null || s < best) best = s;
+        }
+        out.push(best);
       }
-      return filled;
+      return out;
     }
 
-    // Scorecard playoff tiebreak: compare hole score on hardest handicap hole, then next...
-    function playoffCompare(a,b,fmt,courseId){
-      const order = buildHcpRankOrder(courseId);
-      // Use p0 for scramble; otherwise compare player0 total-by-hole
+    function totalFromScores(scoresArr18){
+      return scoresArr18.reduce((a,v)=> a + (v || 0), 0);
+    }
+
+    function playoffKey(scoresArr18){
+      const order = holesByHardestHcp();
+      const key = [];
       for(const hole of order){
-        const as = getScoreFlat(a, 0, hole);
-        const bs = getScoreFlat(b, 0, hole);
-        if(as !== bs) return as - bs; // lower wins
+        const v = scoresArr18[hole-1];
+        key.push(v === null ? 999 : v);
+      }
+      return key;
+    }
+
+    function comparePlayoff(aScores, bScores){
+      const aKey = playoffKey(aScores);
+      const bKey = playoffKey(bScores);
+      for(let i=0;i<aKey.length;i++){
+        if (aKey[i] < bKey[i]) return -1;
+        if (aKey[i] > bKey[i]) return 1;
       }
       return 0;
     }
 
-    // Skins: winner per hole (unique low score) uses p0 row (team score) as requested
-    function computeSkinsForTeams(subs){
-      const skins = {};
-      subs.forEach(s => skins[s.id] = 0);
+    function escapeHtml(s){
+      return String(s || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
 
-      for(let h=1; h<=18; h++){
-        let best = Infinity;
-        subs.forEach(s=>{
-          const sc = getScoreFlat(s,0,h);
-          if(sc > 0) best = Math.min(best, sc);
-        });
-        if(!Number.isFinite(best) || best === Infinity) continue;
+    function renderSponsor(name, logo, url){
+      const n = (name || "").trim();
+      const l = (logo || "").trim();
+      const u = normalizeUrl(url);
 
-        const winners = subs.filter(s => getScoreFlat(s,0,h) === best);
-        if(winners.length === 1){
-          skins[winners[0].id] += 1;
+      if (!n && !l){
+        sponsorHero.style.display = "none";
+      } else {
+        sponsorHero.style.display = "block";
+        sponsorHeroName.textContent = n || "Tournament Sponsor";
+
+        if (l){
+          sponsorHeroLogo.src = l;
+          sponsorHeroLogo.style.display = "block";
+        } else {
+          sponsorHeroLogo.style.display = "none";
+        }
+
+        if (u){
+          sponsorHeroLink.href = u;
+          sponsorHeroLink.style.display = "inline-flex";
+        } else {
+          sponsorHeroLink.style.display = "none";
         }
       }
-      return skins;
-    }
 
-    // ===== UI motion state =====
-    const prevRank = new Map(); // deviceId => rank
-
-    function rankMoveText(oldRank, newRank){
-      if(oldRank == null) return { cls:"same", txt:"•" };
-      const d = oldRank - newRank;
-      if(d > 0) return { cls:"up", txt:`▲${d}` };
-      if(d < 0) return { cls:"down", txt:`▼${Math.abs(d)}` };
-      return { cls:"same", txt:"•" };
-    }
-
-    function applySponsorUI(t){
-      const name = (t.sponsorName || "").trim();
-      const logo = (t.sponsorLogo || "").trim();
-      const url = normalizeUrl(t.sponsorUrl || "");
-
-      if(!name && !logo){
-        sponsorHero.style.display = "none";
-        sponsorHero.onclick = null;
+      if (!n && !l){
+        ticker.style.display = "none";
+        tickerTrack.innerHTML = "";
         return;
       }
 
-      sponsorHero.style.display = "block";
-      sponsorHeroName.textContent = name || "Tournament Sponsor";
-
-      if(logo){
-        sponsorHeroLogo.src = logo;
-        sponsorHeroLogo.style.display = "block";
-      }else{
-        sponsorHeroLogo.style.display = "none";
-      }
-
-      sponsorHero.style.cursor = url ? "pointer" : "default";
-      sponsorHero.onclick = () => { if(url) window.open(url, "_blank"); };
+      ticker.style.display = "block";
+      const pill = `
+        <a class="sponsorPill" href="${u || "#"}" target="_blank" rel="noopener" style="${u ? "" : "pointer-events:none; opacity:.75;"}">
+          ${l ? `<img src="${l}" alt="Sponsor">` : `<img src="./assets/icon-192.png" alt="Sponsor">`}
+          <span>${escapeHtml(n || "Tournament Sponsor")}</span>
+        </a>
+      `;
+      tickerTrack.innerHTML = pill + pill + pill + pill;
     }
 
-    function setHeaderForCourse(courseId){
+    function setCourseHeaderMini(courseId){
       const c = COURSES[courseId] || COURSE_TRADITION;
-      courseHeader.src = c.headerImg;
-      courseHeader.alt = c.title + " Header";
+      courseHeaderMini.src = c.headerMini;
+      courseHeaderMini.alt = courseId === "cypress" ? "Cypress Header" : "Tradition Header";
+      course = c;
     }
 
-    // ===== Render =====
-    function render(subs, fmt, courseId){
-      // header right label
-      hdrRight.textContent = (fmt === "skins") ? "SKINS" : "TO PAR";
+    function buildEntriesFromSubmissionDoc(docData, docId){
+      const deviceId = docId;
+      const group = (docData.group || "").trim();
+      const playerName = (docData.playerName || "").trim();
+      const names = Array.isArray(docData.names) ? docData.names : [];
+      const scoresFlat = docData.scoresFlat || {};
+      const totals = Array.isArray(docData.totals) ? docData.totals : [];
+      const updatedAt = docData.updatedAt;
 
-      // Compute totals + rel + thru
-      subs.forEach(s=>{
-        const tot = Number(s.totals?.[0]?.tot || s.totals?.[0]?.total || s.totals?.[0]?.t || s.totals?.[0]?.tot) || Number(s.totals?.[0]?.tot) || 0;
-        // In your writes, totals is an array of objects: [{out,inn,tot}, ...]
-        const first = s.totals?.[0];
-        s.__total = Number(first?.tot || 0) || 0;
-        s.__rel = computeRelativeToPar(s.__total, courseId);
-        s.__thru = computeThru(s, fmt);
-      });
+      const teamName = group || (names[0] || playerName || "Team");
+      const scorerName = playerName || names[0] || "";
 
-      // Sort
-      if(fmt === "skins"){
-        const skinsMap = computeSkinsForTeams(subs);
-        subs.forEach(s=> s.__skins = skinsMap[s.id] || 0);
-        subs.sort((a,b)=>{
-          if(b.__skins !== a.__skins) return b.__skins - a.__skins;
-          if(a.__total !== b.__total) return a.__total - b.__total;
-          return playoffCompare(a,b,fmt,courseId);
-        });
-      } else {
-        subs.sort((a,b)=>{
-          if(a.__total !== b.__total) return a.__total - b.__total;
-          return playoffCompare(a,b,fmt,courseId);
-        });
+      const base = {
+        deviceId,
+        group,
+        playerName: scorerName,
+        names,
+        scoresFlat,
+        totals,
+        updatedAt,
+        courseId: docData.courseId || tournament.courseDefault || "tradition"
+      };
+
+      const fmt = (tournament.format || "stroke").toLowerCase();
+
+      if (fmt === "scramble"){
+        const scores = derivePlayerScores(scoresFlat, 0);
+        const total = safeNum(totals?.[0]?.tot ?? totalFromScores(scores));
+        const thru = calcThruFromScores(scores);
+        return [{
+          ...base,
+          key: `scr_${deviceId}`,
+          displayName: teamName,
+          subLine: scorerName && group ? `Scorer: ${scorerName}` : "",
+          kind: "team",
+          scores,
+          total,
+          thru,
+          skins: 0
+        }];
       }
 
-      // Render rows
-      listEl.innerHTML = "";
-      subs.forEach((sub, idx)=>{
+      if (fmt === "bestball"){
+        const scores = deriveBestBall(scoresFlat, 6);
+        const total = totalFromScores(scores);
+        const thru = calcThruFromScores(scores);
+        return [{
+          ...base,
+          key: `bb_${deviceId}`,
+          displayName: teamName,
+          subLine: scorerName && group ? `Team • Scorer: ${scorerName}` : (scorerName ? `Team • ${scorerName}` : "Team"),
+          kind: "team",
+          scores,
+          total,
+          thru,
+          skins: 0
+        }];
+      }
+
+      if (fmt === "skins"){
+        const out = [];
+        for(let i=0;i<6;i++){
+          const nm = (names[i] || "").trim();
+          const display = nm || (i === 0 ? (playerName || teamName) : `Player ${i+1}`);
+          const scores = derivePlayerScores(scoresFlat, i);
+          const total = safeNum(totals?.[i]?.tot ?? totalFromScores(scores));
+          const thru = calcThruFromScores(scores);
+
+          out.push({
+            ...base,
+            key: `sk_${deviceId}_p${i}`,
+            displayName: display,
+            subLine: group ? `Group: ${group}` : (teamName ? `Card: ${teamName}` : ""),
+            kind: "player",
+            playerIndex: i,
+            scores,
+            total,
+            thru,
+            skins: 0
+          });
+        }
+        return out;
+      }
+
+      const items = [];
+      for(let i=0;i<6;i++){
+        const nm = (names[i] || "").trim();
+        const display = nm || (i === 0 ? (playerName || teamName) : `Player ${i+1}`);
+        const scores = derivePlayerScores(scoresFlat, i);
+        const total = safeNum(totals?.[i]?.tot ?? totalFromScores(scores));
+        const thru = calcThruFromScores(scores);
+
+        items.push({
+          ...base,
+          key: `st_${deviceId}_p${i}`,
+          displayName: display,
+          subLine: group ? `Group: ${group}` : (teamName ? `Card: ${teamName}` : ""),
+          kind: "player",
+          playerIndex: i,
+          scores,
+          total,
+          thru,
+          skins: 0
+        });
+      }
+      return items;
+    }
+
+    function computeSkins(entries){
+      for(const e of entries) e.skins = 0;
+
+      for(let h=1; h<=18; h++){
+        let low = null;
+        let lowEntry = null;
+        let tie = false;
+
+        for(const e of entries){
+          const s = e.scores[h-1];
+          if (s === null) continue;
+          if (low === null || s < low){
+            low = s;
+            lowEntry = e;
+            tie = false;
+          } else if (s === low){
+            tie = true;
+          }
+        }
+        if (low !== null && lowEntry && !tie) lowEntry.skins++;
+      }
+    }
+
+    function sortEntries(entries){
+      const fmt = (tournament.format || "stroke").toLowerCase();
+
+      if (fmt === "skins"){
+        computeSkins(entries);
+        entries.sort((a,b) => {
+          if (b.skins !== a.skins) return b.skins - a.skins;
+          if (a.total !== b.total) return a.total - b.total;
+          return comparePlayoff(a.scores, b.scores);
+        });
+        return;
+      }
+
+      entries.sort((a,b) => {
+        if (a.total !== b.total) return a.total - b.total;
+        return comparePlayoff(a.scores, b.scores);
+      });
+    }
+
+    function formatScoreDisplay(e){
+      const fmt = (tournament.format || "stroke").toLowerCase();
+      if (fmt === "skins"){
+        return { big: String(e.skins), sub: `Skins • Total ${e.total}` };
+      }
+      return { big: String(e.total), sub: fmt === "bestball" ? "Best Ball" : (fmt === "scramble" ? "Team Total" : "Gross") };
+    }
+
+    function render(entries){
+      if (!entries.length){
+        listEl.innerHTML = `<div style="padding:14px; font-weight:900; opacity:.75;">No submissions yet.</div>`;
+        return;
+      }
+
+      const currentRankByKey = new Map();
+      entries.forEach((e, idx) => currentRankByKey.set(e.key, idx+1));
+
+      const html = entries.map((e, idx) => {
         const rank = idx + 1;
-        const old = prevRank.get(sub.id);
-        const mv = rankMoveText(old, rank);
-        prevRank.set(sub.id, rank);
+        const prev = lastRankByKey.get(e.key);
+        const movedUp = (prev && rank < prev);
+        const movedDown = (prev && rank > prev);
+        const moveBadge = prev ? (movedUp ? `<div class="move up">▲</div>` : (movedDown ? `<div class="move down">▼</div>` : ``)) : ``;
 
-        // MAIN name logic:
-        // - show Group as big name if present (team)
-        // - otherwise show playerName
-        // - show the other one beneath (so you never "lose" the name)
-        const group = (sub.group || "").trim();
-        const player = (sub.playerName || "").trim();
-        const bigName = group || player || "Player";
-        const smallLine = group && player ? `Keeper: ${player}` : (sub.startHole ? `Start: ${sub.startHole}` : "");
+        const topClass = rank === 1 ? "top1" : "";
+        const flash = prev && (movedUp || movedDown) ? "flash" : "";
 
-        const scoreBig = (fmt === "skins") ? String(sub.__skins || 0) : formatRel(sub.__rel);
-        const scoreSmall = (fmt === "skins")
-          ? `Tot ${sub.__total} • Thru ${sub.__thru}`
-          : `Tot ${sub.__total} • Thru ${sub.__thru}`;
+        const s = formatScoreDisplay(e);
+        const updatedText = tsToText(e.updatedAt);
 
-        const row = document.createElement("div");
-        row.className = "row";
-        if(rank === 1) row.classList.add("leader","top1");
-        if(rank === 2) row.classList.add("top2");
-        if(rank === 3) row.classList.add("top3");
-        if(old != null && old !== rank) row.classList.add("flash");
+        const chips = [];
+        if ((tournament.format || "").toLowerCase() === "skins"){
+          chips.push(`<span class="chip gold">Skins: ${e.skins}</span>`);
+        }
+        chips.push(`<span class="chip navy">${escapeHtml(fmtFormat(tournament.format))}</span>`);
+        if (e.thru) chips.push(`<span class="chip">Thru ${e.thru}</span>`);
 
-        row.innerHTML = `
-          <div class="rankBadge">
-            <div class="rankNum">${rank}</div>
-            <div class="rankMove ${mv.cls}">${mv.txt}</div>
-          </div>
+        return `
+          <div class="row ${topClass} ${flash}" data-key="${escapeHtml(e.key)}">
+            <div class="rankBox">${rank}${moveBadge}</div>
 
-          <div class="who">
-            <div class="name">${escapeHtml(bigName)}</div>
-            <div class="meta">
-              ${smallLine ? `<span class="chip">👤 ${escapeHtml(smallLine)}</span>` : ""}
-              ${sub.courseId ? `<span class="chip">⛳️ ${escapeHtml(sub.courseId)}</span>` : ""}
-              ${sub.updatedAt?.toDate ? `<span class="chip">🕒 Updated</span>` : ""}
+            <div class="name">
+              <div class="mainName" title="${escapeHtml(e.displayName)}">${escapeHtml(e.displayName)}</div>
+              ${e.subLine ? `<div class="subName">${escapeHtml(e.subLine)}</div>` : (e.kind === "team" && e.playerName && e.displayName !== e.playerName ? `<div class="subName">${escapeHtml(e.playerName)}</div>` : ``)}
+              <div class="chips">${chips.join("")}</div>
             </div>
-          </div>
 
-          <div class="scoreBox">
-            <div class="bigScore">${escapeHtml(scoreBig)}</div>
-            <div class="smallScore">${escapeHtml(scoreSmall)}</div>
+            <div class="scoreBox">
+              <div class="score">${escapeHtml(s.big)}</div>
+              <div class="scoreSub">${escapeHtml(s.sub)}</div>
+            </div>
+
+            <div class="thin colThru">${e.thru || 0}</div>
+            <div class="thin colUpdated">${escapeHtml(updatedText || "")}</div>
           </div>
         `;
+      }).join("");
 
-        listEl.appendChild(row);
+      listEl.innerHTML = html;
+
+      currentRankByKey.forEach((r,k) => lastRankByKey.set(k,r));
+
+      listEl.querySelectorAll(".row").forEach(el => {
+        el.addEventListener("click", () => {
+          const key = el.getAttribute("data-key");
+          const e = entries.find(x => x.key === key);
+          if (e) openModal(e);
+        });
       });
     }
 
-    // ===== TV auto scroll =====
-    let tvScrollTimer = null;
-    function startTvAutoScroll(){
-      stopTvAutoScroll();
-      const stepPx = 1;       // scroll speed
-      const tickMs = 18;      // smooth
-      tvScrollTimer = setInterval(()=>{
-        const max = document.documentElement.scrollHeight - window.innerHeight;
-        if(max <= 0) return;
-        const y = window.scrollY + stepPx;
-        if(y >= max){
-          window.scrollTo({ top: 0, behavior: "instant" });
-        }else{
-          window.scrollTo({ top: y, behavior: "instant" });
-        }
-      }, tickMs);
-    }
-    function stopTvAutoScroll(){
-      if(tvScrollTimer) clearInterval(tvScrollTimer);
-      tvScrollTimer = null;
+    function resultClass(score, par){
+      if (score === null) return "blank";
+      const d = score - par;
+      if (d <= -2) return "eagle";
+      if (d === -1) return "birdie";
+      if (d === 0) return "par";
+      if (d === 1) return "bogey";
+      if (d >= 2) return "double";
+      return "par";
     }
 
-    // ===== Init =====
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    function openModal(e){
+      modalName.textContent = e.displayName || "Scorecard";
+      const fmt = fmtFormat(tournament.format);
+      const updatedText = tsToText(e.updatedAt);
 
-    if(!tournamentId){
-      pageMeta.textContent = "Missing tournament id. Use ?t=TOURNAMENT_ID";
-      statusPill.textContent = "⚠️ NO TOURNAMENT";
-    }else{
+      const tags = [];
+      if (tournament.name) tags.push(`🏆 ${tournament.name}`);
+      tags.push(`⛳ ${fmt}`);
+      if (e.group) tags.push(`👥 ${e.group}`);
+      if (e.playerName) tags.push(`✍️ ${e.playerName}`);
+      if (updatedText) tags.push(`🕒 ${updatedText}`);
+      if (e.thru) tags.push(`✅ Thru ${e.thru}`);
+
+      modalSub.innerHTML = tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("");
+
+      const scoreDisplay = formatScoreDisplay(e);
+      modalScore.textContent = scoreDisplay.big;
+      modalScoreSub.textContent = scoreDisplay.sub;
+
+      frontNine.innerHTML = "";
+      backNine.innerHTML = "";
+
+      for(let h=1; h<=18; h++){
+        const score = e.scores[h-1];
+        const par = course.par[h-1];
+        const hcp = course.hcp[h-1];
+
+        const cell = document.createElement("div");
+        cell.className = `holeCell ${resultClass(score, par)}`;
+
+        const top = document.createElement("div");
+        top.className = "holeTop";
+
+        const badge = document.createElement("div");
+        badge.className = "holeBadge";
+        badge.textContent = String(h);
+
+        const flag = document.createElement("div");
+        flag.className = "flag";
+        flag.textContent = "⛳️";
+
+        top.appendChild(badge);
+        top.appendChild(flag);
+
+        const holeScore = document.createElement("div");
+        holeScore.className = "holeScore";
+        holeScore.textContent = (score === null) ? "—" : String(score);
+
+        const holeMeta = document.createElement("div");
+        holeMeta.className = "holeMeta";
+        holeMeta.innerHTML = `<span>Par ${par}</span><span>HCP ${hcp}</span>`;
+
+        cell.appendChild(top);
+        cell.appendChild(holeScore);
+        cell.appendChild(holeMeta);
+
+        if (h <= 9) frontNine.appendChild(cell);
+        else backNine.appendChild(cell);
+      }
+
+      const outV = sumNine(e.scores, 0);
+      const inV = sumNine(e.scores, 9);
+      outSum.textContent = String(outV);
+      inSum.textContent = String(inV);
+
+      if ((tournament.format || "").toLowerCase() === "skins"){
+        totSum.textContent = `${e.total} (Skins ${e.skins})`;
+      } else {
+        totSum.textContent = String(e.total);
+      }
+
+      modal.classList.add("show");
+    }
+
+    function closeModal(){ modal.classList.remove("show"); }
+    closeModalBtn.addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+    // ===== Boot =====
+    if (!tournamentId){
+      pageMeta.textContent = "Missing tournament id (?t=...)";
+      statusPill.textContent = "⚠️ MISSING TOURNAMENT";
+      statusPill.classList.remove("live");
+      formatPill.textContent = "FORMAT: —";
+      joinBtn.href = "./index.html";
+    } else {
       joinBtn.href = `./index.html?t=${encodeURIComponent(tournamentId)}`;
+      tvBtn.href = `${location.pathname}?t=${encodeURIComponent(tournamentId)}&tv=1`;
 
-      // Copy link
       copyBtn.addEventListener("click", async () => {
         try{
           await navigator.clipboard.writeText(location.href);
           copyBtn.textContent = "✅ Copied";
-          setTimeout(()=>copyBtn.textContent="📋 Copy Link", 1200);
+          setTimeout(()=> copyBtn.textContent = "📋 Copy Link", 900);
         }catch(e){
-          alert("Copy blocked. Long-press the URL and copy.");
+          alert("Copy blocked. Tap the address bar and copy the URL.");
         }
       });
 
-      // Toggle TV mode
-      tvBtn.addEventListener("click", ()=>{
-        const u = new URL(location.href);
-        if(u.searchParams.get("tv") === "1"){
-          u.searchParams.delete("tv");
-        }else{
-          u.searchParams.set("tv","1");
+      refreshBtn.addEventListener("click", () => location.reload());
+
+      try{
+        const tSnap = await getDoc(doc(db, "tournaments", tournamentId));
+        if (tSnap.exists()){
+          const t = tSnap.data() || {};
+          tournament = {
+            ...tournament,
+            ...t,
+            sponsorUrl: t.sponsorUrl || t.sponsorWebsite || ""
+          };
+
+          pageMeta.textContent = `${tournament.name || "Tournament"}${tournament.date ? " • " + tournament.date : ""}`;
+          formatPill.textContent = `FORMAT: ${fmtFormat(tournament.format)}`;
+
+          setCourseHeaderMini(tournament.courseDefault || "tradition");
+          renderSponsor(tournament.sponsorName || "", tournament.sponsorLogo || "", tournament.sponsorUrl || "");
+
+          if ((tournament.status || "open") === "closed"){
+            statusPill.textContent = "⛔ CLOSED";
+            statusPill.classList.remove("live");
+          } else {
+            statusPill.textContent = "⛳ LIVE";
+            statusPill.classList.add("live");
+          }
+        } else {
+          pageMeta.textContent = "Tournament not found.";
+          statusPill.textContent = "⚠️ NOT FOUND";
+          statusPill.classList.remove("live");
         }
-        location.href = u.toString();
-      });
-
-      // Refresh button (soft refresh)
-      refreshBtn.addEventListener("click", ()=>{
-        statusPill.textContent = "🔄 REFRESHING…";
-        setTimeout(()=>statusPill.textContent="⛳️ LIVE", 700);
-      });
-
-      // Load tournament settings once, then live-listen submissions
-      let tournamentFormat = "stroke";
-      let courseId = "tradition";
-
-      const tRef = doc(db, "tournaments", tournamentId);
-      const subsRef = collection(db, "tournaments", tournamentId, "submissions");
-
-      const tSnap = await getDoc(tRef);
-      if(tSnap.exists()){
-        const t = tSnap.data() || {};
-        tournamentFormat = (t.format || "stroke").toString().trim();
-        courseId = (t.courseDefault || "tradition").toString().trim();
-        if(!COURSES[courseId]) courseId = "tradition";
-
-        setHeaderForCourse(courseId);
-        applySponsorUI(t);
-
-        const niceFormat =
-          tournamentFormat === "scramble" ? "Scramble" :
-          tournamentFormat === "bestball" ? "Best Ball" :
-          tournamentFormat === "skins" ? "Skins" :
-          "Stroke Play";
-
-        pageMeta.textContent = `${escapeHtml(t.name || "Tournament")} • ${niceFormat} • ${COURSES[courseId].title}`;
-      }else{
-        pageMeta.textContent = `Tournament: ${tournamentId}`;
+      }catch(e){
+        pageMeta.textContent = "Tournament load error.";
+        statusPill.textContent = "⚠️ ERROR";
+        statusPill.classList.remove("live");
       }
 
-      // Live listen
-      onSnapshot(subsRef, (snap)=>{
-        const subs = [];
-        snap.forEach(d=>{
-          const data = d.data() || {};
-          subs.push({ id:d.id, ...data });
+      const subCol = collection(db, "tournaments", tournamentId, "submissions");
+      const q = query(subCol);
+
+      onSnapshot(q, (snap) => {
+        const entries = [];
+        snap.forEach(d => {
+          const built = buildEntriesFromSubmissionDoc(d.data() || {}, d.id);
+          for(const b of built) entries.push(b);
         });
-
-        // Filter out empty docs if needed
-        render(subs, tournamentFormat, courseId);
-
-        statusPill.textContent = "⛳️ LIVE";
-      }, (err)=>{
-        console.error(err);
-        statusPill.textContent = "⚠️ ERROR";
-        pageMeta.textContent = "Could not load leaderboard (Firestore rules or network).";
+        sortEntries(entries);
+        render(entries);
+      }, () => {
+        pageMeta.textContent = "Live updates blocked (rules/network).";
       });
 
-      // TV extras
-      if(tvMode){
-        startTvAutoScroll();
-        // optional periodic hard refresh for TVs
-        setInterval(()=>location.reload(), 1000 * 60 * 5); // every 5 min
+      if (tvMode){
+        let dir = 1;
+        setInterval(() => {
+          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+          if (maxScroll <= 0) return;
+          const y = window.scrollY;
+          const step = 2.2;
+          if (y >= maxScroll - 4) dir = -1;
+          if (y <= 4) dir = 1;
+          window.scrollTo({ top: y + (step * dir), behavior: "auto" });
+        }, 30);
       }
     }
   </script>
-
-  <script src="./pwa.js"></script>
 </body>
 </html>
