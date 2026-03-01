@@ -28,8 +28,8 @@
       /* ESPN-ish greens */
       --fairway1:#0f5a34;
       --fairway2:#0b3f26;
-      --rough:#08301d;
 
+      /* alternating subtle row stripes */
       --stripe: rgba(13,42,85,.05);
       --stripe2: rgba(202,162,74,.06);
     }
@@ -936,7 +936,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ===== Course meta for Par + HCP + playoff ordering =====
+    // ===== Course meta =====
     const COURSE_TRADITION = {
       id:"tradition",
       headerMini:"./assets/cypresswood_header.png",
@@ -1007,6 +1007,8 @@
     };
 
     let course = COURSES[tournament.courseDefault] || COURSE_TRADITION;
+
+    // movement tracking
     const lastRankByKey = new Map();
 
     function fmtFormat(f){
@@ -1058,12 +1060,21 @@
       parPill.textContent = `TOTAL PAR: ${totalPar}`;
     }
 
-    // ===== Par scoring helpers =====
+    // =============================================================================
+    // ✅ REAL "ACTIVE PLAYER" LOGIC (broadcast-correct)
+    // Treat 0/blank/null as NOT PLAYING. Only >0 counts as a real stroke.
+    // =============================================================================
+    function isRealStroke(v){
+      const n = Number(v);
+      return Number.isFinite(n) && n > 0;
+    }
+
+    // Read score from scoresFlat. Returns null unless it is a real stroke (>0).
     function getScore(scoresFlat, pIndex, hole){
       const key = `p${pIndex}_h${hole}`;
       const raw = scoresFlat?.[key];
       const n = parseInt(raw, 10);
-      return Number.isFinite(n) ? n : null;
+      return (Number.isFinite(n) && n > 0) ? n : null;
     }
 
     function derivePlayerScores(scoresFlat, pIndex){
@@ -1086,35 +1097,43 @@
       return out;
     }
 
+    function hasAnyRealScore(scoresArr18){
+      return scoresArr18.some(v => isRealStroke(v));
+    }
+
     function calcThruFromScores(scoresArr18){
       let c = 0;
-      for(let i=0;i<18;i++) if (scoresArr18[i] !== null) c++;
+      for(let i=0;i<18;i++){
+        if (isRealStroke(scoresArr18[i])) c++;
+      }
       return c;
     }
 
     function sumNine(scoresArr18, startIdx){
       let s = 0;
-      for(let i=0;i<9;i++) s += (scoresArr18[startIdx+i] || 0);
+      for(let i=0;i<9;i++){
+        const v = scoresArr18[startIdx+i];
+        s += (Number.isFinite(Number(v)) ? (v || 0) : 0);
+      }
       return s;
     }
 
     function totalFromScores(scoresArr18){
-      return scoresArr18.reduce((a,v)=> a + (v || 0), 0);
+      return scoresArr18.reduce((a,v)=> a + (Number.isFinite(Number(v)) ? (v || 0) : 0), 0);
     }
 
     function toParFromScores(scoresArr18){
-      // only count holes with scores entered
+      // ✅ only count holes with REAL scores entered (>0)
       let rel = 0;
       for(let i=0;i<18;i++){
         const s = scoresArr18[i];
-        if (s === null) continue;
+        if (!isRealStroke(s)) continue;
         rel += (s - (course.par[i] || 0));
       }
       return rel;
     }
 
     function formatToPar(rel){
-      // TV style: -3, E, +4
       if (rel === 0) return "E";
       return rel > 0 ? `+${rel}` : String(rel);
     }
@@ -1136,7 +1155,7 @@
       const key = [];
       for(const hole of order){
         const v = scoresArr18[hole-1];
-        key.push(v === null ? 999 : v);
+        key.push(isRealStroke(v) ? v : 999);
       }
       return key;
     }
@@ -1154,13 +1173,20 @@
     // ===== Enterprise Sponsor rendering =====
     function getActiveSponsors(){
       const raw = Array.isArray(tournament.sponsors) ? tournament.sponsors : [];
-      const active = raw.filter(s => s && s.active !== false && (String(s.name||"").trim() || String(s.logoUrl||"").trim()));
+      const active = raw.filter(s =>
+        s &&
+        s.active !== false &&
+        (String(s.name||"").trim() || String(s.logoUrl||"").trim() || String(s.logo||"").trim())
+      );
+
+      // tolerate either logoUrl or logo (if old data)
+      active.forEach(s => { if (!s.logoUrl && s.logo) s.logoUrl = s.logo; });
+
       active.sort((a,b) => (Number(a.sort ?? 999) || 999) - (Number(b.sort ?? 999) || 999));
       return active;
     }
 
     function pickHeroSponsor(active){
-      // Prefer tier=title, else first
       const title = active.find(s => String(s.tier||"").toLowerCase() === "title");
       return title || active[0] || null;
     }
@@ -1168,7 +1194,7 @@
     function renderSponsors(){
       const active = getActiveSponsors();
 
-      // fallback to legacy single sponsor if no sponsors array
+      // fallback to legacy single sponsor fields
       if (!active.length){
         const name = (tournament.sponsorName || "").trim();
         const logo = (tournament.sponsorLogo || "").trim();
@@ -1179,7 +1205,7 @@
           tickerTrack.innerHTML = "";
           return;
         }
-        // hero
+
         sponsorHero.style.display = "block";
         sponsorHeroName.textContent = name || "Tournament Sponsor";
         if (logo){ sponsorHeroLogo.src = logo; sponsorHeroLogo.style.display = "block"; }
@@ -1187,7 +1213,6 @@
         if (url){ sponsorHeroLink.href = url; sponsorHeroLink.style.display = "inline-flex"; }
         else sponsorHeroLink.style.display = "none";
 
-        // ticker
         ticker.style.display = "block";
         const pill = `
           <a class="sponsorPill" href="${url || "#"}" target="_blank" rel="noopener"
@@ -1199,7 +1224,6 @@
         return;
       }
 
-      // hero from enterprise
       const hero = pickHeroSponsor(active);
       const heroName = (hero?.name || "").trim();
       const heroLogo = (hero?.logoUrl || "").trim();
@@ -1212,7 +1236,6 @@
       if (heroUrl){ sponsorHeroLink.href = heroUrl; sponsorHeroLink.style.display = "inline-flex"; }
       else sponsorHeroLink.style.display = "none";
 
-      // ticker: all active sponsors
       ticker.style.display = "block";
       const pills = active.map(s => {
         const n = (s.name || "").trim() || "Sponsor";
@@ -1226,11 +1249,10 @@
           </a>`;
       }).join("");
 
-      // duplicate track so marquee loops smoothly
-      tickerTrack.innerHTML = pills + pills;
+      tickerTrack.innerHTML = pills + pills; // duplicate for smooth loop
     }
 
-    // ===== Entry building (team/player) =====
+    // ===== Build entries =====
     function buildEntriesFromSubmissionDoc(docData, docId){
       const deviceId = docId;
       const group = (docData.group || "").trim();
@@ -1256,8 +1278,10 @@
 
       const fmt = (tournament.format || "stroke").toLowerCase();
 
+      // ✅ Scramble: always ONE team row, only show if any real score exists
       if (fmt === "scramble"){
         const scores = derivePlayerScores(scoresFlat, 0);
+        if (!hasAnyRealScore(scores)) return [];
         const total = safeNum(totals?.[0]?.tot ?? totalFromScores(scores));
         const thru = calcThruFromScores(scores);
         const toPar = toParFromScores(scores);
@@ -1275,8 +1299,10 @@
         }];
       }
 
+      // ✅ Best Ball: always ONE team row, only show if any real score exists
       if (fmt === "bestball"){
         const scores = deriveBestBall(scoresFlat, 6);
+        if (!hasAnyRealScore(scores)) return [];
         const total = totalFromScores(scores);
         const thru = calcThruFromScores(scores);
         const toPar = toParFromScores(scores);
@@ -1294,12 +1320,16 @@
         }];
       }
 
+      // ✅ Skins: only ACTIVE players (must have at least one real score)
       if (fmt === "skins"){
         const out = [];
         for(let i=0;i<6;i++){
           const nm = (names[i] || "").trim();
           const display = nm || (i === 0 ? (playerName || teamName) : `Player ${i+1}`);
           const scores = derivePlayerScores(scoresFlat, i);
+
+          if (!hasAnyRealScore(scores)) continue; // ✅ key fix
+
           const total = safeNum(totals?.[i]?.tot ?? totalFromScores(scores));
           const thru = calcThruFromScores(scores);
           const toPar = toParFromScores(scores);
@@ -1321,12 +1351,15 @@
         return out;
       }
 
-      // stroke (default): 6 players
+      // ✅ Stroke (default): only ACTIVE players (must have at least one real score)
       const items = [];
       for(let i=0;i<6;i++){
         const nm = (names[i] || "").trim();
         const display = nm || (i === 0 ? (playerName || teamName) : `Player ${i+1}`);
         const scores = derivePlayerScores(scoresFlat, i);
+
+        if (!hasAnyRealScore(scores)) continue; // ✅ key fix
+
         const total = safeNum(totals?.[i]?.tot ?? totalFromScores(scores));
         const thru = calcThruFromScores(scores);
         const toPar = toParFromScores(scores);
@@ -1348,6 +1381,7 @@
       return items;
     }
 
+    // ===== Skins calc (only among ACTIVE entries already) =====
     function computeSkins(entries){
       for(const e of entries) e.skins = 0;
 
@@ -1358,7 +1392,7 @@
 
         for(const e of entries){
           const s = e.scores[h-1];
-          if (s === null) continue;
+          if (!isRealStroke(s)) continue;
           if (low === null || s < low){
             low = s;
             lowEntry = e;
@@ -1384,10 +1418,9 @@
         return;
       }
 
-      // ✅ primary sort: TO PAR
+      // primary sort: TO PAR
       entries.sort((a,b) => {
         if (a.toPar !== b.toPar) return a.toPar - b.toPar;
-        // secondary: total strokes (only for stable ordering), then playoff
         if (a.total !== b.total) return a.total - b.total;
         return comparePlayoff(a.scores, b.scores);
       });
@@ -1401,39 +1434,47 @@
       return { big: formatToPar(e.toPar), sub: fmt === "bestball" ? "Best Ball" : (fmt === "scramble" ? "Team" : "Gross") };
     }
 
-    // ===== T ranks =====
+    // ===== T ranks (TV style) =====
+    function tieKeyForRanking(e){
+      const fmt = (tournament.format || "stroke").toLowerCase();
+      // broadcast style ties:
+      // - Stroke/Scramble/BestBall: tied if same toPar
+      // - Skins: tied if same skins (primary board stat)
+      if (fmt === "skins") return `skins:${e.skins}`;
+      return `topar:${e.toPar}`;
+    }
+
     function computeDisplayRanks(entries){
-      // produces an array of strings: ["1", "T2", ...]
       const out = [];
       let lastKey = null;
       let lastRank = 0;
 
       for(let i=0;i<entries.length;i++){
         const e = entries[i];
-        const tieKey = `${e.toPar}|${e.total}|${playoffKey(e.scores).join(",")}`;
+        const k = tieKeyForRanking(e);
+
         if (i === 0){
-          lastKey = tieKey;
+          lastKey = k;
           lastRank = 1;
           out.push("1");
         } else {
-          const isTie = (tieKey === lastKey);
+          const isTie = (k === lastKey);
           if (isTie){
             out.push(`T${lastRank}`);
           } else {
             lastRank = i + 1;
-            lastKey = tieKey;
+            lastKey = k;
             out.push(String(lastRank));
           }
         }
       }
-      // normalize first row if tied with second: show T1
       if (out.length >= 2 && out[1] === "T1") out[0] = "T1";
       return out;
     }
 
     function render(entries){
       if (!entries.length){
-        listEl.innerHTML = `<div style="padding:14px; font-weight:900; opacity:.75;">No submissions yet.</div>`;
+        listEl.innerHTML = `<div style="padding:14px; font-weight:900; opacity:.75;">No active golfers yet.</div>`;
         return;
       }
 
@@ -1498,7 +1539,7 @@
     }
 
     function resultClass(score, par){
-      if (score === null) return "blank";
+      if (!isRealStroke(score)) return "blank";
       const d = score - par;
       if (d <= -2) return "eagle";
       if (d === -1) return "birdie";
@@ -1554,7 +1595,7 @@
 
         const holeScore = document.createElement("div");
         holeScore.className = "holeScore";
-        holeScore.textContent = (score === null) ? "—" : String(score);
+        holeScore.textContent = isRealStroke(score) ? String(score) : "—";
 
         const holeMeta = document.createElement("div");
         holeMeta.className = "holeMeta";
@@ -1617,7 +1658,9 @@
           tournament = {
             ...tournament,
             ...t,
+            // tolerate old field names
             sponsorUrl: t.sponsorUrl || t.sponsorWebsite || "",
+            sponsorLogo: t.sponsorLogo || t.sponsorLogoUrl || "",
             sponsors: Array.isArray(t.sponsors) ? t.sponsors : []
           };
 
@@ -1654,6 +1697,7 @@
           const built = buildEntriesFromSubmissionDoc(d.data() || {}, d.id);
           for(const b of built) entries.push(b);
         });
+
         sortEntries(entries);
         render(entries);
       }, () => {
