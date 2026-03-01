@@ -18,19 +18,20 @@
 
       --navy:#0d2a55;
       --navy2:#0b2246;
+      --gold:#caa24a;
 
-      --tvGold:#caa24a;
-      --tvGold2:#ffd36a;
-
-      --rowA: rgba(255,255,255,.72);
-      --rowB: rgba(255,255,255,.62);
+      --row2: rgba(255,255,255,.72);
 
       --good:#2f6b2f;
       --bad:#b6422d;
 
+      /* ESPN-ish greens */
       --fairway1:#0f5a34;
       --fairway2:#0b3f26;
       --rough:#08301d;
+
+      --stripe: rgba(13,42,85,.05);
+      --stripe2: rgba(202,162,74,.06);
     }
 
     *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
@@ -45,7 +46,7 @@
       font-family: Georgia, 'Times New Roman', serif;
     }
 
-    .wrap{ max-width: 1120px; margin: 0 auto; padding: 12px 12px 140px; }
+    .wrap{ max-width: 1120px; margin: 0 auto; padding: 12px 12px 92px; }
 
     .card{
       background: var(--card);
@@ -90,7 +91,6 @@
 
     .titleBlock{
       display:flex; flex-direction:column; gap:2px;
-      min-width: 180px;
     }
 
     h1{
@@ -141,9 +141,9 @@
       color: var(--navy2);
     }
     .pill.par{
-      border-color: rgba(255,211,106,.45);
-      background: rgba(255,211,106,.16);
-      color: #5a4300;
+      border-color: rgba(202,162,74,.25);
+      background: rgba(202,162,74,.10);
+      color: #4a3a10;
     }
 
     .actions{
@@ -184,7 +184,7 @@
       border-radius: 14px;
       border: 2px solid rgba(0,0,0,.12);
       background:
-        linear-gradient(135deg, rgba(255,211,106,.22), rgba(13,42,85,.08)),
+        linear-gradient(135deg, rgba(202,162,74,.18), rgba(13,42,85,.08)),
         rgba(255,255,255,.55);
       padding: 10px 12px;
     }
@@ -237,20 +237,18 @@
 
     .hdr{
       display:grid;
-      grid-template-columns: 72px 1.3fr 120px 90px 90px;
+      grid-template-columns: 74px 1.35fr 120px 90px 90px;
       gap:10px;
       align-items:center;
       padding: 10px 10px;
       border-radius: 12px;
-      background:
-        linear-gradient(90deg, rgba(13,42,85,.18), rgba(255,211,106,.14));
+      background: linear-gradient(90deg, rgba(13,42,85,.12), rgba(202,162,74,.10));
       border: 2px solid rgba(0,0,0,.12);
       font-family: Cinzel, serif;
       font-weight: 900;
       letter-spacing: .5px;
       font-size: 12px;
     }
-    .hdr .right{ text-align:right; }
 
     .list{
       margin-top: 10px;
@@ -261,25 +259,33 @@
 
     .row{
       display:grid;
-      grid-template-columns: 72px 1.3fr 120px 90px 90px;
+      grid-template-columns: 74px 1.35fr 120px 90px 90px;
       gap:10px;
       align-items:center;
       padding: 12px 10px;
       border-radius: 14px;
+      background: var(--row2);
       border: 2px solid rgba(0,0,0,.10);
       cursor:pointer;
       position:relative;
       overflow:hidden;
     }
-    .row:nth-child(odd){ background: var(--rowA); }
-    .row:nth-child(even){ background: var(--rowB); }
+    .row:nth-child(odd){
+      background:
+        linear-gradient(90deg, var(--stripe), transparent 55%),
+        rgba(255,255,255,.72);
+    }
+    .row:nth-child(even){
+      background:
+        linear-gradient(90deg, var(--stripe2), transparent 55%),
+        rgba(255,255,255,.72);
+    }
 
     .row:active{ transform: translateY(1px); }
 
-    /* Rank badge (TV style) */
     .rankBox{
       display:flex; align-items:center; justify-content:center;
-      width: 66px; height: 44px;
+      width: 70px; height: 44px;
       border-radius: 12px;
       background: rgba(13,42,85,.12);
       border: 2px solid rgba(13,42,85,.20);
@@ -344,8 +350,8 @@
       color: rgba(0,0,0,.75);
     }
     .chip.gold{
-      background: rgba(255,211,106,.18);
-      border-color: rgba(255,211,106,.30);
+      background: rgba(202,162,74,.14);
+      border-color: rgba(202,162,74,.25);
       color: #4a3a10;
     }
     .chip.navy{
@@ -354,7 +360,6 @@
       color: var(--navy2);
     }
 
-    /* SCORE BOX (to-par primary) */
     .scoreBox{
       display:flex;
       flex-direction:column;
@@ -364,14 +369,12 @@
     .score{
       font-family: Cinzel, serif;
       font-weight: 900;
-      font-size: 26px;
-      letter-spacing: .6px;
+      font-size: 22px;
+      letter-spacing: .5px;
       color: var(--navy2);
-      line-height: 1;
     }
-    .score.under{ color: #114011; }
-    .score.over{ color: #5c1b11; }
-
+    .score.good{ color: #114011; }
+    .score.bad{ color: #5c1b11; }
     .scoreSub{
       font-size: 11px;
       font-weight: 900;
@@ -385,49 +388,19 @@
       color: rgba(0,0,0,.78);
     }
 
-    /* ===== Broadcast leader accent (like TV boards) ===== */
+    /* Top 1 glow */
     .row.top1{
-      position: relative;
-      border-left: 6px solid var(--tvGold2);
       background:
-        linear-gradient(90deg,
-          rgba(255,211,106,.18) 0%,
-          rgba(255,211,106,.10) 12%,
-          rgba(255,255,255,.72) 28%
-        );
-      border-color: rgba(255,211,106,.26);
-    }
-    .row.top1::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:
-        linear-gradient(
-          110deg,
-          transparent 40%,
-          rgba(255,255,255,.18) 50%,
-          transparent 60%
-        );
-      opacity:.0;
-      pointer-events:none;
-      animation: leaderSheen 3.5s ease-in-out infinite;
-    }
-    @keyframes leaderSheen{
-      0%{ opacity:0; transform: translateX(-20%); }
-      40%{ opacity:.6; }
-      60%{ opacity:.15; }
-      100%{ opacity:0; transform: translateX(25%); }
-    }
-    .row.top1 .rankBox{
-      background: rgba(255,211,106,.22);
-      border-color: rgba(255,211,106,.55);
-      color:#5a4300;
+        radial-gradient(circle at 10% 50%, rgba(202,162,74,.18), transparent 55%),
+        radial-gradient(circle at 90% 30%, rgba(13,42,85,.14), transparent 55%),
+        rgba(255,255,255,.72);
+      border-color: rgba(202,162,74,.22);
     }
 
     .flash{ animation: flash 800ms ease-out; }
     @keyframes flash{
       0%{ box-shadow: 0 0 0 rgba(0,0,0,0); }
-      25%{ box-shadow: 0 0 0 6px rgba(255,211,106,.18); }
+      25%{ box-shadow: 0 0 0 6px rgba(202,162,74,.18); }
       100%{ box-shadow: 0 0 0 rgba(0,0,0,0); }
     }
 
@@ -436,11 +409,11 @@
       position: fixed;
       left: 0;
       right: 0;
-      bottom: 44px; /* leaves room for legal footer */
+      bottom: 0;
       z-index: 20;
       border-top: 3px solid var(--border);
       background:
-        linear-gradient(90deg, rgba(13,42,85,.18), rgba(255,211,106,.16)),
+        linear-gradient(90deg, rgba(13,42,85,.18), rgba(202,162,74,.16)),
         rgba(239,231,215,.96);
       backdrop-filter: blur(6px);
     }
@@ -469,7 +442,7 @@
       align-items:center;
       gap:12px;
       padding: 10px 12px;
-      animation: marquee 18s linear infinite;
+      animation: marquee 24s linear infinite;
       will-change: transform;
     }
     @keyframes marquee{
@@ -498,36 +471,7 @@
       background: rgba(0,0,0,.06);
     }
 
-    /* ===== Legal Footer ===== */
-    #legalFooter{
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 25;
-      border-top: 2px solid rgba(0,0,0,.12);
-      background: rgba(239,231,215,.96);
-      backdrop-filter: blur(6px);
-      padding: 10px 12px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-      font-weight: 900;
-      font-size: 12px;
-      color: rgba(0,0,0,.72);
-    }
-    #legalFooter a{
-      color: inherit;
-      text-decoration: underline;
-      font-weight: 1000;
-    }
-    #legalFooter .links{
-      display:flex; gap:14px; flex-wrap:wrap;
-    }
-
-    /* ===== Modal (Broadcast hole tiles) ===== */
+    /* ===== Modal (Broadcast Sheet) ===== */
     .modal{
       position: fixed;
       inset: 0;
@@ -547,7 +491,7 @@
       border-radius: 18px;
       border: 2px solid rgba(255,255,255,.18);
       background:
-        radial-gradient(circle at 18% 0%, rgba(255,211,106,.22), transparent 60%),
+        radial-gradient(circle at 18% 0%, rgba(202,162,74,.22), transparent 60%),
         radial-gradient(circle at 82% 8%, rgba(13,42,85,.22), transparent 65%),
         rgba(239,231,215,.98);
       box-shadow: 0 18px 50px rgba(0,0,0,.45);
@@ -623,7 +567,7 @@
 
     .sheetBannerRight{
       text-align:right;
-      min-width: 170px;
+      min-width: 160px;
     }
     .bigScore{
       font-family: Cinzel, serif;
@@ -679,7 +623,7 @@
       gap:10px;
       border-bottom: 1px solid rgba(0,0,0,.10);
       background:
-        linear-gradient(90deg, rgba(13,42,85,.12), rgba(255,211,106,.10));
+        linear-gradient(90deg, rgba(13,42,85,.12), rgba(202,162,74,.10));
       font-family: Cinzel, serif;
       font-weight: 900;
       letter-spacing: .5px;
@@ -702,7 +646,7 @@
       border-radius: 16px;
       border: 2px solid rgba(0,0,0,.12);
       background:
-        radial-gradient(circle at 30% 0%, rgba(255,211,106,.10), transparent 60%),
+        radial-gradient(circle at 30% 0%, rgba(202,162,74,.10), transparent 60%),
         rgba(255,255,255,.82);
       padding: 10px 8px 10px;
       text-align:center;
@@ -780,7 +724,6 @@
       background: rgba(255,255,255,.78);
     }
 
-    .holeCell.par{ border-color: rgba(0,0,0,.12); }
     .holeCell.birdie{
       border-color: rgba(47,107,47,.35);
       background:
@@ -788,11 +731,11 @@
         rgba(255,255,255,.86);
     }
     .holeCell.eagle{
-      border-color: rgba(255,211,106,.42);
+      border-color: rgba(202,162,74,.42);
       background:
-        radial-gradient(circle at 30% 0%, rgba(255,211,106,.20), transparent 60%),
+        radial-gradient(circle at 30% 0%, rgba(202,162,74,.20), transparent 60%),
         rgba(255,255,255,.88);
-      box-shadow: 0 0 0 4px rgba(255,211,106,.10) inset;
+      box-shadow: 0 0 0 4px rgba(202,162,74,.10) inset;
     }
     .holeCell.bogey{
       border-color: rgba(182,66,45,.30);
@@ -817,7 +760,7 @@
       justify-content:space-between;
       border-top: 1px solid rgba(0,0,0,.10);
       background:
-        linear-gradient(90deg, rgba(13,42,85,.06), rgba(255,211,106,.06));
+        linear-gradient(90deg, rgba(13,42,85,.06), rgba(202,162,74,.06));
     }
     .sumPill{
       display:flex; align-items:baseline; gap:8px;
@@ -825,7 +768,7 @@
       border-radius: 999px;
       border: 2px solid rgba(0,0,0,.12);
       background: rgba(255,255,255,.78);
-      min-width: 170px;
+      min-width: 160px;
       justify-content:space-between;
       font-weight: 1000;
     }
@@ -843,20 +786,20 @@
     }
 
     /* ===== TV Mode ===== */
-    body.tv .wrap{ max-width: 1400px; padding: 12px 12px 140px; }
+    body.tv .wrap{ max-width: 1400px; padding: 12px 12px 70px; }
     body.tv h1{ font-size: 22px; }
     body.tv .row{ padding: 14px 12px; }
     body.tv .hdr{ font-size: 13px; }
-    body.tv .score{ font-size: 30px; }
-    body.tv .rankBox{ width: 72px; height: 48px; font-size: 20px; }
+    body.tv .score{ font-size: 26px; }
+    body.tv .rankBox{ width: 78px; height: 48px; font-size: 20px; }
     body.tv .courseHeaderMini{ width: 200px; height: 52px; }
 
     @media (max-width: 900px){
-      .hdr, .row{ grid-template-columns: 72px 1.2fr 110px 84px 84px; }
+      .hdr, .row{ grid-template-columns: 74px 1.2fr 120px 84px 84px; }
       .nine{ grid-template-columns: repeat(3, 1fr); }
     }
     @media (max-width: 740px){
-      .hdr, .row{ grid-template-columns: 72px 1fr 110px; }
+      .hdr, .row{ grid-template-columns: 74px 1fr 120px; }
       .hdr .colThru, .hdr .colUpdated,
       .row .colThru, .row .colUpdated{ display:none; }
       .scoreBox{ align-items:flex-end; }
@@ -908,9 +851,9 @@
         <div class="hdr">
           <div>RANK</div>
           <div>TEAM / PLAYER</div>
-          <div class="right">TO PAR</div>
-          <div class="right colThru">THRU</div>
-          <div class="right colUpdated">UPDATED</div>
+          <div style="text-align:right;">TO PAR</div>
+          <div class="colThru" style="text-align:right;">THRU</div>
+          <div class="colUpdated" style="text-align:right;">UPDATED</div>
         </div>
 
         <div class="list" id="list"></div>
@@ -925,14 +868,6 @@
     </div>
     <div class="tickerTrackWrap">
       <div class="tickerTrack" id="tickerTrack"></div>
-    </div>
-  </div>
-
-  <div id="legalFooter">
-    <div>© <span id="legalYear"></span> Electronic Scorecard Solutions (DBA) • Elb Solutions LLC</div>
-    <div class="links">
-      <a href="./privacy.html" target="_blank" rel="noopener">Privacy</a>
-      <a href="./terms.html" target="_blank" rel="noopener">Terms</a>
     </div>
   </div>
 
@@ -988,7 +923,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, doc, getDoc, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // ===== Firebase config =====
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -1053,9 +987,6 @@
     const inSum = document.getElementById("inSum");
     const totSum = document.getElementById("totSum");
 
-    // legal year
-    document.getElementById("legalYear").textContent = String(new Date().getFullYear());
-
     // ===== URL + STATE =====
     const params = new URLSearchParams(location.search);
     const tournamentId = (params.get("t") || "").trim();
@@ -1071,6 +1002,7 @@
       sponsorName: "",
       sponsorLogo: "",
       sponsorUrl: "",
+      sponsors: [],
       status: "open"
     };
 
@@ -1084,6 +1016,8 @@
       if (x === "skins") return "Skins";
       return "Stroke Play";
     }
+
+    function safeNum(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
 
     function normalizeUrl(u){
       const s = (u || "").trim();
@@ -1120,77 +1054,11 @@
       clubNameEl.textContent = c.clubName || "Golf Club";
       course = c;
 
-      const parTotal = c.par.reduce((a,b)=>a+(Number(b)||0),0);
-      parPill.textContent = `TOTAL PAR: ${parTotal}`;
+      const totalPar = c.par.reduce((a,b)=>a+(Number(b)||0),0);
+      parPill.textContent = `TOTAL PAR: ${totalPar}`;
     }
 
-    function renderSponsor(name, logo, url){
-      const n = (name || "").trim();
-      const l = (logo || "").trim();
-      const u = normalizeUrl(url);
-
-      if (!n && !l){
-        sponsorHero.style.display = "none";
-      } else {
-        sponsorHero.style.display = "block";
-        sponsorHeroName.textContent = n || "Tournament Sponsor";
-
-        if (l){
-          sponsorHeroLogo.src = l;
-          sponsorHeroLogo.style.display = "block";
-        } else {
-          sponsorHeroLogo.style.display = "none";
-        }
-
-        if (u){
-          sponsorHeroLink.href = u;
-          sponsorHeroLink.style.display = "inline-flex";
-        } else {
-          sponsorHeroLink.style.display = "none";
-        }
-      }
-
-      if (!n && !l){
-        ticker.style.display = "none";
-        tickerTrack.innerHTML = "";
-        return;
-      }
-
-      ticker.style.display = "block";
-      const safeHref = u || "#";
-      const disabled = u ? "" : "pointer-events:none; opacity:.75;";
-      const pill = `
-        <a class="sponsorPill" href="${safeHref}" target="_blank" rel="noopener" style="${disabled}">
-          ${l ? `<img src="${l}" alt="Sponsor">` : `<img src="./assets/icon-192.png" alt="Sponsor">`}
-          <span>${escapeHtml(n || "Tournament Sponsor")}</span>
-        </a>
-      `;
-      tickerTrack.innerHTML = pill + pill + pill + pill;
-    }
-
-    // ===== To-par helpers =====
-    function toParText(v){
-      const n = Number(v);
-      if (!Number.isFinite(n)) return "—";
-      if (n === 0) return "E";
-      return (n > 0 ? `+${n}` : `${n}`);
-    }
-
-    function scoreClassByToPar(v){
-      const n = Number(v);
-      if (!Number.isFinite(n)) return "";
-      if (n < 0) return "under";
-      if (n > 0) return "over";
-      return "";
-    }
-
-    // ===== HCP playoff ordering (hardest first) =====
-    function holesByHardestHcp(){
-      const pairs = course.hcp.map((hcp, idx) => ({ hole: idx+1, hcp }));
-      pairs.sort((a,b) => a.hcp - b.hcp);
-      return pairs.map(p => p.hole);
-    }
-
+    // ===== Par scoring helpers =====
     function getScore(scoresFlat, pIndex, hole){
       const key = `p${pIndex}_h${hole}`;
       const raw = scoresFlat?.[key];
@@ -1218,29 +1086,49 @@
       return out;
     }
 
-    function calcThru(scoresArr18){
+    function calcThruFromScores(scoresArr18){
       let c = 0;
       for(let i=0;i<18;i++) if (scoresArr18[i] !== null) c++;
       return c;
     }
 
-    function totalStrokes(scoresArr18){
+    function sumNine(scoresArr18, startIdx){
+      let s = 0;
+      for(let i=0;i<9;i++) s += (scoresArr18[startIdx+i] || 0);
+      return s;
+    }
+
+    function totalFromScores(scoresArr18){
       return scoresArr18.reduce((a,v)=> a + (v || 0), 0);
     }
 
-    function totalParForPlayed(scoresArr18){
-      let p = 0;
+    function toParFromScores(scoresArr18){
+      // only count holes with scores entered
+      let rel = 0;
       for(let i=0;i<18;i++){
-        if (scoresArr18[i] !== null) p += (course.par[i] || 0);
+        const s = scoresArr18[i];
+        if (s === null) continue;
+        rel += (s - (course.par[i] || 0));
       }
-      return p;
+      return rel;
     }
 
-    function toParValue(scoresArr18){
-      // to-par for played holes (works live thru)
-      const strokes = totalStrokes(scoresArr18);
-      const p = totalParForPlayed(scoresArr18);
-      return strokes - p;
+    function formatToPar(rel){
+      // TV style: -3, E, +4
+      if (rel === 0) return "E";
+      return rel > 0 ? `+${rel}` : String(rel);
+    }
+
+    function toParClass(rel){
+      if (rel === 0) return "";
+      return rel < 0 ? "good" : "bad";
+    }
+
+    // ===== Scorecard playoff (hardest HCP hole order) =====
+    function holesByHardestHcp(){
+      const pairs = course.hcp.map((hcp, idx) => ({ hole: idx+1, hcp }));
+      pairs.sort((a,b) => a.hcp - b.hcp);
+      return pairs.map(p => p.hole);
     }
 
     function playoffKey(scoresArr18){
@@ -1263,10 +1151,88 @@
       return 0;
     }
 
-    // ===== Entries builder (FIX: group is NOT the main name) =====
+    // ===== Enterprise Sponsor rendering =====
+    function getActiveSponsors(){
+      const raw = Array.isArray(tournament.sponsors) ? tournament.sponsors : [];
+      const active = raw.filter(s => s && s.active !== false && (String(s.name||"").trim() || String(s.logoUrl||"").trim()));
+      active.sort((a,b) => (Number(a.sort ?? 999) || 999) - (Number(b.sort ?? 999) || 999));
+      return active;
+    }
+
+    function pickHeroSponsor(active){
+      // Prefer tier=title, else first
+      const title = active.find(s => String(s.tier||"").toLowerCase() === "title");
+      return title || active[0] || null;
+    }
+
+    function renderSponsors(){
+      const active = getActiveSponsors();
+
+      // fallback to legacy single sponsor if no sponsors array
+      if (!active.length){
+        const name = (tournament.sponsorName || "").trim();
+        const logo = (tournament.sponsorLogo || "").trim();
+        const url  = normalizeUrl(tournament.sponsorUrl || "");
+        if (!name && !logo){
+          sponsorHero.style.display = "none";
+          ticker.style.display = "none";
+          tickerTrack.innerHTML = "";
+          return;
+        }
+        // hero
+        sponsorHero.style.display = "block";
+        sponsorHeroName.textContent = name || "Tournament Sponsor";
+        if (logo){ sponsorHeroLogo.src = logo; sponsorHeroLogo.style.display = "block"; }
+        else sponsorHeroLogo.style.display = "none";
+        if (url){ sponsorHeroLink.href = url; sponsorHeroLink.style.display = "inline-flex"; }
+        else sponsorHeroLink.style.display = "none";
+
+        // ticker
+        ticker.style.display = "block";
+        const pill = `
+          <a class="sponsorPill" href="${url || "#"}" target="_blank" rel="noopener"
+             style="${url ? "" : "pointer-events:none; opacity:.75;"}">
+            ${logo ? `<img src="${logo}" alt="Sponsor">` : `<img src="./assets/icon-192.png" alt="Sponsor">`}
+            <span>${escapeHtml(name || "Tournament Sponsor")}</span>
+          </a>`;
+        tickerTrack.innerHTML = pill + pill + pill + pill;
+        return;
+      }
+
+      // hero from enterprise
+      const hero = pickHeroSponsor(active);
+      const heroName = (hero?.name || "").trim();
+      const heroLogo = (hero?.logoUrl || "").trim();
+      const heroUrl  = normalizeUrl(hero?.website || "");
+
+      sponsorHero.style.display = "block";
+      sponsorHeroName.textContent = heroName || "Tournament Sponsor";
+      if (heroLogo){ sponsorHeroLogo.src = heroLogo; sponsorHeroLogo.style.display = "block"; }
+      else sponsorHeroLogo.style.display = "none";
+      if (heroUrl){ sponsorHeroLink.href = heroUrl; sponsorHeroLink.style.display = "inline-flex"; }
+      else sponsorHeroLink.style.display = "none";
+
+      // ticker: all active sponsors
+      ticker.style.display = "block";
+      const pills = active.map(s => {
+        const n = (s.name || "").trim() || "Sponsor";
+        const l = (s.logoUrl || "").trim();
+        const u = normalizeUrl(s.website || "");
+        return `
+          <a class="sponsorPill" href="${u || "#"}" target="_blank" rel="noopener"
+             style="${u ? "" : "pointer-events:none; opacity:.75;"}">
+            ${l ? `<img src="${l}" alt="Sponsor">` : `<img src="./assets/icon-192.png" alt="Sponsor">`}
+            <span>${escapeHtml(n)}</span>
+          </a>`;
+      }).join("");
+
+      // duplicate track so marquee loops smoothly
+      tickerTrack.innerHTML = pills + pills;
+    }
+
+    // ===== Entry building (team/player) =====
     function buildEntriesFromSubmissionDoc(docData, docId){
       const deviceId = docId;
-
       const group = (docData.group || "").trim();
       const playerName = (docData.playerName || "").trim();
       const names = Array.isArray(docData.names) ? docData.names : [];
@@ -1274,10 +1240,13 @@
       const totals = Array.isArray(docData.totals) ? docData.totals : [];
       const updatedAt = docData.updatedAt;
 
+      const teamName = group || (names[0] || playerName || "Team");
+      const scorerName = playerName || names[0] || "";
+
       const base = {
         deviceId,
         group,
-        playerName,
+        playerName: scorerName,
         names,
         scoresFlat,
         totals,
@@ -1287,104 +1256,98 @@
 
       const fmt = (tournament.format || "stroke").toLowerCase();
 
-      // SCRAMBLE: only p0 row; main display is scorer/playerName (NOT group)
       if (fmt === "scramble"){
         const scores = derivePlayerScores(scoresFlat, 0);
-        const thru = calcThru(scores);
-        const strokes = Number(totals?.[0]?.tot ?? totalStrokes(scores)) || totalStrokes(scores);
-        const toPar = toParValue(scores);
-
+        const total = safeNum(totals?.[0]?.tot ?? totalFromScores(scores));
+        const thru = calcThruFromScores(scores);
+        const toPar = toParFromScores(scores);
         return [{
           ...base,
           key: `scr_${deviceId}`,
-          displayName: playerName || names[0] || "Team",
-          subLine: group ? `Group: ${group}` : "",
+          displayName: teamName,
+          subLine: scorerName && group ? `Scorer: ${scorerName}` : "",
           kind: "team",
           scores,
-          thru,
-          strokes,
+          total,
           toPar,
+          thru,
           skins: 0
         }];
       }
 
-      // BEST BALL: compute best ball across p0..p5; main display is scorer/playerName
       if (fmt === "bestball"){
         const scores = deriveBestBall(scoresFlat, 6);
-        const thru = calcThru(scores);
-        const strokes = totalStrokes(scores);
-        const toPar = toParValue(scores);
-
+        const total = totalFromScores(scores);
+        const thru = calcThruFromScores(scores);
+        const toPar = toParFromScores(scores);
         return [{
           ...base,
           key: `bb_${deviceId}`,
-          displayName: playerName || names[0] || "Team",
-          subLine: group ? `Group: ${group}` : "",
+          displayName: teamName,
+          subLine: scorerName && group ? `Team • Scorer: ${scorerName}` : (scorerName ? `Team • ${scorerName}` : "Team"),
           kind: "team",
           scores,
-          thru,
-          strokes,
+          total,
           toPar,
+          thru,
           skins: 0
         }];
       }
 
-      // SKINS: player list (6)
       if (fmt === "skins"){
         const out = [];
         for(let i=0;i<6;i++){
           const nm = (names[i] || "").trim();
-          const display = nm || (i === 0 ? (playerName || "Player 1") : `Player ${i+1}`);
+          const display = nm || (i === 0 ? (playerName || teamName) : `Player ${i+1}`);
           const scores = derivePlayerScores(scoresFlat, i);
-          const thru = calcThru(scores);
-          const strokes = Number(totals?.[i]?.tot ?? totalStrokes(scores)) || totalStrokes(scores);
-          const toPar = toParValue(scores);
+          const total = safeNum(totals?.[i]?.tot ?? totalFromScores(scores));
+          const thru = calcThruFromScores(scores);
+          const toPar = toParFromScores(scores);
 
           out.push({
             ...base,
             key: `sk_${deviceId}_p${i}`,
             displayName: display,
-            subLine: group ? `Group: ${group}` : "",
+            subLine: group ? `Group: ${group}` : (teamName ? `Card: ${teamName}` : ""),
             kind: "player",
             playerIndex: i,
             scores,
-            thru,
-            strokes,
+            total,
             toPar,
+            thru,
             skins: 0
           });
         }
         return out;
       }
 
-      // STROKE: player list (6)
+      // stroke (default): 6 players
       const items = [];
       for(let i=0;i<6;i++){
         const nm = (names[i] || "").trim();
-        const display = nm || (i === 0 ? (playerName || "Player 1") : `Player ${i+1}`);
+        const display = nm || (i === 0 ? (playerName || teamName) : `Player ${i+1}`);
         const scores = derivePlayerScores(scoresFlat, i);
-        const thru = calcThru(scores);
-        const strokes = Number(totals?.[i]?.tot ?? totalStrokes(scores)) || totalStrokes(scores);
-        const toPar = toParValue(scores);
+        const total = safeNum(totals?.[i]?.tot ?? totalFromScores(scores));
+        const thru = calcThruFromScores(scores);
+        const toPar = toParFromScores(scores);
 
         items.push({
           ...base,
           key: `st_${deviceId}_p${i}`,
           displayName: display,
-          subLine: group ? `Group: ${group}` : "",
+          subLine: group ? `Group: ${group}` : (teamName ? `Card: ${teamName}` : ""),
           kind: "player",
           playerIndex: i,
           scores,
-          thru,
-          strokes,
+          total,
           toPar,
+          thru,
           skins: 0
         });
       }
       return items;
     }
 
-    // ===== Skins engine =====
     function computeSkins(entries){
       for(const e of entries) e.skins = 0;
 
@@ -1408,80 +1371,64 @@
       }
     }
 
-    // ===== Sorting + T-rank labels =====
     function sortEntries(entries){
       const fmt = (tournament.format || "stroke").toLowerCase();
 
       if (fmt === "skins"){
         computeSkins(entries);
         entries.sort((a,b) => {
-          if (b.skins !== a.skins) return b.skins - a.skins;      // more skins better
-          if (a.toPar !== b.toPar) return a.toPar - b.toPar;      // lower to-par better
+          if (b.skins !== a.skins) return b.skins - a.skins;
+          if (a.toPar !== b.toPar) return a.toPar - b.toPar;
           return comparePlayoff(a.scores, b.scores);
         });
         return;
       }
 
+      // ✅ primary sort: TO PAR
       entries.sort((a,b) => {
-        if (a.toPar !== b.toPar) return a.toPar - b.toPar;        // lower to-par better
+        if (a.toPar !== b.toPar) return a.toPar - b.toPar;
+        // secondary: total strokes (only for stable ordering), then playoff
+        if (a.total !== b.total) return a.total - b.total;
         return comparePlayoff(a.scores, b.scores);
       });
     }
 
-    function metricKey(e){
+    function formatScoreDisplay(e){
       const fmt = (tournament.format || "stroke").toLowerCase();
-      if (fmt === "skins") return `skins:${e.skins}|topar:${e.toPar}`;
-      return `topar:${e.toPar}`;
+      if (fmt === "skins"){
+        return { big: String(e.skins), sub: `Skins • ${formatToPar(e.toPar)}` };
+      }
+      return { big: formatToPar(e.toPar), sub: fmt === "bestball" ? "Best Ball" : (fmt === "scramble" ? "Team" : "Gross") };
     }
 
-    function computeRankLabels(entries){
-      // competition ranking with ties: T1, T1, 3...
-      const labels = new Map();
+    // ===== T ranks =====
+    function computeDisplayRanks(entries){
+      // produces an array of strings: ["1", "T2", ...]
+      const out = [];
       let lastKey = null;
-      let lastRank = 1;
+      let lastRank = 0;
 
       for(let i=0;i<entries.length;i++){
         const e = entries[i];
-        const k = metricKey(e);
-
+        const tieKey = `${e.toPar}|${e.total}|${playoffKey(e.scores).join(",")}`;
         if (i === 0){
-          lastKey = k;
+          lastKey = tieKey;
           lastRank = 1;
-          labels.set(e.key, "1");
-          continue;
-        }
-
-        if (k === lastKey){
-          labels.set(e.key, "T" + String(lastRank));
+          out.push("1");
         } else {
-          lastRank = i + 1;
-          labels.set(e.key, String(lastRank));
-          lastKey = k;
+          const isTie = (tieKey === lastKey);
+          if (isTie){
+            out.push(`T${lastRank}`);
+          } else {
+            lastRank = i + 1;
+            lastKey = tieKey;
+            out.push(String(lastRank));
+          }
         }
       }
-
-      // if first place has ties, first also should show T1 (broadcast style)
-      if (entries.length >= 2 && metricKey(entries[0]) === metricKey(entries[1])){
-        labels.set(entries[0].key, "T1");
-      }
-
-      return labels;
-    }
-
-    function formatScoreDisplay(e){
-      const fmt = (tournament.format || "stroke").toLowerCase();
-
-      if (fmt === "skins"){
-        return {
-          big: String(e.skins),
-          sub: `Skins • ${toParText(e.toPar)}`
-        };
-      }
-
-      return {
-        big: toParText(e.toPar),
-        sub: `Strokes ${e.strokes}`
-      };
+      // normalize first row if tied with second: show T1
+      if (out.length >= 2 && out[1] === "T1") out[0] = "T1";
+      return out;
     }
 
     function render(entries){
@@ -1490,20 +1437,19 @@
         return;
       }
 
-      const rankLabels = computeRankLabels(entries);
+      const displayRanks = computeDisplayRanks(entries);
+
       const currentRankByKey = new Map();
       entries.forEach((e, idx) => currentRankByKey.set(e.key, idx+1));
 
       const html = entries.map((e, idx) => {
-        const rank = idx + 1;
-        const rankLabel = rankLabels.get(e.key) || String(rank);
-
         const prev = lastRankByKey.get(e.key);
-        const movedUp = (prev && rank < prev);
-        const movedDown = (prev && rank > prev);
+        const rankNum = idx + 1;
+        const movedUp = (prev && rankNum < prev);
+        const movedDown = (prev && rankNum > prev);
         const moveBadge = prev ? (movedUp ? `<div class="move up">▲</div>` : (movedDown ? `<div class="move down">▼</div>` : ``)) : ``;
 
-        const topClass = rank === 1 ? "top1" : "";
+        const topClass = rankNum === 1 ? "top1" : "";
         const flash = prev && (movedUp || movedDown) ? "flash" : "";
 
         const s = formatScoreDisplay(e);
@@ -1516,20 +1462,20 @@
         chips.push(`<span class="chip navy">${escapeHtml(fmtFormat(tournament.format))}</span>`);
         if (e.thru) chips.push(`<span class="chip">Thru ${e.thru}</span>`);
 
-        const scoreCls = scoreClassByToPar(e.toPar);
+        const scoreCls = `score ${toParClass(e.toPar)}`;
 
         return `
           <div class="row ${topClass} ${flash}" data-key="${escapeHtml(e.key)}">
-            <div class="rankBox">${escapeHtml(rankLabel)}${moveBadge}</div>
+            <div class="rankBox">${displayRanks[idx]}${moveBadge}</div>
 
             <div class="name">
               <div class="mainName" title="${escapeHtml(e.displayName)}">${escapeHtml(e.displayName)}</div>
-              ${e.subLine ? `<div class="subName">${escapeHtml(e.subLine)}</div>` : ``}
+              ${e.subLine ? `<div class="subName">${escapeHtml(e.subLine)}</div>` : (e.kind === "team" && e.playerName && e.displayName !== e.playerName ? `<div class="subName">${escapeHtml(e.playerName)}</div>` : ``)}
               <div class="chips">${chips.join("")}</div>
             </div>
 
             <div class="scoreBox">
-              <div class="score ${scoreCls}">${escapeHtml(s.big)}</div>
+              <div class="${scoreCls}">${escapeHtml(s.big)}</div>
               <div class="scoreSub">${escapeHtml(s.sub)}</div>
             </div>
 
@@ -1540,7 +1486,6 @@
       }).join("");
 
       listEl.innerHTML = html;
-
       currentRankByKey.forEach((r,k) => lastRankByKey.set(k,r));
 
       listEl.querySelectorAll(".row").forEach(el => {
@@ -1552,7 +1497,6 @@
       });
     }
 
-    // ===== Modal helpers =====
     function resultClass(score, par){
       if (score === null) return "blank";
       const d = score - par;
@@ -1562,12 +1506,6 @@
       if (d === 1) return "bogey";
       if (d >= 2) return "double";
       return "par";
-    }
-
-    function sumNine(scoresArr18, startIdx){
-      let s = 0;
-      for(let i=0;i<9;i++) s += (scoresArr18[startIdx+i] || 0);
-      return s;
     }
 
     function openModal(e){
@@ -1587,7 +1525,7 @@
 
       const scoreDisplay = formatScoreDisplay(e);
       modalScore.textContent = scoreDisplay.big;
-      modalScoreSub.textContent = `To Par • ${scoreDisplay.sub}`;
+      modalScoreSub.textContent = scoreDisplay.sub;
 
       frontNine.innerHTML = "";
       backNine.innerHTML = "";
@@ -1636,9 +1574,9 @@
       inSum.textContent = String(inV);
 
       if ((tournament.format || "").toLowerCase() === "skins"){
-        totSum.textContent = `${e.strokes} • ${toParText(e.toPar)} • Skins ${e.skins}`;
+        totSum.textContent = `${formatToPar(e.toPar)} (Skins ${e.skins})`;
       } else {
-        totSum.textContent = `${e.strokes} • ${toParText(e.toPar)}`;
+        totSum.textContent = String(formatToPar(e.toPar));
       }
 
       modal.classList.add("show");
@@ -1654,8 +1592,8 @@
       statusPill.textContent = "⚠️ MISSING TOURNAMENT";
       statusPill.classList.remove("live");
       formatPill.textContent = "FORMAT: —";
+      parPill.textContent = "TOTAL PAR: —";
       joinBtn.href = "./index.html";
-      setCourseHeaderMini("tradition");
     } else {
       joinBtn.href = `./index.html?t=${encodeURIComponent(tournamentId)}`;
       tvBtn.href = `${location.pathname}?t=${encodeURIComponent(tournamentId)}&tv=1`;
@@ -1679,14 +1617,15 @@
           tournament = {
             ...tournament,
             ...t,
-            sponsorUrl: t.sponsorUrl || t.sponsorWebsite || t.sponsorLink || ""
+            sponsorUrl: t.sponsorUrl || t.sponsorWebsite || "",
+            sponsors: Array.isArray(t.sponsors) ? t.sponsors : []
           };
 
           pageMeta.textContent = `${tournament.name || "Tournament"}${tournament.date ? " • " + tournament.date : ""}`;
           formatPill.textContent = `FORMAT: ${fmtFormat(tournament.format)}`;
 
           setCourseHeaderMini(tournament.courseDefault || "tradition");
-          renderSponsor(tournament.sponsorName || "", tournament.sponsorLogo || "", tournament.sponsorUrl || "");
+          renderSponsors();
 
           if ((tournament.status || "open") === "closed"){
             statusPill.textContent = "⛔ CLOSED";
@@ -1699,13 +1638,11 @@
           pageMeta.textContent = "Tournament not found.";
           statusPill.textContent = "⚠️ NOT FOUND";
           statusPill.classList.remove("live");
-          setCourseHeaderMini("tradition");
         }
       }catch(e){
         pageMeta.textContent = "Tournament load error.";
         statusPill.textContent = "⚠️ ERROR";
         statusPill.classList.remove("live");
-        setCourseHeaderMini("tradition");
       }
 
       const subCol = collection(db, "tournaments", tournamentId, "submissions");
@@ -1717,16 +1654,13 @@
           const built = buildEntriesFromSubmissionDoc(d.data() || {}, d.id);
           for(const b of built) entries.push(b);
         });
-
-        // ensure course is current for par/hcp logic (in case submissions specify courseId)
-        // primary course remains the tournament courseDefault (broadcast standard)
         sortEntries(entries);
         render(entries);
       }, () => {
         pageMeta.textContent = "Live updates blocked (rules/network).";
       });
 
-      // TV auto-scroll (gentle bounce)
+      // TV auto-scroll (bounce)
       if (tvMode){
         let dir = 1;
         setInterval(() => {
