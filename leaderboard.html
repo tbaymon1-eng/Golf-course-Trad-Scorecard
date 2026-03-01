@@ -18,19 +18,19 @@
 
       --navy:#0d2a55;
       --navy2:#0b2246;
-      --gold:#caa24a;
-      --gold2:#e6cf8c;
 
-      --row2: rgba(255,255,255,.72);
+      --tvGold:#caa24a;
+      --tvGold2:#ffd36a;
+
+      --rowA: rgba(255,255,255,.72);
+      --rowB: rgba(255,255,255,.62);
 
       --good:#2f6b2f;
       --bad:#b6422d;
 
-      /* ESPN-ish greens */
       --fairway1:#0f5a34;
       --fairway2:#0b3f26;
       --rough:#08301d;
-      --white: rgba(255,255,255,.92);
     }
 
     *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
@@ -45,7 +45,7 @@
       font-family: Georgia, 'Times New Roman', serif;
     }
 
-    .wrap{ max-width: 1120px; margin: 0 auto; padding: 12px 12px 92px; }
+    .wrap{ max-width: 1120px; margin: 0 auto; padding: 12px 12px 140px; }
 
     .card{
       background: var(--card);
@@ -90,6 +90,7 @@
 
     .titleBlock{
       display:flex; flex-direction:column; gap:2px;
+      min-width: 180px;
     }
 
     h1{
@@ -127,6 +128,7 @@
       background: rgba(255,255,255,.55);
       font-weight: 900;
       font-size: 12px;
+      white-space:nowrap;
     }
     .pill.live{
       border-color: rgba(47,107,47,.35);
@@ -137,6 +139,11 @@
       border-color: rgba(13,42,85,.25);
       background: rgba(13,42,85,.10);
       color: var(--navy2);
+    }
+    .pill.par{
+      border-color: rgba(255,211,106,.45);
+      background: rgba(255,211,106,.16);
+      color: #5a4300;
     }
 
     .actions{
@@ -155,6 +162,7 @@
       display:inline-flex;
       align-items:center;
       gap:8px;
+      white-space:nowrap;
     }
     button:active, a.btn:active{ transform: translateY(1px); }
 
@@ -176,7 +184,7 @@
       border-radius: 14px;
       border: 2px solid rgba(0,0,0,.12);
       background:
-        linear-gradient(135deg, rgba(202,162,74,.18), rgba(13,42,85,.08)),
+        linear-gradient(135deg, rgba(255,211,106,.22), rgba(13,42,85,.08)),
         rgba(255,255,255,.55);
       padding: 10px 12px;
     }
@@ -229,18 +237,20 @@
 
     .hdr{
       display:grid;
-      grid-template-columns: 58px 1.3fr 110px 90px 90px;
+      grid-template-columns: 72px 1.3fr 120px 90px 90px;
       gap:10px;
       align-items:center;
       padding: 10px 10px;
       border-radius: 12px;
-      background: linear-gradient(90deg, rgba(13,42,85,.12), rgba(202,162,74,.10));
+      background:
+        linear-gradient(90deg, rgba(13,42,85,.18), rgba(255,211,106,.14));
       border: 2px solid rgba(0,0,0,.12);
       font-family: Cinzel, serif;
       font-weight: 900;
       letter-spacing: .5px;
       font-size: 12px;
     }
+    .hdr .right{ text-align:right; }
 
     .list{
       margin-top: 10px;
@@ -251,23 +261,25 @@
 
     .row{
       display:grid;
-      grid-template-columns: 58px 1.3fr 110px 90px 90px;
+      grid-template-columns: 72px 1.3fr 120px 90px 90px;
       gap:10px;
       align-items:center;
       padding: 12px 10px;
       border-radius: 14px;
-      background: var(--row2);
       border: 2px solid rgba(0,0,0,.10);
       cursor:pointer;
       position:relative;
       overflow:hidden;
     }
+    .row:nth-child(odd){ background: var(--rowA); }
+    .row:nth-child(even){ background: var(--rowB); }
 
     .row:active{ transform: translateY(1px); }
 
+    /* Rank badge (TV style) */
     .rankBox{
       display:flex; align-items:center; justify-content:center;
-      width: 54px; height: 44px;
+      width: 66px; height: 44px;
       border-radius: 12px;
       background: rgba(13,42,85,.12);
       border: 2px solid rgba(13,42,85,.20);
@@ -332,8 +344,8 @@
       color: rgba(0,0,0,.75);
     }
     .chip.gold{
-      background: rgba(202,162,74,.14);
-      border-color: rgba(202,162,74,.25);
+      background: rgba(255,211,106,.18);
+      border-color: rgba(255,211,106,.30);
       color: #4a3a10;
     }
     .chip.navy{
@@ -342,6 +354,7 @@
       color: var(--navy2);
     }
 
+    /* SCORE BOX (to-par primary) */
     .scoreBox{
       display:flex;
       flex-direction:column;
@@ -351,10 +364,14 @@
     .score{
       font-family: Cinzel, serif;
       font-weight: 900;
-      font-size: 22px;
-      letter-spacing: .5px;
+      font-size: 26px;
+      letter-spacing: .6px;
       color: var(--navy2);
+      line-height: 1;
     }
+    .score.under{ color: #114011; }
+    .score.over{ color: #5c1b11; }
+
     .scoreSub{
       font-size: 11px;
       font-weight: 900;
@@ -368,19 +385,49 @@
       color: rgba(0,0,0,.78);
     }
 
-    /* Top 1 glow */
+    /* ===== Broadcast leader accent (like TV boards) ===== */
     .row.top1{
+      position: relative;
+      border-left: 6px solid var(--tvGold2);
       background:
-        radial-gradient(circle at 10% 50%, rgba(202,162,74,.18), transparent 55%),
-        radial-gradient(circle at 90% 30%, rgba(13,42,85,.14), transparent 55%),
-        rgba(255,255,255,.72);
-      border-color: rgba(202,162,74,.22);
+        linear-gradient(90deg,
+          rgba(255,211,106,.18) 0%,
+          rgba(255,211,106,.10) 12%,
+          rgba(255,255,255,.72) 28%
+        );
+      border-color: rgba(255,211,106,.26);
+    }
+    .row.top1::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(
+          110deg,
+          transparent 40%,
+          rgba(255,255,255,.18) 50%,
+          transparent 60%
+        );
+      opacity:.0;
+      pointer-events:none;
+      animation: leaderSheen 3.5s ease-in-out infinite;
+    }
+    @keyframes leaderSheen{
+      0%{ opacity:0; transform: translateX(-20%); }
+      40%{ opacity:.6; }
+      60%{ opacity:.15; }
+      100%{ opacity:0; transform: translateX(25%); }
+    }
+    .row.top1 .rankBox{
+      background: rgba(255,211,106,.22);
+      border-color: rgba(255,211,106,.55);
+      color:#5a4300;
     }
 
     .flash{ animation: flash 800ms ease-out; }
     @keyframes flash{
       0%{ box-shadow: 0 0 0 rgba(0,0,0,0); }
-      25%{ box-shadow: 0 0 0 6px rgba(202,162,74,.18); }
+      25%{ box-shadow: 0 0 0 6px rgba(255,211,106,.18); }
       100%{ box-shadow: 0 0 0 rgba(0,0,0,0); }
     }
 
@@ -389,11 +436,11 @@
       position: fixed;
       left: 0;
       right: 0;
-      bottom: 0;
+      bottom: 44px; /* leaves room for legal footer */
       z-index: 20;
       border-top: 3px solid var(--border);
       background:
-        linear-gradient(90deg, rgba(13,42,85,.18), rgba(202,162,74,.16)),
+        linear-gradient(90deg, rgba(13,42,85,.18), rgba(255,211,106,.16)),
         rgba(239,231,215,.96);
       backdrop-filter: blur(6px);
     }
@@ -451,7 +498,36 @@
       background: rgba(0,0,0,.06);
     }
 
-    /* ===== Modal (ESPN Mode) ===== */
+    /* ===== Legal Footer ===== */
+    #legalFooter{
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 25;
+      border-top: 2px solid rgba(0,0,0,.12);
+      background: rgba(239,231,215,.96);
+      backdrop-filter: blur(6px);
+      padding: 10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      font-weight: 900;
+      font-size: 12px;
+      color: rgba(0,0,0,.72);
+    }
+    #legalFooter a{
+      color: inherit;
+      text-decoration: underline;
+      font-weight: 1000;
+    }
+    #legalFooter .links{
+      display:flex; gap:14px; flex-wrap:wrap;
+    }
+
+    /* ===== Modal (Broadcast hole tiles) ===== */
     .modal{
       position: fixed;
       inset: 0;
@@ -471,14 +547,13 @@
       border-radius: 18px;
       border: 2px solid rgba(255,255,255,.18);
       background:
-        radial-gradient(circle at 18% 0%, rgba(202,162,74,.22), transparent 60%),
+        radial-gradient(circle at 18% 0%, rgba(255,211,106,.22), transparent 60%),
         radial-gradient(circle at 82% 8%, rgba(13,42,85,.22), transparent 65%),
         rgba(239,231,215,.98);
       box-shadow: 0 18px 50px rgba(0,0,0,.45);
       position: relative;
     }
 
-    /* Fairway stripe header */
     .sheetBanner{
       position: relative;
       padding: 10px 12px;
@@ -503,6 +578,7 @@
       60%{ opacity: .15; }
       100%{ transform: translateX(22%) rotate(8deg); opacity:0; }
     }
+
     .sheetBannerTop{
       display:flex;
       justify-content:space-between;
@@ -547,7 +623,7 @@
 
     .sheetBannerRight{
       text-align:right;
-      min-width: 160px;
+      min-width: 170px;
     }
     .bigScore{
       font-family: Cinzel, serif;
@@ -603,7 +679,7 @@
       gap:10px;
       border-bottom: 1px solid rgba(0,0,0,.10);
       background:
-        linear-gradient(90deg, rgba(13,42,85,.12), rgba(202,162,74,.10));
+        linear-gradient(90deg, rgba(13,42,85,.12), rgba(255,211,106,.10));
       font-family: Cinzel, serif;
       font-weight: 900;
       letter-spacing: .5px;
@@ -622,12 +698,11 @@
       gap: 9px;
     }
 
-    /* Hole tiles */
     .holeCell{
       border-radius: 16px;
       border: 2px solid rgba(0,0,0,.12);
       background:
-        radial-gradient(circle at 30% 0%, rgba(202,162,74,.10), transparent 60%),
+        radial-gradient(circle at 30% 0%, rgba(255,211,106,.10), transparent 60%),
         rgba(255,255,255,.82);
       padding: 10px 8px 10px;
       text-align:center;
@@ -705,10 +780,7 @@
       background: rgba(255,255,255,.78);
     }
 
-    /* Outcome styling vs par */
-    .holeCell.par{
-      border-color: rgba(0,0,0,.12);
-    }
+    .holeCell.par{ border-color: rgba(0,0,0,.12); }
     .holeCell.birdie{
       border-color: rgba(47,107,47,.35);
       background:
@@ -716,11 +788,11 @@
         rgba(255,255,255,.86);
     }
     .holeCell.eagle{
-      border-color: rgba(202,162,74,.42);
+      border-color: rgba(255,211,106,.42);
       background:
-        radial-gradient(circle at 30% 0%, rgba(202,162,74,.20), transparent 60%),
+        radial-gradient(circle at 30% 0%, rgba(255,211,106,.20), transparent 60%),
         rgba(255,255,255,.88);
-      box-shadow: 0 0 0 4px rgba(202,162,74,.10) inset;
+      box-shadow: 0 0 0 4px rgba(255,211,106,.10) inset;
     }
     .holeCell.bogey{
       border-color: rgba(182,66,45,.30);
@@ -745,7 +817,7 @@
       justify-content:space-between;
       border-top: 1px solid rgba(0,0,0,.10);
       background:
-        linear-gradient(90deg, rgba(13,42,85,.06), rgba(202,162,74,.06));
+        linear-gradient(90deg, rgba(13,42,85,.06), rgba(255,211,106,.06));
     }
     .sumPill{
       display:flex; align-items:baseline; gap:8px;
@@ -753,7 +825,7 @@
       border-radius: 999px;
       border: 2px solid rgba(0,0,0,.12);
       background: rgba(255,255,255,.78);
-      min-width: 160px;
+      min-width: 170px;
       justify-content:space-between;
       font-weight: 1000;
     }
@@ -771,20 +843,20 @@
     }
 
     /* ===== TV Mode ===== */
-    body.tv .wrap{ max-width: 1400px; padding: 12px 12px 70px; }
+    body.tv .wrap{ max-width: 1400px; padding: 12px 12px 140px; }
     body.tv h1{ font-size: 22px; }
     body.tv .row{ padding: 14px 12px; }
     body.tv .hdr{ font-size: 13px; }
-    body.tv .score{ font-size: 26px; }
-    body.tv .rankBox{ width: 60px; height: 48px; font-size: 20px; }
+    body.tv .score{ font-size: 30px; }
+    body.tv .rankBox{ width: 72px; height: 48px; font-size: 20px; }
     body.tv .courseHeaderMini{ width: 200px; height: 52px; }
 
     @media (max-width: 900px){
-      .hdr, .row{ grid-template-columns: 58px 1.2fr 100px 84px 84px; }
+      .hdr, .row{ grid-template-columns: 72px 1.2fr 110px 84px 84px; }
       .nine{ grid-template-columns: repeat(3, 1fr); }
     }
     @media (max-width: 740px){
-      .hdr, .row{ grid-template-columns: 58px 1fr 96px; }
+      .hdr, .row{ grid-template-columns: 72px 1fr 110px; }
       .hdr .colThru, .hdr .colUpdated,
       .row .colThru, .row .colUpdated{ display:none; }
       .scoreBox{ align-items:flex-end; }
@@ -801,7 +873,7 @@
             <img id="courseHeaderMini" class="courseHeaderMini" src="./assets/cypresswood_header.png" alt="Course Header" />
             <div class="titleBlock">
               <h1 id="pageTitle">Live Leaderboard</h1>
-              <div class="clubName">Cypresswood Golf Club</div>
+              <div class="clubName" id="clubName">Cypresswood Golf Club</div>
               <div class="meta" id="pageMeta">Loading…</div>
             </div>
           </div>
@@ -809,6 +881,7 @@
           <div class="pillRow">
             <div class="pill live" id="statusPill">⛳ LIVE</div>
             <div class="pill mode" id="formatPill">FORMAT: —</div>
+            <div class="pill par" id="parPill">TOTAL PAR: —</div>
           </div>
 
           <div class="actions">
@@ -835,9 +908,9 @@
         <div class="hdr">
           <div>RANK</div>
           <div>TEAM / PLAYER</div>
-          <div style="text-align:right;">SCORE</div>
-          <div class="colThru" style="text-align:right;">THRU</div>
-          <div class="colUpdated" style="text-align:right;">UPDATED</div>
+          <div class="right">TO PAR</div>
+          <div class="right colThru">THRU</div>
+          <div class="right colUpdated">UPDATED</div>
         </div>
 
         <div class="list" id="list"></div>
@@ -852,6 +925,14 @@
     </div>
     <div class="tickerTrackWrap">
       <div class="tickerTrack" id="tickerTrack"></div>
+    </div>
+  </div>
+
+  <div id="legalFooter">
+    <div>© <span id="legalYear"></span> Electronic Scorecard Solutions (DBA) • Elb Solutions LLC</div>
+    <div class="links">
+      <a href="./privacy.html" target="_blank" rel="noopener">Privacy</a>
+      <a href="./terms.html" target="_blank" rel="noopener">Terms</a>
     </div>
   </div>
 
@@ -907,6 +988,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, doc, getDoc, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    // ===== Firebase config =====
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -924,6 +1006,7 @@
     const COURSE_TRADITION = {
       id:"tradition",
       headerMini:"./assets/cypresswood_header.png",
+      clubName:"Cypresswood Golf Club",
       par:[4,4,3,4,5,4,5,3,4, 4,3,5,4,3,4,4,4,5],
       hcp:[7,17,11,1,3,13,9,15,5, 14,8,10,6,18,12,2,16,4]
     };
@@ -931,6 +1014,7 @@
     const COURSE_CYPRESS = {
       id:"cypress",
       headerMini:"./assets/cypress_header.png",
+      clubName:"Cypresswood Golf Club",
       par:[5,4,4,4,3,4,3,5,4, 4,4,4,4,3,5,3,5,4],
       hcp:[3,13,11,7,15,9,17,1,5, 6,10,12,14,18,2,16,4,8]
     };
@@ -942,11 +1026,13 @@
     const pageMeta = document.getElementById("pageMeta");
     const statusPill = document.getElementById("statusPill");
     const formatPill = document.getElementById("formatPill");
+    const parPill = document.getElementById("parPill");
     const refreshBtn = document.getElementById("refreshBtn");
     const joinBtn = document.getElementById("joinBtn");
     const copyBtn = document.getElementById("copyBtn");
     const tvBtn = document.getElementById("tvBtn");
     const courseHeaderMini = document.getElementById("courseHeaderMini");
+    const clubNameEl = document.getElementById("clubName");
 
     const sponsorHero = document.getElementById("sponsorHero");
     const sponsorHeroLogo = document.getElementById("sponsorHeroLogo");
@@ -966,6 +1052,9 @@
     const outSum = document.getElementById("outSum");
     const inSum = document.getElementById("inSum");
     const totSum = document.getElementById("totSum");
+
+    // legal year
+    document.getElementById("legalYear").textContent = String(new Date().getFullYear());
 
     // ===== URL + STATE =====
     const params = new URLSearchParams(location.search);
@@ -996,8 +1085,6 @@
       return "Stroke Play";
     }
 
-    function safeNum(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
-
     function normalizeUrl(u){
       const s = (u || "").trim();
       if(!s) return "";
@@ -1017,75 +1104,6 @@
       }catch(e){ return ""; }
     }
 
-    function holesByHardestHcp(){
-      const pairs = course.hcp.map((hcp, idx) => ({ hole: idx+1, hcp }));
-      pairs.sort((a,b) => a.hcp - b.hcp);
-      return pairs.map(p => p.hole);
-    }
-
-    function getScore(scoresFlat, pIndex, hole){
-      const key = `p${pIndex}_h${hole}`;
-      const raw = scoresFlat?.[key];
-      const n = parseInt(raw, 10);
-      return Number.isFinite(n) ? n : null;
-    }
-
-    function calcThruFromScores(scoresArr18){
-      let c = 0;
-      for(let i=0;i<18;i++) if (scoresArr18[i] !== null) c++;
-      return c;
-    }
-
-    function sumNine(scoresArr18, startIdx){
-      let s = 0;
-      for(let i=0;i<9;i++) s += (scoresArr18[startIdx+i] || 0);
-      return s;
-    }
-
-    function derivePlayerScores(scoresFlat, pIndex){
-      const out = [];
-      for(let h=1; h<=18; h++) out.push(getScore(scoresFlat, pIndex, h));
-      return out;
-    }
-
-    function deriveBestBall(scoresFlat, playerCount=6){
-      const out = [];
-      for(let h=1; h<=18; h++){
-        let best = null;
-        for(let p=0; p<playerCount; p++){
-          const s = getScore(scoresFlat, p, h);
-          if (s === null) continue;
-          if (best === null || s < best) best = s;
-        }
-        out.push(best);
-      }
-      return out;
-    }
-
-    function totalFromScores(scoresArr18){
-      return scoresArr18.reduce((a,v)=> a + (v || 0), 0);
-    }
-
-    function playoffKey(scoresArr18){
-      const order = holesByHardestHcp();
-      const key = [];
-      for(const hole of order){
-        const v = scoresArr18[hole-1];
-        key.push(v === null ? 999 : v);
-      }
-      return key;
-    }
-
-    function comparePlayoff(aScores, bScores){
-      const aKey = playoffKey(aScores);
-      const bKey = playoffKey(bScores);
-      for(let i=0;i<aKey.length;i++){
-        if (aKey[i] < bKey[i]) return -1;
-        if (aKey[i] > bKey[i]) return 1;
-      }
-      return 0;
-    }
-
     function escapeHtml(s){
       return String(s || "")
         .replaceAll("&","&amp;")
@@ -1093,6 +1111,17 @@
         .replaceAll(">","&gt;")
         .replaceAll('"',"&quot;")
         .replaceAll("'","&#039;");
+    }
+
+    function setCourseHeaderMini(courseId){
+      const c = COURSES[courseId] || COURSE_TRADITION;
+      courseHeaderMini.src = c.headerMini;
+      courseHeaderMini.alt = courseId === "cypress" ? "Cypress Header" : "Tradition Header";
+      clubNameEl.textContent = c.clubName || "Golf Club";
+      course = c;
+
+      const parTotal = c.par.reduce((a,b)=>a+(Number(b)||0),0);
+      parPill.textContent = `TOTAL PAR: ${parTotal}`;
     }
 
     function renderSponsor(name, logo, url){
@@ -1128,8 +1157,10 @@
       }
 
       ticker.style.display = "block";
+      const safeHref = u || "#";
+      const disabled = u ? "" : "pointer-events:none; opacity:.75;";
       const pill = `
-        <a class="sponsorPill" href="${u || "#"}" target="_blank" rel="noopener" style="${u ? "" : "pointer-events:none; opacity:.75;"}">
+        <a class="sponsorPill" href="${safeHref}" target="_blank" rel="noopener" style="${disabled}">
           ${l ? `<img src="${l}" alt="Sponsor">` : `<img src="./assets/icon-192.png" alt="Sponsor">`}
           <span>${escapeHtml(n || "Tournament Sponsor")}</span>
         </a>
@@ -1137,15 +1168,105 @@
       tickerTrack.innerHTML = pill + pill + pill + pill;
     }
 
-    function setCourseHeaderMini(courseId){
-      const c = COURSES[courseId] || COURSE_TRADITION;
-      courseHeaderMini.src = c.headerMini;
-      courseHeaderMini.alt = courseId === "cypress" ? "Cypress Header" : "Tradition Header";
-      course = c;
+    // ===== To-par helpers =====
+    function toParText(v){
+      const n = Number(v);
+      if (!Number.isFinite(n)) return "—";
+      if (n === 0) return "E";
+      return (n > 0 ? `+${n}` : `${n}`);
     }
 
+    function scoreClassByToPar(v){
+      const n = Number(v);
+      if (!Number.isFinite(n)) return "";
+      if (n < 0) return "under";
+      if (n > 0) return "over";
+      return "";
+    }
+
+    // ===== HCP playoff ordering (hardest first) =====
+    function holesByHardestHcp(){
+      const pairs = course.hcp.map((hcp, idx) => ({ hole: idx+1, hcp }));
+      pairs.sort((a,b) => a.hcp - b.hcp);
+      return pairs.map(p => p.hole);
+    }
+
+    function getScore(scoresFlat, pIndex, hole){
+      const key = `p${pIndex}_h${hole}`;
+      const raw = scoresFlat?.[key];
+      const n = parseInt(raw, 10);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function derivePlayerScores(scoresFlat, pIndex){
+      const out = [];
+      for(let h=1; h<=18; h++) out.push(getScore(scoresFlat, pIndex, h));
+      return out;
+    }
+
+    function deriveBestBall(scoresFlat, playerCount=6){
+      const out = [];
+      for(let h=1; h<=18; h++){
+        let best = null;
+        for(let p=0; p<playerCount; p++){
+          const s = getScore(scoresFlat, p, h);
+          if (s === null) continue;
+          if (best === null || s < best) best = s;
+        }
+        out.push(best);
+      }
+      return out;
+    }
+
+    function calcThru(scoresArr18){
+      let c = 0;
+      for(let i=0;i<18;i++) if (scoresArr18[i] !== null) c++;
+      return c;
+    }
+
+    function totalStrokes(scoresArr18){
+      return scoresArr18.reduce((a,v)=> a + (v || 0), 0);
+    }
+
+    function totalParForPlayed(scoresArr18){
+      let p = 0;
+      for(let i=0;i<18;i++){
+        if (scoresArr18[i] !== null) p += (course.par[i] || 0);
+      }
+      return p;
+    }
+
+    function toParValue(scoresArr18){
+      // to-par for played holes (works live thru)
+      const strokes = totalStrokes(scoresArr18);
+      const p = totalParForPlayed(scoresArr18);
+      return strokes - p;
+    }
+
+    function playoffKey(scoresArr18){
+      const order = holesByHardestHcp();
+      const key = [];
+      for(const hole of order){
+        const v = scoresArr18[hole-1];
+        key.push(v === null ? 999 : v);
+      }
+      return key;
+    }
+
+    function comparePlayoff(aScores, bScores){
+      const aKey = playoffKey(aScores);
+      const bKey = playoffKey(bScores);
+      for(let i=0;i<aKey.length;i++){
+        if (aKey[i] < bKey[i]) return -1;
+        if (aKey[i] > bKey[i]) return 1;
+      }
+      return 0;
+    }
+
+    // ===== Entries builder (FIX: group is NOT the main name) =====
     function buildEntriesFromSubmissionDoc(docData, docId){
       const deviceId = docId;
+
       const group = (docData.group || "").trim();
       const playerName = (docData.playerName || "").trim();
       const names = Array.isArray(docData.names) ? docData.names : [];
@@ -1153,13 +1274,10 @@
       const totals = Array.isArray(docData.totals) ? docData.totals : [];
       const updatedAt = docData.updatedAt;
 
-      const teamName = group || (names[0] || playerName || "Team");
-      const scorerName = playerName || names[0] || "";
-
       const base = {
         deviceId,
         group,
-        playerName: scorerName,
+        playerName,
         names,
         scoresFlat,
         totals,
@@ -1169,89 +1287,104 @@
 
       const fmt = (tournament.format || "stroke").toLowerCase();
 
+      // SCRAMBLE: only p0 row; main display is scorer/playerName (NOT group)
       if (fmt === "scramble"){
         const scores = derivePlayerScores(scoresFlat, 0);
-        const total = safeNum(totals?.[0]?.tot ?? totalFromScores(scores));
-        const thru = calcThruFromScores(scores);
+        const thru = calcThru(scores);
+        const strokes = Number(totals?.[0]?.tot ?? totalStrokes(scores)) || totalStrokes(scores);
+        const toPar = toParValue(scores);
+
         return [{
           ...base,
           key: `scr_${deviceId}`,
-          displayName: teamName,
-          subLine: scorerName && group ? `Scorer: ${scorerName}` : "",
+          displayName: playerName || names[0] || "Team",
+          subLine: group ? `Group: ${group}` : "",
           kind: "team",
           scores,
-          total,
           thru,
+          strokes,
+          toPar,
           skins: 0
         }];
       }
 
+      // BEST BALL: compute best ball across p0..p5; main display is scorer/playerName
       if (fmt === "bestball"){
         const scores = deriveBestBall(scoresFlat, 6);
-        const total = totalFromScores(scores);
-        const thru = calcThruFromScores(scores);
+        const thru = calcThru(scores);
+        const strokes = totalStrokes(scores);
+        const toPar = toParValue(scores);
+
         return [{
           ...base,
           key: `bb_${deviceId}`,
-          displayName: teamName,
-          subLine: scorerName && group ? `Team • Scorer: ${scorerName}` : (scorerName ? `Team • ${scorerName}` : "Team"),
+          displayName: playerName || names[0] || "Team",
+          subLine: group ? `Group: ${group}` : "",
           kind: "team",
           scores,
-          total,
           thru,
+          strokes,
+          toPar,
           skins: 0
         }];
       }
 
+      // SKINS: player list (6)
       if (fmt === "skins"){
         const out = [];
         for(let i=0;i<6;i++){
           const nm = (names[i] || "").trim();
-          const display = nm || (i === 0 ? (playerName || teamName) : `Player ${i+1}`);
+          const display = nm || (i === 0 ? (playerName || "Player 1") : `Player ${i+1}`);
           const scores = derivePlayerScores(scoresFlat, i);
-          const total = safeNum(totals?.[i]?.tot ?? totalFromScores(scores));
-          const thru = calcThruFromScores(scores);
+          const thru = calcThru(scores);
+          const strokes = Number(totals?.[i]?.tot ?? totalStrokes(scores)) || totalStrokes(scores);
+          const toPar = toParValue(scores);
 
           out.push({
             ...base,
             key: `sk_${deviceId}_p${i}`,
             displayName: display,
-            subLine: group ? `Group: ${group}` : (teamName ? `Card: ${teamName}` : ""),
+            subLine: group ? `Group: ${group}` : "",
             kind: "player",
             playerIndex: i,
             scores,
-            total,
             thru,
+            strokes,
+            toPar,
             skins: 0
           });
         }
         return out;
       }
 
+      // STROKE: player list (6)
       const items = [];
       for(let i=0;i<6;i++){
         const nm = (names[i] || "").trim();
-        const display = nm || (i === 0 ? (playerName || teamName) : `Player ${i+1}`);
+        const display = nm || (i === 0 ? (playerName || "Player 1") : `Player ${i+1}`);
         const scores = derivePlayerScores(scoresFlat, i);
-        const total = safeNum(totals?.[i]?.tot ?? totalFromScores(scores));
-        const thru = calcThruFromScores(scores);
+        const thru = calcThru(scores);
+        const strokes = Number(totals?.[i]?.tot ?? totalStrokes(scores)) || totalStrokes(scores);
+        const toPar = toParValue(scores);
 
         items.push({
           ...base,
           key: `st_${deviceId}_p${i}`,
           displayName: display,
-          subLine: group ? `Group: ${group}` : (teamName ? `Card: ${teamName}` : ""),
+          subLine: group ? `Group: ${group}` : "",
           kind: "player",
           playerIndex: i,
           scores,
-          total,
           thru,
+          strokes,
+          toPar,
           skins: 0
         });
       }
       return items;
     }
 
+    // ===== Skins engine =====
     function computeSkins(entries){
       for(const e of entries) e.skins = 0;
 
@@ -1275,31 +1408,80 @@
       }
     }
 
+    // ===== Sorting + T-rank labels =====
     function sortEntries(entries){
       const fmt = (tournament.format || "stroke").toLowerCase();
 
       if (fmt === "skins"){
         computeSkins(entries);
         entries.sort((a,b) => {
-          if (b.skins !== a.skins) return b.skins - a.skins;
-          if (a.total !== b.total) return a.total - b.total;
+          if (b.skins !== a.skins) return b.skins - a.skins;      // more skins better
+          if (a.toPar !== b.toPar) return a.toPar - b.toPar;      // lower to-par better
           return comparePlayoff(a.scores, b.scores);
         });
         return;
       }
 
       entries.sort((a,b) => {
-        if (a.total !== b.total) return a.total - b.total;
+        if (a.toPar !== b.toPar) return a.toPar - b.toPar;        // lower to-par better
         return comparePlayoff(a.scores, b.scores);
       });
     }
 
+    function metricKey(e){
+      const fmt = (tournament.format || "stroke").toLowerCase();
+      if (fmt === "skins") return `skins:${e.skins}|topar:${e.toPar}`;
+      return `topar:${e.toPar}`;
+    }
+
+    function computeRankLabels(entries){
+      // competition ranking with ties: T1, T1, 3...
+      const labels = new Map();
+      let lastKey = null;
+      let lastRank = 1;
+
+      for(let i=0;i<entries.length;i++){
+        const e = entries[i];
+        const k = metricKey(e);
+
+        if (i === 0){
+          lastKey = k;
+          lastRank = 1;
+          labels.set(e.key, "1");
+          continue;
+        }
+
+        if (k === lastKey){
+          labels.set(e.key, "T" + String(lastRank));
+        } else {
+          lastRank = i + 1;
+          labels.set(e.key, String(lastRank));
+          lastKey = k;
+        }
+      }
+
+      // if first place has ties, first also should show T1 (broadcast style)
+      if (entries.length >= 2 && metricKey(entries[0]) === metricKey(entries[1])){
+        labels.set(entries[0].key, "T1");
+      }
+
+      return labels;
+    }
+
     function formatScoreDisplay(e){
       const fmt = (tournament.format || "stroke").toLowerCase();
+
       if (fmt === "skins"){
-        return { big: String(e.skins), sub: `Skins • Total ${e.total}` };
+        return {
+          big: String(e.skins),
+          sub: `Skins • ${toParText(e.toPar)}`
+        };
       }
-      return { big: String(e.total), sub: fmt === "bestball" ? "Best Ball" : (fmt === "scramble" ? "Team Total" : "Gross") };
+
+      return {
+        big: toParText(e.toPar),
+        sub: `Strokes ${e.strokes}`
+      };
     }
 
     function render(entries){
@@ -1308,11 +1490,14 @@
         return;
       }
 
+      const rankLabels = computeRankLabels(entries);
       const currentRankByKey = new Map();
       entries.forEach((e, idx) => currentRankByKey.set(e.key, idx+1));
 
       const html = entries.map((e, idx) => {
         const rank = idx + 1;
+        const rankLabel = rankLabels.get(e.key) || String(rank);
+
         const prev = lastRankByKey.get(e.key);
         const movedUp = (prev && rank < prev);
         const movedDown = (prev && rank > prev);
@@ -1331,18 +1516,20 @@
         chips.push(`<span class="chip navy">${escapeHtml(fmtFormat(tournament.format))}</span>`);
         if (e.thru) chips.push(`<span class="chip">Thru ${e.thru}</span>`);
 
+        const scoreCls = scoreClassByToPar(e.toPar);
+
         return `
           <div class="row ${topClass} ${flash}" data-key="${escapeHtml(e.key)}">
-            <div class="rankBox">${rank}${moveBadge}</div>
+            <div class="rankBox">${escapeHtml(rankLabel)}${moveBadge}</div>
 
             <div class="name">
               <div class="mainName" title="${escapeHtml(e.displayName)}">${escapeHtml(e.displayName)}</div>
-              ${e.subLine ? `<div class="subName">${escapeHtml(e.subLine)}</div>` : (e.kind === "team" && e.playerName && e.displayName !== e.playerName ? `<div class="subName">${escapeHtml(e.playerName)}</div>` : ``)}
+              ${e.subLine ? `<div class="subName">${escapeHtml(e.subLine)}</div>` : ``}
               <div class="chips">${chips.join("")}</div>
             </div>
 
             <div class="scoreBox">
-              <div class="score">${escapeHtml(s.big)}</div>
+              <div class="score ${scoreCls}">${escapeHtml(s.big)}</div>
               <div class="scoreSub">${escapeHtml(s.sub)}</div>
             </div>
 
@@ -1365,6 +1552,7 @@
       });
     }
 
+    // ===== Modal helpers =====
     function resultClass(score, par){
       if (score === null) return "blank";
       const d = score - par;
@@ -1374,6 +1562,12 @@
       if (d === 1) return "bogey";
       if (d >= 2) return "double";
       return "par";
+    }
+
+    function sumNine(scoresArr18, startIdx){
+      let s = 0;
+      for(let i=0;i<9;i++) s += (scoresArr18[startIdx+i] || 0);
+      return s;
     }
 
     function openModal(e){
@@ -1393,7 +1587,7 @@
 
       const scoreDisplay = formatScoreDisplay(e);
       modalScore.textContent = scoreDisplay.big;
-      modalScoreSub.textContent = scoreDisplay.sub;
+      modalScoreSub.textContent = `To Par • ${scoreDisplay.sub}`;
 
       frontNine.innerHTML = "";
       backNine.innerHTML = "";
@@ -1442,9 +1636,9 @@
       inSum.textContent = String(inV);
 
       if ((tournament.format || "").toLowerCase() === "skins"){
-        totSum.textContent = `${e.total} (Skins ${e.skins})`;
+        totSum.textContent = `${e.strokes} • ${toParText(e.toPar)} • Skins ${e.skins}`;
       } else {
-        totSum.textContent = String(e.total);
+        totSum.textContent = `${e.strokes} • ${toParText(e.toPar)}`;
       }
 
       modal.classList.add("show");
@@ -1461,6 +1655,7 @@
       statusPill.classList.remove("live");
       formatPill.textContent = "FORMAT: —";
       joinBtn.href = "./index.html";
+      setCourseHeaderMini("tradition");
     } else {
       joinBtn.href = `./index.html?t=${encodeURIComponent(tournamentId)}`;
       tvBtn.href = `${location.pathname}?t=${encodeURIComponent(tournamentId)}&tv=1`;
@@ -1484,7 +1679,7 @@
           tournament = {
             ...tournament,
             ...t,
-            sponsorUrl: t.sponsorUrl || t.sponsorWebsite || ""
+            sponsorUrl: t.sponsorUrl || t.sponsorWebsite || t.sponsorLink || ""
           };
 
           pageMeta.textContent = `${tournament.name || "Tournament"}${tournament.date ? " • " + tournament.date : ""}`;
@@ -1504,11 +1699,13 @@
           pageMeta.textContent = "Tournament not found.";
           statusPill.textContent = "⚠️ NOT FOUND";
           statusPill.classList.remove("live");
+          setCourseHeaderMini("tradition");
         }
       }catch(e){
         pageMeta.textContent = "Tournament load error.";
         statusPill.textContent = "⚠️ ERROR";
         statusPill.classList.remove("live");
+        setCourseHeaderMini("tradition");
       }
 
       const subCol = collection(db, "tournaments", tournamentId, "submissions");
@@ -1520,12 +1717,16 @@
           const built = buildEntriesFromSubmissionDoc(d.data() || {}, d.id);
           for(const b of built) entries.push(b);
         });
+
+        // ensure course is current for par/hcp logic (in case submissions specify courseId)
+        // primary course remains the tournament courseDefault (broadcast standard)
         sortEntries(entries);
         render(entries);
       }, () => {
         pageMeta.textContent = "Live updates blocked (rules/network).";
       });
 
+      // TV auto-scroll (gentle bounce)
       if (tvMode){
         let dir = 1;
         setInterval(() => {
