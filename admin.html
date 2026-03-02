@@ -98,6 +98,23 @@
       opacity:.75;
     }
     footer a{ color: inherit; text-decoration: underline; }
+
+    /* Guard banners */
+    .banner{
+      margin-top:8px;
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:900;
+      display:none;
+    }
+    .banner.warn{
+      border:2px solid rgba(182,66,45,.35);
+      background:rgba(182,66,45,.10);
+    }
+    .banner.info{
+      border:2px solid rgba(13,42,85,.22);
+      background:rgba(13,42,85,.10);
+    }
   </style>
 </head>
 
@@ -175,6 +192,10 @@
           Add multiple sponsors. Upload PNG/JPG (or reuse an existing logo URL). Choose tier/order. Toggle active.
           <b>Tip:</b> You only need to upload a logo once — reuse the URL for future tournaments.
         </div>
+
+        <!-- Guardrails banners -->
+        <div id="spGuard" class="banner warn">⚠️ Sponsor changes are not saved yet. Tap <b>Save Changes</b>.</div>
+        <div id="spNeedId" class="banner info">⛳ Create or load a tournament first to enable sponsor uploads and adding sponsors.</div>
 
         <div class="row" style="grid-template-columns:1fr 1fr;">
           <label>
@@ -386,8 +407,51 @@
     const addSponsorBtn = $("addSponsorBtn");
     const clearSponsorFormBtn = $("clearSponsorFormBtn");
 
+    // Guard banners
+    const spGuard = $("spGuard");
+    const spNeedId = $("spNeedId");
+
     // Local sponsor state for this tournament
     let sponsors = [];
+
+    // ===== Sponsor Guardrails state =====
+    let sponsorsDirty = false;
+
+    function hasTournamentId(){
+      return !!String(tId.value || "").trim();
+    }
+
+    function setSponsorsDirty(on){
+      sponsorsDirty = !!on;
+      spGuard.style.display = sponsorsDirty ? "block" : "none";
+    }
+
+    function applySponsorGuardrails(){
+      const ok = hasTournamentId();
+
+      addSponsorBtn.disabled = !ok;
+      clearSponsorFormBtn.disabled = !ok;
+      spLogoFile.disabled = !ok;
+      spLogoUrl.disabled = !ok;
+      spTier.disabled = !ok;
+      spSort.disabled = !ok;
+      spName.disabled = !ok;
+      spWebsite.disabled = !ok;
+
+      spNeedId.style.display = ok ? "none" : "block";
+
+      const styleDisabled = (el) => {
+        if (!el) return;
+        el.style.opacity = el.disabled ? "0.55" : "1";
+        el.style.pointerEvents = el.disabled ? "none" : "auto";
+      };
+
+      [addSponsorBtn, clearSponsorFormBtn, spLogoFile, spLogoUrl, spTier, spSort, spName, spWebsite]
+        .forEach(styleDisabled);
+    }
+
+    // Call whenever Tournament ID changes
+    tId.addEventListener("input", applySponsorGuardrails);
 
     function randId(len=10){
       const chars="abcdefghijklmnopqrstuvwxyz0123456789";
@@ -415,7 +479,7 @@
     function buildLinks(id){
       const base=baseURL();
       const join=`${base}index.html?t=${encodeURIComponent(id)}`;
-      const lb=`${base}leaderboard.html?t=${encodeURIComponent(id)}`; // ✅ no admin token
+      const lb=`${base}leaderboard.html?t=${encodeURIComponent(id)}`;
       joinLinkEl.textContent=join;
       lbLinkEl.textContent=lb;
       renderQR(joinQREl,join);
@@ -517,6 +581,23 @@
       return await getDownloadURL(storageRef);
     }
 
+    // ===== Auto-save prompt after sponsor changes =====
+    async function promptAutosaveSponsors(){
+      const tid = (tId.value || "").trim();
+      if (!tid) return;
+      if (!sponsorsDirty) return;
+
+      const ok = confirm("Sponsor changes detected. Save Changes now?");
+      if (!ok) return;
+
+      try{
+        await saveTournament();
+      }catch(e){
+        console.error(e);
+        alert("Auto-save failed: " + (e?.message || e));
+      }
+    }
+
     function renderSponsorList(){
       const sorted = [...sponsors].sort((a,b) => (a.sort ?? 999) - (b.sort ?? 999));
 
@@ -535,23 +616,25 @@
 
             <div class="toggleRow">
               <label><input type="checkbox" data-act="${sp.id}" ${sp.active ? "checked" : ""}/> Active</label>
-              <button class="miniBtn" data-up="${sp.id}">↑</button>
-              <button class="miniBtn" data-down="${sp.id}">↓</button>
+              <button class="miniBtn" data-up="${sp.id}" type="button">↑</button>
+              <button class="miniBtn" data-down="${sp.id}" type="button">↓</button>
             </div>
           </div>
 
           <div class="sponsorActions">
-            <button class="miniBtn" data-edit="${sp.id}">Edit</button>
-            <button class="miniBtn danger" data-del="${sp.id}">Remove</button>
+            <button class="miniBtn" data-edit="${sp.id}" type="button">Edit</button>
+            <button class="miniBtn danger" data-del="${sp.id}" type="button">Remove</button>
           </div>
         </div>
       `).join("");
 
       sponsorList.querySelectorAll("[data-del]").forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
           const id = btn.getAttribute("data-del");
           sponsors = sponsors.filter(s => s.id !== id);
           renderSponsorList();
+          setSponsorsDirty(true);
+          await promptAutosaveSponsors();
         });
       });
 
@@ -574,30 +657,36 @@
       });
 
       sponsorList.querySelectorAll("[data-act]").forEach(chk => {
-        chk.addEventListener("change", () => {
+        chk.addEventListener("change", async () => {
           const id = chk.getAttribute("data-act");
           const sp = sponsors.find(s => s.id === id);
           if (sp) sp.active = chk.checked;
+          setSponsorsDirty(true);
+          await promptAutosaveSponsors();
         });
       });
 
       sponsorList.querySelectorAll("[data-up]").forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
           const id = btn.getAttribute("data-up");
           const sp = sponsors.find(s => s.id === id);
           if (!sp) return;
           sp.sort = (Number(sp.sort ?? 10) || 10) - 1;
           renderSponsorList();
+          setSponsorsDirty(true);
+          await promptAutosaveSponsors();
         });
       });
 
       sponsorList.querySelectorAll("[data-down]").forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
           const id = btn.getAttribute("data-down");
           const sp = sponsors.find(s => s.id === id);
           if (!sp) return;
           sp.sort = (Number(sp.sort ?? 10) || 10) + 1;
           renderSponsorList();
+          setSponsorsDirty(true);
+          await promptAutosaveSponsors();
         });
       });
     }
@@ -655,7 +744,11 @@
       });
 
       renderSponsorList();
+      setSponsorsDirty(true);
       clearSponsorForm();
+
+      // ✅ Auto-save prompt
+      await promptAutosaveSponsors();
     });
 
     function deriveLegacySponsorFromSponsors(){
@@ -710,36 +803,52 @@
         updatedAt: serverTimestamp()
       };
 
-      await setDoc(doc(db, "tournaments", id), payload);
-      buildLinks(id);
-      alert("Tournament created!");
+      try{
+        await setDoc(doc(db, "tournaments", id), payload);
+        buildLinks(id);
+        setSponsorsDirty(false);
+        applySponsorGuardrails();
+        alert("Tournament created!");
+      }catch(e){
+        console.error(e);
+        alert("Create failed: " + (e?.message || e));
+      }
     }
 
     async function loadTournament(){
       const id = (tId.value || "").trim();
       if(!id) return alert("Paste a Tournament ID first.");
 
-      const snap = await getDoc(doc(db, "tournaments", id));
-      if(!snap.exists()) return alert("Not found.");
+      try{
+        const snap = await getDoc(doc(db, "tournaments", id));
+        if(!snap.exists()) return alert("Not found.");
 
-      const d = snap.data() || {};
+        const d = snap.data() || {};
 
-      tName.value = d.name || "";
-      tCourse.value = d.courseDefault || "tradition";
-      tFormat.value = d.format || "stroke";
-      tDate.value = d.date || "";
-      tOrg.value = d.organizer || "";
-      tStatus.value = d.status || "open";
-      tHandicapMode.value = d.handicapMode || "off";
-      adminToken.value = d.adminToken || "";
+        tName.value = d.name || "";
+        tCourse.value = d.courseDefault || "tradition";
+        tFormat.value = d.format || "stroke";
+        tDate.value = d.date || "";
+        tOrg.value = d.organizer || "";
+        tStatus.value = d.status || "open";
+        tHandicapMode.value = d.handicapMode || "off";
+        adminToken.value = d.adminToken || "";
 
-      sponsors = Array.isArray(d.sponsors) ? d.sponsors : [];
-      renderSponsorList();
+        sponsors = Array.isArray(d.sponsors) ? d.sponsors : [];
+        renderSponsorList();
 
-      buildLinks(id);
-      alert("Loaded.");
+        buildLinks(id);
+        setSponsorsDirty(false);
+        applySponsorGuardrails();
+        alert("Loaded.");
+      }catch(e){
+        console.error(e);
+        alert("Load failed: " + (e?.message || e));
+      }
     }
 
+    // ✅ Use setDoc(..., {merge:true}) so it works even if doc doesn't exist yet,
+    // and show real errors if rules/network fail.
     async function saveTournament(){
       const id = (tId.value || "").trim();
       if(!id) return alert("Enter Tournament ID first (or load/create).");
@@ -747,17 +856,26 @@
       const base = readTournamentForm();
       const legacy = deriveLegacySponsorFromSponsors();
 
-      await updateDoc(doc(db, "tournaments", id), {
+      const payload = {
         ...base,
         sponsors: sponsors || [],
         sponsorName: legacy.sponsorName,
         sponsorLogo: legacy.sponsorLogo,
         sponsorUrl: legacy.sponsorUrl,
         updatedAt: serverTimestamp()
-      });
+      };
 
-      buildLinks(id);
-      alert("Saved.");
+      try{
+        await setDoc(doc(db, "tournaments", id), payload, { merge: true });
+        buildLinks(id);
+        setSponsorsDirty(false);
+        applySponsorGuardrails();
+        alert("Saved.");
+      }catch(e){
+        console.error(e);
+        alert("Save failed: " + (e?.message || e));
+        throw e; // lets autosave prompt show failure too
+      }
     }
 
     async function closeTournament(){
@@ -767,13 +885,18 @@
       const ok = confirm("Close this tournament? It will show CLOSED on the leaderboard.");
       if(!ok) return;
 
-      await updateDoc(doc(db, "tournaments", id), {
-        status: "closed",
-        updatedAt: serverTimestamp()
-      });
+      try{
+        await updateDoc(doc(db, "tournaments", id), {
+          status: "closed",
+          updatedAt: serverTimestamp()
+        });
 
-      tStatus.value = "closed";
-      alert("Tournament CLOSED.");
+        tStatus.value = "closed";
+        alert("Tournament CLOSED.");
+      }catch(e){
+        console.error(e);
+        alert("Close failed: " + (e?.message || e));
+      }
     }
 
     createBtn.addEventListener("click", createTournament);
@@ -784,6 +907,8 @@
     // Defaults
     clearSponsorForm();
     renderSponsorList();
+    applySponsorGuardrails();
+    setSponsorsDirty(false);
 
     // Auto-load if admin.html?t=XXXX
     (async function boot(){
@@ -791,6 +916,7 @@
       const tid = (params.get("t") || "").trim();
       if (!tid) return;
       tId.value = tid;
+      applySponsorGuardrails();
       try{ await loadTournament(); }catch(e){ console.error(e); }
     })();
   </script>
