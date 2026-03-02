@@ -25,8 +25,10 @@
       --good:#2f6b2f;
       --bad:#b6422d;
 
+      /* ESPN-ish greens */
       --fairway1:#0f5a34;
       --fairway2:#0b3f26;
+      --rough:#08301d;
 
       --stripe: rgba(13,42,85,.05);
       --stripe2: rgba(202,162,74,.06);
@@ -87,7 +89,9 @@
       padding: 6px 10px;
     }
 
-    .titleBlock{ display:flex; flex-direction:column; gap:2px; }
+    .titleBlock{
+      display:flex; flex-direction:column; gap:2px;
+    }
 
     h1{
       margin:0;
@@ -210,7 +214,10 @@
       background: rgba(0,0,0,.06);
       display:none;
     }
-    #sponsorHeroName{ font-weight: 1000; font-size: 16px; }
+    #sponsorHeroName{
+      font-weight: 1000;
+      font-size: 16px;
+    }
     #sponsorHeroLink{
       display:none;
       border:2px solid rgba(13,42,85,.20);
@@ -223,7 +230,10 @@
     }
 
     /* ===== Leaderboard ===== */
-    .board{ padding: 10px 10px 14px; background: var(--card); }
+    .board{
+      padding: 10px 10px 14px;
+      background: var(--card);
+    }
 
     .hdr{
       display:grid;
@@ -240,7 +250,12 @@
       font-size: 12px;
     }
 
-    .list{ margin-top: 10px; display:flex; flex-direction:column; gap:10px; }
+    .list{
+      margin-top: 10px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
 
     .row{
       display:grid;
@@ -257,14 +272,15 @@
     }
     .row:nth-child(odd){
       background:
-        linear-gradient(90deg, var(--stripe), transparent 55%),
+        linear-gradient(90deg, rgba(13,42,85,.05), transparent 55%),
         rgba(255,255,255,.72);
     }
     .row:nth-child(even){
       background:
-        linear-gradient(90deg, var(--stripe2), transparent 55%),
+        linear-gradient(90deg, rgba(202,162,74,.06), transparent 55%),
         rgba(255,255,255,.72);
     }
+
     .row:active{ transform: translateY(1px); }
 
     .rankBox{
@@ -296,7 +312,12 @@
     .move.up{ color: #114011; border-color: rgba(47,107,47,.25); background: rgba(47,107,47,.10); }
     .move.down{ color: #5c1b11; border-color: rgba(182,66,45,.25); background: rgba(182,66,45,.10); }
 
-    .name{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+    .name{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+    }
     .mainName{
       font-weight: 1000;
       font-size: 16px;
@@ -313,7 +334,9 @@
       overflow:hidden;
       text-overflow:ellipsis;
     }
-    .chips{ display:flex; gap:6px; flex-wrap:wrap; }
+    .chips{
+      display:flex; gap:6px; flex-wrap:wrap;
+    }
     .chip{
       display:inline-flex;
       align-items:center;
@@ -337,7 +360,12 @@
       color: var(--navy2);
     }
 
-    .scoreBox{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+    .scoreBox{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:2px;
+    }
     .score{
       font-family: Cinzel, serif;
       font-weight: 900;
@@ -347,10 +375,20 @@
     }
     .score.good{ color: #114011; }
     .score.bad{ color: #5c1b11; }
-    .scoreSub{ font-size: 11px; font-weight: 900; color: rgba(0,0,0,.60); }
+    .scoreSub{
+      font-size: 11px;
+      font-weight: 900;
+      color: rgba(0,0,0,.60);
+    }
 
-    .thin{ text-align:right; font-weight: 900; font-size: 14px; color: rgba(0,0,0,.78); }
+    .thin{
+      text-align:right;
+      font-weight: 900;
+      font-size: 14px;
+      color: rgba(0,0,0,.78);
+    }
 
+    /* Top 1 glow */
     .row.top1{
       background:
         radial-gradient(circle at 10% 50%, rgba(202,162,74,.18), transparent 55%),
@@ -387,8 +425,17 @@
       padding: 8px 12px;
       border-bottom: 1px solid rgba(0,0,0,.10);
     }
-    .tickerLabel{ font-family: Cinzel, serif; font-weight: 900; letter-spacing: .5px; font-size: 12px; }
-    .tickerHint{ font-size: 12px; font-weight: 900; color: rgba(0,0,0,.55); }
+    .tickerLabel{
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      letter-spacing: .5px;
+      font-size: 12px;
+    }
+    .tickerHint{
+      font-size: 12px;
+      font-weight: 900;
+      color: rgba(0,0,0,.55);
+    }
     .tickerTrackWrap{ overflow:hidden; white-space:nowrap; }
     .tickerTrack{
       display:inline-flex;
@@ -518,7 +565,10 @@
       backdrop-filter: blur(6px);
     }
 
-    .sheetBannerRight{ text-align:right; min-width: 160px; }
+    .sheetBannerRight{
+      text-align:right;
+      min-width: 160px;
+    }
     .bigScore{
       font-family: Cinzel, serif;
       font-weight: 900;
@@ -552,7 +602,11 @@
     }
     .closeBtn:active{ transform: translateY(1px); }
 
-    .sheetBody{ padding: 12px; display:grid; gap:12px; }
+    .sheetBody{
+      padding: 12px;
+      display:grid;
+      gap:12px;
+    }
 
     .cardBlock{
       border-radius: 18px;
@@ -576,9 +630,17 @@
       font-size: 12px;
     }
 
-    .scoreGrid{ padding: 12px; display:grid; gap:10px; }
+    .scoreGrid{
+      padding: 12px;
+      display:grid;
+      gap:10px;
+    }
 
-    .nine{ display:grid; grid-template-columns: repeat(9, 1fr); gap: 9px; }
+    .nine{
+      display:grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 9px;
+    }
 
     .holeCell{
       border-radius: 16px;
@@ -685,7 +747,10 @@
       border-color: rgba(182,66,45,.40);
       box-shadow: 0 0 0 4px rgba(182,66,45,.09) inset;
     }
-    .holeCell.blank{ opacity:.75; background: rgba(255,255,255,.72); }
+    .holeCell.blank{
+      opacity:.75;
+      background: rgba(255,255,255,.72);
+    }
 
     .sumRow{
       padding: 10px 12px 12px;
@@ -871,7 +936,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ===== Course meta (Par/HCP) =====
+    // ===== Course meta =====
     const COURSE_TRADITION = {
       id:"tradition",
       headerMini:"./assets/cypresswood_header.png",
@@ -880,36 +945,12 @@
       hcp:[7,17,11,1,3,13,9,15,5, 14,8,10,6,18,12,2,16,4]
     };
 
-    // ✅ CYPRESS YARDAGES FIXED FROM YOUR SCREENSHOT
-    // (Blue/Forest/Silver/Copper-Ladies)
     const COURSE_CYPRESS = {
       id:"cypress",
       headerMini:"./assets/cypress_header.png",
       clubName:"Cypresswood Golf Club",
       par:[5,4,4,4,3,4,3,5,4, 4,4,4,4,3,5,3,5,4],
-      hcp:[3,13,11,7,15,9,17,1,5, 6,10,12,14,18,2,16,4,8],
-      tees: {
-        blue: {
-          front:[514,396,387,426,182,417,160,563,427], out:3472,
-          back:[416,409,388,349,149,586,193,531,413], inn:3434,
-          tot:6906
-        },
-        forest: {
-          front:[485,335,326,375,155,361,137,527,352], out:3053,
-          back:[381,368,354,320,117,546,160,490,379], inn:3115,
-          tot:6168
-        },
-        silver: {
-          front:[456,328,297,337,119,337,137,499,321], out:2831,
-          back:[277,315,319,320,117,515,127,461,342], inn:2793,
-          tot:5624
-        },
-        copperLadies: {
-          front:[401,268,257,265,79,302,83,419,284], out:2358,
-          back:[257,296,249,295,92,445,93,375,284], inn:2386,
-          tot:4744
-        }
-      }
+      hcp:[3,13,11,7,15,9,17,1,5, 6,10,12,14,18,2,16,4,8]
     };
 
     const COURSES = { tradition: COURSE_TRADITION, cypress: COURSE_CYPRESS };
@@ -965,7 +1006,6 @@
       status: "open"
     };
 
-    let course = COURSES[tournament.courseDefault] || COURSE_TRADITION;
     const lastRankByKey = new Map();
 
     function fmtFormat(f){
@@ -975,8 +1015,6 @@
       if (x === "skins") return "Skins";
       return "Stroke Play";
     }
-
-    function safeNum(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
 
     function normalizeUrl(u){
       const s = (u || "").trim();
@@ -1011,13 +1049,16 @@
       courseHeaderMini.src = c.headerMini;
       courseHeaderMini.alt = courseId === "cypress" ? "Cypress Header" : "Tradition Header";
       clubNameEl.textContent = c.clubName || "Golf Club";
-      course = c;
 
-      const totalPar = (c.par || []).reduce((a,b)=>a+(Number(b)||0),0);
+      const totalPar = c.par.reduce((a,b)=>a+(Number(b)||0),0);
       parPill.textContent = `TOTAL PAR: ${totalPar}`;
     }
 
-    // ===== Scores helpers =====
+    // ===== Course-aware scoring =====
+    function getCourseForEntry(entryCourseId){
+      return COURSES[entryCourseId] || COURSES[tournament.courseDefault] || COURSE_TRADITION;
+    }
+
     function getScore(scoresFlat, pIndex, hole){
       const key = `p${pIndex}_h${hole}`;
       const raw = scoresFlat?.[key];
@@ -1029,11 +1070,6 @@
       const out = [];
       for(let h=1; h<=18; h++) out.push(getScore(scoresFlat, pIndex, h));
       return out;
-    }
-
-    function hasAnyScore(scoresArr18){
-      for (let i=0;i<18;i++) if (scoresArr18[i] !== null) return true;
-      return false;
     }
 
     function deriveBestBall(scoresFlat, playerCount=6){
@@ -1048,6 +1084,10 @@
         out.push(best);
       }
       return out;
+    }
+
+    function hasAnyScore(scoresArr18){
+      return scoresArr18.some(v => v !== null);
     }
 
     function calcThruFromScores(scoresArr18){
@@ -1066,7 +1106,7 @@
       return scoresArr18.reduce((a,v)=> a + (v || 0), 0);
     }
 
-    function toParFromScores(scoresArr18){
+    function toParFromScores(scoresArr18, course){
       let rel = 0;
       for(let i=0;i<18;i++){
         const s = scoresArr18[i];
@@ -1086,15 +1126,15 @@
       return rel < 0 ? "good" : "bad";
     }
 
-    // ===== Playoff ordering (HCP hardest first) =====
-    function holesByHardestHcp(){
+    // ===== Playoff sorting (course-aware) =====
+    function holesByHardestHcp(course){
       const pairs = course.hcp.map((hcp, idx) => ({ hole: idx+1, hcp }));
       pairs.sort((a,b) => a.hcp - b.hcp);
       return pairs.map(p => p.hole);
     }
 
-    function playoffKey(scoresArr18){
-      const order = holesByHardestHcp();
+    function playoffKey(scoresArr18, course){
+      const order = holesByHardestHcp(course);
       const key = [];
       for(const hole of order){
         const v = scoresArr18[hole-1];
@@ -1103,9 +1143,9 @@
       return key;
     }
 
-    function comparePlayoff(aScores, bScores){
-      const aKey = playoffKey(aScores);
-      const bKey = playoffKey(bScores);
+    function comparePlayoff(aScores, bScores, course){
+      const aKey = playoffKey(aScores, course);
+      const bKey = playoffKey(bScores, course);
       for(let i=0;i<aKey.length;i++){
         if (aKey[i] < bKey[i]) return -1;
         if (aKey[i] > bKey[i]) return 1;
@@ -1113,10 +1153,22 @@
       return 0;
     }
 
-    // ===== Enterprise Sponsor rendering =====
+    // ===== Sponsor rendering =====
+    function normalizeSponsorObj(s){
+      const name = (s?.name || s?.sponsorName || "").trim();
+      const tier = (s?.tier || "").trim();
+      const sort = Number(s?.sort ?? s?.order ?? 999);
+      const active = (s?.active !== false);
+      const logoUrl = (s?.logoUrl || s?.logo || s?.sponsorLogo || s?.logoURL || "").trim();
+      const website = (s?.website || s?.url || s?.sponsorUrl || s?.sponsorWebsite || "").trim();
+      return { name, tier, sort, active, logoUrl, website };
+    }
+
     function getActiveSponsors(){
       const raw = Array.isArray(tournament.sponsors) ? tournament.sponsors : [];
-      const active = raw.filter(s => s && s.active !== false && (String(s.name||"").trim() || String(s.logoUrl||"").trim()));
+      const active = raw
+        .map(normalizeSponsorObj)
+        .filter(s => (s.active !== false) && (s.name || s.logoUrl));
       active.sort((a,b) => (Number(a.sort ?? 999) || 999) - (Number(b.sort ?? 999) || 999));
       return active;
     }
@@ -1129,16 +1181,18 @@
     function renderSponsors(){
       const active = getActiveSponsors();
 
+      // fallback to legacy single sponsor
       if (!active.length){
         const name = (tournament.sponsorName || "").trim();
-        const logo = (tournament.sponsorLogo || "").trim();
-        const url  = normalizeUrl(tournament.sponsorUrl || "");
+        const logo = (tournament.sponsorLogo || tournament.sponsorLogoUrl || "").trim();
+        const url  = normalizeUrl(tournament.sponsorUrl || tournament.sponsorWebsite || tournament.sponsorLink || "");
         if (!name && !logo){
           sponsorHero.style.display = "none";
           ticker.style.display = "none";
           tickerTrack.innerHTML = "";
           return;
         }
+
         sponsorHero.style.display = "block";
         sponsorHeroName.textContent = name || "Tournament Sponsor";
         if (logo){ sponsorHeroLogo.src = logo; sponsorHeroLogo.style.display = "block"; }
@@ -1185,7 +1239,7 @@
       tickerTrack.innerHTML = pills + pills;
     }
 
-    // ===== Entry building (FIXED: ONLY ACTIVE PLAYERS) =====
+    // ===== Entry building (FILTERS to only active golfers) =====
     function buildEntriesFromSubmissionDoc(docData, docId){
       const deviceId = docId;
       const group = (docData.group || "").trim();
@@ -1198,6 +1252,9 @@
       const teamName = group || (names[0] || playerName || "Team");
       const scorerName = playerName || names[0] || "";
 
+      const courseId = docData.courseId || tournament.courseDefault || "tradition";
+      const course = getCourseForEntry(courseId);
+
       const base = {
         deviceId,
         group,
@@ -1206,23 +1263,23 @@
         scoresFlat,
         totals,
         updatedAt,
-        courseId: docData.courseId || tournament.courseDefault || "tradition"
+        courseId,
+        course
       };
 
       const fmt = (tournament.format || "stroke").toLowerCase();
 
-      // Scramble: always 1 row
       if (fmt === "scramble"){
         const scores = derivePlayerScores(scoresFlat, 0);
-        if (!hasAnyScore(scores) && !teamName) return [];
-        const total = safeNum(totals?.[0]?.tot ?? totalFromScores(scores));
+        if (!hasAnyScore(scores)) return [];
+        const total = Number.isFinite(Number(totals?.[0]?.tot)) ? Number(totals[0].tot) : totalFromScores(scores);
         const thru = calcThruFromScores(scores);
-        const toPar = toParFromScores(scores);
+        const toPar = toParFromScores(scores, course);
         return [{
           ...base,
           key: `scr_${deviceId}`,
           displayName: teamName,
-          subLine: scorerName && group ? `Scorer: ${scorerName}` : "",
+          subLine: scorerName ? `Scorer: ${scorerName}` : "",
           kind: "team",
           scores,
           total,
@@ -1232,18 +1289,17 @@
         }];
       }
 
-      // Best ball: always 1 row
       if (fmt === "bestball"){
         const scores = deriveBestBall(scoresFlat, 6);
-        if (!hasAnyScore(scores) && !teamName) return [];
+        if (!hasAnyScore(scores)) return [];
         const total = totalFromScores(scores);
         const thru = calcThruFromScores(scores);
-        const toPar = toParFromScores(scores);
+        const toPar = toParFromScores(scores, course);
         return [{
           ...base,
           key: `bb_${deviceId}`,
           displayName: teamName,
-          subLine: scorerName && group ? `Team • Scorer: ${scorerName}` : (scorerName ? `Team • ${scorerName}` : "Team"),
+          subLine: scorerName ? `Team • ${scorerName}` : "Team",
           kind: "team",
           scores,
           total,
@@ -1253,19 +1309,17 @@
         }];
       }
 
-      // Skins: ONLY players with a name OR at least one score
       if (fmt === "skins"){
         const out = [];
         for(let i=0;i<6;i++){
-          const nm = (names[i] || "").trim();
           const scores = derivePlayerScores(scoresFlat, i);
-          const active = !!nm || hasAnyScore(scores);
-          if (!active) continue;
+          if (!hasAnyScore(scores)) continue; // ✅ only active golfers
 
-          const display = nm || (i === 0 ? (playerName || teamName || "Player 1") : `Player ${i+1}`);
-          const total = safeNum(totals?.[i]?.tot ?? totalFromScores(scores));
+          const nm = (names[i] || "").trim();
+          const display = nm || (i === 0 ? (playerName || teamName) : `Player ${i+1}`);
+          const total = Number.isFinite(Number(totals?.[i]?.tot)) ? Number(totals[i].tot) : totalFromScores(scores);
           const thru = calcThruFromScores(scores);
-          const toPar = toParFromScores(scores);
+          const toPar = toParFromScores(scores, course);
 
           out.push({
             ...base,
@@ -1284,18 +1338,17 @@
         return out;
       }
 
-      // Stroke: ONLY players with a name OR at least one score
+      // stroke (default): 6 players, but ✅ only active golfers
       const items = [];
       for(let i=0;i<6;i++){
-        const nm = (names[i] || "").trim();
         const scores = derivePlayerScores(scoresFlat, i);
-        const active = !!nm || hasAnyScore(scores);
-        if (!active) continue;
+        if (!hasAnyScore(scores)) continue; // ✅ only golfers playing
 
-        const display = nm || (i === 0 ? (playerName || teamName || "Player 1") : `Player ${i+1}`);
-        const total = safeNum(totals?.[i]?.tot ?? totalFromScores(scores));
+        const nm = (names[i] || "").trim();
+        const display = nm || (i === 0 ? (playerName || teamName) : `Player ${i+1}`);
+        const total = Number.isFinite(Number(totals?.[i]?.tot)) ? Number(totals[i].tot) : totalFromScores(scores);
         const thru = calcThruFromScores(scores);
-        const toPar = toParFromScores(scores);
+        const toPar = toParFromScores(scores, course);
 
         items.push({
           ...base,
@@ -1314,7 +1367,6 @@
       return items;
     }
 
-    // Skins calc only among active entries (already filtered)
     function computeSkins(entries){
       for(const e of entries) e.skins = 0;
 
@@ -1346,7 +1398,7 @@
         entries.sort((a,b) => {
           if (b.skins !== a.skins) return b.skins - a.skins;
           if (a.toPar !== b.toPar) return a.toPar - b.toPar;
-          return comparePlayoff(a.scores, b.scores);
+          return comparePlayoff(a.scores, b.scores, a.course);
         });
         return;
       }
@@ -1354,7 +1406,7 @@
       entries.sort((a,b) => {
         if (a.toPar !== b.toPar) return a.toPar - b.toPar;
         if (a.total !== b.total) return a.total - b.total;
-        return comparePlayoff(a.scores, b.scores);
+        return comparePlayoff(a.scores, b.scores, a.course);
       });
     }
 
@@ -1374,16 +1426,20 @@
 
       for(let i=0;i<entries.length;i++){
         const e = entries[i];
-        // tieKey: toPar + total + playoff
-        const tieKey = `${e.toPar}|${e.total}|${playoffKey(e.scores).join(",")}`;
+        const tieKey = `${e.toPar}|${e.total}|${playoffKey(e.scores, e.course).join(",")}`;
         if (i === 0){
           lastKey = tieKey;
           lastRank = 1;
           out.push("1");
         } else {
           const isTie = (tieKey === lastKey);
-          if (isTie) out.push(`T${lastRank}`);
-          else { lastRank = i + 1; lastKey = tieKey; out.push(String(lastRank)); }
+          if (isTie){
+            out.push(`T${lastRank}`);
+          } else {
+            lastRank = i + 1;
+            lastKey = tieKey;
+            out.push(String(lastRank));
+          }
         }
       }
       if (out.length >= 2 && out[1] === "T1") out[0] = "T1";
@@ -1392,7 +1448,7 @@
 
     function render(entries){
       if (!entries.length){
-        listEl.innerHTML = `<div style="padding:14px; font-weight:900; opacity:.75;">No active players yet.</div>`;
+        listEl.innerHTML = `<div style="padding:14px; font-weight:900; opacity:.75;">No active players yet (no scores submitted).</div>`;
         return;
       }
 
@@ -1428,7 +1484,7 @@
 
             <div class="name">
               <div class="mainName" title="${escapeHtml(e.displayName)}">${escapeHtml(e.displayName)}</div>
-              ${e.subLine ? `<div class="subName">${escapeHtml(e.subLine)}</div>` : ``}
+              ${e.subLine ? `<div class="subName">${escapeHtml(e.subLine)}</div>` : (e.kind === "team" && e.playerName && e.displayName !== e.playerName ? `<div class="subName">${escapeHtml(e.playerName)}</div>` : ``)}
               <div class="chips">${chips.join("")}</div>
             </div>
 
@@ -1490,8 +1546,8 @@
 
       for(let h=1; h<=18; h++){
         const score = e.scores[h-1];
-        const par = course.par[h-1];
-        const hcp = course.hcp[h-1];
+        const par = e.course.par[h-1];
+        const hcp = e.course.hcp[h-1];
 
         const cell = document.createElement("div");
         cell.className = `holeCell ${resultClass(score, par)}`;
@@ -1573,7 +1629,7 @@
           tournament = {
             ...tournament,
             ...t,
-            sponsorUrl: t.sponsorUrl || t.sponsorWebsite || "",
+            sponsorUrl: t.sponsorUrl || t.sponsorWebsite || t.sponsorLink || "",
             sponsors: Array.isArray(t.sponsors) ? t.sponsors : []
           };
 
