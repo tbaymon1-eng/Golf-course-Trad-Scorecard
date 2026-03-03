@@ -6,7 +6,9 @@
   <title>Live Leaderboard</title>
 
   <meta name="theme-color" content="#0d2a55">
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <!-- Elite broadcast typography pack -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root{
@@ -28,10 +30,36 @@
       /* ESPN-ish greens */
       --fairway1:#0f5a34;
       --fairway2:#0b3f26;
-      --rough:#08301d;
 
       --stripe: rgba(13,42,85,.05);
       --stripe2: rgba(202,162,74,.06);
+
+      /* ===== Elite Broadcast Type System ===== */
+      --font-head: "Cinzel", Georgia, serif;
+      --font-row: "Barlow Condensed", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      --font-ui:  "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
+      --caps-track: .08em;
+      --row-track:  .035em;
+      --num-track:  .02em;
+
+      --hdr:   13px;
+      --name:  18px;
+      --sub:   12px;
+      --rank:  20px;
+      --score: 28px;
+
+      --lh-tight: 1.05;
+      --lh: 1.15;
+    }
+
+    @media (min-width: 820px){
+      :root{
+        --hdr: 14px;
+        --name: 20px;
+        --rank: 22px;
+        --score: 32px;
+      }
     }
 
     *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
@@ -95,24 +123,28 @@
 
     h1{
       margin:0;
-      font-family: Cinzel, serif;
+      font-family: var(--font-head);
       font-weight: 900;
-      letter-spacing: .7px;
+      letter-spacing: var(--caps-track);
       font-size: 18px;
-      line-height: 1.05;
+      line-height: var(--lh-tight);
+      text-transform: uppercase;
     }
     .clubName{
-      font-family: Cinzel, serif;
+      font-family: var(--font-head);
       font-weight: 900;
-      letter-spacing: .5px;
+      letter-spacing: .06em;
       font-size: 12px;
       opacity:.9;
+      text-transform: uppercase;
     }
     .meta{
       margin-top:2px;
       font-size: 12px;
       color: var(--muted);
-      font-weight: 700;
+      font-weight: 800;
+      font-family: var(--font-ui);
+      letter-spacing: .02em;
     }
 
     .pillRow{
@@ -129,6 +161,9 @@
       font-weight: 900;
       font-size: 12px;
       white-space:nowrap;
+      font-family: var(--font-ui);
+      letter-spacing: .06em;
+      text-transform: uppercase;
     }
     .pill.live{
       border-color: rgba(47,107,47,.35);
@@ -163,6 +198,8 @@
       align-items:center;
       gap:8px;
       white-space:nowrap;
+      font-family: var(--font-ui);
+      letter-spacing: .02em;
     }
     button:active, a.btn:active{ transform: translateY(1px); }
 
@@ -177,7 +214,7 @@
       color: #114011;
     }
 
-    /* ===== Sponsor Hero ===== */
+    /* ===== Sponsor Hero (only shows if sponsor data exists) ===== */
     #sponsorHero{
       display:none;
       margin-top: 10px;
@@ -196,10 +233,11 @@
       flex-wrap:wrap;
     }
     #sponsorHeroTitle{
-      font-family: Cinzel, serif;
+      font-family: var(--font-ui);
       font-weight: 900;
       font-size: 12px;
-      letter-spacing: .5px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
       opacity: .95;
     }
     #sponsorHeroRow{
@@ -215,8 +253,11 @@
       display:none;
     }
     #sponsorHeroName{
-      font-weight: 1000;
-      font-size: 16px;
+      font-family: var(--font-row);
+      font-weight: 900;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      font-size: 18px;
     }
     #sponsorHeroLink{
       display:none;
@@ -227,184 +268,149 @@
       border-radius: 12px;
       font-weight: 900;
       text-decoration:none;
+      font-family: var(--font-ui);
+      letter-spacing: .02em;
     }
 
-    /* ===== Leaderboard ===== */
+    /* ===== Board wrapper ===== */
     .board{
       padding: 10px 10px 14px;
       background: var(--card);
     }
 
-    .hdr{
-      display:grid;
-      grid-template-columns: 74px 1.35fr 120px 90px 90px;
-      gap:10px;
-      align-items:center;
-      padding: 10px 10px;
-      border-radius: 12px;
-      background: linear-gradient(90deg, rgba(13,42,85,.12), rgba(202,162,74,.10));
+    /* ===== Broadcast-style leaderboard (NO FLAGS) ===== */
+    .lb-wrap{
+      background: linear-gradient(180deg,#0f2a55,#0a1f3d);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,.25);
       border: 2px solid rgba(0,0,0,.12);
-      font-family: Cinzel, serif;
-      font-weight: 900;
-      letter-spacing: .5px;
-      font-size: 12px;
     }
 
-    .list{
-      margin-top: 10px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-
-    .row{
+    .lb-head{
       display:grid;
-      grid-template-columns: 74px 1.35fr 120px 90px 90px;
-      gap:10px;
+      grid-template-columns: 74px 1fr 118px 88px 92px;
       align-items:center;
-      padding: 12px 10px;
-      border-radius: 14px;
-      background: var(--row2);
-      border: 2px solid rgba(0,0,0,.10);
+      padding: 12px 14px;
+      background: linear-gradient(90deg,#133a73,#0f2a55);
+      color:#fff;
+      font-family: var(--font-ui);
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-size: var(--hdr);
+      border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+
+    .lb-list{ display:flex; flex-direction:column; }
+
+    .lb-row{
+      display:grid;
+      grid-template-columns: 74px 1fr 118px 88px 92px;
+      align-items:center;
+      padding: 11px 14px;
+      background: rgba(255,255,255,.04);
+      border-top: 1px solid rgba(255,255,255,.08);
+      transition: background .18s ease;
       cursor:pointer;
-      position:relative;
-      overflow:hidden;
+
+      font-family: var(--font-row);
+      letter-spacing: var(--row-track);
+      text-transform: uppercase;
+      font-feature-settings: "tnum" 1;
     }
-    .row:nth-child(odd){
-      background:
-        linear-gradient(90deg, rgba(13,42,85,.05), transparent 55%),
-        rgba(255,255,255,.72);
-    }
-    .row:nth-child(even){
-      background:
-        linear-gradient(90deg, rgba(202,162,74,.06), transparent 55%),
-        rgba(255,255,255,.72);
+    .lb-row:nth-child(even){ background: rgba(255,255,255,.07); }
+    .lb-row:hover{ background: rgba(255,255,255,.12); }
+    .lb-row:active{ transform: translateY(1px); }
+
+    .lb-row.leader{
+      background: linear-gradient(90deg, rgba(255,215,0,.18), rgba(255,215,0,.05));
     }
 
-    .row:active{ transform: translateY(1px); }
-
-    .rankBox{
-      display:flex; align-items:center; justify-content:center;
-      width: 70px; height: 44px;
-      border-radius: 12px;
-      background: rgba(13,42,85,.12);
-      border: 2px solid rgba(13,42,85,.20);
-      font-family: Cinzel, serif;
-      font-weight: 900;
-      font-size: 18px;
-      position:relative;
-    }
-    .move{
-      position:absolute;
-      right: -6px;
-      top: -6px;
-      width: 26px;
-      height: 26px;
+    .lb-rank{
       display:flex;
       align-items:center;
-      justify-content:center;
+      gap:8px;
+      color:#fff;
+      font-weight: 900;
+      letter-spacing: var(--num-track);
+      font-size: var(--rank);
+      line-height: var(--lh-tight);
+    }
+    .lb-move{
+      width: 22px; height: 22px;
       border-radius: 999px;
-      font-size: 14px;
-      font-weight: 900;
-      border: 2px solid rgba(0,0,0,.10);
-      background: rgba(255,255,255,.75);
-    }
-    .move.up{ color: #114011; border-color: rgba(47,107,47,.25); background: rgba(47,107,47,.10); }
-    .move.down{ color: #5c1b11; border-color: rgba(182,66,45,.25); background: rgba(182,66,45,.10); }
-
-    .name{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      min-width:0;
-    }
-    .mainName{
-      font-weight: 1000;
-      font-size: 16px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      max-width: 100%;
-    }
-    .subName{
-      font-size: 12px;
-      font-weight: 900;
-      color: rgba(0,0,0,.62);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .chips{
-      display:flex; gap:6px; flex-wrap:wrap;
-    }
-    .chip{
       display:inline-flex;
       align-items:center;
-      gap:6px;
-      padding: 6px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 900;
-      border: 2px solid rgba(0,0,0,.10);
-      background: rgba(255,255,255,.70);
-      color: rgba(0,0,0,.75);
+      justify-content:center;
+      font-size: 12px;
+      border: 1px solid rgba(255,255,255,.20);
+      background: rgba(0,0,0,.18);
     }
-    .chip.gold{
-      background: rgba(202,162,74,.14);
-      border-color: rgba(202,162,74,.25);
-      color: #4a3a10;
+    .lb-move.up{ color:#b8ffb8; border-color: rgba(184,255,184,.35); }
+    .lb-move.down{ color:#ffb8b8; border-color: rgba(255,184,184,.35); }
+
+    .lb-nameWrap{ min-width:0; }
+    .lb-name{
+      color:#fff;
+      font-weight: 800;
+      font-size: var(--name);
+      line-height: var(--lh);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
-    .chip.navy{
-      background: rgba(13,42,85,.10);
-      border-color: rgba(13,42,85,.20);
-      color: var(--navy2);
+    .lb-sub{
+      margin-top: 2px;
+      font-family: var(--font-ui);
+      font-weight: 800;
+      font-size: var(--sub);
+      letter-spacing: .08em;
+      text-transform: none;
+      color: rgba(255,255,255,.82);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      opacity:.95;
     }
 
-    .scoreBox{
-      display:flex;
-      flex-direction:column;
-      align-items:flex-end;
-      gap:2px;
-    }
-    .score{
-      font-family: Cinzel, serif;
-      font-weight: 900;
-      font-size: 22px;
-      letter-spacing: .5px;
-      color: var(--navy2);
-    }
-    .score.good{ color: #114011; }
-    .score.bad{ color: #5c1b11; }
-    .scoreSub{
-      font-size: 11px;
-      font-weight: 900;
-      color: rgba(0,0,0,.60);
-    }
-
-    .thin{
+    .lb-score{
       text-align:right;
+      color:#fff;
       font-weight: 900;
-      font-size: 14px;
-      color: rgba(0,0,0,.78);
+      letter-spacing: var(--num-track);
+      font-size: var(--score);
+      line-height: var(--lh-tight);
+      white-space:nowrap;
+    }
+    .lb-score.under{ color:#ff4d4d; }
+    .lb-score.even{ color:#ffffff; }
+    .lb-score.over{ color:#ffb347; }
+    .lb-score .evenMark{
+      font-family: var(--font-ui);
+      font-weight: 900;
+      letter-spacing: .14em;
     }
 
-    /* Top 1 glow */
-    .row.top1{
-      background:
-        radial-gradient(circle at 10% 50%, rgba(202,162,74,.18), transparent 55%),
-        radial-gradient(circle at 90% 30%, rgba(13,42,85,.14), transparent 55%),
-        rgba(255,255,255,.72);
-      border-color: rgba(202,162,74,.22);
+    .lb-thin{
+      text-align:right;
+      font-family: var(--font-ui);
+      font-weight: 800;
+      letter-spacing: .04em;
+      font-size: 12px;
+      color: rgba(255,255,255,.82);
+      white-space:nowrap;
     }
 
-    .flash{ animation: flash 800ms ease-out; }
-    @keyframes flash{
-      0%{ box-shadow: 0 0 0 rgba(0,0,0,0); }
-      25%{ box-shadow: 0 0 0 6px rgba(202,162,74,.18); }
-      100%{ box-shadow: 0 0 0 rgba(0,0,0,0); }
+    .emptyBox{
+      padding: 14px;
+      font-family: var(--font-ui);
+      font-weight: 900;
+      letter-spacing: .02em;
+      color: rgba(255,255,255,.85);
     }
 
-    /* ===== Sponsor ticker ===== */
+    /* ===== Sponsor ticker (only shows if sponsor data exists) ===== */
     #ticker{
       position: fixed;
       left: 0;
@@ -416,6 +422,7 @@
         linear-gradient(90deg, rgba(13,42,85,.18), rgba(202,162,74,.16)),
         rgba(239,231,215,.96);
       backdrop-filter: blur(6px);
+      display:none;
     }
     .tickerTop{
       display:flex;
@@ -426,15 +433,18 @@
       border-bottom: 1px solid rgba(0,0,0,.10);
     }
     .tickerLabel{
-      font-family: Cinzel, serif;
+      font-family: var(--font-ui);
       font-weight: 900;
-      letter-spacing: .5px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
       font-size: 12px;
     }
     .tickerHint{
+      font-family: var(--font-ui);
       font-size: 12px;
       font-weight: 900;
       color: rgba(0,0,0,.55);
+      letter-spacing: .02em;
     }
     .tickerTrackWrap{ overflow:hidden; white-space:nowrap; }
     .tickerTrack{
@@ -462,6 +472,8 @@
       font-weight: 1000;
       font-size: 13px;
       cursor:pointer;
+      font-family: var(--font-ui);
+      letter-spacing: .02em;
     }
     .sponsorPill img{
       width: 26px; height: 26px;
@@ -507,22 +519,6 @@
       border-bottom: 1px solid rgba(255,255,255,.12);
       overflow:hidden;
     }
-    .sheetBanner::after{
-      content:"";
-      position:absolute;
-      inset:-40% -30%;
-      background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.08) 50%, transparent 60%);
-      transform: rotate(8deg);
-      animation: sheen 2.2s ease-in-out infinite;
-      pointer-events:none;
-    }
-    @keyframes sheen{
-      0%{ transform: translateX(-20%) rotate(8deg); opacity:.0; }
-      35%{ opacity: .55; }
-      60%{ opacity: .15; }
-      100%{ transform: translateX(22%) rotate(8deg); opacity:0; }
-    }
-
     .sheetBannerTop{
       display:flex;
       justify-content:space-between;
@@ -533,19 +529,21 @@
     .sheetBannerLeft{ min-width: 220px; }
     .sheetName{
       margin:0;
-      font-family: Cinzel, serif;
+      font-family: var(--font-head);
       font-weight: 900;
       font-size: 18px;
-      letter-spacing: .6px;
+      letter-spacing: var(--caps-track);
       color: rgba(255,255,255,.95);
       text-shadow: 0 2px 10px rgba(0,0,0,.35);
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
       max-width: 100%;
+      text-transform: uppercase;
     }
     .sheetSub{
       margin-top:6px;
+      font-family: var(--font-ui);
       font-weight: 900;
       font-size: 12px;
       color: rgba(255,255,255,.80);
@@ -553,6 +551,7 @@
       display:flex;
       gap:8px;
       flex-wrap:wrap;
+      letter-spacing: .02em;
     }
     .tag{
       display:inline-flex;
@@ -563,6 +562,9 @@
       border: 1px solid rgba(255,255,255,.18);
       background: rgba(0,0,0,.18);
       backdrop-filter: blur(6px);
+      font-family: var(--font-ui);
+      letter-spacing: .02em;
+      font-weight: 900;
     }
 
     .sheetBannerRight{
@@ -570,20 +572,23 @@
       min-width: 160px;
     }
     .bigScore{
-      font-family: Cinzel, serif;
+      font-family: var(--font-row);
       font-weight: 900;
-      font-size: 40px;
+      font-size: 42px;
       color: rgba(255,255,255,.96);
       text-shadow: 0 2px 14px rgba(0,0,0,.40);
       line-height: 1;
-      letter-spacing: .6px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
     }
     .smallScore{
       margin-top:6px;
+      font-family: var(--font-ui);
       font-weight: 900;
       font-size: 12px;
       color: rgba(255,255,255,.78);
       text-shadow: 0 2px 10px rgba(0,0,0,.35);
+      letter-spacing: .02em;
     }
 
     .closeBtn{
@@ -599,6 +604,8 @@
       gap:8px;
       height: fit-content;
       backdrop-filter: blur(6px);
+      font-family: var(--font-ui);
+      letter-spacing: .02em;
     }
     .closeBtn:active{ transform: translateY(1px); }
 
@@ -624,9 +631,10 @@
       border-bottom: 1px solid rgba(0,0,0,.10);
       background:
         linear-gradient(90deg, rgba(13,42,85,.12), rgba(202,162,74,.10));
-      font-family: Cinzel, serif;
+      font-family: var(--font-ui);
       font-weight: 900;
-      letter-spacing: .5px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
       font-size: 12px;
     }
 
@@ -653,14 +661,6 @@
       position:relative;
       overflow:hidden;
     }
-    .holeCell::before{
-      content:"";
-      position:absolute;
-      inset: -50% -50%;
-      background: radial-gradient(circle at 60% 40%, rgba(13,42,85,.10), transparent 55%);
-      transform: rotate(8deg);
-      pointer-events:none;
-    }
 
     .holeTop{
       display:flex;
@@ -676,12 +676,13 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      font-family: Cinzel, serif;
+      font-family: var(--font-row);
       font-weight: 900;
-      font-size: 12px;
+      font-size: 14px;
       border: 2px solid rgba(13,42,85,.18);
       background: rgba(13,42,85,.10);
       color: var(--navy2);
+      letter-spacing: .02em;
     }
     .flag{
       width: 26px; height: 26px;
@@ -696,13 +697,14 @@
 
     .holeScore{
       margin-top: 8px;
-      font-family: Cinzel, serif;
+      font-family: var(--font-row);
       font-weight: 900;
-      font-size: 22px;
+      font-size: 24px;
       color: #111;
       line-height: 1;
       position:relative;
       z-index:1;
+      letter-spacing: .02em;
     }
 
     .holeMeta{
@@ -716,6 +718,8 @@
       color: rgba(0,0,0,.60);
       position:relative;
       z-index:1;
+      font-family: var(--font-ui);
+      letter-spacing: .02em;
     }
     .holeMeta span{
       padding: 4px 6px;
@@ -724,33 +728,11 @@
       background: rgba(255,255,255,.78);
     }
 
-    .holeCell.birdie{
-      border-color: rgba(47,107,47,.35);
-      background:
-        radial-gradient(circle at 30% 0%, rgba(47,107,47,.14), transparent 60%),
-        rgba(255,255,255,.86);
-    }
-    .holeCell.eagle{
-      border-color: rgba(202,162,74,.42);
-      background:
-        radial-gradient(circle at 30% 0%, rgba(202,162,74,.20), transparent 60%),
-        rgba(255,255,255,.88);
-      box-shadow: 0 0 0 4px rgba(202,162,74,.10) inset;
-    }
-    .holeCell.bogey{
-      border-color: rgba(182,66,45,.30);
-      background:
-        radial-gradient(circle at 30% 0%, rgba(182,66,45,.10), transparent 60%),
-        rgba(255,255,255,.86);
-    }
-    .holeCell.double{
-      border-color: rgba(182,66,45,.40);
-      box-shadow: 0 0 0 4px rgba(182,66,45,.09) inset;
-    }
-    .holeCell.blank{
-      opacity:.75;
-      background: rgba(255,255,255,.72);
-    }
+    .holeCell.birdie{ border-color: rgba(47,107,47,.35); }
+    .holeCell.eagle{ border-color: rgba(202,162,74,.42); box-shadow: 0 0 0 4px rgba(202,162,74,.10) inset; }
+    .holeCell.bogey{ border-color: rgba(182,66,45,.30); }
+    .holeCell.double{ border-color: rgba(182,66,45,.40); box-shadow: 0 0 0 4px rgba(182,66,45,.09) inset; }
+    .holeCell.blank{ opacity:.75; background: rgba(255,255,255,.72); }
 
     .sumRow{
       padding: 10px 12px 12px;
@@ -771,38 +753,41 @@
       min-width: 160px;
       justify-content:space-between;
       font-weight: 1000;
+      font-family: var(--font-ui);
+      letter-spacing: .02em;
     }
     .sumPill b{
-      font-family: Cinzel, serif;
-      letter-spacing: .4px;
-      font-size: 12px;
+      font-family: var(--font-ui);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-size: 11px;
       opacity:.9;
     }
     .sumPill span{
-      font-family: Cinzel, serif;
+      font-family: var(--font-row);
       font-weight: 900;
-      font-size: 18px;
+      font-size: 20px;
       color: var(--navy2);
+      letter-spacing: .04em;
+      text-transform: uppercase;
     }
 
     /* ===== TV Mode ===== */
     body.tv .wrap{ max-width: 1400px; padding: 12px 12px 70px; }
     body.tv h1{ font-size: 22px; }
-    body.tv .row{ padding: 14px 12px; }
-    body.tv .hdr{ font-size: 13px; }
-    body.tv .score{ font-size: 26px; }
-    body.tv .rankBox{ width: 78px; height: 48px; font-size: 20px; }
     body.tv .courseHeaderMini{ width: 200px; height: 52px; }
+    body.tv .lb-row{ padding: 12px 16px; }
+    body.tv .lb-score{ font-size: 36px; }
 
     @media (max-width: 900px){
-      .hdr, .row{ grid-template-columns: 74px 1.2fr 120px 84px 84px; }
+      .lb-head, .lb-row{ grid-template-columns: 74px 1fr 118px 84px 88px; }
       .nine{ grid-template-columns: repeat(3, 1fr); }
     }
     @media (max-width: 740px){
-      .hdr, .row{ grid-template-columns: 74px 1fr 120px; }
-      .hdr .colThru, .hdr .colUpdated,
-      .row .colThru, .row .colUpdated{ display:none; }
-      .scoreBox{ align-items:flex-end; }
+      /* Mobile: hide thru + updated like TV graphics */
+      .lb-head, .lb-row{ grid-template-columns: 74px 1fr 118px; }
+      .lb-head .colThru, .lb-head .colUpdated,
+      .lb-row .colThru, .lb-row .colUpdated{ display:none; }
     }
   </style>
 </head>
@@ -835,9 +820,10 @@
           </div>
         </div>
 
+        <!-- Sponsor hero (shows only if sponsor data exists) -->
         <div id="sponsorHero">
           <div id="sponsorHeroTop">
-            <div id="sponsorHeroTitle">TOURNAMENT SPONSOR</div>
+            <div id="sponsorHeroTitle">Tournament Sponsor</div>
             <a id="sponsorHeroLink" href="#" target="_blank" rel="noopener">Visit Sponsor</a>
           </div>
           <div id="sponsorHeroRow">
@@ -848,20 +834,23 @@
       </div>
 
       <div class="board">
-        <div class="hdr">
-          <div>RANK</div>
-          <div>TEAM / PLAYER</div>
-          <div style="text-align:right;">TO PAR</div>
-          <div class="colThru" style="text-align:right;">THRU</div>
-          <div class="colUpdated" style="text-align:right;">UPDATED</div>
-        </div>
+        <div class="lb-wrap">
+          <div class="lb-head">
+            <div>RANK</div>
+            <div>TEAM / PLAYER</div>
+            <div style="text-align:right;">TO PAR</div>
+            <div class="colThru" style="text-align:right;">THRU</div>
+            <div class="colUpdated" style="text-align:right;">UPDATED</div>
+          </div>
 
-        <div class="list" id="list"></div>
+          <div class="lb-list" id="list"></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div id="ticker" style="display:none;">
+  <!-- Sponsor ticker (shows only if sponsor data exists) -->
+  <div id="ticker">
     <div class="tickerTop">
       <div class="tickerLabel">Sponsored by</div>
       <div class="tickerHint">(tap to open)</div>
@@ -1116,14 +1105,15 @@
       return rel;
     }
 
-    function formatToPar(rel){
-      if (rel === 0) return "E";
-      return rel > 0 ? `+${rel}` : String(rel);
+    function scoreClass(rel){
+      if (rel < 0) return "under";
+      if (rel > 0) return "over";
+      return "even";
     }
 
-    function toParClass(rel){
-      if (rel === 0) return "";
-      return rel < 0 ? "good" : "bad";
+    function formatToParTV(rel){
+      if (rel === 0) return `<span class="evenMark">E</span>`;
+      return rel > 0 ? `+${rel}` : String(rel);
     }
 
     // ===== Playoff sorting (course-aware) =====
@@ -1153,7 +1143,7 @@
       return 0;
     }
 
-    // ===== Sponsor rendering =====
+    // ===== Sponsor rendering (HIDE if missing) =====
     function normalizeSponsorObj(s){
       const name = (s?.name || s?.sponsorName || "").trim();
       const tier = (s?.tier || "").trim();
@@ -1178,6 +1168,17 @@
       return title || active[0] || null;
     }
 
+    function hideSponsors(){
+      sponsorHero.style.display = "none";
+      ticker.style.display = "none";
+      tickerTrack.innerHTML = "";
+      sponsorHeroLogo.src = "";
+      sponsorHeroName.textContent = "";
+      sponsorHeroLink.href = "#";
+      sponsorHeroLink.style.display = "none";
+      sponsorHeroLogo.style.display = "none";
+    }
+
     function renderSponsors(){
       const active = getActiveSponsors();
 
@@ -1186,19 +1187,29 @@
         const name = (tournament.sponsorName || "").trim();
         const logo = (tournament.sponsorLogo || tournament.sponsorLogoUrl || "").trim();
         const url  = normalizeUrl(tournament.sponsorUrl || tournament.sponsorWebsite || tournament.sponsorLink || "");
+
+        // ✅ If missing, hide everything
         if (!name && !logo){
-          sponsorHero.style.display = "none";
-          ticker.style.display = "none";
-          tickerTrack.innerHTML = "";
+          hideSponsors();
           return;
         }
 
         sponsorHero.style.display = "block";
         sponsorHeroName.textContent = name || "Tournament Sponsor";
-        if (logo){ sponsorHeroLogo.src = logo; sponsorHeroLogo.style.display = "block"; }
-        else sponsorHeroLogo.style.display = "none";
-        if (url){ sponsorHeroLink.href = url; sponsorHeroLink.style.display = "inline-flex"; }
-        else sponsorHeroLink.style.display = "none";
+
+        if (logo){
+          sponsorHeroLogo.src = logo;
+          sponsorHeroLogo.style.display = "block";
+        } else {
+          sponsorHeroLogo.style.display = "none";
+        }
+
+        if (url){
+          sponsorHeroLink.href = url;
+          sponsorHeroLink.style.display = "inline-flex";
+        } else {
+          sponsorHeroLink.style.display = "none";
+        }
 
         ticker.style.display = "block";
         const pill = `
@@ -1216,12 +1227,28 @@
       const heroLogo = (hero?.logoUrl || "").trim();
       const heroUrl  = normalizeUrl(hero?.website || "");
 
+      // ✅ If still somehow empty, hide
+      if (!heroName && !heroLogo){
+        hideSponsors();
+        return;
+      }
+
       sponsorHero.style.display = "block";
       sponsorHeroName.textContent = heroName || "Tournament Sponsor";
-      if (heroLogo){ sponsorHeroLogo.src = heroLogo; sponsorHeroLogo.style.display = "block"; }
-      else sponsorHeroLogo.style.display = "none";
-      if (heroUrl){ sponsorHeroLink.href = heroUrl; sponsorHeroLink.style.display = "inline-flex"; }
-      else sponsorHeroLink.style.display = "none";
+
+      if (heroLogo){
+        sponsorHeroLogo.src = heroLogo;
+        sponsorHeroLogo.style.display = "block";
+      } else {
+        sponsorHeroLogo.style.display = "none";
+      }
+
+      if (heroUrl){
+        sponsorHeroLink.href = heroUrl;
+        sponsorHeroLink.style.display = "inline-flex";
+      } else {
+        sponsorHeroLink.style.display = "none";
+      }
 
       ticker.style.display = "block";
       const pills = active.map(s => {
@@ -1313,7 +1340,7 @@
         const out = [];
         for(let i=0;i<6;i++){
           const scores = derivePlayerScores(scoresFlat, i);
-          if (!hasAnyScore(scores)) continue; // ✅ only active golfers
+          if (!hasAnyScore(scores)) continue;
 
           const nm = (names[i] || "").trim();
           const display = nm || (i === 0 ? (playerName || teamName) : `Player ${i+1}`);
@@ -1338,11 +1365,11 @@
         return out;
       }
 
-      // stroke (default): 6 players, but ✅ only active golfers
+      // stroke (default): only active golfers
       const items = [];
       for(let i=0;i<6;i++){
         const scores = derivePlayerScores(scoresFlat, i);
-        if (!hasAnyScore(scores)) continue; // ✅ only golfers playing
+        if (!hasAnyScore(scores)) continue;
 
         const nm = (names[i] || "").trim();
         const display = nm || (i === 0 ? (playerName || teamName) : `Player ${i+1}`);
@@ -1413,9 +1440,9 @@
     function formatScoreDisplay(e){
       const fmt = (tournament.format || "stroke").toLowerCase();
       if (fmt === "skins"){
-        return { big: String(e.skins), sub: `Skins • ${formatToPar(e.toPar)}` };
+        return { big: String(e.skins), sub: `Skins • ${e.toPar === 0 ? "E" : (e.toPar > 0 ? "+"+e.toPar : String(e.toPar))}` };
       }
-      return { big: formatToPar(e.toPar), sub: fmt === "bestball" ? "Best Ball" : (fmt === "scramble" ? "Team" : "Gross") };
+      return { big: e.toPar, sub: fmt === "bestball" ? "Best Ball" : (fmt === "scramble" ? "Team" : "Gross") };
     }
 
     // ===== T ranks =====
@@ -1448,7 +1475,7 @@
 
     function render(entries){
       if (!entries.length){
-        listEl.innerHTML = `<div style="padding:14px; font-weight:900; opacity:.75;">No active players yet (no scores submitted).</div>`;
+        listEl.innerHTML = `<div class="emptyBox">No active players yet (no scores submitted).</div>`;
         return;
       }
 
@@ -1459,42 +1486,35 @@
       const html = entries.map((e, idx) => {
         const prev = lastRankByKey.get(e.key);
         const rankNum = idx + 1;
+
         const movedUp = (prev && rankNum < prev);
         const movedDown = (prev && rankNum > prev);
-        const moveBadge = prev ? (movedUp ? `<div class="move up">▲</div>` : (movedDown ? `<div class="move down">▼</div>` : ``)) : ``;
 
-        const topClass = rankNum === 1 ? "top1" : "";
-        const flash = prev && (movedUp || movedDown) ? "flash" : "";
+        const moveBadge = prev
+          ? (movedUp ? `<span class="lb-move up">▲</span>` : (movedDown ? `<span class="lb-move down">▼</span>` : ``))
+          : ``;
 
-        const s = formatScoreDisplay(e);
+        const leaderClass = rankNum === 1 ? "leader" : "";
         const updatedText = tsToText(e.updatedAt);
 
-        const chips = [];
-        if ((tournament.format || "").toLowerCase() === "skins"){
-          chips.push(`<span class="chip gold">Skins: ${e.skins}</span>`);
-        }
-        chips.push(`<span class="chip navy">${escapeHtml(fmtFormat(tournament.format))}</span>`);
-        if (e.thru) chips.push(`<span class="chip">Thru ${e.thru}</span>`);
-
-        const scoreCls = `score ${toParClass(e.toPar)}`;
+        // Score (TV format)
+        const rel = Number(e.toPar || 0);
+        const sCls = scoreClass(rel);
+        const scoreHtml = formatToParTV(rel);
 
         return `
-          <div class="row ${topClass} ${flash}" data-key="${escapeHtml(e.key)}">
-            <div class="rankBox">${displayRanks[idx]}${moveBadge}</div>
+          <div class="lb-row ${leaderClass}" data-key="${escapeHtml(e.key)}">
+            <div class="lb-rank">${escapeHtml(displayRanks[idx])} ${moveBadge}</div>
 
-            <div class="name">
-              <div class="mainName" title="${escapeHtml(e.displayName)}">${escapeHtml(e.displayName)}</div>
-              ${e.subLine ? `<div class="subName">${escapeHtml(e.subLine)}</div>` : (e.kind === "team" && e.playerName && e.displayName !== e.playerName ? `<div class="subName">${escapeHtml(e.playerName)}</div>` : ``)}
-              <div class="chips">${chips.join("")}</div>
+            <div class="lb-nameWrap">
+              <div class="lb-name" title="${escapeHtml(e.displayName)}">${escapeHtml(e.displayName)}</div>
+              ${e.subLine ? `<div class="lb-sub">${escapeHtml(e.subLine)}</div>` : ``}
             </div>
 
-            <div class="scoreBox">
-              <div class="${scoreCls}">${escapeHtml(s.big)}</div>
-              <div class="scoreSub">${escapeHtml(s.sub)}</div>
-            </div>
+            <div class="lb-score ${sCls}">${scoreHtml}</div>
 
-            <div class="thin colThru">${e.thru || 0}</div>
-            <div class="thin colUpdated">${escapeHtml(updatedText || "")}</div>
+            <div class="lb-thin colThru">${e.thru || 0}</div>
+            <div class="lb-thin colUpdated">${escapeHtml(updatedText || "")}</div>
           </div>
         `;
       }).join("");
@@ -1502,7 +1522,7 @@
       listEl.innerHTML = html;
       currentRankByKey.forEach((r,k) => lastRankByKey.set(k,r));
 
-      listEl.querySelectorAll(".row").forEach(el => {
+      listEl.querySelectorAll(".lb-row").forEach(el => {
         el.addEventListener("click", () => {
           const key = el.getAttribute("data-key");
           const e = entries.find(x => x.key === key);
@@ -1537,9 +1557,10 @@
 
       modalSub.innerHTML = tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("");
 
-      const scoreDisplay = formatScoreDisplay(e);
-      modalScore.textContent = scoreDisplay.big;
-      modalScoreSub.textContent = scoreDisplay.sub;
+      modalScore.innerHTML = formatToParTV(Number(e.toPar || 0));
+      modalScoreSub.textContent = (tournament.format || "").toLowerCase() === "bestball"
+        ? "Best Ball"
+        : ((tournament.format || "").toLowerCase() === "scramble" ? "Team" : ((tournament.format || "").toLowerCase() === "skins" ? "Skins" : "Gross"));
 
       frontNine.innerHTML = "";
       backNine.innerHTML = "";
@@ -1584,12 +1605,7 @@
 
       outSum.textContent = String(sumNine(e.scores, 0));
       inSum.textContent = String(sumNine(e.scores, 9));
-
-      if ((tournament.format || "").toLowerCase() === "skins"){
-        totSum.textContent = `${formatToPar(e.toPar)} (Skins ${e.skins})`;
-      } else {
-        totSum.textContent = String(formatToPar(e.toPar));
-      }
+      totSum.innerHTML = formatToParTV(Number(e.toPar || 0));
 
       modal.classList.add("show");
     }
@@ -1606,6 +1622,7 @@
       formatPill.textContent = "FORMAT: —";
       parPill.textContent = "TOTAL PAR: —";
       joinBtn.href = "./index.html";
+      hideSponsors();
     } else {
       joinBtn.href = `./index.html?t=${encodeURIComponent(tournamentId)}`;
       tvBtn.href = `${location.pathname}?t=${encodeURIComponent(tournamentId)}&tv=1`;
@@ -1650,11 +1667,13 @@
           pageMeta.textContent = "Tournament not found.";
           statusPill.textContent = "⚠️ NOT FOUND";
           statusPill.classList.remove("live");
+          hideSponsors();
         }
       }catch(e){
         pageMeta.textContent = "Tournament load error.";
         statusPill.textContent = "⚠️ ERROR";
         statusPill.classList.remove("live");
+        hideSponsors();
       }
 
       const subCol = collection(db, "tournaments", tournamentId, "submissions");
