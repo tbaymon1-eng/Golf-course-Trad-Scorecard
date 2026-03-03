@@ -72,6 +72,32 @@
       border-bottom:1px solid rgba(0,0,0,.08);
     }
 
+    /* teammate block styling */
+    .team-mates-block{
+      display:grid;
+      gap:8px;
+      margin-top:10px;
+      padding:10px;
+      border:2px dashed rgba(0,0,0,.18);
+      border-radius:12px;
+      background: rgba(255,255,255,.35);
+    }
+    .team-mates-block label{
+      font-weight:900;
+      font-size:13px;
+      display:block;
+    }
+    .team-mates-block input{
+      width:100%;
+      padding:12px 10px;
+      border:2px solid #7a4a0b;
+      border-radius:10px;
+      background:#fff;
+      margin-top:6px;
+      font-size:16px;
+      font-weight:800;
+    }
+
     /* Sponsor strip (Scorecard) */
     #scoreSponsor{
       display:none;
@@ -363,18 +389,22 @@
         <div id="joinMeta" style="margin-top:6px; font-size:13px; opacity:.85;"></div>
 
         <div style="display:grid; gap:10px; margin-top:12px;">
+
           <label style="font-weight:900; font-size:13px;">
-            Your Name
+            Your Name (Scorer)
             <input id="joinName" autocomplete="name"
-              <div class="team-mates-block">
-  <label>Teammate 1 <input id="joinMate1" placeholder="Teammate name"></label>
-  <label>Teammate 2 <input id="joinMate2" placeholder="Teammate name"></label>
-  <label>Teammate 3 <input id="joinMate3" placeholder="Teammate name"></label>
-  <label>Teammate 4 <input id="joinMate4" placeholder="Teammate name"></label>
-  <label>Teammate 5 <input id="joinMate5" placeholder="Teammate name"></label>
-</div>
               style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
           </label>
+
+          <!-- ✅ Team roster inputs (NOT inside the joinName input tag) -->
+          <div class="team-mates-block">
+            <div style="font-family:Cinzel,serif; font-weight:900; font-size:13px; opacity:.9;">Team Players (required: at least 1 teammate)</div>
+            <label>Teammate 1 <input id="joinMate1" placeholder="Teammate name"></label>
+            <label>Teammate 2 <input id="joinMate2" placeholder="Teammate name"></label>
+            <label>Teammate 3 <input id="joinMate3" placeholder="Teammate name"></label>
+            <label>Teammate 4 <input id="joinMate4" placeholder="Teammate name"></label>
+            <label>Teammate 5 <input id="joinMate5" placeholder="Teammate name"></label>
+          </div>
 
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <label style="font-weight:900; font-size:13px;">
@@ -550,7 +580,6 @@
       }
     };
 
-    // ✅✅✅ CORRECTED CYPRESS COURSE YARDAGES (from your image)
     const COURSE_CYPRESS = {
       id: "cypress",
       title: "Cypress Course",
@@ -589,7 +618,6 @@
     const holesFront = [1,2,3,4,5,6,7,8,9];
     const holesBack  = [10,11,12,13,14,15,16,17,18];
 
-    // ✅ Dynamic rows: Gross. Scramble = p0 team row.
     let playersCount = 6;
 
     // ====================== DOM ======================
@@ -610,11 +638,11 @@
     const joinName = document.getElementById("joinName");
     const joinGroup = document.getElementById("joinGroup");
     const joinStartHole = document.getElementById("joinStartHole");
-const joinMate1 = document.getElementById("joinMate1");
-const joinMate2 = document.getElementById("joinMate2");
-const joinMate3 = document.getElementById("joinMate3");
-const joinMate4 = document.getElementById("joinMate4");
-const joinMate5 = document.getElementById("joinMate5");
+    const joinMate1 = document.getElementById("joinMate1");
+    const joinMate2 = document.getElementById("joinMate2");
+    const joinMate3 = document.getElementById("joinMate3");
+    const joinMate4 = document.getElementById("joinMate4");
+    const joinMate5 = document.getElementById("joinMate5");
     const refreshBtn = document.getElementById("refreshApp");
 
     // Sponsor UI
@@ -627,11 +655,7 @@ const joinMate5 = document.getElementById("joinMate5");
     let tournamentId = null;
     let isTournamentMode = false;
     let tournamentFormat = "stroke";
-
-    // start hole (required for tournament join)
     let startHoleSelected = null;
-
-    // sponsor link
     let sponsorUrl = "";
 
     // ====================== HELPERS ======================
@@ -696,7 +720,6 @@ const joinMate5 = document.getElementById("joinMate5");
       return `scorecard_startHole${tPart}_v1`;
     }
 
-    // randomUUID fallback
     function makeDeviceId(){
       const existing = localStorage.getItem("t_device_id");
       if (existing) return existing;
@@ -714,9 +737,9 @@ const joinMate5 = document.getElementById("joinMate5");
     }
 
     function formatToPlayersCount(fmt){
-      if(fmt === "scramble") return 1;     // ✅ team row only
-      if(fmt === "bestball") return 2;     // optional (you can change later)
-      return 6;                            // stroke/skins default
+      if(fmt === "scramble") return 1;
+      if(fmt === "bestball") return 2;
+      return 6;
     }
 
     function playerRowLabel(i){
@@ -728,14 +751,12 @@ const joinMate5 = document.getElementById("joinMate5");
       const h = Number(hole);
       if(!h || h < 1 || h > 18) return;
 
-      // Prefer scrolling to the first input in that hole
       const target = document.getElementById(`p0_h${h}`);
       if(target && typeof target.scrollIntoView === "function"){
         target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
         return;
       }
 
-      // Fallback: approximate by header cell
       const ths = Array.from(document.querySelectorAll("#hdrRow th.hole"));
       const th = ths.find(x => String(x.textContent).trim() === String(h));
       if(th && scrollX){
@@ -956,7 +977,6 @@ const joinMate5 = document.getElementById("joinMate5");
       wireInputs();
       loadState();
 
-      // If we already have a selected start hole, jump to it
       if(isTournamentMode){
         const saved = Number(localStorage.getItem(startHoleKey()) || "");
         if(saved >= 1 && saved <= 18){
@@ -970,7 +990,6 @@ const joinMate5 = document.getElementById("joinMate5");
     function setCourse(courseId){
       if (!COURSES[courseId]) return;
 
-      // Tournament: keep course locked after join
       if (isTournamentMode && joinScreen.style.display === "none" && courseId !== currentCourseId){
         return;
       }
@@ -981,7 +1000,6 @@ const joinMate5 = document.getElementById("joinMate5");
 
     courseSelect.addEventListener("change", () => setCourse(courseSelect.value));
 
-    // swipe left/right on coursebar
     let touchStartX = null;
     swipeZone.addEventListener("touchstart", (e) => {
       touchStartX = e.changedTouches[0].clientX;
@@ -1092,7 +1110,6 @@ const joinMate5 = document.getElementById("joinMate5");
       joinScreen.style.display = "block";
       joinMeta.textContent = `Tournament ID: ${tournamentId}`;
 
-      // Pull tournament settings (format, courseDefault, sponsor)
       if(db){
         try{
           const snap = await getDoc(doc(db, "tournaments", tournamentId));
@@ -1105,16 +1122,13 @@ const joinMate5 = document.getElementById("joinMate5");
             const courseDefault = (t.courseDefault || "tradition").toString().trim();
             currentCourseId = COURSES[courseDefault] ? courseDefault : "tradition";
 
-            // Sponsor (supports several keys so it won't break if admin changes)
             const sName = t.sponsorName || "";
             const sLogo = t.sponsorLogo || "";
             const sUrl  = t.sponsorUrl || t.sponsorWebsite || t.sponsorLink || "";
             applySponsorUI(sName, sLogo, sUrl);
 
-            // Build with tournament settings
             build();
 
-            // If start hole already saved, prefill join field
             const saved = Number(localStorage.getItem(startHoleKey()) || "");
             if(saved >= 1 && saved <= 18){
               joinStartHole.value = String(saved);
@@ -1126,138 +1140,59 @@ const joinMate5 = document.getElementById("joinMate5");
       }
     }
 
+    // ✅✅✅ CLEAN JOIN HANDLER (single, correct, no duplicates)
     joinBtn.addEventListener("click", async () => {
-  if (!tournamentId) return;
+      if (!tournamentId) return;
 
-  // ✅ Require start hole (mandatory)
-  const startHoleVal = (joinStartHole.value || "").trim();
-  const startHole = parseInt(startHoleVal, 10);
-  if (!startHole || startHole < 1 || startHole > 18) {
-    alert("Please enter a valid starting hole (1–18).");
-    return;
-    // ✅ Collect teammates (optional fields, but we’ll enforce at least 1 for teams)
-const matesRaw = [
-  joinMate1?.value || "",
-  joinMate2?.value || "",
-  joinMate3?.value || "",
-  joinMate4?.value || "",
-  joinMate5?.value || ""
-].map(s => s.trim()).filter(Boolean);
+      const startHoleVal = (joinStartHole.value || "").trim();
+      const startHole = parseInt(startHoleVal, 10);
+      if (!startHole || startHole < 1 || startHole > 18) {
+        alert("Please enter a valid starting hole (1–18).");
+        return;
+      }
 
-// ✅ Require at least 1 teammate (so it’s not just a solo join)
-if (matesRaw.length < 1) {
-  alert("Please enter at least 1 teammate name.");
-  return;
-}
+      const scorerName = (joinName.value || "").trim();
+      if (!scorerName) {
+        alert("Please enter your name (Scorer).");
+        return;
+      }
 
-// ✅ Build full team list (scorer + teammates), max 6 total
-const scorerName = (joinName.value || "").trim();
-if (!scorerName) {
-  alert("Please enter your name.");
-  return;
-}
+      const matesRaw = [
+        joinMate1?.value || "",
+        joinMate2?.value || "",
+        joinMate3?.value || "",
+        joinMate4?.value || "",
+        joinMate5?.value || ""
+      ].map(s => s.trim()).filter(Boolean);
 
-let teamNames = [scorerName, ...matesRaw].slice(0, 6);
+      if (matesRaw.length < 1) {
+        alert("Please enter at least 1 teammate name.");
+        return;
+      }
 
-// ✅ Optional: prevent duplicates (case-insensitive)
-const seen = new Set();
-teamNames = teamNames.filter(n => {
-  const k = n.toLowerCase();
-  if (seen.has(k)) return false;
-  seen.add(k);
-  return true;
-});
-  }
+      let teamNames = [scorerName, ...matesRaw].slice(0, 6);
 
-  // ✅ Scorer name (required)
-  const scorer = (joinName.value || "").trim();
-  if (!scorer) {
-    alert("Please enter your name (Scorer).");
-    return;
-  }
+      const seen = new Set();
+      teamNames = teamNames.filter(n => {
+        const k = n.toLowerCase();
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
 
-  // ✅ Collect teammate names (up to 6 total including scorer)
-  // If you add teammate inputs, use ids joinMate1..joinMate5
-  const mates = [];
-  for (let i = 1; i <= 5; i++) {
-    const el = document.getElementById(`joinMate${i}`);
-    if (!el) continue; // ok if inputs don't exist yet
-    const v = (el.value || "").trim();
-    if (v) mates.push(v);
-  }
+      // ✅ Copy roster into the score table name inputs so Firestore uses it
+      const nameInputs = Array.from(document.querySelectorAll(".player-name"));
+      for (let i = 0; i < nameInputs.length; i++) {
+        nameInputs[i].value = teamNames[i] || "";
+      }
 
-  // Build final names array: scorer + teammates, de-dupe, max 6
-  const rawNames = [scorer, ...mates]
-    .map(s => s.trim())
-    .filter(Boolean);
-
-  const seen = new Set();
-  const names = [];
-  for (const n of rawNames) {
-    const key = n.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    names.push(n);
-    if (names.length >= 6) break;
-  }
-
-  // ✅ Mandatory team rules based on tournament format
-  // (Scramble/BestBall = team-based; Stroke/Skins can be solo)
-  const fmt = (tournamentData?.format || tournamentData?.formatOfPlay || "").toLowerCase();
-  const isTeamFormat = fmt.includes("scramble") || fmt.includes("bestball");
-
-  const minPlayers = isTeamFormat ? 2 : 1; // change to 4 if you want scramble to FORCE 4
-  if (names.length < minPlayers) {
-    alert(isTeamFormat
-      ? `Please enter at least ${minPlayers} players for this format.`
-      : "Please enter at least 1 player."
-    );
-    return;
-  }
-
-  // Optional: enforce max 6 hard
-  if (names.length > 6) {
-    alert("Max 6 players per team.");
-    return;
-  }
-
-  // ✅ Save to Firestore (submission doc)
-  // NOTE: keep your existing deviceId/group logic if you already have it
-  try {
-    const submissionId = deviceId || crypto.randomUUID(); // use your existing deviceId if present
-
-    await setDoc(
-      doc(db, "tournaments", tournamentId, "submissions", submissionId),
-      {
-        deviceId: submissionId,
-        group: (joinGroup?.value || scorer).trim(), // optional
-        scorer,
-        names,              // ✅ TEAM LIST (up to 6)
-        startHole,          // ✅ START HOLE
-        format: fmt || null,
-        updatedAt: serverTimestamp(),
-        createdAt: serverTimestamp()
-      },
-      { merge: true }
-    );
-
-    // continue your existing “close join screen / load app” flow here…
-    // e.g. joinScreen.classList.add("hidden"); or whatever your code uses.
-
-  } catch (e) {
-    console.error(e);
-    alert("Join failed. Please try again.");
-  }
-});
       startHoleSelected = startHole;
       localStorage.setItem(startHoleKey(), String(startHoleSelected));
 
-      // Hide join screen and jump user to their starting hole
       joinScreen.style.display = "none";
 
-      // Save with tournament-specific key and push once
-      saveState();
-      scheduleTournamentPush();
+      saveState();               // will also scheduleTournamentPush()
+      scheduleTournamentPush();  // push once immediately after join
 
       setTimeout(() => scrollToStartHole(startHoleSelected), 250);
     });
@@ -1273,7 +1208,6 @@ teamNames = teamNames.filter(n => {
       build();
     });
 
-    // ✅ Flat map + totals
     function readScoresFromDOM(){
       const names = Array.from(document.querySelectorAll(".player-name")).map(i => i.value || "");
 
@@ -1333,7 +1267,6 @@ teamNames = teamNames.filter(n => {
       }
     }
 
-    // ====================== REFRESH APP BUTTON ======================
     async function hardRefreshApp(){
       try{
         if ('serviceWorker' in navigator){
