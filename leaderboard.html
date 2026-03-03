@@ -63,38 +63,38 @@
     }
 
     *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
+
     /* ===== Broadcast Background ===== */
+    body{
+      margin:0;
+      color: var(--ink);
+      font-family: Georgia, 'Times New Roman', serif;
 
-body{
-  margin:0;
-  color: var(--ink);
-  font-family: Georgia, 'Times New Roman', serif;
+      /* Full-screen course photo */
+      background-image: url("./assets/IMG_5318.jpeg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-color: #0f2a55;
+    }
 
-  /* Full-screen course photo */
-  background-image: url("./assets/IMG_5318.jpeg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-color: #0f2a55;
-}
+    /* Broadcast dark overlay */
+    body::before{
+      content:"";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(13,42,85,.55), rgba(0,0,0,.35)),
+        radial-gradient(circle at 20% 0%, rgba(202,162,74,.22), transparent 55%);
+    }
 
-/* Broadcast dark overlay */
-body::before{
-  content:"";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(13,42,85,.55), rgba(0,0,0,.35)),
-    radial-gradient(circle at 20% 0%, rgba(202,162,74,.22), transparent 55%);
-}
-
-/* Ensure UI sits above overlay */
-.wrap{
-  position: relative;
-  z-index: 1;
-}
+    /* Ensure UI sits above overlay */
+    .wrap{
+      position: relative;
+      z-index: 1;
+    }
 
     /* ===== Top Banner ===== */
     .top{
@@ -522,19 +522,17 @@ body::before{
       position: relative;
     }
 
-   .sheetBanner{
-  position: sticky;
-  top: 0;
-  z-index: 10;
-
-  /* existing styles below (keep yours) */
-  padding: 10px 12px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.20)),
-    linear-gradient(90deg, var(--fairway1), var(--fairway2));
-  border-bottom: 1px solid rgba(255,255,255,.12);
-  overflow:hidden;
-}
+    .sheetBanner{
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 10px 12px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.20)),
+        linear-gradient(90deg, var(--fairway1), var(--fairway2));
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      overflow:hidden;
+    }
     .sheetBannerTop{
       display:flex;
       justify-content:space-between;
@@ -632,20 +630,20 @@ body::before{
     }
 
     .cardBlock{
-  border-radius: 18px;
-  border: 2px solid rgba(202,162,74,.45);
+      border-radius: 18px;
+      border: 2px solid rgba(202,162,74,.45);
 
-  /* 🔥 Elite glass look */
-  background: rgba(15,42,85,.48);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+      /* Elite glass look */
+      background: rgba(15,42,85,.48);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
 
-  overflow: hidden;
+      overflow: hidden;
 
-  box-shadow:
-    0 18px 40px rgba(0,0,0,.45),
-    inset 0 1px 0 rgba(255,255,255,.08);
-}
+      box-shadow:
+        0 18px 40px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,255,255,.08);
+    }
 
     .blockHdr{
       padding: 10px 12px;
@@ -709,16 +707,8 @@ body::before{
       color: var(--navy2);
       letter-spacing: .02em;
     }
-    .flag{
-      width: 26px; height: 26px;
-      border-radius: 10px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size: 14px;
-      border: 2px solid rgba(0,0,0,.10);
-      background: rgba(255,255,255,.75);
-    }
+
+    /* NO FLAGS */
 
     .holeScore{
       margin-top: 8px;
@@ -813,6 +803,16 @@ body::before{
       .lb-head, .lb-row{ grid-template-columns: 74px 1fr 118px; }
       .lb-head .colThru, .lb-head .colUpdated,
       .lb-row .colThru, .lb-row .colUpdated{ display:none; }
+    }
+
+    /* Page wrapper */
+    .wrap{ max-width: 980px; margin: 0 auto; padding: 10px 10px 70px; }
+    .card{
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      overflow: visible;
+      box-shadow: none;
     }
   </style>
 </head>
@@ -1214,7 +1214,6 @@ body::before{
         const logo = (tournament.sponsorLogo || tournament.sponsorLogoUrl || "").trim();
         const url  = normalizeUrl(tournament.sponsorUrl || tournament.sponsorWebsite || tournament.sponsorLink || "");
 
-        // ✅ If missing, hide everything
         if (!name && !logo){
           hideSponsors();
           return;
@@ -1253,7 +1252,6 @@ body::before{
       const heroLogo = (hero?.logoUrl || "").trim();
       const heroUrl  = normalizeUrl(hero?.website || "");
 
-      // ✅ If still somehow empty, hide
       if (!heroName && !heroLogo){
         hideSponsors();
         return;
@@ -1328,11 +1326,23 @@ body::before{
         const total = Number.isFinite(Number(totals?.[0]?.tot)) ? Number(totals[0].tot) : totalFromScores(scores);
         const thru = calcThruFromScores(scores);
         const toPar = toParFromScores(scores, course);
+
+        // TEAM LINE: abbreviations if names exist
+        const abbr = (names || []).map(n => (String(n||"").trim().split(/\s+/).map(p=>p[0]).join("").slice(0,2)).toUpperCase())
+                                  .filter(Boolean).slice(0,6);
+        const main = abbr.length ? abbr.join(" • ") : teamName;
+
+        const startHole = (docData.startHole || "").toString().trim();
+        const sub = [
+          startHole ? `Start H${startHole}` : "",
+          scorerName ? `Scorer: ${scorerName}` : ""
+        ].filter(Boolean).join(" • ");
+
         return [{
           ...base,
           key: `scr_${deviceId}`,
-          displayName: teamName,
-          subLine: scorerName ? `Scorer: ${scorerName}` : "",
+          displayName: main,
+          subLine: sub,
           kind: "team",
           scores,
           total,
@@ -1348,11 +1358,22 @@ body::before{
         const total = totalFromScores(scores);
         const thru = calcThruFromScores(scores);
         const toPar = toParFromScores(scores, course);
+
+        const abbr = (names || []).map(n => (String(n||"").trim().split(/\s+/).map(p=>p[0]).join("").slice(0,2)).toUpperCase())
+                                  .filter(Boolean).slice(0,6);
+        const main = abbr.length ? abbr.join(" • ") : teamName;
+
+        const startHole = (docData.startHole || "").toString().trim();
+        const sub = [
+          startHole ? `Start H${startHole}` : "",
+          scorerName ? `Scorer: ${scorerName}` : ""
+        ].filter(Boolean).join(" • ");
+
         return [{
           ...base,
           key: `bb_${deviceId}`,
-          displayName: teamName,
-          subLine: scorerName ? `Team • ${scorerName}` : "Team",
+          displayName: main,
+          subLine: sub,
           kind: "team",
           scores,
           total,
@@ -1374,11 +1395,17 @@ body::before{
           const thru = calcThruFromScores(scores);
           const toPar = toParFromScores(scores, course);
 
+          const startHole = (docData.startHole || "").toString().trim();
+          const sub = [
+            startHole ? `Start H${startHole}` : "",
+            group ? `Group: ${group}` : ""
+          ].filter(Boolean).join(" • ");
+
           out.push({
             ...base,
             key: `sk_${deviceId}_p${i}`,
             displayName: display,
-            subLine: group ? `Group: ${group}` : (teamName ? `Card: ${teamName}` : ""),
+            subLine: sub,
             kind: "player",
             playerIndex: i,
             scores,
@@ -1391,7 +1418,7 @@ body::before{
         return out;
       }
 
-      // stroke (default): only active golfers
+      // stroke (default)
       const items = [];
       for(let i=0;i<6;i++){
         const scores = derivePlayerScores(scoresFlat, i);
@@ -1403,11 +1430,17 @@ body::before{
         const thru = calcThruFromScores(scores);
         const toPar = toParFromScores(scores, course);
 
+        const startHole = (docData.startHole || "").toString().trim();
+        const sub = [
+          startHole ? `Start H${startHole}` : "",
+          group ? `Group: ${group}` : ""
+        ].filter(Boolean).join(" • ");
+
         items.push({
           ...base,
           key: `st_${deviceId}_p${i}`,
           displayName: display,
-          subLine: group ? `Group: ${group}` : (teamName ? `Card: ${teamName}` : ""),
+          subLine: sub,
           kind: "player",
           playerIndex: i,
           scores,
@@ -1463,14 +1496,6 @@ body::before{
       });
     }
 
-    function formatScoreDisplay(e){
-      const fmt = (tournament.format || "stroke").toLowerCase();
-      if (fmt === "skins"){
-        return { big: String(e.skins), sub: `Skins • ${e.toPar === 0 ? "E" : (e.toPar > 0 ? "+"+e.toPar : String(e.toPar))}` };
-      }
-      return { big: e.toPar, sub: fmt === "bestball" ? "Best Ball" : (fmt === "scramble" ? "Team" : "Gross") };
-    }
-
     // ===== T ranks =====
     function computeDisplayRanks(entries){
       const out = [];
@@ -1523,7 +1548,6 @@ body::before{
         const leaderClass = rankNum === 1 ? "leader" : "";
         const updatedText = tsToText(e.updatedAt);
 
-        // Score (TV format)
         const rel = Number(e.toPar || 0);
         const sCls = scoreClass(rel);
         const scoreHtml = formatToParTV(rel);
@@ -1584,9 +1608,10 @@ body::before{
       modalSub.innerHTML = tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("");
 
       modalScore.innerHTML = formatToParTV(Number(e.toPar || 0));
-      modalScoreSub.textContent = (tournament.format || "").toLowerCase() === "bestball"
-        ? "Best Ball"
-        : ((tournament.format || "").toLowerCase() === "scramble" ? "Team" : ((tournament.format || "").toLowerCase() === "skins" ? "Skins" : "Gross"));
+      modalScoreSub.textContent =
+        (tournament.format || "").toLowerCase() === "bestball" ? "Best Ball" :
+        ((tournament.format || "").toLowerCase() === "scramble" ? "Team" :
+        ((tournament.format || "").toLowerCase() === "skins" ? "Skins" : "Gross"));
 
       frontNine.innerHTML = "";
       backNine.innerHTML = "";
@@ -1606,12 +1631,8 @@ body::before{
         badge.className = "holeBadge";
         badge.textContent = String(h);
 
-        const flag = document.createElement("div");
-        flag.className = "flag";
-        flag.textContent = "⛳️";
-
+        // NO FLAG
         top.appendChild(badge);
-        top.appendChild(flag);
 
         const holeScore = document.createElement("div");
         holeScore.className = "holeScore";
@@ -1632,15 +1653,21 @@ body::before{
       outSum.textContent = String(sumNine(e.scores, 0));
       inSum.textContent = String(sumNine(e.scores, 9));
       totSum.innerHTML = formatToParTV(Number(e.toPar || 0));
-// Always open at top so the header is visible immediately
-if (sheetEl) sheetEl.scrollTop = 0; // iOS: stop background scroll jitter
-document.body.style.overflow = "hidden";
+
+      // Always open at top so the header is visible immediately
+      if (sheetEl) sheetEl.scrollTop = 0;
+
+      // iOS: stop background scroll jitter
+      document.body.style.overflow = "hidden";
+
       modal.classList.add("show");
     }
 
-    function closeModal(){ modal.classList.remove("show");
-                        // restore background scroll
-  document.body.style.overflow = ""; }
+    function closeModal(){
+      modal.classList.remove("show");
+      document.body.style.overflow = ""; // restore background scroll
+    }
+
     closeModalBtn.addEventListener("click", closeModal);
     modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
 
