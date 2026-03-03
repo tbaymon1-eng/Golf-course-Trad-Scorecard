@@ -510,15 +510,19 @@
       position: relative;
     }
 
-    .sheetBanner{
-      position: relative;
-      padding: 10px 12px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.20)),
-        linear-gradient(90deg, var(--fairway1), var(--fairway2));
-      border-bottom: 1px solid rgba(255,255,255,.12);
-      overflow:hidden;
-    }
+   .sheetBanner{
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  /* existing styles below (keep yours) */
+  padding: 10px 12px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.20)),
+    linear-gradient(90deg, var(--fairway1), var(--fairway2));
+  border-bottom: 1px solid rgba(255,255,255,.12);
+  overflow:hidden;
+}
     .sheetBannerTop{
       display:flex;
       justify-content:space-between;
