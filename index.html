@@ -1135,6 +1135,38 @@ const joinMate5 = document.getElementById("joinMate5");
   if (!startHole || startHole < 1 || startHole > 18) {
     alert("Please enter a valid starting hole (1–18).");
     return;
+    // ✅ Collect teammates (optional fields, but we’ll enforce at least 1 for teams)
+const matesRaw = [
+  joinMate1?.value || "",
+  joinMate2?.value || "",
+  joinMate3?.value || "",
+  joinMate4?.value || "",
+  joinMate5?.value || ""
+].map(s => s.trim()).filter(Boolean);
+
+// ✅ Require at least 1 teammate (so it’s not just a solo join)
+if (matesRaw.length < 1) {
+  alert("Please enter at least 1 teammate name.");
+  return;
+}
+
+// ✅ Build full team list (scorer + teammates), max 6 total
+const scorerName = (joinName.value || "").trim();
+if (!scorerName) {
+  alert("Please enter your name.");
+  return;
+}
+
+let teamNames = [scorerName, ...matesRaw].slice(0, 6);
+
+// ✅ Optional: prevent duplicates (case-insensitive)
+const seen = new Set();
+teamNames = teamNames.filter(n => {
+  const k = n.toLowerCase();
+  if (seen.has(k)) return false;
+  seen.add(k);
+  return true;
+});
   }
 
   // ✅ Scorer name (required)
