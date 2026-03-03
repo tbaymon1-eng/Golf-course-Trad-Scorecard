@@ -1116,17 +1116,96 @@
     }
 
     joinBtn.addEventListener("click", async () => {
-      if (!tournamentId) return;
+  if (!tournamentId) return;
 
-      // ✅ Require start hole (mandatory)
-      const startHoleVal = (joinStartHole.value || "").trim();
-      const startHole = parseInt(startHoleVal, 10);
+  // ✅ Require start hole (mandatory)
+  const startHoleVal = (joinStartHole.value || "").trim();
+  const startHole = parseInt(startHoleVal, 10);
+  if (!startHole || startHole < 1 || startHole > 18) {
+    alert("Please enter a valid starting hole (1–18).");
+    return;
+  }
 
-      if (!startHole || startHole < 1 || startHole > 18) {
-        alert("Please enter a valid starting hole (1–18).");
-        return;
-      }
+  // ✅ Scorer name (required)
+  const scorer = (joinName.value || "").trim();
+  if (!scorer) {
+    alert("Please enter your name (Scorer).");
+    return;
+  }
 
+  // ✅ Collect teammate names (up to 6 total including scorer)
+  // If you add teammate inputs, use ids joinMate1..joinMate5
+  const mates = [];
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById(`joinMate${i}`);
+    if (!el) continue; // ok if inputs don't exist yet
+    const v = (el.value || "").trim();
+    if (v) mates.push(v);
+  }
+
+  // Build final names array: scorer + teammates, de-dupe, max 6
+  const rawNames = [scorer, ...mates]
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const seen = new Set();
+  const names = [];
+  for (const n of rawNames) {
+    const key = n.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    names.push(n);
+    if (names.length >= 6) break;
+  }
+
+  // ✅ Mandatory team rules based on tournament format
+  // (Scramble/BestBall = team-based; Stroke/Skins can be solo)
+  const fmt = (tournamentData?.format || tournamentData?.formatOfPlay || "").toLowerCase();
+  const isTeamFormat = fmt.includes("scramble") || fmt.includes("bestball");
+
+  const minPlayers = isTeamFormat ? 2 : 1; // change to 4 if you want scramble to FORCE 4
+  if (names.length < minPlayers) {
+    alert(isTeamFormat
+      ? `Please enter at least ${minPlayers} players for this format.`
+      : "Please enter at least 1 player."
+    );
+    return;
+  }
+
+  // Optional: enforce max 6 hard
+  if (names.length > 6) {
+    alert("Max 6 players per team.");
+    return;
+  }
+
+  // ✅ Save to Firestore (submission doc)
+  // NOTE: keep your existing deviceId/group logic if you already have it
+  try {
+    const submissionId = deviceId || crypto.randomUUID(); // use your existing deviceId if present
+
+    await setDoc(
+      doc(db, "tournaments", tournamentId, "submissions", submissionId),
+      {
+        deviceId: submissionId,
+        group: (joinGroup?.value || scorer).trim(), // optional
+        scorer,
+        names,              // ✅ TEAM LIST (up to 6)
+        startHole,          // ✅ START HOLE
+        format: fmt || null,
+        updatedAt: serverTimestamp(),
+        createdAt: serverTimestamp()
+      },
+      { merge: true }
+    );
+
+    // continue your existing “close join screen / load app” flow here…
+    // e.g. joinScreen.classList.add("hidden"); or whatever your code uses.
+
+  } catch (e) {
+    console.error(e);
+    alert("Join failed. Please try again.");
+  }
+});
       startHoleSelected = startHole;
       localStorage.setItem(startHoleKey(), String(startHoleSelected));
 
