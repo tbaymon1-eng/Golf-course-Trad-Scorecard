@@ -63,26 +63,38 @@
     }
 
     *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
-    body{
-      margin:0;
-      background:
-        radial-gradient(circle at 18% 0%, rgba(13,42,85,.12), transparent 55%),
-        radial-gradient(circle at 82% 14%, rgba(202,162,74,.12), transparent 55%),
-        linear-gradient(180deg, rgba(0,0,0,.04), transparent 28%),
-        var(--paper);
-      color: var(--ink);
-      font-family: Georgia, 'Times New Roman', serif;
-    }
+    /* ===== Broadcast Background ===== */
 
-    .wrap{ max-width: 1120px; margin: 0 auto; padding: 12px 12px 92px; }
+body{
+  margin:0;
+  color: var(--ink);
+  font-family: Georgia, 'Times New Roman', serif;
 
-    .card{
-      background: var(--card);
-      border: 3px solid var(--border);
-      border-radius: 14px;
-      overflow:hidden;
-      box-shadow: 0 10px 26px rgba(0,0,0,.18);
-    }
+  /* Full-screen course photo */
+  background-image: url("./assets/IMG_5318.jpeg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #0f2a55;
+}
+
+/* Broadcast dark overlay */
+body::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(13,42,85,.55), rgba(0,0,0,.35)),
+    radial-gradient(circle at 20% 0%, rgba(202,162,74,.22), transparent 55%);
+}
+
+/* Ensure UI sits above overlay */
+.wrap{
+  position: relative;
+  z-index: 1;
+}
 
     /* ===== Top Banner ===== */
     .top{
