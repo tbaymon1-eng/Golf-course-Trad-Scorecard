@@ -960,6 +960,7 @@
     const tvBtn = document.getElementById("tvBtn");
     const courseHeaderMini = document.getElementById("courseHeaderMini");
     const clubNameEl = document.getElementById("clubName");
+    const sheetEl = document.querySelector(".sheet");
 
     const sponsorHero = document.getElementById("sponsorHero");
     const sponsorHeroLogo = document.getElementById("sponsorHeroLogo");
@@ -1610,7 +1611,11 @@
       outSum.textContent = String(sumNine(e.scores, 0));
       inSum.textContent = String(sumNine(e.scores, 9));
       totSum.innerHTML = formatToParTV(Number(e.toPar || 0));
+// Always open at top so the header is visible immediately
+if (sheetEl) sheetEl.scrollTop = 0;
 
+// iOS: stop background scroll jitter
+document.body.style.overflow = "hidden";
       modal.classList.add("show");
     }
 
