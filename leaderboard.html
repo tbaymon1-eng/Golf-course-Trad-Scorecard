@@ -1612,14 +1612,14 @@
       inSum.textContent = String(sumNine(e.scores, 9));
       totSum.innerHTML = formatToParTV(Number(e.toPar || 0));
 // Always open at top so the header is visible immediately
-if (sheetEl) sheetEl.scrollTop = 0;
-
-// iOS: stop background scroll jitter
+if (sheetEl) sheetEl.scrollTop = 0; // iOS: stop background scroll jitter
 document.body.style.overflow = "hidden";
       modal.classList.add("show");
     }
 
-    function closeModal(){ modal.classList.remove("show"); }
+    function closeModal(){ modal.classList.remove("show");
+                        // restore background scroll
+  document.body.style.overflow = ""; }
     closeModalBtn.addEventListener("click", closeModal);
     modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
 
