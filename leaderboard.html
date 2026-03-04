@@ -1365,8 +1365,8 @@
 
   if (startHole) chips.push(`Start H${startHole}`);
 
-  // calculate THRU
   let thru = 0;
+
   if (scoresFlat){
     for (let h = 1; h <= 18; h++){
       const found = Object.keys(scoresFlat).some(k => {
@@ -1375,6 +1375,18 @@
       if (found) thru = h;
     }
   }
+
+  // show F when finished
+  if (docData?.roundStatus === "finished" || thru === 18){
+    chips.push("F");
+  } else if (thru > 0){
+    chips.push(`Thru ${thru}`);
+  }
+
+  if (scorerName) chips.push(`Scorer: ${scorerName}`);
+
+  return chips.join(" • ");
+}
 
   if (thru > 0) chips.push(`Thru ${thru}`);
 
