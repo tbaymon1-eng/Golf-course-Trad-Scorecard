@@ -1361,11 +1361,27 @@
       }
 
       function buildSubline(){
-        const chips = [];
-        if (startHole) chips.push(`Start H${startHole}`);
-        if (scorerName) chips.push(`Scorer: ${scorerName}`);
-        return chips.join(" • ");
-      }
+  const chips = [];
+
+  if (startHole) chips.push(`Start H${startHole}`);
+
+  // calculate THRU
+  let thru = 0;
+  if (scoresFlat){
+    for (let h = 1; h <= 18; h++){
+      const found = Object.keys(scoresFlat).some(k => {
+        return k.endsWith(`_h${h}`) && scoresFlat[k];
+      });
+      if (found) thru = h;
+    }
+  }
+
+  if (thru > 0) chips.push(`Thru ${thru}`);
+
+  if (scorerName) chips.push(`Scorer: ${scorerName}`);
+
+  return chips.join(" • ");
+}
 
       if (fmt === "scramble"){
         const scores = derivePlayerScores(scoresFlat, 0);
