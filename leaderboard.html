@@ -7,12 +7,11 @@
 
   <meta name="theme-color" content="#0d2a55">
 
+  <!-- Elite broadcast typography pack -->
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --paper:#e9e2d4;
-      --card:#efe7d7;
       --ink:#111;
       --muted: rgba(0,0,0,.65);
       --border:#7a4a0b;
@@ -21,12 +20,11 @@
       --navy2:#0b2246;
       --gold:#caa24a;
 
-      --good:#2f6b2f;
-      --bad:#b6422d;
-
+      /* ESPN-ish greens */
       --fairway1:#0f5a34;
       --fairway2:#0b3f26;
 
+      /* ===== Elite Broadcast Type System ===== */
       --font-head: "Cinzel", Georgia, serif;
       --font-row: "Barlow Condensed", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       --font-ui:  "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
@@ -43,6 +41,14 @@
 
       --lh-tight: 1.05;
       --lh: 1.15;
+
+      /* ===== Transparency controls (adjust these if you want even more background) ===== */
+      --glassTop: rgba(255,255,255,.22);         /* top banner glass */
+      --glassBoard: rgba(255,255,255,.10);       /* board area glass */
+      --lbPanel: rgba(10,31,61,.34);             /* leaderboard panel base */
+      --lbRowOdd: rgba(255,255,255,.08);
+      --lbRowEven: rgba(255,255,255,.12);
+      --lbRowHover: rgba(255,255,255,.18);
     }
 
     @media (min-width: 820px){
@@ -56,12 +62,13 @@
 
     *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
 
-    /* ===== Background ===== */
+    /* ===== Broadcast Background ===== */
     body{
       margin:0;
       color: var(--ink);
       font-family: Georgia, 'Times New Roman', serif;
 
+      /* Full-screen course photo */
       background-image: url("./assets/IMG_5318.jpeg");
       background-size: cover;
       background-position: center;
@@ -69,7 +76,7 @@
       background-color: #0f2a55;
     }
 
-    /* lighter overlay so photo pops */
+    /* Broadcast dark overlay (slightly lighter now so photo shows more) */
     body::before{
       content:"";
       position: fixed;
@@ -77,49 +84,41 @@
       z-index: -1;
       pointer-events: none;
       background:
-        linear-gradient(180deg, rgba(13,42,85,.24), rgba(0,0,0,.08)),
-        radial-gradient(circle at 20% 0%, rgba(202,162,74,.14), transparent 55%);
+        linear-gradient(180deg, rgba(13,42,85,.42), rgba(0,0,0,.22)),
+        radial-gradient(circle at 20% 0%, rgba(202,162,74,.20), transparent 58%);
     }
 
     .wrap{
       position: relative;
       z-index: 1;
-      max-width: 1120px;
-      margin:0 auto;
-      padding: 10px 10px 70px;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 12px 12px 78px; /* leave room for ticker if it shows */
     }
 
+    /* ===== Top Banner ===== */
     .card{
       border-radius: 18px;
-      overflow:hidden;
+      overflow: hidden;
       border: 2px solid rgba(0,0,0,.14);
-      box-shadow: 0 20px 48px rgba(0,0,0,.30);
+      background: rgba(255,255,255,.06);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 18px 44px rgba(0,0,0,.28);
     }
 
-    /* ===== Top ===== */
     .top{
       position:relative;
       padding: 12px 12px 10px;
       background:
-        linear-gradient(135deg, rgba(13,42,85,.12), rgba(13,42,85,.02)),
-        rgba(239,231,215,.44);
-      backdrop-filter: blur(7px);
-      -webkit-backdrop-filter: blur(7px);
-      border-bottom: 1px solid rgba(0,0,0,.10);
-    }
-
-    .top::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,0) 55%);
-      opacity:.85;
+        linear-gradient(135deg, rgba(13,42,85,.18), rgba(13,42,85,.06)),
+        var(--glassTop);
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     .topRow{
-      position:relative;
-      z-index:1;
       display:flex;
       gap:12px;
       align-items:center;
@@ -136,13 +135,17 @@
       width: 150px;
       height: 44px;
       object-fit: contain;
-      background: rgba(255,255,255,.52);
-      border: 2px solid rgba(0,0,0,.12);
+      background: rgba(255,255,255,.40);
+      border: 2px solid rgba(255,255,255,.22);
       border-radius: 12px;
       padding: 6px 10px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
-    .titleBlock{ display:flex; flex-direction:column; gap:2px; }
+    .titleBlock{
+      display:flex; flex-direction:column; gap:2px;
+    }
 
     h1{
       margin:0;
@@ -152,26 +155,27 @@
       font-size: 18px;
       line-height: var(--lh-tight);
       text-transform: uppercase;
-      text-shadow: 0 2px 14px rgba(0,0,0,.22);
+      color: rgba(255,255,255,.92);
+      text-shadow: 0 2px 10px rgba(0,0,0,.35);
     }
-
     .clubName{
       font-family: var(--font-head);
       font-weight: 900;
       letter-spacing: .06em;
       font-size: 12px;
-      opacity:.9;
+      opacity:.92;
       text-transform: uppercase;
-      text-shadow: 0 2px 12px rgba(0,0,0,.18);
+      color: rgba(255,255,255,.86);
+      text-shadow: 0 2px 10px rgba(0,0,0,.30);
     }
-
     .meta{
       margin-top:2px;
       font-size: 12px;
-      color: rgba(0,0,0,.75);
+      color: rgba(255,255,255,.78);
       font-weight: 800;
       font-family: var(--font-ui);
       letter-spacing: .02em;
+      text-shadow: 0 2px 10px rgba(0,0,0,.30);
     }
 
     .pillRow{
@@ -183,84 +187,76 @@
       display:inline-flex; align-items:center; gap:8px;
       padding: 8px 10px;
       border-radius: 999px;
-      border: 2px solid rgba(0,0,0,.12);
-      background: rgba(255,255,255,.34);
+      border: 2px solid rgba(255,255,255,.20);
+      background: rgba(255,255,255,.18);
       font-weight: 900;
       font-size: 12px;
       white-space:nowrap;
       font-family: var(--font-ui);
       letter-spacing: .06em;
       text-transform: uppercase;
-      backdrop-filter: blur(7px);
-      -webkit-backdrop-filter: blur(7px);
+      color: rgba(255,255,255,.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
     .pill.live{
-      border-color: rgba(47,107,47,.35);
-      background: rgba(47,107,47,.10);
-      color: #114011;
+      border-color: rgba(184,255,184,.22);
+      background: rgba(47,107,47,.18);
     }
     .pill.mode{
-      border-color: rgba(13,42,85,.25);
-      background: rgba(13,42,85,.10);
-      color: var(--navy2);
+      border-color: rgba(180,210,255,.18);
+      background: rgba(13,42,85,.18);
     }
     .pill.par{
-      border-color: rgba(202,162,74,.25);
-      background: rgba(202,162,74,.10);
-      color: #4a3a10;
+      border-color: rgba(202,162,74,.22);
+      background: rgba(202,162,74,.14);
     }
 
     .actions{
       display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
-      position:relative; z-index:1;
     }
-
     button, a.btn{
-      border: 2px solid rgba(0,0,0,.15);
-      background: rgba(255,255,255,.32);
-      backdrop-filter: blur(7px);
-      -webkit-backdrop-filter: blur(7px);
+      border: 2px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.16);
       border-radius: 12px;
       padding: 10px 12px;
       font-weight: 900;
       font-size: 14px;
       cursor:pointer;
       text-decoration:none;
-      color: inherit;
+      color: rgba(255,255,255,.92);
       display:inline-flex;
       align-items:center;
       gap:8px;
       white-space:nowrap;
       font-family: var(--font-ui);
       letter-spacing: .02em;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
     button:active, a.btn:active{ transform: translateY(1px); }
 
     .primary{
-      border-color: rgba(13,42,85,.30);
-      background: rgba(13,42,85,.12);
-      color: var(--navy2);
+      border-color: rgba(180,210,255,.22);
+      background: rgba(13,42,85,.22);
     }
     .green{
-      border-color: rgba(47,107,47,.30);
-      background: rgba(47,107,47,.12);
-      color: #114011;
+      border-color: rgba(184,255,184,.22);
+      background: rgba(47,107,47,.18);
     }
 
-    /* ===== Sponsor Hero ===== */
+    /* ===== Sponsor Hero (only shows if sponsor data exists) ===== */
     #sponsorHero{
       display:none;
       margin-top: 10px;
       border-radius: 14px;
-      border: 2px solid rgba(0,0,0,.12);
+      border: 2px solid rgba(255,255,255,.18);
       background:
-        linear-gradient(135deg, rgba(202,162,74,.14), rgba(13,42,85,.06)),
-        rgba(255,255,255,.28);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+        linear-gradient(135deg, rgba(202,162,74,.16), rgba(13,42,85,.10)),
+        rgba(255,255,255,.16);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       padding: 10px 12px;
-      position:relative;
-      z-index:1;
     }
     #sponsorHeroTop{
       display:flex;
@@ -276,6 +272,7 @@
       letter-spacing: .12em;
       text-transform: uppercase;
       opacity: .95;
+      color: rgba(255,255,255,.88);
     }
     #sponsorHeroRow{
       margin-top: 8px;
@@ -285,8 +282,8 @@
       width: 44px; height: 44px;
       border-radius: 12px;
       object-fit: cover;
-      border: 2px solid rgba(0,0,0,.12);
-      background: rgba(0,0,0,.06);
+      border: 2px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.12);
       display:none;
     }
     #sponsorHeroName{
@@ -295,12 +292,13 @@
       letter-spacing: .04em;
       text-transform: uppercase;
       font-size: 18px;
+      color: rgba(255,255,255,.92);
     }
     #sponsorHeroLink{
       display:none;
-      border:2px solid rgba(13,42,85,.20);
-      background: rgba(13,42,85,.10);
-      color: var(--navy2);
+      border:2px solid rgba(180,210,255,.22);
+      background: rgba(13,42,85,.22);
+      color: rgba(255,255,255,.92);
       padding: 8px 10px;
       border-radius: 12px;
       font-weight: 900;
@@ -312,143 +310,74 @@
     /* ===== Board wrapper ===== */
     .board{
       padding: 10px 10px 14px;
-      background: rgba(239,231,215,.18);
-      backdrop-filter: blur(9px);
-      -webkit-backdrop-filter: blur(9px);
+      background: var(--glassBoard);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
-    /* ===== Leaderboard ===== */
+    /* ===== Broadcast-style leaderboard (NO FLAGS) ===== */
     .lb-wrap{
-      position:relative;
+      background: linear-gradient(180deg, rgba(15,42,85,.28), rgba(10,31,61,.22));
       border-radius: 16px;
       overflow: hidden;
       box-shadow: 0 20px 40px rgba(0,0,0,.25);
-      border: 2px solid rgba(0,0,0,.12);
-      background: rgba(10,31,61,.16);
-      backdrop-filter: blur(9px);
-      -webkit-backdrop-filter: blur(9px);
-    }
-
-    .lb-wrap::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      background: linear-gradient(
-        180deg,
-        rgba(255,255,255,.14) 0%,
-        rgba(255,255,255,.05) 20%,
-        rgba(255,255,255,0) 60%
-      );
-      opacity:.85;
+      border: 2px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
     .lb-head{
-      position:relative;
-      z-index:1;
       display:grid;
       grid-template-columns: 74px 1fr 118px 88px 92px;
       align-items:center;
       padding: 12px 14px;
-      background: linear-gradient(90deg, rgba(19,58,115,.56), rgba(15,42,85,.48));
-      backdrop-filter: blur(9px);
-      -webkit-backdrop-filter: blur(9px);
-      color:#fff;
+      background: linear-gradient(90deg, rgba(19,58,115,.65), rgba(15,42,85,.48));
+      color: rgba(255,255,255,.92);
       font-family: var(--font-ui);
       font-weight: 800;
       letter-spacing: .12em;
       text-transform: uppercase;
       font-size: var(--hdr);
       border-bottom: 1px solid rgba(255,255,255,.12);
-      text-shadow: 0 2px 14px rgba(0,0,0,.42);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
-    .lb-list{ position:relative; z-index:1; display:flex; flex-direction:column; }
+    .lb-list{ display:flex; flex-direction:column; }
 
-    /* =========================
-       ✅ SMART READABILITY BAND
-       Adds a dark/soft strip behind each row’s content
-       WITHOUT changing grid sizes.
-    ========================== */
     .lb-row{
-      position:relative;
       display:grid;
       grid-template-columns: 74px 1fr 118px 88px 92px;
       align-items:center;
       padding: 11px 14px;
+      background: var(--lbRowOdd);
       border-top: 1px solid rgba(255,255,255,.10);
       transition: background .18s ease;
       cursor:pointer;
-
-      /* row glass is very light */
-      background: rgba(255,255,255,.02);
 
       font-family: var(--font-row);
       letter-spacing: var(--row-track);
       text-transform: uppercase;
       font-feature-settings: "tnum" 1;
     }
-
-    /* the band */
-    .lb-row::before{
-      content:"";
-      position:absolute;
-      inset: 6px 10px;               /* creates rounded inset band */
-      border-radius: 14px;
-      pointer-events:none;
-
-      /* ✅ dark strip behind text */
-      background: linear-gradient(
-        90deg,
-        rgba(0,0,0,.40),
-        rgba(0,0,0,.28) 45%,
-        rgba(0,0,0,.22)
-      );
-
-      /* slight glass to look premium */
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-
-      /* subtle top highlight */
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.08),
-        0 10px 24px rgba(0,0,0,.18);
-      opacity: .72;                 /* ✅ tune this (0.60–0.85) */
-    }
-
-    /* content must sit above the band */
-    .lb-row > *{ position:relative; z-index:1; }
-
-    .lb-row:nth-child(even)::before{
-      opacity: .78;
-    }
-    .lb-row:hover::before{
-      opacity: .86;
-    }
+    .lb-row:nth-child(even){ background: var(--lbRowEven); }
+    .lb-row:hover{ background: var(--lbRowHover); }
     .lb-row:active{ transform: translateY(1px); }
 
-    .lb-row.leader::before{
-      background: linear-gradient(
-        90deg,
-        rgba(202,162,74,.32),
-        rgba(0,0,0,.26) 40%,
-        rgba(0,0,0,.18)
-      );
-      opacity: .88;
+    .lb-row.leader{
+      background: linear-gradient(90deg, rgba(255,215,0,.14), rgba(255,215,0,.04));
     }
 
     .lb-rank{
       display:flex;
       align-items:center;
       gap:8px;
-      color:#fff;
+      color: rgba(255,255,255,.95);
       font-weight: 900;
       letter-spacing: var(--num-track);
       font-size: var(--rank);
       line-height: var(--lh-tight);
-      text-shadow: 0 2px 16px rgba(0,0,0,.55);
     }
-
     .lb-move{
       width: 22px; height: 22px;
       border-radius: 999px;
@@ -463,16 +392,15 @@
     .lb-move.down{ color:#ffb8b8; border-color: rgba(255,184,184,.35); }
 
     .lb-nameWrap{ min-width:0; }
-
     .lb-name{
-      color:#fff;
+      color: rgba(255,255,255,.95);
       font-weight: 800;
       font-size: var(--name);
       line-height: var(--lh);
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-      text-shadow: 0 2px 18px rgba(0,0,0,.70);
+      text-shadow: 0 2px 10px rgba(0,0,0,.25);
     }
     .lb-sub{
       margin-top: 2px;
@@ -481,23 +409,23 @@
       font-size: var(--sub);
       letter-spacing: .08em;
       text-transform: none;
-      color: rgba(255,255,255,.92);
+      color: rgba(255,255,255,.86);
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-      opacity:.98;
-      text-shadow: 0 2px 14px rgba(0,0,0,.70);
+      opacity:.96;
+      text-shadow: 0 2px 10px rgba(0,0,0,.18);
     }
 
     .lb-score{
       text-align:right;
-      color:#fff;
+      color: rgba(255,255,255,.96);
       font-weight: 900;
       letter-spacing: var(--num-track);
       font-size: var(--score);
       line-height: var(--lh-tight);
       white-space:nowrap;
-      text-shadow: 0 2px 18px rgba(0,0,0,.70);
+      text-shadow: 0 2px 12px rgba(0,0,0,.35);
     }
     .lb-score.under{ color:#ff4d4d; }
     .lb-score.even{ color:#ffffff; }
@@ -514,9 +442,9 @@
       font-weight: 800;
       letter-spacing: .04em;
       font-size: 12px;
-      color: rgba(255,255,255,.92);
+      color: rgba(255,255,255,.86);
       white-space:nowrap;
-      text-shadow: 0 2px 14px rgba(0,0,0,.70);
+      text-shadow: 0 2px 10px rgba(0,0,0,.22);
     }
 
     .emptyBox{
@@ -524,24 +452,25 @@
       font-family: var(--font-ui);
       font-weight: 900;
       letter-spacing: .02em;
-      color: rgba(255,255,255,.92);
-      text-shadow: 0 2px 18px rgba(0,0,0,.75);
+      color: rgba(255,255,255,.90);
+      text-shadow: 0 2px 10px rgba(0,0,0,.25);
     }
 
-    /* ===== Sponsor ticker ===== */
+    /* ===== Sponsor ticker (only shows if sponsor data exists) ===== */
     #ticker{
       position: fixed;
       left: 0;
       right: 0;
       bottom: 0;
       z-index: 20;
-      border-top: 3px solid var(--border);
+      border-top: 3px solid rgba(255,255,255,.14);
       background:
-        linear-gradient(90deg, rgba(13,42,85,.10), rgba(202,162,74,.08)),
-        rgba(239,231,215,.62);
-      backdrop-filter: blur(9px);
-      -webkit-backdrop-filter: blur(9px);
+        linear-gradient(90deg, rgba(13,42,85,.20), rgba(202,162,74,.18)),
+        rgba(20,20,20,.35);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       display:none;
+      color: rgba(255,255,255,.92);
     }
     .tickerTop{
       display:flex;
@@ -549,7 +478,7 @@
       justify-content:space-between;
       gap:10px;
       padding: 8px 12px;
-      border-bottom: 1px solid rgba(0,0,0,.10);
+      border-bottom: 1px solid rgba(255,255,255,.10);
     }
     .tickerLabel{
       font-family: var(--font-ui);
@@ -562,7 +491,7 @@
       font-family: var(--font-ui);
       font-size: 12px;
       font-weight: 900;
-      color: rgba(0,0,0,.55);
+      color: rgba(255,255,255,.72);
       letter-spacing: .02em;
     }
     .tickerTrackWrap{ overflow:hidden; white-space:nowrap; }
@@ -584,27 +513,27 @@
       gap:10px;
       padding: 10px 12px;
       border-radius: 999px;
-      border: 2px solid rgba(0,0,0,.12);
-      background: rgba(255,255,255,.52);
+      border: 2px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.14);
       text-decoration:none;
-      color: inherit;
+      color: rgba(255,255,255,.92);
       font-weight: 1000;
       font-size: 13px;
       cursor:pointer;
       font-family: var(--font-ui);
       letter-spacing: .02em;
-      backdrop-filter: blur(9px);
-      -webkit-backdrop-filter: blur(9px);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
     .sponsorPill img{
       width: 26px; height: 26px;
       border-radius: 8px;
       object-fit: cover;
-      border: 2px solid rgba(0,0,0,.12);
-      background: rgba(0,0,0,.06);
+      border: 2px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.16);
     }
 
-    /* ===== Modal ===== */
+    /* ===== Modal (Broadcast Sheet) ===== */
     .modal{
       position: fixed;
       inset: 0;
@@ -756,15 +685,15 @@
       align-items:center;
       justify-content:space-between;
       gap:10px;
-      border-bottom: 1px solid rgba(0,0,0,.10);
+      border-bottom: 1px solid rgba(255,255,255,.10);
       background:
-        linear-gradient(90deg, rgba(13,42,85,.12), rgba(202,162,74,.10));
+        linear-gradient(90deg, rgba(13,42,85,.18), rgba(202,162,74,.14));
       font-family: var(--font-ui);
       font-weight: 900;
       letter-spacing: .12em;
       text-transform: uppercase;
       font-size: 12px;
-      color: rgba(255,255,255,.90);
+      color: rgba(255,255,255,.92);
     }
 
     .scoreGrid{
@@ -779,12 +708,22 @@
       gap: 9px;
     }
 
+    @media (max-width: 900px){
+      .lb-head, .lb-row{ grid-template-columns: 74px 1fr 118px 84px 88px; }
+      .nine{ grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 740px){
+      .lb-head, .lb-row{ grid-template-columns: 74px 1fr 118px; }
+      .lb-head .colThru, .lb-head .colUpdated,
+      .lb-row .colThru, .lb-row .colUpdated{ display:none; }
+    }
+
     .holeCell{
       border-radius: 16px;
-      border: 2px solid rgba(0,0,0,.12);
+      border: 2px solid rgba(255,255,255,.14);
       background:
         radial-gradient(circle at 30% 0%, rgba(202,162,74,.10), transparent 60%),
-        rgba(255,255,255,.82);
+        rgba(255,255,255,.86);
       padding: 10px 8px 10px;
       text-align:center;
       position:relative;
@@ -859,16 +798,16 @@
       gap:10px;
       flex-wrap:wrap;
       justify-content:space-between;
-      border-top: 1px solid rgba(0,0,0,.10);
+      border-top: 1px solid rgba(255,255,255,.10);
       background:
-        linear-gradient(90deg, rgba(13,42,85,.06), rgba(202,162,74,.06));
+        linear-gradient(90deg, rgba(13,42,85,.10), rgba(202,162,74,.08));
     }
     .sumPill{
       display:flex; align-items:baseline; gap:8px;
       padding: 10px 12px;
       border-radius: 999px;
-      border: 2px solid rgba(0,0,0,.12);
-      background: rgba(255,255,255,.78);
+      border: 2px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.84);
       min-width: 160px;
       justify-content:space-between;
       font-weight: 1000;
@@ -891,21 +830,12 @@
       text-transform: uppercase;
     }
 
+    /* ===== TV Mode ===== */
     body.tv .wrap{ max-width: 1400px; padding: 12px 12px 70px; }
     body.tv h1{ font-size: 22px; }
     body.tv .courseHeaderMini{ width: 200px; height: 52px; }
     body.tv .lb-row{ padding: 12px 16px; }
     body.tv .lb-score{ font-size: 36px; }
-
-    @media (max-width: 900px){
-      .lb-head, .lb-row{ grid-template-columns: 74px 1fr 118px 84px 88px; }
-      .nine{ grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (max-width: 740px){
-      .lb-head, .lb-row{ grid-template-columns: 74px 1fr 118px; }
-      .lb-head .colThru, .lb-head .colUpdated,
-      .lb-row .colThru, .lb-row .colUpdated{ display:none; }
-    }
   </style>
 </head>
 
@@ -937,6 +867,7 @@
           </div>
         </div>
 
+        <!-- Sponsor hero (shows only if sponsor data exists) -->
         <div id="sponsorHero">
           <div id="sponsorHeroTop">
             <div id="sponsorHeroTitle">Tournament Sponsor</div>
@@ -965,6 +896,7 @@
     </div>
   </div>
 
+  <!-- Sponsor ticker (shows only if sponsor data exists) -->
   <div id="ticker">
     <div class="tickerTop">
       <div class="tickerLabel">Sponsored by</div>
@@ -975,6 +907,7 @@
     </div>
   </div>
 
+  <!-- Modal -->
   <div class="modal" id="modal">
     <div class="sheet" role="dialog" aria-modal="true">
       <div class="sheetBanner">
@@ -1039,6 +972,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // ===== Course meta =====
     const COURSE_TRADITION = {
       id:"tradition",
       headerMini:"./assets/cypresswood_header.png",
@@ -1057,6 +991,7 @@
 
     const COURSES = { tradition: COURSE_TRADITION, cypress: COURSE_CYPRESS };
 
+    // ===== DOM =====
     const listEl = document.getElementById("list");
     const pageMeta = document.getElementById("pageMeta");
     const statusPill = document.getElementById("statusPill");
@@ -1089,6 +1024,7 @@
     const inSum = document.getElementById("inSum");
     const totSum = document.getElementById("totSum");
 
+    // ===== URL + STATE =====
     const params = new URLSearchParams(location.search);
     const tournamentId = (params.get("t") || "").trim();
     const tvMode = params.get("tv") === "1";
@@ -1106,6 +1042,8 @@
       sponsors: [],
       status: "open"
     };
+
+    const lastRankByKey = new Map();
 
     function fmtFormat(f){
       const x = (f || "stroke").toLowerCase();
@@ -1152,6 +1090,7 @@
       parPill.textContent = `TOTAL PAR: ${totalPar}`;
     }
 
+    // ===== Course-aware scoring =====
     function getCourseForEntry(entryCourseId){
       return COURSES[entryCourseId] || COURSES[tournament.courseDefault] || COURSE_TRADITION;
     }
@@ -1224,6 +1163,7 @@
       return rel > 0 ? `+${rel}` : String(rel);
     }
 
+    // ===== Playoff sorting (course-aware) =====
     function holesByHardestHcp(course){
       const pairs = course.hcp.map((hcp, idx) => ({ hole: idx+1, hcp }));
       pairs.sort((a,b) => a.hcp - b.hcp);
@@ -1250,6 +1190,7 @@
       return 0;
     }
 
+    // ===== Sponsor rendering (HIDE if missing) =====
     function normalizeSponsorObj(s){
       const name = (s?.name || s?.sponsorName || "").trim();
       const tier = (s?.tier || "").trim();
@@ -1288,11 +1229,13 @@
     function renderSponsors(){
       const active = getActiveSponsors();
 
+      // fallback to legacy single sponsor
       if (!active.length){
         const name = (tournament.sponsorName || "").trim();
         const logo = (tournament.sponsorLogo || tournament.sponsorLogoUrl || "").trim();
         const url  = normalizeUrl(tournament.sponsorUrl || tournament.sponsorWebsite || tournament.sponsorLink || "");
 
+        // ✅ If missing, hide everything
         if (!name && !logo){
           hideSponsors();
           return;
@@ -1331,6 +1274,7 @@
       const heroLogo = (hero?.logoUrl || "").trim();
       const heroUrl  = normalizeUrl(hero?.website || "");
 
+      // ✅ If still somehow empty, hide
       if (!heroName && !heroLogo){
         hideSponsors();
         return;
@@ -1369,6 +1313,7 @@
       tickerTrack.innerHTML = pills + pills;
     }
 
+    // ===== Entry building (FILTERS to only active golfers) =====
     function buildEntriesFromSubmissionDoc(docData, docId){
       const deviceId = docId;
       const group = (docData.group || "").trim();
@@ -1384,8 +1329,43 @@
       const courseId = docData.courseId || tournament.courseDefault || "tradition";
       const course = getCourseForEntry(courseId);
 
-      const base = { deviceId, group, playerName: scorerName, names, scoresFlat, totals, updatedAt, courseId, course };
+      const startHole = String(docData.startHole || "").trim();
+
+      const base = {
+        deviceId,
+        group,
+        playerName: scorerName,
+        names,
+        scoresFlat,
+        totals,
+        updatedAt,
+        courseId,
+        course,
+        startHole
+      };
+
       const fmt = (tournament.format || "stroke").toLowerCase();
+
+      // helper: build abbreviation line like "TB • MS • DN"
+      function abbrLine(namesArr){
+        const clean = (namesArr || []).map(s => String(s||"").trim()).filter(Boolean);
+        if (!clean.length) return "";
+        const ab = clean.map(n => {
+          const parts = n.split(/\s+/).filter(Boolean);
+          const a = (parts[0]?.[0] || "").toUpperCase();
+          const b = (parts.length > 1 ? (parts[parts.length-1]?.[0] || "").toUpperCase() : "");
+          const two = (a + b) || (n.slice(0,2).toUpperCase());
+          return two;
+        });
+        return ab.join(" • ");
+      }
+
+      function buildSubline(){
+        const chips = [];
+        if (startHole) chips.push(`Start H${startHole}`);
+        if (scorerName) chips.push(`Scorer: ${scorerName}`);
+        return chips.join(" • ");
+      }
 
       if (fmt === "scramble"){
         const scores = derivePlayerScores(scoresFlat, 0);
@@ -1393,11 +1373,13 @@
         const total = Number.isFinite(Number(totals?.[0]?.tot)) ? Number(totals[0].tot) : totalFromScores(scores);
         const thru = calcThruFromScores(scores);
         const toPar = toParFromScores(scores, course);
+
+        const abbr = abbrLine(names.length ? names : [teamName]);
         return [{
           ...base,
           key: `scr_${deviceId}`,
-          displayName: teamName,
-          subLine: scorerName ? `Scorer: ${scorerName}` : "",
+          displayName: abbr ? abbr : teamName,
+          subLine: buildSubline(),
           kind: "team",
           scores,
           total,
@@ -1413,11 +1395,13 @@
         const total = totalFromScores(scores);
         const thru = calcThruFromScores(scores);
         const toPar = toParFromScores(scores, course);
+
+        const abbr = abbrLine(names.length ? names : [teamName]);
         return [{
           ...base,
           key: `bb_${deviceId}`,
-          displayName: teamName,
-          subLine: scorerName ? `Team • ${scorerName}` : "Team",
+          displayName: abbr ? abbr : teamName,
+          subLine: buildSubline(),
           kind: "team",
           scores,
           total,
@@ -1443,7 +1427,7 @@
             ...base,
             key: `sk_${deviceId}_p${i}`,
             displayName: display,
-            subLine: group ? `Group: ${group}` : (teamName ? `Card: ${teamName}` : ""),
+            subLine: buildSubline(),
             kind: "player",
             playerIndex: i,
             scores,
@@ -1456,6 +1440,7 @@
         return out;
       }
 
+      // stroke (default): only active golfers
       const items = [];
       for(let i=0;i<6;i++){
         const scores = derivePlayerScores(scoresFlat, i);
@@ -1471,7 +1456,7 @@
           ...base,
           key: `st_${deviceId}_p${i}`,
           displayName: display,
-          subLine: group ? `Group: ${group}` : (teamName ? `Card: ${teamName}` : ""),
+          subLine: buildSubline(),
           kind: "player",
           playerIndex: i,
           scores,
@@ -1509,6 +1494,7 @@
 
     function sortEntries(entries){
       const fmt = (tournament.format || "stroke").toLowerCase();
+
       if (fmt === "skins"){
         computeSkins(entries);
         entries.sort((a,b) => {
@@ -1540,8 +1526,13 @@
           out.push("1");
         } else {
           const isTie = (tieKey === lastKey);
-          if (isTie) out.push(`T${lastRank}`);
-          else { lastRank = i + 1; lastKey = tieKey; out.push(String(lastRank)); }
+          if (isTie){
+            out.push(`T${lastRank}`);
+          } else {
+            lastRank = i + 1;
+            lastKey = tieKey;
+            out.push(String(lastRank));
+          }
         }
       }
       if (out.length >= 2 && out[1] === "T1") out[0] = "T1";
@@ -1555,9 +1546,20 @@
       }
 
       const displayRanks = computeDisplayRanks(entries);
+      const currentRankByKey = new Map();
+      entries.forEach((e, idx) => currentRankByKey.set(e.key, idx+1));
 
       const html = entries.map((e, idx) => {
+        const prev = lastRankByKey.get(e.key);
         const rankNum = idx + 1;
+
+        const movedUp = (prev && rankNum < prev);
+        const movedDown = (prev && rankNum > prev);
+
+        const moveBadge = prev
+          ? (movedUp ? `<span class="lb-move up">▲</span>` : (movedDown ? `<span class="lb-move down">▼</span>` : ``))
+          : ``;
+
         const leaderClass = rankNum === 1 ? "leader" : "";
         const updatedText = tsToText(e.updatedAt);
 
@@ -1567,7 +1569,7 @@
 
         return `
           <div class="lb-row ${leaderClass}" data-key="${escapeHtml(e.key)}">
-            <div class="lb-rank">${escapeHtml(displayRanks[idx])}</div>
+            <div class="lb-rank">${escapeHtml(displayRanks[idx])} ${moveBadge}</div>
 
             <div class="lb-nameWrap">
               <div class="lb-name" title="${escapeHtml(e.displayName)}">${escapeHtml(e.displayName)}</div>
@@ -1583,6 +1585,7 @@
       }).join("");
 
       listEl.innerHTML = html;
+      currentRankByKey.forEach((r,k) => lastRankByKey.set(k,r));
 
       listEl.querySelectorAll(".lb-row").forEach(el => {
         el.addEventListener("click", () => {
@@ -1606,13 +1609,14 @@
 
     function openModal(e){
       modalName.textContent = e.displayName || "Scorecard";
-      const updatedText = tsToText(e.updatedAt);
       const fmt = fmtFormat(tournament.format);
+      const updatedText = tsToText(e.updatedAt);
 
       const tags = [];
       if (tournament.name) tags.push(`🏆 ${tournament.name}`);
       tags.push(`⛳ ${fmt}`);
       if (e.group) tags.push(`👥 ${e.group}`);
+      if (e.startHole) tags.push(`🟦 Start H${e.startHole}`);
       if (e.playerName) tags.push(`✍️ ${e.playerName}`);
       if (updatedText) tags.push(`🕒 ${updatedText}`);
       if (e.thru) tags.push(`✅ Thru ${e.thru}`);
@@ -1621,9 +1625,9 @@
 
       modalScore.innerHTML = formatToParTV(Number(e.toPar || 0));
       modalScoreSub.textContent =
-        ((tournament.format || "").toLowerCase() === "bestball") ? "Best Ball" :
-        ((tournament.format || "").toLowerCase() === "scramble") ? "Team" :
-        ((tournament.format || "").toLowerCase() === "skins") ? "Skins" : "Gross";
+        (tournament.format || "").toLowerCase() === "bestball" ? "Best Ball" :
+        ((tournament.format || "").toLowerCase() === "scramble" ? "Team" :
+        ((tournament.format || "").toLowerCase() === "skins" ? "Skins" : "Gross"));
 
       frontNine.innerHTML = "";
       backNine.innerHTML = "";
@@ -1665,8 +1669,12 @@
       inSum.textContent = String(sumNine(e.scores, 9));
       totSum.innerHTML = formatToParTV(Number(e.toPar || 0));
 
+      // Always open at top so the header is visible immediately
       if (sheetEl) sheetEl.scrollTop = 0;
+
+      // iOS: stop background scroll jitter
       document.body.style.overflow = "hidden";
+
       modal.classList.add("show");
     }
 
@@ -1677,6 +1685,7 @@
     closeModalBtn.addEventListener("click", closeModal);
     modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
 
+    // ===== Boot =====
     if (!tournamentId){
       pageMeta.textContent = "Missing tournament id (?t=...)";
       statusPill.textContent = "⚠️ MISSING TOURNAMENT";
@@ -1753,6 +1762,7 @@
         pageMeta.textContent = "Live updates blocked (rules/network).";
       });
 
+      // TV auto-scroll (bounce)
       if (tvMode){
         let dir = 1;
         setInterval(() => {
