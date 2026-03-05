@@ -215,11 +215,6 @@
     @media (min-width: 820px){
       .sGrid2{ grid-template-columns: 1fr 1fr; }
     }
-    .miniRow{
-      display:grid;
-      gap:8px;
-      grid-template-columns: 1fr 1fr;
-    }
     .pill{
       display:inline-flex;
       align-items:center;
@@ -282,7 +277,6 @@
       display:none;
     }
 
-    /* ===== Mobile layout fixes (iPhone) ===== */
     @media (max-width: 520px){
       .wrap{ padding: 10px 10px 18px; }
       h1{ font-size: 20px; }
@@ -381,7 +375,6 @@
           <button class="red" id="closeBtn">Close Tournament</button>
         </div>
 
-        <!-- ===== Share Links ===== -->
         <div class="soft">
           <div style="font-family:Cinzel,serif;font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-size:13px;">
             Share Links & QR Codes
@@ -437,7 +430,6 @@
           </div>
         </div>
 
-        <!-- ===== Sponsors (Enterprise) ===== -->
         <div class="soft" id="sponsorPanel">
           <div class="sHdr">Sponsors (Enterprise)</div>
           <div class="note" style="margin-top:-2px;">
@@ -505,14 +497,14 @@
 
   <div class="toast" id="toast">Copied ✅</div>
 
-  <!-- QRCode lib -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -524,16 +516,14 @@ import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/1
     };
 
     const app = initializeApp(firebaseConfig);
-    
+    const db = getFirestore(app);
+    const storage = getStorage(app);
 
-// 🔐 Admin page authentication (needed for sponsor uploads)
-const auth = getAuth(app);
-await signInAnonymously(auth);
-
-const db = getFirestore(app);
-const storage = getStorage(app);
-    
-
+    // ✅ Don’t block the page (so buttons always work)
+    const auth = getAuth(app);
+    signInAnonymously(auth).catch((e)=>{
+      console.warn("Anonymous auth failed (uploads may fail):", e);
+    });
 
     const $ = (id)=>document.getElementById(id);
 
@@ -711,7 +701,7 @@ const storage = getStorage(app);
       const s = String(t||"").toLowerCase();
       if(s==="presenting") return 0;
       if(s==="partner") return 1;
-      return 2; // supporter/default
+      return 2;
     }
 
     function sponsorSort(a,b){
@@ -782,7 +772,7 @@ const storage = getStorage(app);
               ${site ? `<div class="sMeta">${site}</div>` : ""}
             </div>
             <div class="sBtns">
-              <button class="${active ? "blue" : ""}" data-act> ${active ? "Deactivate" : "Activate"} </button>
+              <button class="${active ? "blue" : ""}" data-act>${active ? "Deactivate" : "Activate"}</button>
               <button class="red" data-del>Remove</button>
             </div>
           </div>
@@ -798,7 +788,7 @@ const storage = getStorage(app);
         }
 
         wrap.querySelector("[data-act]").addEventListener("click", ()=>{
-          s.active = !(s.active !== false); // toggle
+          s.active = !(s.active !== false);
           sponsorsDirty = true;
           renderSponsorList();
         });
@@ -856,7 +846,6 @@ const storage = getStorage(app);
       if(logoUrl) logoUrl = normalizeUrl(logoUrl);
 
       try{
-        // If they chose a file, upload it (overrides empty url)
         const uploaded = await uploadLogoIfNeeded(id);
         if(uploaded) logoUrl = uploaded;
 
@@ -885,10 +874,8 @@ const storage = getStorage(app);
       }
     }
 
-    // live preview if url pasted
     spLogoUrl.addEventListener("input", ()=> setPreview(normalizeUrl(spLogoUrl.value || "")));
 
-    // ===== Tournament CRUD =====
     async function createTournament(){
       const name = (tName.value || "").trim();
       if(!name){
@@ -910,17 +897,10 @@ const storage = getStorage(app);
         createdAt: serverTimestamp()
       };
 
-      // legacy single sponsor fields for scorecard strip compatibility
       const best = bestActiveSponsor();
-      if(best){
-        data.sponsorName = best.name || "";
-        data.sponsorLogo = best.logoUrl || "";
-        data.sponsorUrl = best.website || "";
-      }else{
-        data.sponsorName = "";
-        data.sponsorLogo = "";
-        data.sponsorUrl = "";
-      }
+      data.sponsorName = best?.name || "";
+      data.sponsorLogo = best?.logoUrl || "";
+      data.sponsorUrl  = best?.website || "";
 
       try{
         await setDoc(doc(db, "tournaments", id), data, { merge:false });
@@ -954,7 +934,6 @@ const storage = getStorage(app);
         tHandicapMode.value = d.handicapMode || "off";
         adminToken.value = d.adminToken || "";
 
-        // Sponsors load: prefer sponsors[], fallback to legacy single sponsor fields
         if(Array.isArray(d.sponsors)){
           sponsors = d.sponsors;
         }else{
@@ -1011,7 +990,6 @@ const storage = getStorage(app);
 
         const payload = { ...readForm() };
 
-        // legacy single sponsor fields
         const best = bestActiveSponsor();
         payload.sponsorName = best?.name || "";
         payload.sponsorLogo = best?.logoUrl || "";
@@ -1092,7 +1070,6 @@ const storage = getStorage(app);
     addSponsorBtn.addEventListener("click", addSponsor);
     clearSponsorFormBtn.addEventListener("click", clearSponsorForm);
 
-    // ===== Auto-load if admin is opened with ?t=ID =====
     const params = new URLSearchParams(location.search);
     const tFromUrl = (params.get("t") || "").trim();
     if(tFromUrl){
