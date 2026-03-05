@@ -12,8 +12,6 @@
     :root{
       --navy:#0d2a55;
       --gold:#caa24a;
-      --paper: rgba(239,231,215,.95);
-      --card: rgba(255,255,255,.10);
       --border: rgba(255,255,255,.18);
       --ink: rgba(255,255,255,.92);
       --muted: rgba(255,255,255,.75);
@@ -30,10 +28,11 @@
       min-height:100vh;
     }
     .wrap{
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 14px 12px 18px;
     }
+
     .top{
       border: 2px solid var(--border);
       background: rgba(255,255,255,.08);
@@ -112,10 +111,72 @@
       box-shadow: 0 18px 44px rgba(0,0,0,.20);
     }
 
+    .summaryRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom: 10px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.18);
+      font-weight: 1000;
+      letter-spacing: .02em;
+      font-size: 12px;
+      color: rgba(255,255,255,.90);
+      white-space:nowrap;
+    }
+
+    .courseSection{
+      margin-top: 12px;
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.16);
+      overflow:hidden;
+    }
+    .courseHdr{
+      padding: 10px 12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      background:
+        linear-gradient(90deg, rgba(202,162,74,.14), rgba(13,42,85,.12));
+      border-bottom: 1px solid rgba(255,255,255,.10);
+    }
+    .courseHdrLeft{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width: 220px;
+    }
+    .courseName{
+      font-family: "Cinzel", Georgia, serif;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: 14px;
+      color: rgba(255,255,255,.92);
+    }
+    .courseCounts{
+      font-size: 12px;
+      color: rgba(255,255,255,.78);
+      font-weight: 900;
+      letter-spacing:.02em;
+    }
+
     .grid{
       display:grid;
       gap:12px;
       grid-template-columns: 1fr;
+      padding: 12px;
     }
     @media (min-width: 860px){
       .grid{ grid-template-columns: 1fr 1fr; }
@@ -134,7 +195,7 @@
       align-items:center;
       gap:10px;
       background:
-        linear-gradient(90deg, rgba(202,162,74,.14), rgba(13,42,85,.12));
+        linear-gradient(90deg, rgba(255,255,255,.08), rgba(0,0,0,.06));
       border-bottom: 1px solid rgba(255,255,255,.10);
       font-weight: 1000;
       letter-spacing: .10em;
@@ -153,9 +214,8 @@
       color: rgba(255,255,255,.88);
       white-space:nowrap;
     }
-    .blockBody{
-      padding: 10px 12px 12px;
-    }
+    .blockBody{ padding: 10px 12px 12px; }
+
     .company{
       font-family: "Cinzel", Georgia, serif;
       font-weight: 900;
@@ -165,10 +225,7 @@
       margin-top: 8px;
       color: rgba(255,255,255,.92);
     }
-    ul{
-      margin: 8px 0 0;
-      padding: 0 0 0 18px;
-    }
+    ul{ margin: 8px 0 0; padding: 0 0 0 18px; }
     li{
       margin: 6px 0;
       font-weight: 800;
@@ -198,6 +255,7 @@
       white-space: pre-wrap;
       word-break: break-word;
     }
+
     .footerHint{
       margin-top: 10px;
       color: rgba(255,255,255,.72);
@@ -224,17 +282,20 @@
           <a class="btn" id="joinBtn" href="./index.html">👥 Join</a>
         </div>
       </div>
+
       <div class="footerHint">
-        Format: Start Hole groups → Company/Team → Player list (deduped). Uses <b>rosterNames</b> when available.
+        Grouping: <b>Course</b> → <b>Start Hole (2A/2B ok)</b> → <b>Company/Team</b> → Player list (deduped).
       </div>
     </div>
 
     <div class="panel">
-      <div class="meta" style="margin-top:0;">
-        Unique players: <b id="uniqueCount">0</b>
+      <div class="summaryRow">
+        <div class="pill">Unique players (overall): <b id="uniqueCount">0</b></div>
+        <div class="pill">Submissions loaded: <b id="subCount">0</b></div>
       </div>
 
-      <div class="grid" id="grid"></div>
+      <!-- course sections will render here -->
+      <div id="coursesWrap"></div>
 
       <div class="monoBox">
         <pre id="textOut">Loading…</pre>
@@ -259,11 +320,12 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const grid = document.getElementById("grid");
+    const coursesWrap = document.getElementById("coursesWrap");
     const textOut = document.getElementById("textOut");
     const meta = document.getElementById("meta");
     const title = document.getElementById("title");
     const uniqueCountEl = document.getElementById("uniqueCount");
+    const subCountEl = document.getElementById("subCount");
 
     const refreshBtn = document.getElementById("refreshBtn");
     const copyBtn = document.getElementById("copyBtn");
@@ -272,6 +334,14 @@
 
     const params = new URLSearchParams(location.search);
     const tournamentId = (params.get("t") || "").trim();
+
+    // Optional safety cap for huge events (you can increase with ?cap=2000)
+    const CAP = Math.max(0, parseInt(params.get("cap") || "0", 10) || 0); // 0 = no cap
+
+    const COURSE_LABELS = {
+      tradition: "Tradition Course",
+      cypress: "Cypress Course"
+    };
 
     function escapeHtml(s){
       return String(s || "")
@@ -290,7 +360,7 @@
       const s = String(raw || "").trim().toUpperCase();
       if(!s) return "—";
       const m = s.match(/^([1-9]|1[0-8])([A-Z])?$/);
-      if(!m) return s; // keep whatever they typed if it doesn't match
+      if(!m) return s; // keep what they typed
       return `${parseInt(m[1],10)}${m[2]||""}`;
     }
 
@@ -307,122 +377,181 @@
     }
 
     function getRosterNames(docData){
-      // prefer rosterNames; fallback to names; finally playerName only
+      // prefer rosterNames if you ever add it later; fallback to names; finally playerName only
       const rn = Array.isArray(docData.rosterNames) ? docData.rosterNames : null;
       const nm = Array.isArray(docData.names) ? docData.names : null;
-
       const base = (rn && rn.length) ? rn : ((nm && nm.length) ? nm : [docData.playerName || ""]);
-
-      return base.map(normName).filter(Boolean).slice(0, 12); // safety cap
+      return base.map(normName).filter(Boolean).slice(0, 20);
     }
 
+    function normalizeCourseId(raw){
+      const s = String(raw || "").trim().toLowerCase();
+      if(!s) return "unknown";
+      return s;
+    }
+
+    function courseLabel(courseId){
+      if(courseId === "unknown") return "Unknown / Not Set";
+      return COURSE_LABELS[courseId] || courseId;
+    }
+
+    // MODEL:
+    // courseId -> startHoleLabel -> companyName -> Map(lowerName -> displayName)
     function buildModel(submissions){
-      // Model:
-      // startHoleLabel -> companyName -> Set(names)
       const model = new Map();
       const globalUnique = new Map(); // lowerName -> displayName
+      const perCourseUnique = new Map(); // courseId -> Map(lower->display)
 
       for(const s of submissions){
+        const courseId = normalizeCourseId(s.courseId);
         const startHole = normalizeStartHoleLabel(s.startHole);
         const company = groupCompanyName(s.group);
         const names = getRosterNames(s);
 
-        if(!model.has(startHole)) model.set(startHole, new Map());
-        const byCompany = model.get(startHole);
+        if(!model.has(courseId)) model.set(courseId, new Map());
+        const byStart = model.get(courseId);
 
-        if(!byCompany.has(company)) byCompany.set(company, new Map()); // lower->display
+        if(!byStart.has(startHole)) byStart.set(startHole, new Map());
+        const byCompany = byStart.get(startHole);
+
+        if(!byCompany.has(company)) byCompany.set(company, new Map());
         const nameMap = byCompany.get(company);
+
+        if(!perCourseUnique.has(courseId)) perCourseUnique.set(courseId, new Map());
+        const courseUniq = perCourseUnique.get(courseId);
 
         for(const n of names){
           const lower = n.toLowerCase();
           if(!nameMap.has(lower)) nameMap.set(lower, n);
           if(!globalUnique.has(lower)) globalUnique.set(lower, n);
+          if(!courseUniq.has(lower)) courseUniq.set(lower, n);
         }
       }
 
-      return { model, globalUnique };
+      return { model, globalUnique, perCourseUnique };
     }
 
-    function render(model, globalUnique){
-      // sort start holes
-      const startHoles = Array.from(model.keys()).sort((a,b)=>{
-        const A = startHoleSortKey(a);
-        const B = startHoleSortKey(b);
-        if(A.num !== B.num) return A.num - B.num;
-        return String(A.suf).localeCompare(String(B.suf));
+    function render({ model, globalUnique, perCourseUnique }, submissionsLoaded){
+      uniqueCountEl.textContent = String(globalUnique.size);
+      subCountEl.textContent = String(submissionsLoaded);
+
+      coursesWrap.innerHTML = "";
+      const lines = [];
+
+      const courseIds = Array.from(model.keys()).sort((a,b)=>{
+        // put known courses first
+        const rank = (x) => (x === "tradition" ? 1 : (x === "cypress" ? 2 : (x === "unknown" ? 99 : 50)));
+        const ra = rank(a), rb = rank(b);
+        if(ra !== rb) return ra - rb;
+        return String(a).localeCompare(String(b));
       });
 
-      // build cards + text
-      grid.innerHTML = "";
-      const lines = [];
-      let totalUnique = globalUnique.size;
-
-      uniqueCountEl.textContent = String(totalUnique);
-
-      if(!startHoles.length){
-        grid.innerHTML = `<div class="empty">No roster yet. Waiting for teams to join.</div>`;
+      if(!courseIds.length){
+        coursesWrap.innerHTML = `<div class="empty">No roster yet. Waiting for teams to join.</div>`;
         textOut.textContent = "No roster yet.";
         return;
       }
 
-      for(const holeLabel of startHoles){
-        const byCompany = model.get(holeLabel);
+      for(const courseId of courseIds){
+        const byStart = model.get(courseId);
+        const courseUniq = perCourseUnique.get(courseId) || new Map();
 
-        // sort company names (empty last)
-        const companies = Array.from(byCompany.keys()).sort((a,b)=>{
-          const A = a === "—" ? "ZZZ" : a.toUpperCase();
-          const B = b === "—" ? "ZZZ" : b.toUpperCase();
-          return A.localeCompare(B);
-        });
-
-        // Card
-        const block = document.createElement("div");
-        block.className = "block";
-
-        // count for this start hole
-        let holeCount = 0;
-        for(const c of companies) holeCount += byCompany.get(c).size;
-
-        block.innerHTML = `
-          <div class="blockHdr">
-            <div>Start H${escapeHtml(holeLabel)}</div>
-            <div class="countPill">${holeCount} player${holeCount===1?"":"s"}</div>
-          </div>
-          <div class="blockBody" id="body_${escapeHtml(holeLabel)}"></div>
-        `;
-
-        grid.appendChild(block);
-        const body = block.querySelector(".blockBody");
-
-        // Text section header
-        lines.push(`Team ${holeLabel}`);
-
-        for(const company of companies){
-          const nameMap = byCompany.get(company);
-          const names = Array.from(nameMap.values()).sort((a,b)=>a.localeCompare(b));
-
-          // Card section
-          const compTitle = document.createElement("div");
-          compTitle.className = "company";
-          compTitle.textContent = (company === "—") ? "—" : company;
-          body.appendChild(compTitle);
-
-          const ul = document.createElement("ul");
-          for(const n of names){
-            const li = document.createElement("li");
-            li.textContent = n;
-            ul.appendChild(li);
+        // Count total (not unique) players listed in this course model
+        let courseListedCount = 0;
+        for(const startHole of byStart.keys()){
+          const byCompany = byStart.get(startHole);
+          for(const company of byCompany.keys()){
+            courseListedCount += byCompany.get(company).size;
           }
-          body.appendChild(ul);
-
-          // Text section
-          // Only print company header if present
-          if(company !== "—") lines.push(company);
-          for(const n of names) lines.push(n);
-          lines.push(""); // spacing line
         }
 
-        lines.push(""); // spacing between start holes
+        const courseSection = document.createElement("div");
+        courseSection.className = "courseSection";
+
+        courseSection.innerHTML = `
+          <div class="courseHdr">
+            <div class="courseHdrLeft">
+              <div class="courseName">${escapeHtml(courseLabel(courseId))}</div>
+              <div class="courseCounts">
+                Unique players: <b>${courseUniq.size}</b> • Listed entries: <b>${courseListedCount}</b>
+              </div>
+            </div>
+            <div class="pill">Course ID: <b>${escapeHtml(courseId)}</b></div>
+          </div>
+          <div class="grid" id="grid_${escapeHtml(courseId)}"></div>
+        `;
+
+        coursesWrap.appendChild(courseSection);
+        const grid = courseSection.querySelector(`#grid_${CSS.escape(courseId)}`);
+
+        // Text header per course
+        lines.push(`=== ${courseLabel(courseId)} ===`);
+        lines.push("");
+
+        // sort start holes within course
+        const startHoles = Array.from(byStart.keys()).sort((a,b)=>{
+          const A = startHoleSortKey(a);
+          const B = startHoleSortKey(b);
+          if(A.num !== B.num) return A.num - B.num;
+          return String(A.suf).localeCompare(String(B.suf));
+        });
+
+        for(const holeLabel of startHoles){
+          const byCompany = byStart.get(holeLabel);
+
+          // sort company names
+          const companies = Array.from(byCompany.keys()).sort((a,b)=>{
+            const A = a === "—" ? "ZZZ" : a.toUpperCase();
+            const B = b === "—" ? "ZZZ" : b.toUpperCase();
+            return A.localeCompare(B);
+          });
+
+          // count for this start hole
+          let holeCount = 0;
+          for(const c of companies) holeCount += byCompany.get(c).size;
+
+          const block = document.createElement("div");
+          block.className = "block";
+          block.innerHTML = `
+            <div class="blockHdr">
+              <div>Start H${escapeHtml(holeLabel)}</div>
+              <div class="countPill">${holeCount} player${holeCount===1?"":"s"}</div>
+            </div>
+            <div class="blockBody"></div>
+          `;
+          grid.appendChild(block);
+
+          const body = block.querySelector(".blockBody");
+
+          // Text section header
+          lines.push(`Team ${holeLabel}`);
+
+          for(const company of companies){
+            const nameMap = byCompany.get(company);
+            const names = Array.from(nameMap.values()).sort((a,b)=>a.localeCompare(b));
+
+            const compTitle = document.createElement("div");
+            compTitle.className = "company";
+            compTitle.textContent = (company === "—") ? "—" : company;
+            body.appendChild(compTitle);
+
+            const ul = document.createElement("ul");
+            for(const n of names){
+              const li = document.createElement("li");
+              li.textContent = n;
+              ul.appendChild(li);
+            }
+            body.appendChild(ul);
+
+            if(company !== "—") lines.push(company);
+            for(const n of names) lines.push(n);
+            lines.push("");
+          }
+
+          lines.push("");
+        }
+
+        lines.push("");
       }
 
       textOut.textContent = lines.join("\n").trim() + "\n";
@@ -468,7 +597,7 @@
     await loadTournamentMeta();
 
     if(!tournamentId){
-      grid.innerHTML = `<div class="empty">Missing tournament id (?t=...).</div>`;
+      coursesWrap.innerHTML = `<div class="empty">Missing tournament id (?t=...).</div>`;
       textOut.textContent = "Missing tournament id.";
     }else{
       const subCol = collection(db, "tournaments", tournamentId, "submissions");
@@ -476,12 +605,22 @@
 
       onSnapshot(q, (snap) => {
         const submissions = [];
-        snap.forEach(d => submissions.push(d.data() || {}));
+        let count = 0;
 
-        const { model, globalUnique } = buildModel(submissions);
-        render(model, globalUnique);
+        snap.forEach(d => {
+          count++;
+          if(CAP > 0 && submissions.length >= CAP) return;
+          submissions.push(d.data() || {});
+        });
+
+        const model = buildModel(submissions);
+        render(model, count);
+
+        if(CAP > 0 && count > CAP){
+          meta.textContent = (meta.textContent || "") + ` • Showing first ${CAP} of ${count} submissions (use ?cap=0 to remove cap)`;
+        }
       }, () => {
-        grid.innerHTML = `<div class="empty">Live updates blocked (rules/network).</div>`;
+        coursesWrap.innerHTML = `<div class="empty">Live updates blocked (rules/network).</div>`;
         textOut.textContent = "Live updates blocked (rules/network).";
       });
     }
