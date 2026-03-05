@@ -524,6 +524,14 @@ import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/1
     };
 
     const app = initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig);
+
+// 🔐 Admin page authentication (needed for sponsor uploads)
+const auth = getAuth(app);
+await signInAnonymously(auth);
+
+const db = getFirestore(app);
+const storage = getStorage(app);
     const db = getFirestore(app);
     const storage = getStorage(app);
 
