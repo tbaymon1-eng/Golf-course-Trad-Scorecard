@@ -13,6 +13,7 @@
   <style>
     :root{
       --ink:#111;
+      --muted: rgba(0,0,0,.65);
       --border:#7a4a0b;
 
       --navy:#0d2a55;
@@ -41,18 +42,17 @@
       --lh-tight: 1.05;
       --lh: 1.15;
 
-         If you go TOO low, text contrast suffers (we counter with text-shadow). */
-      /* ===== Transparency controls (MORE PHOTO) ===== */
---glassTop:   rgba(255,255,255,.10);  /* top banner glass */
---glassBoard: rgba(255,255,255,.03);  /* board area glass */
---panelBorder: rgba(255,255,255,.07);
+      /* ===== MORE PHOTO / MORE TRANSPARENCY (tweak these) ===== */
+      --glassTop: rgba(255,255,255,.18);     /* top banner glass */
+      --glassBoard: rgba(255,255,255,.07);   /* board area glass */
+      --panelBorder: rgba(255,255,255,.10);
 
---lbHeadBg1: rgba(19,58,115,.40);
---lbHeadBg2: rgba(15,42,85,.26);
+      --lbHeadBg1: rgba(19,58,115,.55);
+      --lbHeadBg2: rgba(15,42,85,.38);
 
---lbRowOdd:   rgba(255,255,255,.035);
---lbRowEven:  rgba(255,255,255,.060);
---lbRowHover: rgba(255,255,255,.10);
+      --lbRowOdd: rgba(255,255,255,.06);
+      --lbRowEven: rgba(255,255,255,.10);
+      --lbRowHover: rgba(255,255,255,.16);
     }
 
     @media (min-width: 820px){
@@ -72,6 +72,7 @@
       color: var(--ink);
       font-family: Georgia, 'Times New Roman', serif;
 
+      /* Full-screen course photo */
       background-image: url("./assets/IMG_5318.jpeg");
       background-size: cover;
       background-position: center;
@@ -79,7 +80,7 @@
       background-color: #0f2a55;
     }
 
-    /* Overlay: keep some darkness for readability, but lighter so photo shows */
+    /* Broadcast dark overlay (lighter so photo shows more) */
     body::before{
       content:"";
       position: fixed;
@@ -99,27 +100,26 @@
       padding: 12px 12px 78px; /* room for ticker */
     }
 
-    /* ===== Card shell ===== */
+    /* ===== Top Banner ===== */
     .card{
       border-radius: 18px;
       overflow: hidden;
-      border: 2px solid rgba(0,0,0,.14);
+      border: 2px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.05);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       box-shadow: 0 18px 44px rgba(0,0,0,.28);
     }
 
-    /* ===== Top Banner ===== */
     .top{
       position:relative;
       padding: 12px 12px 10px;
       background:
-        linear-gradient(135deg, rgba(13,42,85,.16), rgba(13,42,85,.06)),
+        linear-gradient(135deg, rgba(13,42,85,.16), rgba(13,42,85,.05)),
         var(--glassTop);
       border-bottom: 1px solid rgba(255,255,255,.10);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     .topRow{
@@ -143,13 +143,11 @@
       border: 2px solid rgba(255,255,255,.18);
       border-radius: 12px;
       padding: 6px 10px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
-    .titleBlock{
-      display:flex; flex-direction:column; gap:2px;
-    }
+    .titleBlock{ display:flex; flex-direction:column; gap:2px; }
 
     h1{
       margin:0;
@@ -160,25 +158,26 @@
       line-height: var(--lh-tight);
       text-transform: uppercase;
       color: rgba(255,255,255,.92);
-      text-shadow: 0 2px 12px rgba(0,0,0,.40);
+      text-shadow: 0 2px 10px rgba(0,0,0,.35);
     }
     .clubName{
       font-family: var(--font-head);
       font-weight: 900;
       letter-spacing: .06em;
       font-size: 12px;
+      opacity:.92;
       text-transform: uppercase;
-      color: rgba(255,255,255,.84);
-      text-shadow: 0 2px 12px rgba(0,0,0,.35);
+      color: rgba(255,255,255,.86);
+      text-shadow: 0 2px 10px rgba(0,0,0,.30);
     }
     .meta{
       margin-top:2px;
       font-size: 12px;
-      color: rgba(255,255,255,.76);
+      color: rgba(255,255,255,.78);
       font-weight: 800;
       font-family: var(--font-ui);
       letter-spacing: .02em;
-      text-shadow: 0 2px 12px rgba(0,0,0,.32);
+      text-shadow: 0 2px 10px rgba(0,0,0,.30);
     }
 
     .pillRow{
@@ -199,16 +198,15 @@
       letter-spacing: .06em;
       text-transform: uppercase;
       color: rgba(255,255,255,.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      text-shadow: 0 2px 10px rgba(0,0,0,.25);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
     .pill.live{
       border-color: rgba(184,255,184,.20);
       background: rgba(47,107,47,.16);
     }
     .pill.mode{
-      border-color: rgba(180,210,255,.18);
+      border-color: rgba(180,210,255,.16);
       background: rgba(13,42,85,.16);
     }
     .pill.par{
@@ -235,19 +233,12 @@
       white-space:nowrap;
       font-family: var(--font-ui);
       letter-spacing: .02em;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      text-shadow: 0 2px 10px rgba(0,0,0,.25);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
     button:active, a.btn:active{ transform: translateY(1px); }
-    .primary{
-      border-color: rgba(180,210,255,.20);
-      background: rgba(13,42,85,.18);
-    }
-    .green{
-      border-color: rgba(184,255,184,.20);
-      background: rgba(47,107,47,.16);
-    }
+    .primary{ border-color: rgba(180,210,255,.18); background: rgba(13,42,85,.18); }
+    .green{ border-color: rgba(184,255,184,.18); background: rgba(47,107,47,.16); }
 
     /* ===== Sponsor Hero ===== */
     #sponsorHero{
@@ -256,18 +247,14 @@
       border-radius: 14px;
       border: 2px solid rgba(255,255,255,.16);
       background:
-        linear-gradient(135deg, rgba(202,162,74,.14), rgba(13,42,85,.08)),
+        linear-gradient(135deg, rgba(202,162,74,.14), rgba(13,42,85,.10)),
         rgba(255,255,255,.12);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       padding: 10px 12px;
     }
     #sponsorHeroTop{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
     }
     #sponsorHeroTitle{
       font-family: var(--font-ui);
@@ -276,8 +263,7 @@
       letter-spacing: .12em;
       text-transform: uppercase;
       opacity: .95;
-      color: rgba(255,255,255,.86);
-      text-shadow: 0 2px 10px rgba(0,0,0,.25);
+      color: rgba(255,255,255,.88);
     }
     #sponsorHeroRow{
       margin-top: 8px;
@@ -288,7 +274,7 @@
       border-radius: 12px;
       object-fit: cover;
       border: 2px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.12);
+      background: rgba(0,0,0,.14);
       display:none;
     }
     #sponsorHeroName{
@@ -298,7 +284,6 @@
       text-transform: uppercase;
       font-size: 18px;
       color: rgba(255,255,255,.92);
-      text-shadow: 0 2px 10px rgba(0,0,0,.28);
     }
     #sponsorHeroLink{
       display:none;
@@ -317,19 +302,19 @@
     .board{
       padding: 10px 10px 14px;
       background: var(--glassBoard);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     /* ===== Leaderboard Panel ===== */
     .lb-wrap{
+      background: linear-gradient(180deg, rgba(15,42,85,.22), rgba(10,31,61,.18));
       border-radius: 16px;
       overflow: hidden;
       box-shadow: 0 20px 40px rgba(0,0,0,.25);
       border: 2px solid var(--panelBorder);
-      background: rgba(10,31,61,.18);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
     .lb-head{
@@ -344,10 +329,9 @@
       letter-spacing: .12em;
       text-transform: uppercase;
       font-size: var(--hdr);
-      border-bottom: 1px solid rgba(255,255,255,.10);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      text-shadow: 0 2px 10px rgba(0,0,0,.22);
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
     .lb-list{ display:flex; flex-direction:column; }
@@ -358,10 +342,9 @@
       align-items:center;
       padding: 11px 14px;
       background: var(--lbRowOdd);
-      border-top: 1px solid rgba(255,255,255,.08);
+      border-top: 1px solid rgba(255,255,255,.10);
       transition: background .18s ease;
       cursor:pointer;
-
       font-family: var(--font-row);
       letter-spacing: var(--row-track);
       text-transform: uppercase;
@@ -372,7 +355,7 @@
     .lb-row:active{ transform: translateY(1px); }
 
     .lb-row.leader{
-      background: linear-gradient(90deg, rgba(255,215,0,.12), rgba(255,215,0,.04));
+      background: linear-gradient(90deg, rgba(255,215,0,.12), rgba(255,215,0,.03));
     }
 
     .lb-rank{
@@ -384,7 +367,6 @@
       letter-spacing: var(--num-track);
       font-size: var(--rank);
       line-height: var(--lh-tight);
-      text-shadow: 0 2px 12px rgba(0,0,0,.35);
     }
     .lb-move{
       width: 22px; height: 22px;
@@ -393,36 +375,36 @@
       align-items:center;
       justify-content:center;
       font-size: 12px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(0,0,0,.16);
+      border: 1px solid rgba(255,255,255,.20);
+      background: rgba(0,0,0,.18);
     }
-    .lb-move.up{ color:#b8ffb8; border-color: rgba(184,255,184,.30); }
-    .lb-move.down{ color:#ffb8b8; border-color: rgba(255,184,184,.30); }
+    .lb-move.up{ color:#b8ffb8; border-color: rgba(184,255,184,.35); }
+    .lb-move.down{ color:#ffb8b8; border-color: rgba(255,184,184,.35); }
 
     .lb-nameWrap{ min-width:0; }
     .lb-name{
       color: rgba(255,255,255,.95);
-      font-weight: 800;
+      font-weight: 900;
       font-size: var(--name);
       line-height: var(--lh);
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-      text-shadow: 0 2px 12px rgba(0,0,0,.35);
+      text-shadow: 0 2px 10px rgba(0,0,0,.25);
     }
     .lb-sub{
       margin-top: 2px;
       font-family: var(--font-ui);
-      font-weight: 800;
+      font-weight: 900;
       font-size: var(--sub);
-      letter-spacing: .06em;
+      letter-spacing: .08em;
       text-transform: none;
-      color: rgba(255,255,255,.86);
+      color: rgba(255,255,255,.88);
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
       opacity:.98;
-      text-shadow: 0 2px 10px rgba(0,0,0,.22);
+      text-shadow: 0 2px 10px rgba(0,0,0,.18);
     }
 
     .lb-score{
@@ -433,7 +415,7 @@
       font-size: var(--score);
       line-height: var(--lh-tight);
       white-space:nowrap;
-      text-shadow: 0 2px 14px rgba(0,0,0,.45);
+      text-shadow: 0 2px 12px rgba(0,0,0,.35);
     }
     .lb-score.under{ color:#ff4d4d; }
     .lb-score.even{ color:#ffffff; }
@@ -447,12 +429,12 @@
     .lb-thin{
       text-align:right;
       font-family: var(--font-ui);
-      font-weight: 800;
+      font-weight: 900;
       letter-spacing: .04em;
       font-size: 12px;
-      color: rgba(255,255,255,.86);
+      color: rgba(255,255,255,.88);
       white-space:nowrap;
-      text-shadow: 0 2px 10px rgba(0,0,0,.28);
+      text-shadow: 0 2px 10px rgba(0,0,0,.22);
     }
 
     .emptyBox{
@@ -461,7 +443,7 @@
       font-weight: 900;
       letter-spacing: .02em;
       color: rgba(255,255,255,.90);
-      text-shadow: 0 2px 12px rgba(0,0,0,.35);
+      text-shadow: 0 2px 10px rgba(0,0,0,.25);
     }
 
     /* ===== Sponsor ticker ===== */
@@ -471,12 +453,12 @@
       right: 0;
       bottom: 0;
       z-index: 20;
-      border-top: 2px solid rgba(255,255,255,.12);
+      border-top: 3px solid rgba(255,255,255,.12);
       background:
-        linear-gradient(90deg, rgba(13,42,85,.18), rgba(202,162,74,.14)),
-        rgba(20,20,20,.28);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+        linear-gradient(90deg, rgba(13,42,85,.18), rgba(202,162,74,.16)),
+        rgba(20,20,20,.30);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       display:none;
       color: rgba(255,255,255,.92);
     }
@@ -530,8 +512,8 @@
       cursor:pointer;
       font-family: var(--font-ui);
       letter-spacing: .02em;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
     .sponsorPill img{
       width: 26px; height: 26px;
@@ -541,7 +523,7 @@
       background: rgba(0,0,0,.16);
     }
 
-    /* ===== Modal (same as your version) ===== */
+    /* ===== Modal ===== */
     .modal{
       position: fixed;
       inset: 0;
@@ -875,7 +857,6 @@
           </div>
         </div>
 
-        <!-- Sponsor hero (shows only if sponsor data exists) -->
         <div id="sponsorHero">
           <div id="sponsorHeroTop">
             <div id="sponsorHeroTitle">Tournament Sponsor</div>
@@ -904,7 +885,6 @@
     </div>
   </div>
 
-  <!-- Sponsor ticker (shows only if sponsor data exists) -->
   <div id="ticker">
     <div class="tickerTop">
       <div class="tickerLabel">Sponsored by</div>
@@ -915,7 +895,6 @@
     </div>
   </div>
 
-  <!-- Modal -->
   <div class="modal" id="modal">
     <div class="sheet" role="dialog" aria-modal="true">
       <div class="sheetBanner">
@@ -980,7 +959,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ===== Course meta =====
     const COURSE_TRADITION = {
       id:"tradition",
       headerMini:"./assets/cypresswood_header.png",
@@ -999,7 +977,6 @@
 
     const COURSES = { tradition: COURSE_TRADITION, cypress: COURSE_CYPRESS };
 
-    // ===== DOM =====
     const listEl = document.getElementById("list");
     const pageMeta = document.getElementById("pageMeta");
     const statusPill = document.getElementById("statusPill");
@@ -1022,8 +999,8 @@
 
     const modal = document.getElementById("modal");
     const closeModalBtn = document.getElementById("closeModal");
-    const modalSub = document.getElementById("modalSub");
     const modalName = document.getElementById("modalName");
+    const modalSub = document.getElementById("modalSub");
     const modalScore = document.getElementById("modalScore");
     const modalScoreSub = document.getElementById("modalScoreSub");
     const frontNine = document.getElementById("frontNine");
@@ -1032,7 +1009,6 @@
     const inSum = document.getElementById("inSum");
     const totSum = document.getElementById("totSum");
 
-    // ===== URL + STATE =====
     const params = new URLSearchParams(location.search);
     const tournamentId = (params.get("t") || "").trim();
     const tvMode = params.get("tv") === "1";
@@ -1094,11 +1070,11 @@
       courseHeaderMini.src = c.headerMini;
       courseHeaderMini.alt = courseId === "cypress" ? "Cypress Header" : "Tradition Header";
       clubNameEl.textContent = c.clubName || "Golf Club";
+
       const totalPar = c.par.reduce((a,b)=>a+(Number(b)||0),0);
       parPill.textContent = `TOTAL PAR: ${totalPar}`;
     }
 
-    // ===== Course-aware scoring =====
     function getCourseForEntry(entryCourseId){
       return COURSES[entryCourseId] || COURSES[tournament.courseDefault] || COURSE_TRADITION;
     }
@@ -1171,7 +1147,6 @@
       return rel > 0 ? `+${rel}` : String(rel);
     }
 
-    // ===== Playoff sorting (course-aware) =====
     function holesByHardestHcp(course){
       const pairs = course.hcp.map((hcp, idx) => ({ hole: idx+1, hcp }));
       pairs.sort((a,b) => a.hcp - b.hcp);
@@ -1198,7 +1173,6 @@
       return 0;
     }
 
-    // ===== Sponsor rendering (HIDE if missing) =====
     function normalizeSponsorObj(s){
       const name = (s?.name || s?.sponsorName || "").trim();
       const tier = (s?.tier || "").trim();
@@ -1318,77 +1292,88 @@
       tickerTrack.innerHTML = pills + pills;
     }
 
-    // ===== Entries =====
+    function nameLineFromNames(names){
+      const clean = (names || []).map(s => String(s||"").trim()).filter(Boolean);
+      if (!clean.length) return "";
+      return clean.join(" • ");
+    }
+
+    // Compute "thru" based on any filled score fields in scoresFlat
+    // Works even if they start on 2A etc; it's simply "most recently filled hole number"
+    function thruFromScoresFlat(scoresFlat){
+      if (!scoresFlat) return 0;
+      let max = 0;
+      for (let h = 1; h <= 18; h++){
+        const anyForHole = Object.keys(scoresFlat).some(k => k.endsWith(`_h${h}`) && String(scoresFlat[k] || "").trim() !== "");
+        if (anyForHole) max = h;
+      }
+      return max;
+    }
+
+    function buildStatusLine(docData, scoresFlat, scorerName){
+      const chips = [];
+
+      // Start hole supports 2A / 2B etc
+      const sh = String(docData?.startHole ?? "").trim();
+      if (sh) chips.push(`H${sh}`);
+
+      const thru = thruFromScoresFlat(scoresFlat);
+      const finished = (String(docData?.roundStatus || "").toLowerCase() === "finished") || (thru >= 18);
+      if (finished) chips.push("F");
+      else if (thru > 0) chips.push(`Thru ${thru}`);
+
+      if (scorerName) chips.push(`Scorer: ${scorerName}`);
+
+      return chips.join(" • ");
+    }
+
     function buildEntriesFromSubmissionDoc(docData, docId){
       const deviceId = docId;
-      const group = (docData.group || "").trim();
+
+      const companyOrTeam = (docData.companyName || docData.group || "").trim(); // future-proof: companyName preferred if you add it later
       const playerName = (docData.playerName || "").trim();
       const names = Array.isArray(docData.names) ? docData.names : [];
       const scoresFlat = docData.scoresFlat || {};
       const totals = Array.isArray(docData.totals) ? docData.totals : [];
       const updatedAt = docData.updatedAt;
 
-      const teamName = group || (names[0] || playerName || "Team");
-      const scorerName = playerName || names[0] || "";
-
       const courseId = docData.courseId || tournament.courseDefault || "tradition";
       const course = getCourseForEntry(courseId);
 
-      const startHole = String(docData.startHole || "").trim();
+      const scorerName = playerName || names[0] || "";
+
+      const fmt = (tournament.format || "stroke").toLowerCase();
 
       const base = {
         deviceId,
-        group,
+        companyOrTeam,
         playerName: scorerName,
         names,
         scoresFlat,
         totals,
         updatedAt,
         courseId,
-        course,
-        startHole,
-        roundStatus: (docData.roundStatus || "").toString().toLowerCase()
+        course
       };
 
-      const fmt = (tournament.format || "stroke").toLowerCase();
-
-      // abbreviation like "TB • MS • DN"
-      function abbrLine(namesArr){
-        const clean = (namesArr || []).map(s => String(s||"").trim()).filter(Boolean);
-        if (!clean.length) return "";
-        const ab = clean.map(n => {
-          const parts = n.split(/\s+/).filter(Boolean);
-          const a = (parts[0]?.[0] || "").toUpperCase();
-          const b = (parts.length > 1 ? (parts[parts.length-1]?.[0] || "").toUpperCase() : "");
-          const two = (a + b) || (n.slice(0,2).toUpperCase());
-          return two;
-        });
-        return ab.join(" • ");
-      }
-
-      // ✅ Start Hole + Thru/F + Scorer all in ONE line
-      function buildSubline(thru){
-        const chips = [];
-        if (startHole) chips.push(`Start H${startHole}`);
-        if (base.roundStatus === "finished" || thru >= 18) chips.push("F");
-        else if (thru > 0) chips.push(`Thru ${thru}`);
-        if (scorerName) chips.push(`Scorer: ${scorerName}`);
-        return chips.join(" • ");
-      }
-
+      // ========= SCRAMBLE / BESTBALL: show TEAM row =========
       if (fmt === "scramble"){
         const scores = derivePlayerScores(scoresFlat, 0);
         if (!hasAnyScore(scores)) return [];
-        const thru = calcThruFromScores(scores);
+
         const total = Number.isFinite(Number(totals?.[0]?.tot)) ? Number(totals[0].tot) : totalFromScores(scores);
+        const thru = calcThruFromScores(scores);
         const toPar = toParFromScores(scores, course);
 
-        const abbr = abbrLine(names.length ? names : [teamName]);
+        const displayName = companyOrTeam || "Team";
+        const line2 = nameLineFromNames(names);
+        const line3 = buildStatusLine(docData, scoresFlat, scorerName);
+
         return [{
           ...base,
           key: `scr_${deviceId}`,
-          displayName: abbr ? abbr : teamName,
-          subLine: buildSubline(thru),
+          displayName,
+          subLine: [line2, line3].filter(Boolean).join(" • "),
           kind: "team",
           scores,
           total,
@@ -1401,16 +1386,20 @@
       if (fmt === "bestball"){
         const scores = deriveBestBall(scoresFlat, 6);
         if (!hasAnyScore(scores)) return [];
-        const thru = calcThruFromScores(scores);
+
         const total = totalFromScores(scores);
+        const thru = calcThruFromScores(scores);
         const toPar = toParFromScores(scores, course);
 
-        const abbr = abbrLine(names.length ? names : [teamName]);
+        const displayName = companyOrTeam || "Team";
+        const line2 = nameLineFromNames(names);
+        const line3 = buildStatusLine(docData, scoresFlat, scorerName);
+
         return [{
           ...base,
           key: `bb_${deviceId}`,
-          displayName: abbr ? abbr : teamName,
-          subLine: buildSubline(thru),
+          displayName,
+          subLine: [line2, line3].filter(Boolean).join(" • "),
           kind: "team",
           scores,
           total,
@@ -1420,24 +1409,27 @@
         }];
       }
 
+      // ========= SKINS / STROKE: keep as player leaderboard =========
       if (fmt === "skins"){
         const out = [];
         for(let i=0;i<6;i++){
           const scores = derivePlayerScores(scoresFlat, i);
           if (!hasAnyScore(scores)) continue;
 
-          const thru = calcThruFromScores(scores);
-
           const nm = (names[i] || "").trim();
-          const display = nm || (i === 0 ? (playerName || teamName) : `Player ${i+1}`);
+          const display = nm || (i === 0 ? (playerName || companyOrTeam || "Player") : `Player ${i+1}`);
           const total = Number.isFinite(Number(totals?.[i]?.tot)) ? Number(totals[i].tot) : totalFromScores(scores);
+          const thru = calcThruFromScores(scores);
           const toPar = toParFromScores(scores, course);
+
+          const line2 = companyOrTeam ? companyOrTeam : "";
+          const line3 = buildStatusLine(docData, scoresFlat, scorerName);
 
           out.push({
             ...base,
             key: `sk_${deviceId}_p${i}`,
             displayName: display,
-            subLine: buildSubline(thru),
+            subLine: [line2, line3].filter(Boolean).join(" • "),
             kind: "player",
             playerIndex: i,
             scores,
@@ -1450,24 +1442,26 @@
         return out;
       }
 
-      // stroke (default): only active golfers
+      // stroke default
       const items = [];
       for(let i=0;i<6;i++){
         const scores = derivePlayerScores(scoresFlat, i);
         if (!hasAnyScore(scores)) continue;
 
-        const thru = calcThruFromScores(scores);
-
         const nm = (names[i] || "").trim();
-        const display = nm || (i === 0 ? (playerName || teamName) : `Player ${i+1}`);
+        const display = nm || (i === 0 ? (playerName || companyOrTeam || "Player") : `Player ${i+1}`);
         const total = Number.isFinite(Number(totals?.[i]?.tot)) ? Number(totals[i].tot) : totalFromScores(scores);
+        const thru = calcThruFromScores(scores);
         const toPar = toParFromScores(scores, course);
+
+        const line2 = companyOrTeam ? companyOrTeam : "";
+        const line3 = buildStatusLine(docData, scoresFlat, scorerName);
 
         items.push({
           ...base,
           key: `st_${deviceId}_p${i}`,
           displayName: display,
-          subLine: buildSubline(thru),
+          subLine: [line2, line3].filter(Boolean).join(" • "),
           kind: "player",
           playerIndex: i,
           scores,
@@ -1537,9 +1531,8 @@
           out.push("1");
         } else {
           const isTie = (tieKey === lastKey);
-          if (isTie){
-            out.push(`T${lastRank}`);
-          } else {
+          if (isTie) out.push(`T${lastRank}`);
+          else{
             lastRank = i + 1;
             lastKey = tieKey;
             out.push(String(lastRank));
@@ -1626,8 +1619,10 @@
       const tags = [];
       if (tournament.name) tags.push(`🏆 ${tournament.name}`);
       tags.push(`⛳ ${fmt}`);
-      if (e.group) tags.push(`👥 ${e.group}`);
-      if (e.startHole) tags.push(`🟦 Start H${e.startHole}`);
+      if (e.companyOrTeam) tags.push(`🏢 ${e.companyOrTeam}`);
+      const sh = String(e?.scoresFlat?.startHole || e?.startHole || "").trim();
+      const sh2 = String(e?.startHole || "").trim();
+      if (sh2) tags.push(`🟦 Start H${sh2}`);
       if (e.playerName) tags.push(`✍️ ${e.playerName}`);
       if (updatedText) tags.push(`🕒 ${updatedText}`);
       if (e.thru) tags.push(`✅ Thru ${e.thru}`);
@@ -1769,7 +1764,6 @@
         pageMeta.textContent = "Live updates blocked (rules/network).";
       });
 
-      // TV auto-scroll (bounce)
       if (tvMode){
         let dir = 1;
         setInterval(() => {
