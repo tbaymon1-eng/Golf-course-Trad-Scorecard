@@ -480,9 +480,11 @@
     function buildLinks(id){
       const base=baseURL();
       const join=`${base}index.html?t=${encodeURIComponent(id)}`;
+      const roster=`${base}roster.html?t=${id}`;
       const lb=`${base}leaderboard.html?t=${encodeURIComponent(id)}`;
       joinLinkEl.textContent=join;
       lbLinkEl.textContent=lb;
+      rosterLinkEl.textContent=roster;
       renderQR(joinQREl,join);
       renderQR(lbQREl,lb);
     }
