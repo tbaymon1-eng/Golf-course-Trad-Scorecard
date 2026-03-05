@@ -194,6 +194,43 @@
       z-index: 9999;
     }
     .toast.show{ opacity: 1; }
+    /* ===== Mobile layout fixes (iPhone) ===== */
+@media (max-width: 520px){
+  .wrap{
+    padding: 10px 10px 18px;
+  }
+
+  h1{ font-size: 20px; }
+
+  /* buttons stack nicer */
+  .btnRow{
+    grid-template-columns: 1fr;
+  }
+
+  /* link rows become vertical: link box then button */
+  .linkLine{
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* QR becomes single column */
+  .qrRow{
+    grid-template-columns: 1fr;
+  }
+
+  /* make QR not overflow */
+  .qr{
+    width: 100%;
+    overflow: hidden;
+  }
+}
+
+/* Long URLs should wrap instead of forcing horizontal scroll */
+.linkText{
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
   </style>
 </head>
 
