@@ -257,7 +257,7 @@
     .row-hcp td{ background: var(--hcpRow); color:#111; }
     .row-hcp .label{ background: #e9dcaa; }
 
-    /* Inputs (more “defined” feel) */
+    /* Inputs */
     .score-input{
       width: 100%;
       height: 100%;
@@ -374,14 +374,15 @@
     .legal a:active{ transform: translateY(1px); }
     .legal .left{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     .legal .right{ opacity:.9; }
+
     #finishRound{
-  border:2px solid rgba(47,107,47,.35);
-  background:rgba(47,107,47,.14);
-  border-radius:12px;
-  padding:10px 12px;
-  font-weight:900;
-  cursor:pointer;
-}
+      border:2px solid rgba(47,107,47,.35);
+      background:rgba(47,107,47,.14);
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:900;
+      cursor:pointer;
+    }
   </style>
 </head>
 
@@ -404,7 +405,7 @@
               style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
           </label>
 
-          <!-- ✅ Team roster inputs (NOT inside the joinName input tag) -->
+          <!-- Team roster inputs -->
           <div class="team-mates-block">
             <div style="font-family:Cinzel,serif; font-weight:900; font-size:13px; opacity:.9;">Team Players (required: at least 1 teammate)</div>
             <label>Teammate 1 <input id="joinMate1" placeholder="Teammate name"></label>
@@ -416,15 +417,18 @@
 
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <label style="font-weight:900; font-size:13px;">
-              Group / Team Name (optional)
+              Company Name (optional)
               <input id="joinGroup"
                 style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
             </label>
 
             <label style="font-weight:900; font-size:13px;">
               Start Hole (required)
-              <input id="joinStartHole" placeholder="1" inputmode="numeric"
+              <input id="joinStartHole" placeholder="2A" inputmode="text" autocapitalize="characters"
                 style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
+              <div style="margin-top:6px; font-size:12px; opacity:.8;">
+                Examples: <b>2</b>, <b>2A</b>, <b>2B</b>, <b>10B</b>
+              </div>
             </label>
           </div>
 
@@ -515,17 +519,8 @@
   <script type="module">
     // ====================== FIREBASE IMPORTS ======================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      getDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import {
-      getAuth,
-      signInAnonymously
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     // ====================== FIREBASE CONFIG ======================
     const firebaseConfig = {
@@ -664,7 +659,13 @@
     let tournamentId = null;
     let isTournamentMode = false;
     let tournamentFormat = "stroke";
-    let startHoleSelected = null;
+
+    // startHoleSelected is now TEXT like "2A" (not just number)
+    let startHoleSelected = "";
+
+    // rosterNames is always scorer + teammates (for roster/billing)
+    let rosterNames = [];
+
     let sponsorUrl = "";
 
     // ====================== HELPERS ======================
@@ -724,9 +725,10 @@
       return `scorecard_state_${courseId}${tPart}${fPart}_v5`;
     }
 
+    // store the TEXT start hole like "2A"
     function startHoleKey(){
       const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
-      return `scorecard_startHole${tPart}_v1`;
+      return `scorecard_startHole${tPart}_v2`;
     }
 
     function makeDeviceId(){
@@ -754,6 +756,23 @@
     function playerRowLabel(i){
       if(tournamentFormat === "scramble") return "Team Score";
       return `Player ${i+1}`;
+    }
+
+    // Accept: "2", "2A", "2b", "10B"
+    function normalizeStartHole(raw){
+      const s = String(raw || "").trim().toUpperCase();
+      if(!s) return null;
+
+      // allow 1-2 digits + optional letter A-Z
+      const m = s.match(/^([1-9]|1[0-8])([A-Z])?$/);
+      if(!m) return null;
+
+      const holeNum = parseInt(m[1], 10);
+      const suffix = m[2] || "";
+      return {
+        label: `${holeNum}${suffix}`,
+        holeNum
+      };
     }
 
     function scrollToStartHole(hole){
@@ -939,29 +958,29 @@
     function clearState(){
       localStorage.removeItem(storageKeyFor(currentCourseId));
     }
-function getCompletedHoleCount(startHole){
-  const seq = [];
-  for(let i=0;i<18;i++){
-    const h=((startHole-1+i)%18)+1;
-    seq.push(h);
-  }
 
-  let completed=0;
+    function getCompletedHoleCount(startHoleNum){
+      const seq = [];
+      for(let i=0;i<18;i++){
+        const h=((startHoleNum-1+i)%18)+1;
+        seq.push(h);
+      }
 
-  for(const h of seq){
-    const v=document.getElementById(`p0_h${h}`)?.value || "";
-    const n=parseInt(v,10);
-    if(Number.isFinite(n)) completed++;
-  }
+      let completed=0;
+      for(const h of seq){
+        const v=document.getElementById(`p0_h${h}`)?.value || "";
+        const n=parseInt(v,10);
+        if(Number.isFinite(n)) completed++;
+      }
+      return completed;
+    }
 
-  return completed;
-}
+    function lockScorecard(){
+      document.querySelectorAll(".score-input").forEach(el=>{
+        el.disabled=true;
+      });
+    }
 
-function lockScorecard(){
-  document.querySelectorAll(".score-input").forEach(el=>{
-    el.disabled=true;
-  });
-}
     function wireInputs(){
       for (let i=0;i<playersCount;i++){
         for (let h=1;h<=18;h++){
@@ -1009,10 +1028,11 @@ function lockScorecard(){
       loadState();
 
       if(isTournamentMode){
-        const saved = Number(localStorage.getItem(startHoleKey()) || "");
-        if(saved >= 1 && saved <= 18){
-          startHoleSelected = saved;
-          setTimeout(() => scrollToStartHole(saved), 250);
+        const saved = (localStorage.getItem(startHoleKey()) || "").trim();
+        const norm = normalizeStartHole(saved);
+        if(norm){
+          startHoleSelected = norm.label;
+          setTimeout(() => scrollToStartHole(norm.holeNum), 250);
         }
       }
     }
@@ -1081,7 +1101,8 @@ function lockScorecard(){
       const saveBtn = document.getElementById("saveImg");
       const shareBtn = document.getElementById("share");
       const clearBtn = document.getElementById("clear");
-const finishBtn = document.getElementById("finishRound");
+      const finishBtn = document.getElementById("finishRound");
+
       saveBtn.addEventListener("click", async () => {
         try{
           const canvas = await captureFullCardCanvas();
@@ -1127,72 +1148,60 @@ const finishBtn = document.getElementById("finishRound");
         for (let i=0;i<playersCount;i++) recalcPlayer(i);
         if (isTournamentMode) scheduleTournamentPush();
       });
+
+      // ✅ Finish Round (supports 9 or 18; start hole can be 2A/2B)
+      finishBtn?.addEventListener("click", async () => {
+        if(!isTournamentMode || !tournamentId){
+          alert("Finish Round only works in tournament mode.");
+          return;
+        }
+
+        const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
+        if(!norm){
+          alert("Start hole missing/invalid. Use 1–18, optionally with A/B (ex: 2A).");
+          return;
+        }
+
+        const completed = getCompletedHoleCount(norm.holeNum);
+
+        if(completed < 9){
+          alert(`You must complete at least 9 holes.\nCurrent: ${completed}`);
+          return;
+        }
+
+        let finishHoles = 9;
+
+        if(completed >= 18){
+          const finish18 = confirm(
+            "18 holes detected.\n\nPress OK for Finish 18.\nPress Cancel for Finish 9."
+          );
+          finishHoles = finish18 ? 18 : 9;
+        }else{
+          const ok = confirm(`Finish 9 holes?\nCompleted: ${completed}`);
+          if(!ok) return;
+          finishHoles = 9;
+        }
+
+        try{
+          const deviceId = makeDeviceId();
+          const subRef = doc(db, "tournaments", tournamentId, "submissions", deviceId);
+
+          await setDoc(subRef,{
+            roundStatus:"finished",
+            finishedHoles:finishHoles,
+            finishedAt:serverTimestamp(),
+            updatedAt:serverTimestamp()
+          },{merge:true});
+
+          alert(`Round finished (${finishHoles} holes).`);
+          lockScorecard();
+        }catch(e){
+          console.error(e);
+          alert("Could not finish round.");
+        }
+      });
     }
-const finishBtn=document.getElementById("finishRound");
 
-finishBtn?.addEventListener("click",async()=>{
-
-  if(!isTournamentMode || !tournamentId){
-    alert("Finish Round only works in tournament mode.");
-    return;
-  }
-
-  const startHole=parseInt(startHoleSelected||joinStartHole.value,10);
-
-  if(!startHole){
-    alert("Start hole missing.");
-    return;
-  }
-
-  const completed=getCompletedHoleCount(startHole);
-
-  if(completed<9){
-    alert(`You must complete at least 9 holes.\nCurrent: ${completed}`);
-    return;
-  }
-
-  let finishHoles=9;
-
-  if(completed>=18){
-    const finish18=confirm(
-      "18 holes detected.\n\nPress OK for Finish 18.\nPress Cancel for Finish 9."
-    );
-    finishHoles=finish18?18:9;
-  }else{
-    const ok=confirm(`Finish 9 holes?\nCompleted: ${completed}`);
-    if(!ok) return;
-    finishHoles=9;
-  }
-
-  try{
-
-    const deviceId=makeDeviceId();
-
-    const subRef=doc(
-      db,
-      "tournaments",
-      tournamentId,
-      "submissions",
-      deviceId
-    );
-
-    await setDoc(subRef,{
-      roundStatus:"finished",
-      finishedHoles:finishHoles,
-      finishedAt:serverTimestamp(),
-      updatedAt:serverTimestamp()
-    },{merge:true});
-
-    alert(`Round finished (${finishHoles} holes).`);
-
-    lockScorecard();
-
-  }catch(e){
-    console.error(e);
-    alert("Could not finish round.");
-  }
-
-});
     // ====================== TOURNAMENT MODE ======================
     async function checkTournamentFromURL(){
       const params = new URLSearchParams(location.search);
@@ -1224,10 +1233,8 @@ finishBtn?.addEventListener("click",async()=>{
 
             build();
 
-            const saved = Number(localStorage.getItem(startHoleKey()) || "");
-            if(saved >= 1 && saved <= 18){
-              joinStartHole.value = String(saved);
-            }
+            const saved = (localStorage.getItem(startHoleKey()) || "").trim();
+            if(saved) joinStartHole.value = saved;
           }
         }catch(e){
           console.warn("Tournament settings load failed", e);
@@ -1235,14 +1242,13 @@ finishBtn?.addEventListener("click",async()=>{
       }
     }
 
-    // ✅✅✅ CLEAN JOIN HANDLER (single, correct, no duplicates)
+    // ✅ CLEAN JOIN HANDLER
     joinBtn.addEventListener("click", async () => {
       if (!tournamentId) return;
 
-      const startHoleVal = (joinStartHole.value || "").trim();
-      const startHole = parseInt(startHoleVal, 10);
-      if (!startHole || startHole < 1 || startHole > 18) {
-        alert("Please enter a valid starting hole (1–18).");
+      const norm = normalizeStartHole(joinStartHole.value);
+      if (!norm) {
+        alert("Please enter a valid starting hole (1–18). You can optionally add A/B (ex: 2A).");
         return;
       }
 
@@ -1265,31 +1271,35 @@ finishBtn?.addEventListener("click",async()=>{
         return;
       }
 
-      let teamNames = [scorerName, ...matesRaw].slice(0, 6);
+      // rosterNames = scorer + teammates (up to 6)
+      let all = [scorerName, ...matesRaw].slice(0, 6);
 
+      // de-dupe
       const seen = new Set();
-      teamNames = teamNames.filter(n => {
+      all = all.filter(n => {
         const k = n.toLowerCase();
         if (seen.has(k)) return false;
         seen.add(k);
         return true;
       });
 
-      // ✅ Copy roster into the score table name inputs so Firestore uses it
+      rosterNames = all;
+
+      // ✅ Copy into the score table name inputs (only as many rows exist)
       const nameInputs = Array.from(document.querySelectorAll(".player-name"));
       for (let i = 0; i < nameInputs.length; i++) {
-        nameInputs[i].value = teamNames[i] || "";
+        nameInputs[i].value = rosterNames[i] || "";
       }
 
-      startHoleSelected = startHole;
-      localStorage.setItem(startHoleKey(), String(startHoleSelected));
+      startHoleSelected = norm.label;
+      localStorage.setItem(startHoleKey(), startHoleSelected);
 
       joinScreen.style.display = "none";
 
-      saveState();               // will also scheduleTournamentPush()
+      saveState();
       scheduleTournamentPush();  // push once immediately after join
 
-      setTimeout(() => scrollToStartHole(startHoleSelected), 250);
+      setTimeout(() => scrollToStartHole(norm.holeNum), 250);
     });
 
     joinCancel.addEventListener("click", () => {
@@ -1298,7 +1308,8 @@ finishBtn?.addEventListener("click",async()=>{
       tournamentId = null;
       tournamentFormat = "stroke";
       playersCount = 6;
-      startHoleSelected = null;
+      startHoleSelected = "";
+      rosterNames = [];
       applySponsorUI("","","");
       build();
     });
@@ -1339,19 +1350,38 @@ finishBtn?.addEventListener("click",async()=>{
 
       const playerName = (joinName.value || payload.names[0] || "Player").trim();
       const group = (joinGroup.value || "").trim();
-      const startHole = String(startHoleSelected || parseInt(joinStartHole.value, 10) || "");
+
+      const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
+      const startHoleLabel = norm ? norm.label : "";
 
       const subRef = doc(db, "tournaments", tournamentId, "submissions", deviceId);
+
+      // rosterNames fallback if user didn’t hit Join properly
+      const rosterSafe = (Array.isArray(rosterNames) && rosterNames.length)
+        ? rosterNames
+        : [playerName, ...(payload.names || []).slice(1)].filter(Boolean).slice(0, 6);
 
       try{
         await setDoc(subRef, {
           deviceId,
           courseId: currentCourseId,
           format: tournamentFormat,
+
+          // scorer
           playerName,
+
+          // company/team name (kept as "group" for compatibility)
           group,
-          startHole,
+
+          // "2A" / "2B" / "2"
+          startHole: startHoleLabel,
+
+          // scoring row names (may be 1 or 2 for scramble/bestball)
           names: payload.names,
+
+          // ✅ roster list for organizer billing (always full team if provided)
+          rosterNames: rosterSafe,
+
           scoresFlat: payload.scoresFlat,
           totals: payload.totals,
           updatedAt: serverTimestamp()
