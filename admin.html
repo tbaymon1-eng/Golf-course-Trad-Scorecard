@@ -6,466 +6,350 @@
   <title>Admin Tournament Setup</title>
 
   <meta name="theme-color" content="#7a4a0b" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --paper:#efe7d7;
-      --card:#f6f0e2;
-      --ink:#1a1a1a;
-      --muted:#555;
+      --paper:#e9e2d4;
+      --card:#efe7d7;
       --border:#7a4a0b;
-      --chip:#ffffff88;
+      --ink:#111;
+      --muted:rgba(0,0,0,.65);
+      --field:#fff;
+      --soft:#ffffff77;
       --green:#2f6b2f;
       --red:#b6422d;
       --blue:#0d2a55;
-      --soft: rgba(0,0,0,.06);
     }
-    *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
     body{
       margin:0;
       background: var(--paper);
       color: var(--ink);
-      font-family: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      font-family: Georgia, "Times New Roman", serif;
     }
-    .wrap{ max-width: 980px; margin: 0 auto; padding: 12px 12px 22px; }
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 14px 12px 22px;
+    }
     .card{
       background: var(--card);
       border: 3px solid var(--border);
       border-radius: 14px;
-      padding: 14px;
-      box-shadow: 0 10px 24px rgba(0,0,0,.15);
+      overflow:hidden;
+      box-shadow: 0 10px 26px rgba(0,0,0,.18);
+    }
+    .hdr{
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(0,0,0,.10);
     }
     h1{
-      margin: 0 0 6px;
-      font-family: "Cinzel", Georgia, serif;
+      margin:0;
+      font-family: Cinzel, serif;
       font-weight: 900;
       letter-spacing: .06em;
       text-transform: uppercase;
-      font-size: 20px;
+      font-size: 22px;
+      line-height: 1.05;
     }
     .sub{
-      margin: 0 0 14px;
-      font-weight: 700;
+      margin-top:8px;
+      font-size: 14px;
       color: var(--muted);
-      line-height:1.3;
+      font-weight: 700;
+      line-height: 1.35;
     }
-
-    .grid2{
+    .body{
+      padding: 14px;
       display:grid;
-      grid-template-columns: 1fr;
       gap: 12px;
     }
-    @media(min-width: 760px){
+    .grid2{
+      display:grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 820px){
       .grid2{ grid-template-columns: 1fr 1fr; }
     }
+
     label{
       display:block;
       font-weight: 900;
-      font-size: 14px;
-      letter-spacing:.01em;
+      font-size: 13px;
+      margin-bottom: 6px;
+      letter-spacing: .02em;
     }
-    input, select{
+    input, select, textarea{
       width:100%;
-      margin-top:6px;
-      padding: 12px 10px;
       border: 2px solid var(--border);
       border-radius: 12px;
-      background:#fff;
-      font-weight: 800;
+      background: var(--field);
+      padding: 12px 12px;
+      font-weight: 900;
       font-size: 16px;
-      outline:none;
+      font-family: inherit;
+      outline: none;
     }
-    input:focus, select:focus{
-      box-shadow: 0 0 0 3px rgba(122,74,11,.18);
+    input:focus, select:focus, textarea:focus{
+      box-shadow: inset 0 0 0 2px rgba(122,74,11,.25);
+    }
+    .row{
+      display:grid;
+      gap:10px;
+    }
+    .note{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      line-height: 1.3;
+      margin-top: 6px;
     }
 
-    .row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:space-between;
-    }
     .btnRow{
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap:10px;
-      margin-top: 12px;
+      gap: 10px;
+      margin-top: 6px;
     }
     button{
       border: 2px solid var(--border);
-      background: #e7ddcb;
       border-radius: 12px;
-      padding: 12px 10px;
+      padding: 12px 12px;
       font-weight: 900;
       font-size: 16px;
       cursor:pointer;
+      background: #e7ddcb;
     }
     button:active{ transform: translateY(1px); }
-    .primary{ background: rgba(47,107,47,.14); border-color: rgba(47,107,47,.45); }
-    .danger{ background: rgba(182,66,45,.14); border-color: rgba(182,66,45,.55); }
-    .outline{ background: #fff; }
-
-    .section{
-      margin-top: 14px;
+    .green{ background: var(--green); color:#fff; border-color: rgba(47,107,47,.55); }
+    .blue{ background: var(--blue); color:#fff; border-color: rgba(13,42,85,.55); }
+    .red{ background: var(--red); color:#fff; border-color: rgba(182,66,45,.55); }
+    .soft{
+      background: rgba(255,255,255,.55);
       border: 2px dashed rgba(0,0,0,.20);
       border-radius: 14px;
       padding: 12px;
-      background: rgba(255,255,255,.35);
-    }
-    .sectionTitle{
-      font-family:"Cinzel", Georgia, serif;
-      font-weight: 900;
-      letter-spacing:.04em;
-      text-transform: uppercase;
-      font-size: 14px;
-      margin-bottom: 10px;
     }
 
-    .linkBox{
-      border:2px solid rgba(0,0,0,.12);
-      background: rgba(255,255,255,.65);
-      border-radius: 14px;
-      padding: 10px;
-      margin-top: 10px;
-    }
-    .linkRow{
+    .linksBox{
       display:grid;
-      grid-template-columns: 120px 1fr auto;
-      gap: 8px;
+      gap:10px;
+      margin-top: 4px;
+    }
+    .linkLine{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px;
       align-items:center;
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(0,0,0,.08);
     }
-    .linkRow:last-child{ border-bottom:none; }
-    .lbl{ font-weight: 1000; color: rgba(0,0,0,.75); }
-    .mono{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 12px;
-      word-break: break-all;
-      color: rgba(0,0,0,.75);
-    }
-    .tinyBtn{
-      padding: 8px 10px;
+    .linkText{
+      border: 2px solid rgba(0,0,0,.18);
+      background: rgba(255,255,255,.65);
+      padding: 10px 10px;
+      border-radius: 12px;
+      font-weight: 900;
       font-size: 13px;
-      border-radius: 10px;
-      background: rgba(13,42,85,.10);
-      border-color: rgba(13,42,85,.25);
+      overflow:auto;
+      white-space: nowrap;
     }
-
     .qrRow{
       display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
       margin-top: 10px;
     }
     .qr{
-      border: 2px solid rgba(0,0,0,.12);
-      background:#fff;
-      border-radius: 12px;
+      border: 2px solid rgba(0,0,0,.14);
+      border-radius: 14px;
+      background: rgba(255,255,255,.65);
       padding: 10px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      align-items:center;
-      justify-content:center;
-      min-height: 160px;
+      display:grid;
+      gap: 8px;
+      justify-items:center;
     }
     .qrTitle{
-      font-weight: 1000;
-      font-size: 13px;
-      color: rgba(0,0,0,.70);
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      opacity:.9;
     }
-
-    .pillRow{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top: 10px;
-    }
-    .pill{
-      background: rgba(0,0,0,.06);
-      border: 1px solid rgba(0,0,0,.10);
-      padding: 8px 10px;
+    .toast{
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 18px;
+      background: rgba(0,0,0,.82);
+      color: #fff;
+      padding: 10px 14px;
       border-radius: 999px;
       font-weight: 900;
-      font-size: 12px;
-      color: rgba(0,0,0,.70);
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+      z-index: 9999;
     }
-
-    /* Sponsors */
-    .sGrid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-    }
-    @media(min-width: 760px){
-      .sGrid{ grid-template-columns: 1fr 1fr; }
-    }
-    .sHelp{
-      margin-top: 6px;
-      font-size: 12px;
-      color: rgba(0,0,0,.65);
-      font-weight: 800;
-      line-height:1.35;
-    }
-    .sList{
-      margin-top: 10px;
-      border: 2px solid rgba(0,0,0,.12);
-      border-radius: 14px;
-      overflow:hidden;
-      background: rgba(255,255,255,.55);
-    }
-    .sItem{
-      padding: 10px;
-      border-bottom: 1px solid rgba(0,0,0,.08);
-      display:flex;
-      gap:10px;
-      align-items:flex-start;
-      justify-content:space-between;
-    }
-    .sItem:last-child{ border-bottom:none; }
-    .sLeft{ display:flex; gap:10px; align-items:center; }
-    .sLogo{
-      width: 44px; height: 44px;
-      border-radius: 10px;
-      object-fit: cover;
-      border: 2px solid rgba(0,0,0,.12);
-      background: rgba(0,0,0,.06);
-    }
-    .sName{
-      font-weight: 1000;
-      line-height:1.1;
-    }
-    .sMeta{
-      font-size: 12px;
-      color: rgba(0,0,0,.65);
-      font-weight: 800;
-      margin-top: 2px;
-    }
-    .sRight{
-      display:flex;
-      gap:8px;
-      align-items:center;
-    }
-    .miniBtn{
-      padding: 8px 10px;
-      font-size: 13px;
-      border-radius: 10px;
-      background: rgba(0,0,0,.04);
-      border-color: rgba(0,0,0,.14);
-    }
-    .toggle{
-      display:flex;
-      gap:8px;
-      align-items:center;
-      font-weight: 900;
-      font-size: 13px;
-      color: rgba(0,0,0,.75);
-    }
-    .toggle input{ width:auto; margin:0; transform: scale(1.1); }
-
-    .footer{
-      margin-top: 12px;
-      font-size: 12px;
-      color: rgba(0,0,0,.65);
-      font-weight: 800;
-      line-height:1.35;
-    }
+    .toast.show{ opacity: 1; }
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>Admin Tournament Setup</h1>
-      <p class="sub">Create or load a tournament, then share the Join QR + Live Leaderboard QR (and Organizer Roster QR).</p>
-
-      <div class="grid2">
-        <label>
-          Tournament Name
-          <input id="tName" placeholder="Cypresswood Saturday" />
-        </label>
-
-        <label>
-          Default Course
-          <select id="tCourse">
-            <option value="tradition">Tradition</option>
-            <option value="cypress">Cypress</option>
-          </select>
-        </label>
-
-        <label>
-          Format of Play
-          <select id="tFormat">
-            <option value="stroke">Stroke Play</option>
-            <option value="scramble">Scramble</option>
-            <option value="bestball">Best Ball</option>
-          </select>
-        </label>
-
-        <label>
-          Date (optional)
-          <input id="tDate" placeholder="2026-03-01" />
-        </label>
-
-        <label>
-          Organizer Name (optional)
-          <input id="tOrg" placeholder="Name" />
-        </label>
-
-        <label>
-          Status
-          <select id="tStatus">
-            <option value="open">Open (Live)</option>
-            <option value="closed">Closed</option>
-          </select>
-        </label>
-
-        <label>
-          Handicap Mode (optional)
-          <select id="tHandicapMode">
-            <option value="off">Off</option>
-            <option value="on">On</option>
-          </select>
-        </label>
-
-        <label>
-          Tournament ID (for Load Existing)
-          <input id="tId" placeholder="Paste tournament id" />
-        </label>
-
-        <label>
-          Admin Token (auto)
-          <input id="adminToken" placeholder="auto-generated" />
-        </label>
-      </div>
-
-      <div class="btnRow">
-        <button class="primary" id="createBtn">Create Tournament</button>
-        <button class="outline" id="loadBtn">Load Existing (by ID)</button>
-        <button class="primary" id="saveBtn">Save Changes</button>
-        <button class="danger" id="closeBtn">Close Tournament</button>
-        <button class="outline" id="copyJoin">Copy Join Link</button>
-        <button class="outline" id="copyLb">Copy Leaderboard Link</button>
-        <button class="outline" id="copyRoster">Copy Roster Link</button>
-      </div>
-
-      <div class="linkBox">
-        <div class="linkRow">
-          <div class="lbl">Join Link</div>
-          <div id="joinLink" class="mono">—</div>
-          <button class="tinyBtn" id="openJoin">Open</button>
-        </div>
-        <div class="linkRow">
-          <div class="lbl">Leaderboard</div>
-          <div id="lbLink" class="mono">—</div>
-          <button class="tinyBtn" id="openLb">Open</button>
-        </div>
-        <div class="linkRow">
-          <div class="lbl">Roster</div>
-          <div id="rosterLink" class="mono">—</div>
-          <button class="tinyBtn" id="openRoster">Open</button>
-        </div>
-
-        <div class="qrRow">
-          <div class="qr">
-            <div class="qrTitle">Join QR</div>
-            <div id="joinQR"></div>
-          </div>
-          <div class="qr">
-            <div class="qrTitle">Leaderboard QR</div>
-            <div id="lbQR"></div>
-          </div>
-          <div class="qr">
-            <div class="qrTitle">Roster QR</div>
-            <div id="rosterQR"></div>
-          </div>
-        </div>
-
-        <div class="pillRow">
-          <div class="pill">Tip: roster.html is for organizers (billing list)</div>
-          <div class="pill">Roster auto-populates as teams join</div>
+      <div class="hdr">
+        <h1>Admin Tournament Setup</h1>
+        <div class="sub">
+          Create or load a tournament, then share the Join QR + Live Leaderboard QR (and Organizer Roster QR).
         </div>
       </div>
 
-      <div class="section">
-        <div class="sectionTitle">Sponsors (Enterprise)</div>
-        <div class="sHelp">
-          Add multiple sponsors. Upload PNG/JPG (or reuse an existing logo URL). Choose tier/order. Toggle active.<br/>
-          Tip: You only need to upload a logo once — reuse the URL for future tournaments.
-        </div>
+      <div class="body">
+        <div class="grid2">
+          <div class="row">
+            <label for="tName">Tournament Name</label>
+            <input id="tName" placeholder="Cypresswood Saturday Classic" />
+          </div>
 
-        <div class="sGrid" style="margin-top:10px;">
-          <label>
-            Sponsor Tier
-            <select id="spTier">
-              <option value="presenting">Presenting</option>
-              <option value="partner">Partner</option>
-              <option value="hole">Hole Sponsor</option>
-              <option value="supporting">Supporting</option>
+          <div class="row">
+            <label for="tCourse">Default Course</label>
+            <select id="tCourse">
+              <option value="tradition">Tradition</option>
+              <option value="cypress">Cypress</option>
             </select>
-          </label>
-
-          <label>
-            Sponsor Order (lower shows first)
-            <input id="spSort" placeholder="10" inputmode="numeric" />
-          </label>
-
-          <label>
-            Sponsor Name
-            <input id="spName" placeholder="Acme Roofing" />
-          </label>
-
-          <label>
-            Sponsor Website (optional)
-            <input id="spWebsite" placeholder="https://sponsor.com" />
-          </label>
-
-          <label>
-            Sponsor Logo (Upload PNG/JPG) (optional)
-            <input id="spLogoFile" type="file" accept="image/*" />
-          </label>
-
-          <label>
-            Sponsor Logo URL (optional — reuse past uploads)
-            <input id="spLogoUrl" placeholder="https://..." />
-          </label>
-        </div>
-
-        <div class="row" style="margin-top:10px;">
-          <div class="toggle">
-            <input id="spActive" type="checkbox" checked />
-            <span>Active</span>
           </div>
 
-          <div class="row" style="gap:10px;">
-            <button class="primary" id="addSponsorBtn">Add Sponsor</button>
-            <button class="outline" id="clearSponsorFormBtn">Clear</button>
+          <div class="row">
+            <label for="tFormat">Format of Play</label>
+            <select id="tFormat">
+              <option value="stroke">Stroke Play</option>
+              <option value="scramble">Scramble</option>
+              <option value="bestball">Best Ball</option>
+              <option value="skins">Skins</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <label for="tDate">Date (optional)</label>
+            <input id="tDate" type="date" />
+          </div>
+
+          <div class="row">
+            <label for="tOrg">Organizer Name (optional)</label>
+            <input id="tOrg" placeholder="Name" />
+          </div>
+
+          <div class="row">
+            <label for="tStatus">Status</label>
+            <select id="tStatus">
+              <option value="open">Open (Live)</option>
+              <option value="closed">Closed</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <label for="tHandicapMode">Handicap Mode (optional)</label>
+            <select id="tHandicapMode">
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>
+            <div class="note">This is stored for future rules; it won’t break anything if left Off.</div>
+          </div>
+
+          <div class="row">
+            <label for="tId">Tournament ID (for Load Existing)</label>
+            <input id="tId" placeholder="paste tournament id here" autocapitalize="none" />
+          </div>
+
+          <div class="row">
+            <label for="adminToken">Admin Token (auto)</label>
+            <input id="adminToken" placeholder="auto-generated" autocapitalize="none" />
+            <div class="note">Keep this private. It’s a simple gate for admin edits.</div>
           </div>
         </div>
 
-        <div class="sList" id="sponsorList"></div>
-      </div>
+        <div class="btnRow">
+          <button class="green" id="createBtn">Create Tournament</button>
+          <button class="blue" id="loadBtn">Load Existing (by ID)</button>
+          <button id="saveBtn">Save Changes</button>
+          <button class="red" id="closeBtn">Close Tournament</button>
+        </div>
 
-      <div class="footer">
-        If Create/Load fails, it’s almost always Firestore Rules or a missing HTML element id.<br/>
-        This admin file includes <b>rosterLink</b> + <b>rosterQR</b> so it won’t crash.
+        <div class="soft">
+          <div style="font-family:Cinzel,serif;font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-size:13px;">
+            Share Links & QR Codes
+          </div>
+
+          <div class="linksBox" style="margin-top:10px;">
+            <div class="linkLine">
+              <div>
+                <div class="note" style="margin:0 0 6px;">Join Link</div>
+                <div class="linkText" id="joinLink">—</div>
+              </div>
+              <button id="copyJoin">Copy Join</button>
+            </div>
+
+            <div class="linkLine">
+              <div>
+                <div class="note" style="margin:0 0 6px;">Leaderboard Link</div>
+                <div class="linkText" id="lbLink">—</div>
+              </div>
+              <button id="copyLb">Copy Leaderboard</button>
+            </div>
+
+            <div class="linkLine">
+              <div>
+                <div class="note" style="margin:0 0 6px;">Organizer Roster Link</div>
+                <div class="linkText" id="rosterLink">—</div>
+              </div>
+              <button id="copyRoster">Copy Roster</button>
+            </div>
+          </div>
+
+          <div class="qrRow">
+            <div class="qr">
+              <div class="qrTitle">Join QR</div>
+              <div id="joinQR"></div>
+            </div>
+            <div class="qr">
+              <div class="qrTitle">Leaderboard QR</div>
+              <div id="lbQR"></div>
+            </div>
+          </div>
+
+          <div class="qrRow" style="margin-top:10px;">
+            <div class="qr" style="grid-column: 1 / -1;">
+              <div class="qrTitle">Organizer Roster QR</div>
+              <div id="rosterQR"></div>
+            </div>
+          </div>
+
+          <div class="note" style="margin-top:10px;">
+            Tip: after you create or load, copy the links (you’ll see “✅ Copied” on iPhone).
+          </div>
+        </div>
+
+        <div class="note">
+          Sponsors (Enterprise): keep using your existing sponsor section below if you already added it. This admin page stores tournament fields and builds Join/Leaderboard/Roster links.
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- QR Code -->
+  <div class="toast" id="toast">Copied ✅</div>
+
+  <!-- QRCode lib -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <script type="module">
-    // ====================== FIREBASE IMPORTS ======================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    // ====================== FIREBASE CONFIG ======================
+    // ===== Firebase config (same as your index/leaderboard/roster) =====
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -478,50 +362,10 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const storage = getStorage(app);
 
-    // ====================== HELPERS ======================
-    const $ = (id) => document.getElementById(id);
+    // ===== DOM =====
+    const $ = (id)=>document.getElementById(id);
 
-    function baseURL(){
-      // Works on GitHub Pages and local
-      const { origin, pathname } = window.location;
-      // remove trailing filename (admin.html)
-      const basePath = pathname.replace(/\/[^\/]*$/, "/");
-      return origin + basePath;
-    }
-
-    function normalizeUrl(u){
-      const s = (u || "").trim();
-      if(!s) return "";
-      if(/^https?:\/\//i.test(s)) return s;
-      return "https://" + s;
-    }
-
-    function randId(len=10){
-      const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-      let out = "";
-      for(let i=0;i<len;i++) out += chars[Math.floor(Math.random()*chars.length)];
-      return out;
-    }
-
-    function renderQR(el, text){
-      if(!el) return;
-      el.innerHTML = "";
-      if(!text) return;
-      new QRCode(el, { text, width: 140, height: 140 });
-    }
-
-    async function safeCopy(text){
-      try{
-        await navigator.clipboard.writeText(text);
-        return true;
-      }catch(e){
-        return false;
-      }
-    }
-
-    // ====================== DOM ======================
     const tName = $("tName");
     const tCourse = $("tCourse");
     const tFormat = $("tFormat");
@@ -529,11 +373,9 @@
     const tOrg = $("tOrg");
     const tStatus = $("tStatus");
     const tHandicapMode = $("tHandicapMode");
-
     const tId = $("tId");
     const adminToken = $("adminToken");
 
-    // Links
     const joinLinkEl = $("joinLink");
     const lbLinkEl = $("lbLink");
     const rosterLinkEl = $("rosterLink");
@@ -542,7 +384,6 @@
     const lbQREl = $("lbQR");
     const rosterQREl = $("rosterQR");
 
-    // Buttons
     const createBtn = $("createBtn");
     const loadBtn = $("loadBtn");
     const saveBtn = $("saveBtn");
@@ -552,27 +393,85 @@
     const copyLb = $("copyLb");
     const copyRoster = $("copyRoster");
 
-    const openJoin = $("openJoin");
-    const openLb = $("openLb");
-    const openRoster = $("openRoster");
+    const toast = $("toast");
 
-    // Sponsors
-    const spTier = $("spTier");
-    const spSort = $("spSort");
-    const spName = $("spName");
-    const spWebsite = $("spWebsite");
-    const spLogoFile = $("spLogoFile");
-    const spLogoUrl = $("spLogoUrl");
-    const spActive = $("spActive");
-    const sponsorList = $("sponsorList");
+    // ===== Helpers =====
+    function makeId(len=10){
+      const chars="abcdefghijklmnopqrstuvwxyz0123456789";
+      let out="";
+      for(let i=0;i<len;i++) out += chars[Math.floor(Math.random()*chars.length)];
+      return out;
+    }
 
-    const addSponsorBtn = $("addSponsorBtn");
-    const clearSponsorFormBtn = $("clearSponsorFormBtn");
+    function makeToken(len=22){
+      const chars="abcdefghijklmnopqrstuvwxyz0123456789";
+      let out="";
+      for(let i=0;i<len;i++) out += chars[Math.floor(Math.random()*chars.length)];
+      return out;
+    }
 
-    // ====================== STATE ======================
-    let sponsors = []; // enterprise sponsors array
+    function baseURL(){
+      // GitHub Pages safe base
+      return location.origin + location.pathname.replace(/[^\/]*$/, "");
+    }
 
-    // ====================== LINKS ======================
+    function clearQR(el){
+      if(!el) return;
+      el.innerHTML = "";
+    }
+
+    function renderQR(el, text){
+      if(!el) return;
+      clearQR(el);
+      if(!text) return;
+      // eslint-disable-next-line no-undef
+      new QRCode(el, { text, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
+    }
+
+    function showToast(msg="Copied ✅"){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(()=>toast.classList.remove("show"), 900);
+    }
+
+    function flashCopied(btn, originalText){
+      if(!btn) return;
+      btn.textContent = "✅ Copied";
+      btn.disabled = true;
+      showToast("Copied ✅");
+      setTimeout(()=>{
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }, 900);
+    }
+
+    async function safeCopy(text){
+      const s = String(text || "").trim();
+      if(!s) return false;
+
+      try{
+        await navigator.clipboard.writeText(s);
+        return true;
+      }catch(e){
+        // fallback: select/copy via hidden textarea
+        try{
+          const ta = document.createElement("textarea");
+          ta.value = s;
+          ta.style.position = "fixed";
+          ta.style.left = "-9999px";
+          ta.style.top = "0";
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          const ok = document.execCommand("copy");
+          document.body.removeChild(ta);
+          return !!ok;
+        }catch(e2){
+          return false;
+        }
+      }
+    }
+
     function buildLinks(id){
       const base = baseURL();
       const join = `${base}index.html?t=${encodeURIComponent(id)}`;
@@ -586,364 +485,190 @@
       renderQR(joinQREl, join);
       renderQR(lbQREl, lb);
       renderQR(rosterQREl, roster);
-
-      openJoin.onclick = () => window.open(join, "_blank");
-      openLb.onclick = () => window.open(lb, "_blank");
-      openRoster.onclick = () => window.open(roster, "_blank");
     }
 
-    // ====================== SPONSORS ======================
-    function sortSponsors(arr){
-      return [...arr].sort((a,b)=>{
-        const A = Number(a.sort || 9999);
-        const B = Number(b.sort || 9999);
-        if(A !== B) return A - B;
-        return String(a.name||"").localeCompare(String(b.name||""));
-      });
-    }
-
-    function renderSponsorList(){
-      const sorted = sortSponsors(sponsors);
-
-      if(!sorted.length){
-        sponsorList.innerHTML = `<div style="padding:12px; font-weight:900; color:rgba(0,0,0,.65);">No sponsors added yet.</div>`;
-        return;
-      }
-
-      sponsorList.innerHTML = "";
-      for(const sp of sorted){
-        const row = document.createElement("div");
-        row.className = "sItem";
-
-        const logo = sp.logo || "";
-        const img = document.createElement("img");
-        img.className = "sLogo";
-        img.src = logo || "";
-        img.alt = "logo";
-        if(!logo) img.style.opacity = "0.35";
-
-        const left = document.createElement("div");
-        left.className = "sLeft";
-
-        const info = document.createElement("div");
-        const nm = document.createElement("div");
-        nm.className = "sName";
-        nm.textContent = sp.name || "(Unnamed Sponsor)";
-
-        const meta = document.createElement("div");
-        meta.className = "sMeta";
-        meta.textContent = `${(sp.tier||"").toUpperCase()} • Order ${sp.sort ?? "—"} • ${sp.active ? "Active" : "Inactive"}`;
-
-        info.appendChild(nm);
-        info.appendChild(meta);
-
-        left.appendChild(img);
-        left.appendChild(info);
-
-        const right = document.createElement("div");
-        right.className = "sRight";
-
-        const toggleWrap = document.createElement("label");
-        toggleWrap.className = "toggle";
-        const chk = document.createElement("input");
-        chk.type = "checkbox";
-        chk.checked = !!sp.active;
-        chk.onchange = () => {
-          sp.active = chk.checked;
-          renderSponsorList();
-        };
-        const t = document.createElement("span");
-        t.textContent = "Active";
-        toggleWrap.appendChild(chk);
-        toggleWrap.appendChild(t);
-
-        const editBtn = document.createElement("button");
-        editBtn.className = "miniBtn";
-        editBtn.textContent = "Edit";
-        editBtn.onclick = () => {
-          spTier.value = sp.tier || "partner";
-          spSort.value = String(sp.sort ?? "");
-          spName.value = sp.name || "";
-          spWebsite.value = sp.website || "";
-          spLogoUrl.value = sp.logo || "";
-          spActive.checked = !!sp.active;
-          // remove it, then user re-adds
-          sponsors = sponsors.filter(x => x !== sp);
-          renderSponsorList();
-          window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-        };
-
-        const delBtn = document.createElement("button");
-        delBtn.className = "miniBtn";
-        delBtn.textContent = "Remove";
-        delBtn.onclick = () => {
-          if(!confirm("Remove this sponsor?")) return;
-          sponsors = sponsors.filter(x => x !== sp);
-          renderSponsorList();
-        };
-
-        right.appendChild(toggleWrap);
-        right.appendChild(editBtn);
-        right.appendChild(delBtn);
-
-        row.appendChild(left);
-        row.appendChild(right);
-        sponsorList.appendChild(row);
-      }
-    }
-
-    async function uploadLogoIfNeeded(tournamentId){
-      const file = spLogoFile.files && spLogoFile.files[0] ? spLogoFile.files[0] : null;
-      if(!file) return "";
-
-      const safeName = file.name.replace(/[^\w.\-]+/g, "_");
-      const path = `sponsors/${tournamentId}/${Date.now()}_${safeName}`;
-      const r = ref(storage, path);
-
-      await uploadBytes(r, file);
-      const url = await getDownloadURL(r);
-      return url;
-    }
-
-    function clearSponsorForm(){
-      spTier.value = "presenting";
-      spSort.value = "10";
-      spName.value = "";
-      spWebsite.value = "";
-      spLogoUrl.value = "";
-      spLogoFile.value = "";
-      spActive.checked = true;
-    }
-
-    addSponsorBtn.addEventListener("click", async () => {
-      const name = (spName.value || "").trim();
-      if(!name){
-        alert("Sponsor name required.");
-        return;
-      }
-
-      const tier = (spTier.value || "partner").trim();
-      const sort = Number(spSort.value || 9999) || 9999;
-      const website = normalizeUrl(spWebsite.value || "");
-      let logo = (spLogoUrl.value || "").trim();
-
-      const id = (tId.value || "").trim();
-      if(!id){
-        alert("Create or load a tournament first (need tournament ID) before uploading logos.");
-        return;
-      }
-
-      try{
-        // if user selected file, upload it and override logo URL
-        const uploaded = await uploadLogoIfNeeded(id);
-        if(uploaded) logo = uploaded;
-      }catch(e){
-        alert("Logo upload failed. You can still use a Logo URL.");
-      }
-
-      sponsors.push({
-        id: "sp_" + randId(8),
-        tier,
-        sort,
-        name,
-        website,
-        logo: logo || "",
-        active: !!spActive.checked
-      });
-
-      clearSponsorForm();
-      renderSponsorList();
-    });
-
-    clearSponsorFormBtn.addEventListener("click", clearSponsorForm);
-
-    // ====================== TOURNAMENT CRUD ======================
     function readForm(){
+      const fmt = (tFormat.value || "stroke").toLowerCase().trim();
+      const format = ["stroke","scramble","bestball","skins"].includes(fmt) ? fmt : "stroke";
+
       return {
         name: (tName.value || "").trim(),
         courseDefault: (tCourse.value || "tradition").trim(),
-        format: (tFormat.value || "stroke").trim(),
+        format,
         date: (tDate.value || "").trim(),
         organizer: (tOrg.value || "").trim(),
         status: (tStatus.value || "open").trim(),
-        handicapMode: (tHandicapMode.value || "off").trim()
+        handicapMode: (tHandicapMode.value || "off").trim(),
+        // keep any existing sponsor fields you might already use elsewhere:
+        updatedAt: serverTimestamp()
       };
     }
 
-    function applyForm(d){
-      tName.value = d.name || "";
-      tCourse.value = d.courseDefault || "tradition";
-      tFormat.value = d.format || "stroke";
-      tDate.value = d.date || "";
-      tOrg.value = d.organizer || "";
-      tStatus.value = d.status || "open";
-      tHandicapMode.value = d.handicapMode || "off";
-
-      // enterprise sponsors
-      sponsors = Array.isArray(d.sponsors) ? d.sponsors : [];
-      renderSponsorList();
-
-      adminToken.value = d.adminToken || adminToken.value || "";
+    function requireId(){
+      const id = (tId.value || "").trim();
+      if(!id){
+        alert("Tournament ID is missing.");
+        return null;
+      }
+      return id;
     }
 
     async function createTournament(){
-      const data = readForm();
-      if(!data.name){
-        alert("Tournament name required.");
+      const name = (tName.value || "").trim();
+      if(!name){
+        alert("Tournament Name is required.");
         return;
       }
 
-      const id = randId(10);
-      const token = randId(20);
-
+      const id = makeId(10);
+      const token = makeToken(22);
       tId.value = id;
       adminToken.value = token;
 
-      const payload = {
-        ...data,
+      const data = {
+        ...readForm(),
         adminToken: token,
-        sponsors: sponsors || [],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-
-        // legacy single-sponsor fields kept for compatibility (optional)
-        sponsorName: "",
-        sponsorLogo: "",
-        sponsorUrl: ""
+        createdAt: serverTimestamp()
       };
 
-      await setDoc(doc(db, "tournaments", id), payload, { merge: true });
-      buildLinks(id);
-      alert("Tournament created ✅");
-    }
-
-    async function loadTournament(){
-      const id = (tId.value || "").trim();
-      if(!id){
-        alert("Paste a Tournament ID to load.");
-        return;
-      }
-
-      const snap = await getDoc(doc(db, "tournaments", id));
-      if(!snap.exists()){
-        alert("Tournament not found.");
-        return;
-      }
-
-      const d = snap.data() || {};
-      applyForm(d);
-      buildLinks(id);
-      alert("Loaded ✅");
-    }
-
-    async function saveTournament(){
-      const id = (tId.value || "").trim();
-      if(!id){
-        alert("Create or load a tournament first.");
-        return;
-      }
-
-      const data = readForm();
-      const token = (adminToken.value || "").trim() || randId(20);
-      adminToken.value = token;
-
-      const payload = {
-        ...data,
-        adminToken: token,
-        sponsors: sponsors || [],
-        updatedAt: serverTimestamp()
-      };
-
-      await setDoc(doc(db, "tournaments", id), payload, { merge: true });
-      buildLinks(id);
-      alert("Saved ✅");
-    }
-
-    async function closeTournament(){
-      const id = (tId.value || "").trim();
-      if(!id){
-        alert("Create or load a tournament first.");
-        return;
-      }
-      if(!confirm("Close tournament (status=closed)?")) return;
-
-      await setDoc(doc(db, "tournaments", id), {
-        status: "closed",
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-
-      tStatus.value = "closed";
-      alert("Closed ✅");
-    }
-
-    // ====================== COPY BUTTONS ======================
-    copyJoin.addEventListener("click", async () => {
-      const text = joinLinkEl.textContent || "";
-      if(!text || text === "—") return alert("Create or load a tournament first.");
-      const ok = await safeCopy(text);
-      if(!ok) alert("Copy blocked. Tap and hold the link to copy.");
-    });
-
-    copyLb.addEventListener("click", async () => {
-      const text = lbLinkEl.textContent || "";
-      if(!text || text === "—") return alert("Create or load a tournament first.");
-      const ok = await safeCopy(text);
-      if(!ok) alert("Copy blocked. Tap and hold the link to copy.");
-    });
-
-    copyRoster.addEventListener("click", async () => {
-      const text = rosterLinkEl.textContent || "";
-      if(!text || text === "—") return alert("Create or load a tournament first.");
-      const ok = await safeCopy(text);
-      if(!ok) alert("Copy blocked. Tap and hold the link to copy.");
-    });
-
-    // ====================== BUTTON WIRING ======================
-    createBtn.addEventListener("click", async () => {
-      try{ await createTournament(); }
-      catch(e){
+      try{
+        await setDoc(doc(db, "tournaments", id), data, { merge:false });
+        buildLinks(id);
+        alert("Tournament created ✅");
+      }catch(e){
         console.error(e);
         alert("Create failed: " + (e?.message || e));
       }
-    });
+    }
 
-    loadBtn.addEventListener("click", async () => {
-      try{ await loadTournament(); }
-      catch(e){
+    async function loadTournament(){
+      const id = requireId();
+      if(!id) return;
+
+      try{
+        const snap = await getDoc(doc(db, "tournaments", id));
+        if(!snap.exists()){
+          alert("Tournament not found.");
+          return;
+        }
+
+        const d = snap.data() || {};
+        tName.value = d.name || "";
+        tCourse.value = d.courseDefault || "tradition";
+        tFormat.value = d.format || "stroke";
+        tDate.value = d.date || "";
+        tOrg.value = d.organizer || "";
+        tStatus.value = d.status || "open";
+        tHandicapMode.value = d.handicapMode || "off";
+        adminToken.value = d.adminToken || "";
+
+        buildLinks(id);
+        alert("Loaded ✅");
+      }catch(e){
         console.error(e);
         alert("Load failed: " + (e?.message || e));
       }
-    });
+    }
 
-    saveBtn.addEventListener("click", async () => {
-      try{ await saveTournament(); }
-      catch(e){
+    async function saveChanges(){
+      const id = requireId();
+      if(!id) return;
+
+      const token = (adminToken.value || "").trim();
+      if(!token){
+        alert("Admin Token missing (load tournament or create first).");
+        return;
+      }
+
+      try{
+        // simple gate: only allow save if token matches stored token
+        const snap = await getDoc(doc(db, "tournaments", id));
+        if(!snap.exists()){
+          alert("Tournament not found.");
+          return;
+        }
+        const d = snap.data() || {};
+        if((d.adminToken || "") !== token){
+          alert("Admin Token mismatch. Load the tournament again or use the correct token.");
+          return;
+        }
+
+        await setDoc(doc(db, "tournaments", id), { ...readForm() }, { merge:true });
+        buildLinks(id);
+        alert("Saved ✅");
+      }catch(e){
         console.error(e);
         alert("Save failed: " + (e?.message || e));
       }
-    });
+    }
 
-    closeBtn.addEventListener("click", async () => {
-      try{ await closeTournament(); }
-      catch(e){
+    async function closeTournament(){
+      const id = requireId();
+      if(!id) return;
+
+      const token = (adminToken.value || "").trim();
+      if(!token){
+        alert("Admin Token missing.");
+        return;
+      }
+
+      if(!confirm("Close this tournament? (Status will be set to Closed)")) return;
+
+      try{
+        const snap = await getDoc(doc(db, "tournaments", id));
+        if(!snap.exists()){
+          alert("Tournament not found.");
+          return;
+        }
+        const d = snap.data() || {};
+        if((d.adminToken || "") !== token){
+          alert("Admin Token mismatch.");
+          return;
+        }
+
+        await setDoc(doc(db, "tournaments", id), {
+          status: "closed",
+          updatedAt: serverTimestamp()
+        }, { merge:true });
+
+        tStatus.value = "closed";
+        alert("Tournament closed ✅");
+      }catch(e){
         console.error(e);
         alert("Close failed: " + (e?.message || e));
       }
+    }
+
+    // ===== Wire buttons =====
+    createBtn.addEventListener("click", createTournament);
+    loadBtn.addEventListener("click", loadTournament);
+    saveBtn.addEventListener("click", saveChanges);
+    closeBtn.addEventListener("click", closeTournament);
+
+    copyJoin.addEventListener("click", async ()=>{
+      const ok = await safeCopy(joinLinkEl.textContent);
+      if(ok) flashCopied(copyJoin, "Copy Join");
+      else alert("Copy blocked. Tap and hold the link to copy.");
     });
 
-    // ====================== INIT ======================
-    // Default sponsor form
-    if(!spSort.value) spSort.value = "10";
-    renderSponsorList();
+    copyLb.addEventListener("click", async ()=>{
+      const ok = await safeCopy(lbLinkEl.textContent);
+      if(ok) flashCopied(copyLb, "Copy Leaderboard");
+      else alert("Copy blocked. Tap and hold the link to copy.");
+    });
 
-    // If URL has ?t=... auto-load
+    copyRoster.addEventListener("click", async ()=>{
+      const ok = await safeCopy(rosterLinkEl.textContent);
+      if(ok) flashCopied(copyRoster, "Copy Roster");
+      else alert("Copy blocked. Tap and hold the link to copy.");
+    });
+
+    // ===== Auto-load if admin is opened with ?t=ID =====
     const params = new URLSearchParams(location.search);
-    const urlTid = (params.get("t") || "").trim();
-    if(urlTid){
-      tId.value = urlTid;
-      try{
-        await loadTournament();
-      }catch(e){}
+    const tFromUrl = (params.get("t") || "").trim();
+    if(tFromUrl){
+      tId.value = tFromUrl;
+      loadTournament();
     }
   </script>
 </body>
