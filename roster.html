@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Roster (Organizer)</title>
+
+  <meta name="theme-color" content="#0d2a55" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --navy:#0d2a55;
+      --gold:#caa24a;
+      --paper: rgba(239,231,215,.95);
+      --card: rgba(255,255,255,.10);
+      --border: rgba(255,255,255,.18);
+      --ink: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.75);
+    }
+    *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+    body{
+      margin:0;
+      font-family: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(202,162,74,.18), transparent 55%),
+        linear-gradient(180deg, rgba(13,42,85,.72), rgba(0,0,0,.45)),
+        #0d2a55;
+      min-height:100vh;
+    }
+    .wrap{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 14px 12px 18px;
+    }
+    .top{
+      border: 2px solid var(--border);
+      background: rgba(255,255,255,.08);
+      border-radius: 16px;
+      padding: 12px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 18px 44px rgba(0,0,0,.25);
+    }
+    .topRow{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    h1{
+      margin:0;
+      font-family: "Cinzel", Georgia, serif;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: 18px;
+      line-height: 1.05;
+    }
+    .meta{
+      margin-top:6px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing:.02em;
+    }
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+    }
+    button, a.btn{
+      border: 2px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 900;
+      font-size: 14px;
+      cursor:pointer;
+      text-decoration:none;
+      color: rgba(255,255,255,.92);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+      letter-spacing:.02em;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    button:active, a.btn:active{ transform: translateY(1px); }
+    .primary{
+      border-color: rgba(180,210,255,.22);
+      background: rgba(13,42,85,.22);
+    }
+    .green{
+      border-color: rgba(184,255,184,.22);
+      background: rgba(47,107,47,.18);
+    }
+
+    .panel{
+      margin-top: 12px;
+      border: 2px solid var(--border);
+      background: rgba(255,255,255,.08);
+      border-radius: 16px;
+      padding: 12px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 18px 44px rgba(0,0,0,.20);
+    }
+
+    .grid{
+      display:grid;
+      gap:12px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 860px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .block{
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      overflow:hidden;
+    }
+    .blockHdr{
+      padding: 10px 12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      background:
+        linear-gradient(90deg, rgba(202,162,74,.14), rgba(13,42,85,.12));
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      font-weight: 1000;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      font-size: 12px;
+      color: rgba(255,255,255,.90);
+    }
+    .countPill{
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.10);
+      font-size: 12px;
+      letter-spacing: .02em;
+      font-weight: 1000;
+      color: rgba(255,255,255,.88);
+      white-space:nowrap;
+    }
+    .blockBody{
+      padding: 10px 12px 12px;
+    }
+    .company{
+      font-family: "Cinzel", Georgia, serif;
+      font-weight: 900;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      font-size: 14px;
+      margin-top: 8px;
+      color: rgba(255,255,255,.92);
+    }
+    ul{
+      margin: 8px 0 0;
+      padding: 0 0 0 18px;
+    }
+    li{
+      margin: 6px 0;
+      font-weight: 800;
+      letter-spacing:.01em;
+      color: rgba(255,255,255,.92);
+    }
+    .empty{
+      color: rgba(255,255,255,.80);
+      font-weight: 900;
+      padding: 12px;
+    }
+
+    .monoBox{
+      margin-top: 12px;
+      border: 2px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
+      border-radius: 16px;
+      padding: 12px;
+      overflow:auto;
+      color: rgba(255,255,255,.90);
+    }
+    pre{
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .footerHint{
+      margin-top: 10px;
+      color: rgba(255,255,255,.72);
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing:.02em;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="topRow">
+        <div>
+          <h1 id="title">Tournament Roster</h1>
+          <div class="meta" id="meta">Loading…</div>
+        </div>
+
+        <div class="actions">
+          <button class="primary" id="refreshBtn">🔄 Refresh</button>
+          <button class="green" id="copyBtn">📋 Copy Roster</button>
+          <a class="btn" id="leaderBtn" href="./leaderboard.html">🏆 Leaderboard</a>
+          <a class="btn" id="joinBtn" href="./index.html">👥 Join</a>
+        </div>
+      </div>
+      <div class="footerHint">
+        Format: Start Hole groups → Company/Team → Player list (deduped). Uses <b>rosterNames</b> when available.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="meta" style="margin-top:0;">
+        Unique players: <b id="uniqueCount">0</b>
+      </div>
+
+      <div class="grid" id="grid"></div>
+
+      <div class="monoBox">
+        <pre id="textOut">Loading…</pre>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
+      authDomain: "cypresswood-tournaments.firebaseapp.com",
+      projectId: "cypresswood-tournaments",
+      storageBucket: "cypresswood-tournaments.firebasestorage.app",
+      messagingSenderId: "162441374966",
+      appId: "1:162441374966:web:157285a2d5c39db1e810d7",
+      measurementId: "G-HL6Y9CLV8K"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const grid = document.getElementById("grid");
+    const textOut = document.getElementById("textOut");
+    const meta = document.getElementById("meta");
+    const title = document.getElementById("title");
+    const uniqueCountEl = document.getElementById("uniqueCount");
+
+    const refreshBtn = document.getElementById("refreshBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const leaderBtn = document.getElementById("leaderBtn");
+    const joinBtn = document.getElementById("joinBtn");
+
+    const params = new URLSearchParams(location.search);
+    const tournamentId = (params.get("t") || "").trim();
+
+    function escapeHtml(s){
+      return String(s || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function normName(n){
+      return String(n||"").trim().replace(/\s+/g," ");
+    }
+
+    function normalizeStartHoleLabel(raw){
+      const s = String(raw || "").trim().toUpperCase();
+      if(!s) return "—";
+      const m = s.match(/^([1-9]|1[0-8])([A-Z])?$/);
+      if(!m) return s; // keep whatever they typed if it doesn't match
+      return `${parseInt(m[1],10)}${m[2]||""}`;
+    }
+
+    function startHoleSortKey(label){
+      const s = String(label||"").toUpperCase().trim();
+      const m = s.match(/^([1-9]|1[0-8])([A-Z])?$/);
+      if(!m) return { num: 999, suf: "Z" };
+      return { num: parseInt(m[1],10), suf: m[2] || "" };
+    }
+
+    function groupCompanyName(raw){
+      const s = String(raw||"").trim();
+      return s || "—";
+    }
+
+    function getRosterNames(docData){
+      // prefer rosterNames; fallback to names; finally playerName only
+      const rn = Array.isArray(docData.rosterNames) ? docData.rosterNames : null;
+      const nm = Array.isArray(docData.names) ? docData.names : null;
+
+      const base = (rn && rn.length) ? rn : ((nm && nm.length) ? nm : [docData.playerName || ""]);
+
+      return base.map(normName).filter(Boolean).slice(0, 12); // safety cap
+    }
+
+    function buildModel(submissions){
+      // Model:
+      // startHoleLabel -> companyName -> Set(names)
+      const model = new Map();
+      const globalUnique = new Map(); // lowerName -> displayName
+
+      for(const s of submissions){
+        const startHole = normalizeStartHoleLabel(s.startHole);
+        const company = groupCompanyName(s.group);
+        const names = getRosterNames(s);
+
+        if(!model.has(startHole)) model.set(startHole, new Map());
+        const byCompany = model.get(startHole);
+
+        if(!byCompany.has(company)) byCompany.set(company, new Map()); // lower->display
+        const nameMap = byCompany.get(company);
+
+        for(const n of names){
+          const lower = n.toLowerCase();
+          if(!nameMap.has(lower)) nameMap.set(lower, n);
+          if(!globalUnique.has(lower)) globalUnique.set(lower, n);
+        }
+      }
+
+      return { model, globalUnique };
+    }
+
+    function render(model, globalUnique){
+      // sort start holes
+      const startHoles = Array.from(model.keys()).sort((a,b)=>{
+        const A = startHoleSortKey(a);
+        const B = startHoleSortKey(b);
+        if(A.num !== B.num) return A.num - B.num;
+        return String(A.suf).localeCompare(String(B.suf));
+      });
+
+      // build cards + text
+      grid.innerHTML = "";
+      const lines = [];
+      let totalUnique = globalUnique.size;
+
+      uniqueCountEl.textContent = String(totalUnique);
+
+      if(!startHoles.length){
+        grid.innerHTML = `<div class="empty">No roster yet. Waiting for teams to join.</div>`;
+        textOut.textContent = "No roster yet.";
+        return;
+      }
+
+      for(const holeLabel of startHoles){
+        const byCompany = model.get(holeLabel);
+
+        // sort company names (empty last)
+        const companies = Array.from(byCompany.keys()).sort((a,b)=>{
+          const A = a === "—" ? "ZZZ" : a.toUpperCase();
+          const B = b === "—" ? "ZZZ" : b.toUpperCase();
+          return A.localeCompare(B);
+        });
+
+        // Card
+        const block = document.createElement("div");
+        block.className = "block";
+
+        // count for this start hole
+        let holeCount = 0;
+        for(const c of companies) holeCount += byCompany.get(c).size;
+
+        block.innerHTML = `
+          <div class="blockHdr">
+            <div>Start H${escapeHtml(holeLabel)}</div>
+            <div class="countPill">${holeCount} player${holeCount===1?"":"s"}</div>
+          </div>
+          <div class="blockBody" id="body_${escapeHtml(holeLabel)}"></div>
+        `;
+
+        grid.appendChild(block);
+        const body = block.querySelector(".blockBody");
+
+        // Text section header
+        lines.push(`Team ${holeLabel}`);
+
+        for(const company of companies){
+          const nameMap = byCompany.get(company);
+          const names = Array.from(nameMap.values()).sort((a,b)=>a.localeCompare(b));
+
+          // Card section
+          const compTitle = document.createElement("div");
+          compTitle.className = "company";
+          compTitle.textContent = (company === "—") ? "—" : company;
+          body.appendChild(compTitle);
+
+          const ul = document.createElement("ul");
+          for(const n of names){
+            const li = document.createElement("li");
+            li.textContent = n;
+            ul.appendChild(li);
+          }
+          body.appendChild(ul);
+
+          // Text section
+          // Only print company header if present
+          if(company !== "—") lines.push(company);
+          for(const n of names) lines.push(n);
+          lines.push(""); // spacing line
+        }
+
+        lines.push(""); // spacing between start holes
+      }
+
+      textOut.textContent = lines.join("\n").trim() + "\n";
+    }
+
+    async function loadTournamentMeta(){
+      if(!tournamentId){
+        title.textContent = "Tournament Roster";
+        meta.textContent = "Missing tournament id (?t=...)";
+        return;
+      }
+
+      joinBtn.href = `./index.html?t=${encodeURIComponent(tournamentId)}`;
+      leaderBtn.href = `./leaderboard.html?t=${encodeURIComponent(tournamentId)}`;
+
+      try{
+        const tSnap = await getDoc(doc(db, "tournaments", tournamentId));
+        if(tSnap.exists()){
+          const t = tSnap.data() || {};
+          title.textContent = "Tournament Roster";
+          meta.textContent = `${t.name || "Tournament"}${t.date ? " • " + t.date : ""} • ID: ${tournamentId}`;
+        }else{
+          meta.textContent = `Tournament not found • ID: ${tournamentId}`;
+        }
+      }catch(e){
+        meta.textContent = `Tournament load error • ID: ${tournamentId}`;
+      }
+    }
+
+    refreshBtn.addEventListener("click", () => location.reload());
+
+    copyBtn.addEventListener("click", async () => {
+      try{
+        await navigator.clipboard.writeText(textOut.textContent || "");
+        copyBtn.textContent = "✅ Copied";
+        setTimeout(()=> copyBtn.textContent = "📋 Copy Roster", 900);
+      }catch(e){
+        alert("Copy blocked. Select the text and copy manually.");
+      }
+    });
+
+    // Boot
+    await loadTournamentMeta();
+
+    if(!tournamentId){
+      grid.innerHTML = `<div class="empty">Missing tournament id (?t=...).</div>`;
+      textOut.textContent = "Missing tournament id.";
+    }else{
+      const subCol = collection(db, "tournaments", tournamentId, "submissions");
+      const q = query(subCol);
+
+      onSnapshot(q, (snap) => {
+        const submissions = [];
+        snap.forEach(d => submissions.push(d.data() || {}));
+
+        const { model, globalUnique } = buildModel(submissions);
+        render(model, globalUnique);
+      }, () => {
+        grid.innerHTML = `<div class="empty">Live updates blocked (rules/network).</div>`;
+        textOut.textContent = "Live updates blocked (rules/network).";
+      });
+    }
+  </script>
+</body>
+</html>
