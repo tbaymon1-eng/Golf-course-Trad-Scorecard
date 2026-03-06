@@ -198,7 +198,6 @@
     }
     .toast.show{ opacity: 1; }
 
-    /* ===== Sponsors UI ===== */
     .sHdr{
       font-family:Cinzel,serif;
       font-weight:900;
@@ -319,22 +318,22 @@
           </div>
 
           <div class="row">
-  <label for="tFormat">Format of Play</label>
-  <select id="tFormat">
-    <option value="stroke">Stroke Play</option>
-    <option value="scramble">Scramble</option>
-    <option value="bestball">Best Ball</option>
-  </select>
-</div>
+            <label for="tFormat">Format of Play</label>
+            <select id="tFormat">
+              <option value="stroke">Stroke Play</option>
+              <option value="scramble">Scramble</option>
+              <option value="bestball">Best Ball</option>
+            </select>
+          </div>
 
-<div class="row">
-  <label for="tSideGame">Side Game (optional)</label>
-  <select id="tSideGame">
-    <option value="none">None</option>
-    <option value="skins">Skins</option>
-  </select>
-  <div class="note">If enabled, the leaderboard will show a Leaderboard / Skins toggle.</div>
-</div>
+          <div class="row">
+            <label for="tSideGame">Side Game (optional)</label>
+            <select id="tSideGame">
+              <option value="none">None</option>
+              <option value="skins">Skins</option>
+            </select>
+            <div class="note">If enabled, the leaderboard can show a Leaderboard / Skins toggle.</div>
+          </div>
 
           <div class="row">
             <label for="tDate">Date (optional)</label>
@@ -361,7 +360,7 @@
               <option value="off">Off</option>
               <option value="on">On</option>
             </select>
-            <div class="note">This is stored for future rules; it won’t break anything if left Off.</div>
+            <div class="note">Currently stored for future rules. It does not change scoring yet.</div>
           </div>
 
           <div class="row">
@@ -527,7 +526,6 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    // ✅ Don’t block the page (so buttons always work)
     const auth = getAuth(app);
     signInAnonymously(auth).catch((e)=>{
       console.warn("Anonymous auth failed (uploads may fail):", e);
@@ -535,10 +533,10 @@
 
     const $ = (id)=>document.getElementById(id);
 
-    // ===== DOM =====
     const tName = $("tName");
     const tCourse = $("tCourse");
     const tFormat = $("tFormat");
+    const tSideGame = $("tSideGame");
     const tDate = $("tDate");
     const tOrg = $("tOrg");
     const tStatus = $("tStatus");
@@ -565,7 +563,6 @@
 
     const toast = $("toast");
 
-    // Sponsor UI
     const spTier = $("spTier");
     const spSort = $("spSort");
     const spName = $("spName");
@@ -578,11 +575,9 @@
     const clearSponsorFormBtn = $("clearSponsorFormBtn");
     const spState = $("spState");
 
-    // ===== State =====
     let sponsors = [];
     let sponsorsDirty = false;
 
-    // ===== Helpers =====
     function makeId(len=10){
       const chars="abcdefghijklmnopqrstuvwxyz0123456789";
       let out="";
@@ -610,7 +605,6 @@
       if(!el) return;
       clearQR(el);
       if(!text) return;
-      // eslint-disable-next-line no-undef
       new QRCode(el, { text, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
     }
 
@@ -681,12 +675,16 @@
 
     function readForm(){
       const fmt = (tFormat.value || "stroke").toLowerCase().trim();
-      const format = ["stroke","scramble","bestball","skins"].includes(fmt) ? fmt : "stroke";
+      const format = ["stroke","scramble","bestball"].includes(fmt) ? fmt : "stroke";
+
+      const sg = (tSideGame.value || "none").toLowerCase().trim();
+      const sideGame = ["none","skins"].includes(sg) ? sg : "none";
 
       return {
         name: (tName.value || "").trim(),
         courseDefault: (tCourse.value || "tradition").trim(),
         format,
+        sideGame,
         date: (tDate.value || "").trim(),
         organizer: (tOrg.value || "").trim(),
         status: (tStatus.value || "open").trim(),
@@ -936,6 +934,7 @@
         tName.value = d.name || "";
         tCourse.value = d.courseDefault || "tradition";
         tFormat.value = d.format || "stroke";
+        tSideGame.value = d.sideGame || "none";
         tDate.value = d.date || "";
         tOrg.value = d.organizer || "";
         tStatus.value = d.status || "open";
@@ -1051,7 +1050,6 @@
       }
     }
 
-    // ===== Wire buttons =====
     createBtn.addEventListener("click", createTournament);
     loadBtn.addEventListener("click", loadTournament);
     saveBtn.addEventListener("click", saveChanges);
