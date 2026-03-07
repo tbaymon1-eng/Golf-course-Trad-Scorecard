@@ -5,17 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Cypresswood Scorecard</title>
 
-  <!-- PWA -->
   <link rel="manifest" href="./manifest.webmanifest">
   <meta name="theme-color" content="#7a4a0b">
 
-  <!-- iOS add-to-home-screen support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Scorecard">
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
 
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
 
   <style>
@@ -53,7 +50,6 @@
       box-shadow: 0 8px 22px rgba(0,0,0,.18);
     }
 
-    /* Header */
     .header-img{
       width: 100%;
       height: auto !important;
@@ -64,7 +60,6 @@
       background: var(--card);
     }
 
-    /* Tournament Join Screen */
     #joinScreen{
       display:none;
       padding:12px 10px;
@@ -72,7 +67,6 @@
       border-bottom:1px solid rgba(0,0,0,.08);
     }
 
-    /* teammate block styling */
     .team-mates-block{
       display:grid;
       gap:8px;
@@ -98,7 +92,6 @@
       font-weight:800;
     }
 
-    /* Sponsor strip (Scorecard) */
     #scoreSponsor{
       display:none;
       margin: 10px 10px 0;
@@ -135,7 +128,6 @@
       font-size:16px;
     }
 
-    /* Course switch bar */
     .coursebar{
       display:flex;
       align-items:center;
@@ -171,6 +163,24 @@
       padding: 8px 12px 0;
       font-size: 13px;
       opacity:.85;
+    }
+
+    .lockBanner{
+      display:none;
+      margin: 10px 10px 0;
+      padding: 10px 12px;
+      border:2px solid rgba(122,74,11,.20);
+      border-radius:12px;
+      background: rgba(255,255,255,.62);
+      font-weight: 900;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .lockBanner.show{ display:block; }
+
+    .lockedStage{
+      opacity:.68;
+      filter: saturate(.88);
     }
 
     .scroll-x{
@@ -236,7 +246,6 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* Tee row colors */
     .row-black td{ background:#0d2a55; color:#fff; }
     .row-blue  td{ background:#1f5ea8; color:#fff; }
     .row-white td{ background:#f7f7f7; color:#111; }
@@ -257,7 +266,6 @@
     .row-hcp td{ background: var(--hcpRow); color:#111; }
     .row-hcp .label{ background: #e9dcaa; }
 
-    /* Inputs */
     .score-input{
       width: 100%;
       height: 100%;
@@ -352,7 +360,6 @@
     }
     .mini{ font-size: 14px; padding: 10px 10px; opacity: .95; }
 
-    /* Footer legal */
     .legal{
       padding: 10px 12px 14px;
       border-top: 1px solid rgba(0,0,0,.10);
@@ -383,6 +390,13 @@
       font-weight:900;
       cursor:pointer;
     }
+
+    button:disabled,
+    select:disabled,
+    input:disabled{
+      cursor:not-allowed;
+      opacity:.72;
+    }
   </style>
 </head>
 
@@ -392,7 +406,6 @@
 
       <img id="courseHeader" class="header-img" src="./assets/cypresswood_header.png" alt="Scorecard Header" />
 
-      <!-- Tournament Join Screen -->
       <div id="joinScreen">
         <div style="font-family:Cinzel,serif; font-weight:900; font-size:16px;">Join Tournament</div>
         <div id="joinMeta" style="margin-top:6px; font-size:13px; opacity:.85;"></div>
@@ -405,7 +418,6 @@
               style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
           </label>
 
-          <!-- Team roster inputs -->
           <div class="team-mates-block">
             <div style="font-family:Cinzel,serif; font-weight:900; font-size:13px; opacity:.9;">Team Players (required: at least 1 teammate)</div>
             <label>Teammate 1 <input id="joinMate1" placeholder="Teammate name"></label>
@@ -446,7 +458,6 @@
         </div>
       </div>
 
-      <!-- Sponsor strip shows for tournament if sponsor exists -->
       <div id="scoreSponsor" role="button" aria-label="Tournament Sponsor">
         <div id="scoreSponsorTitle">Tournament Sponsor</div>
         <div id="scoreSponsorRow">
@@ -467,38 +478,41 @@
         </select>
       </div>
 
-      <div class="table-shell">
-        <div class="hint" id="hintLine">Swipe left/right inside the table to scroll. Tap a box to type. Out/In/Tot auto-calc.</div>
+      <div id="lockBanner" class="lockBanner">
+        Complete the tournament form above to unlock player names, score entry, and tournament actions.
+      </div>
 
-        <div class="scroll-x" id="scrollX">
-          <table id="scoreTable">
-            <thead><tr id="hdrRow"></tr></thead>
-            <tbody id="tbody"></tbody>
-          </table>
+      <div id="scorecardStage">
+        <div class="table-shell">
+          <div class="hint" id="hintLine">Swipe left/right inside the table to scroll. Tap a box to type. Out/In/Tot auto-calc.</div>
+
+          <div class="scroll-x" id="scrollX">
+            <table id="scoreTable">
+              <thead><tr id="hdrRow"></tr></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="saveImg">Save as Image</button>
+
+          <a
+            id="bookBtn"
+            href="https://foresightcypress.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225"
+            target="_blank"
+            class="book-btn"
+          >
+            Book Your Next Tee Time Here!
+          </a>
+
+          <button id="share">Share</button>
+          <button id="finishRound">✅ Finish Round</button>
+          <button class="danger" id="clear">Clear Card</button>
+          <button class="mini" id="refreshApp">Refresh App (update)</button>
         </div>
       </div>
 
-      <div class="actions">
-        <button id="saveImg">Save as Image</button>
-
-        <a
-          id="bookBtn"
-          href="https://foresightcypress.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225"
-          target="_blank"
-          class="book-btn"
-        >
-          Book Your Next Tee Time Here!
-        </a>
-
-        <button id="share">Share</button>
-        <button id="finishRound">✅ Finish Round</button>
-        <button class="danger" id="clear">Clear Card</button>
-
-        <!-- easy refresh -->
-        <button class="mini" id="refreshApp">Refresh App (update)</button>
-      </div>
-
-      <!-- Legal footer -->
       <div class="legal">
         <div class="left">
           <a href="./privacy.html">Privacy</a>
@@ -512,17 +526,13 @@
     </div>
   </div>
 
-  <!-- html2canvas -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-  <!-- App logic + Firebase -->
   <script type="module">
-    // ====================== FIREBASE IMPORTS ======================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    // ====================== FIREBASE CONFIG ======================
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -533,7 +543,6 @@
       measurementId: "G-HL6Y9CLV8K"
     };
 
-    // ===== Firebase init =====
     let db = null;
     let authReady = false;
 
@@ -549,39 +558,21 @@
       alert("Firebase init/auth failed: " + (e?.message || e));
     }
 
-    // ====================== COURSES ======================
     const COURSE_TRADITION = {
       id: "tradition",
       title: "Tradition Course",
       headerImg: "./assets/cypresswood_header.png",
       teeRows: [
-        { css:"row-black", label:"Black Tees",
-          front:[465,384,203,448,606,376,528,196,453], out:3657,
-          back:[405,256,545,464,185,394,472,318,546], inn:3563, tot:7220
-        },
-        { css:"row-blue", label:"Blue Tees",
-          front:[373,356,195,422,565,343,508,169,409], out:3340,
-          back:[370,211,518,423,169,357,439,291,520], inn:3298, tot:6638
-        },
-        { css:"row-white", label:"White Tees",
-          front:[348,328,169,398,547,311,482,169,394], out:3146,
-          back:[348,187,468,395,151,328,378,265,496], inn:3016, tot:6162
-        },
-        { css:"row-silver", label:"Silver Tees",
-          front:[348,328,129,528,461,277,482,107,305], out:2765,
-          back:[315,153,413,348,151,328,318,215,435], inn:2676, tot:5441
-        }
+        { css:"row-black", label:"Black Tees", front:[465,384,203,448,606,376,528,196,453], out:3657, back:[405,256,545,464,185,394,472,318,546], inn:3563, tot:7220 },
+        { css:"row-blue", label:"Blue Tees", front:[373,356,195,422,565,343,508,169,409], out:3340, back:[370,211,518,423,169,357,439,291,520], inn:3298, tot:6638 },
+        { css:"row-white", label:"White Tees", front:[348,328,169,398,547,311,482,169,394], out:3146, back:[348,187,468,395,151,328,378,265,496], inn:3016, tot:6162 },
+        { css:"row-silver", label:"Silver Tees", front:[348,328,129,528,461,277,482,107,305], out:2765, back:[315,153,413,348,151,328,318,215,435], inn:2676, tot:5441 }
       ],
       parFront:[4,4,3,4,5,4,5,3,4],
       parBack:[4,3,5,4,3,4,4,4,5],
       hcpFront:[7,17,11,1,3,13,9,15,5],
       hcpBack:[14,8,10,6,18,12,2,16,4],
-      bottomRow:{
-        css:"row-copper",
-        label:"Copper Tees",
-        front:[296,287,117,242,411,277,388,107,284], out:2409,
-        back:[315,131,400,318,75,245,291,215,386], inn:2376, tot:4785
-      }
+      bottomRow:{ css:"row-copper", label:"Copper Tees", front:[296,287,117,242,411,277,388,107,284], out:2409, back:[315,131,400,318,75,245,291,215,386], inn:2376, tot:4785 }
     };
 
     const COURSE_CYPRESS = {
@@ -589,42 +580,24 @@
       title: "Cypress Course",
       headerImg: "./assets/cypress_header.png",
       teeRows: [
-        { css:"row-blue", label:"Blue",
-          front:[514,396,387,426,182,417,160,563,427], out:3472,
-          back:[416,409,388,349,149,586,193,531,413], inn:3434, tot:6906
-        },
-        { css:"row-forest", label:"Forest",
-          front:[485,335,326,375,155,361,137,527,352], out:3053,
-          back:[381,368,354,320,117,546,160,490,379], inn:3115, tot:6168
-        }
+        { css:"row-blue", label:"Blue", front:[514,396,387,426,182,417,160,563,427], out:3472, back:[416,409,388,349,149,586,193,531,413], inn:3434, tot:6906 },
+        { css:"row-forest", label:"Forest", front:[485,335,326,375,155,361,137,527,352], out:3053, back:[381,368,354,320,117,546,160,490,379], inn:3115, tot:6168 }
       ],
       parFront:[5,4,4,4,3,4,3,5,4],
       parBack:[4,4,4,4,3,5,3,5,4],
       hcpFront:[3,13,11,7,15,9,17,1,5],
       hcpBack:[6,10,12,14,18,2,16,4,8],
-      extraRow:{
-        css:"row-silver",
-        label:"Silver",
-        front:[456,328,297,337,119,337,137,499,321], out:2831,
-        back:[277,315,319,320,117,515,127,461,342], inn:2793, tot:5624
-      },
-      bottomRow:{
-        css:"row-copper",
-        label:"Copper - Ladies",
-        front:[401,268,257,265,79,302,83,419,284], out:2358,
-        back:[257,296,249,295,92,445,93,375,284], inn:2386, tot:4744
-      }
+      extraRow:{ css:"row-silver", label:"Silver", front:[456,328,297,337,119,337,137,499,321], out:2831, back:[277,315,319,320,117,515,127,461,342], inn:2793, tot:5624 },
+      bottomRow:{ css:"row-copper", label:"Copper - Ladies", front:[401,268,257,265,79,302,83,419,284], out:2358, back:[257,296,249,295,92,445,93,375,284], inn:2386, tot:4744 }
     };
 
     const COURSES = { tradition: COURSE_TRADITION, cypress: COURSE_CYPRESS };
 
-    // ====================== CONFIG ======================
     const holesFront = [1,2,3,4,5,6,7,8,9];
     const holesBack  = [10,11,12,13,14,15,16,17,18];
 
     let playersCount = 6;
 
-    // ====================== DOM ======================
     const tbody = document.getElementById("tbody");
     const hdrRow = document.getElementById("hdrRow");
     const courseSelect = document.getElementById("courseSelect");
@@ -634,7 +607,6 @@
     const hintLine = document.getElementById("hintLine");
     const scrollX = document.getElementById("scrollX");
 
-    // Join screen DOM
     const joinScreen = document.getElementById("joinScreen");
     const joinMeta = document.getElementById("joinMeta");
     const joinBtn = document.getElementById("joinBtn");
@@ -649,26 +621,22 @@
     const joinMate5 = document.getElementById("joinMate5");
     const refreshBtn = document.getElementById("refreshApp");
 
-    // Sponsor UI
     const scoreSponsor = document.getElementById("scoreSponsor");
     const scoreSponsorLogo = document.getElementById("scoreSponsorLogo");
     const scoreSponsorName = document.getElementById("scoreSponsorName");
 
-    // ====================== STATE ======================
+    const lockBanner = document.getElementById("lockBanner");
+    const scorecardStage = document.getElementById("scorecardStage");
+
     let currentCourseId = "tradition";
     let tournamentId = null;
     let isTournamentMode = false;
     let tournamentFormat = "stroke";
-
-    // startHoleSelected is now TEXT like "2A" (not just number)
     let startHoleSelected = "";
-
-    // rosterNames is always scorer + teammates (for roster/billing)
     let rosterNames = [];
-
     let sponsorUrl = "";
+    let joinCompleted = false;
 
-    // ====================== HELPERS ======================
     document.getElementById("yr").textContent = String(new Date().getFullYear());
 
     function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
@@ -725,7 +693,6 @@
       return `scorecard_state_${courseId}${tPart}${fPart}_v5`;
     }
 
-    // store the TEXT start hole like "2A"
     function startHoleKey(){
       const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
       return `scorecard_startHole${tPart}_v2`;
@@ -758,21 +725,14 @@
       return `Player ${i+1}`;
     }
 
-    // Accept: "2", "2A", "2b", "10B"
     function normalizeStartHole(raw){
       const s = String(raw || "").trim().toUpperCase();
       if(!s) return null;
-
-      // allow 1-2 digits + optional letter A-Z
       const m = s.match(/^([1-9]|1[0-8])([A-Z])?$/);
       if(!m) return null;
-
       const holeNum = parseInt(m[1], 10);
       const suffix = m[2] || "";
-      return {
-        label: `${holeNum}${suffix}`,
-        holeNum
-      };
+      return { label: `${holeNum}${suffix}`, holeNum };
     }
 
     function scrollToStartHole(hole){
@@ -793,7 +753,38 @@
       }
     }
 
-    // ====================== TABLE BUILD ======================
+    function getScoreLockTargets(){
+      return {
+        playerNames: Array.from(document.querySelectorAll(".player-name")),
+        scoreInputs: Array.from(document.querySelectorAll(".score-input")),
+        saveBtn: document.getElementById("saveImg"),
+        shareBtn: document.getElementById("share"),
+        finishBtn: document.getElementById("finishRound"),
+        clearBtn: document.getElementById("clear"),
+        courseSel: document.getElementById("courseSelect")
+      };
+    }
+
+    function setPreJoinLock(locked){
+      const { playerNames, scoreInputs, saveBtn, shareBtn, finishBtn, clearBtn, courseSel } = getScoreLockTargets();
+
+      playerNames.forEach(el => el.disabled = !!locked);
+      scoreInputs.forEach(el => el.disabled = !!locked);
+
+      if(saveBtn) saveBtn.disabled = !!locked;
+      if(shareBtn) shareBtn.disabled = !!locked;
+      if(finishBtn) finishBtn.disabled = !!locked;
+      if(clearBtn) clearBtn.disabled = !!locked;
+      if(courseSel) courseSel.disabled = !!locked;
+
+      if(lockBanner){
+        lockBanner.classList.toggle("show", !!locked);
+      }
+      if(scorecardStage){
+        scorecardStage.classList.toggle("lockedStage", !!locked);
+      }
+    }
+
     function buildHeader(){
       hdrRow.innerHTML = `
         <th class="label">Hole</th>
@@ -914,7 +905,6 @@
       if(totEl) totEl.textContent = tot;
     }
 
-    // ====================== LOCAL STORAGE ======================
     function saveState(){
       const key = storageKeyFor(currentCourseId);
       const state = {
@@ -928,7 +918,7 @@
       };
       localStorage.setItem(key, JSON.stringify(state));
 
-      if (isTournamentMode) scheduleTournamentPush();
+      if (isTournamentMode && joinCompleted) scheduleTournamentPush();
     }
 
     function loadState(){
@@ -1032,16 +1022,23 @@
         const norm = normalizeStartHole(saved);
         if(norm){
           startHoleSelected = norm.label;
-          setTimeout(() => scrollToStartHole(norm.holeNum), 250);
+          if(joinCompleted){
+            setTimeout(() => scrollToStartHole(norm.holeNum), 250);
+          }
         }
+      }
+
+      if(isTournamentMode && !joinCompleted){
+        setPreJoinLock(true);
+      }else{
+        setPreJoinLock(false);
       }
     }
 
-    // ====================== COURSE SWITCH ======================
     function setCourse(courseId){
       if (!COURSES[courseId]) return;
 
-      if (isTournamentMode && joinScreen.style.display === "none" && courseId !== currentCourseId){
+      if (isTournamentMode && !joinCompleted && courseId !== currentCourseId){
         return;
       }
 
@@ -1062,11 +1059,12 @@
       touchStartX = null;
       if (Math.abs(dx) < 50) return;
 
+      if (isTournamentMode && !joinCompleted) return;
+
       if (dx < 0) setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
       else        setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
     }, { passive:true });
 
-    // ====================== SAVE/SHARE IMAGE ======================
     async function captureFullCardCanvas(){
       const card = document.getElementById("card");
       const scroll = document.querySelector(".scroll-x");
@@ -1104,6 +1102,7 @@
       const finishBtn = document.getElementById("finishRound");
 
       saveBtn.addEventListener("click", async () => {
+        if (isTournamentMode && !joinCompleted) return;
         try{
           const canvas = await captureFullCardCanvas();
           canvas.toBlob(async (blob) => {
@@ -1125,6 +1124,7 @@
       });
 
       shareBtn.addEventListener("click", async () => {
+        if (isTournamentMode && !joinCompleted) return;
         try{
           const canvas = await captureFullCardCanvas();
           const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
@@ -1141,18 +1141,18 @@
       });
 
       clearBtn.addEventListener("click", () => {
+        if (isTournamentMode && !joinCompleted) return;
         if(!confirm("Clear all scores for this course?")) return;
         document.querySelectorAll(".score-input").forEach(i => i.value = "");
         document.querySelectorAll(".player-name").forEach(i => i.value = "");
         clearState();
         for (let i=0;i<playersCount;i++) recalcPlayer(i);
-        if (isTournamentMode) scheduleTournamentPush();
+        if (isTournamentMode && joinCompleted) scheduleTournamentPush();
       });
 
-      // ✅ Finish Round (supports 9 or 18; start hole can be 2A/2B)
       finishBtn?.addEventListener("click", async () => {
-        if(!isTournamentMode || !tournamentId){
-          alert("Finish Round only works in tournament mode.");
+        if(!isTournamentMode || !tournamentId || !joinCompleted){
+          alert("Finish Round only works after you join the tournament.");
           return;
         }
 
@@ -1202,7 +1202,6 @@
       });
     }
 
-    // ====================== TOURNAMENT MODE ======================
     async function checkTournamentFromURL(){
       const params = new URLSearchParams(location.search);
       const tId = (params.get("t") || "").trim();
@@ -1210,6 +1209,7 @@
 
       tournamentId = tId;
       isTournamentMode = true;
+      joinCompleted = false;
 
       joinScreen.style.display = "block";
       joinMeta.textContent = `Tournament ID: ${tournamentId}`;
@@ -1232,6 +1232,7 @@
             applySponsorUI(sName, sLogo, sUrl);
 
             build();
+            setPreJoinLock(true);
 
             const saved = (localStorage.getItem(startHoleKey()) || "").trim();
             if(saved) joinStartHole.value = saved;
@@ -1242,7 +1243,6 @@
       }
     }
 
-    // ✅ CLEAN JOIN HANDLER
     joinBtn.addEventListener("click", async () => {
       if (!tournamentId) return;
 
@@ -1271,10 +1271,8 @@
         return;
       }
 
-      // rosterNames = scorer + teammates (up to 6)
       let all = [scorerName, ...matesRaw].slice(0, 6);
 
-      // de-dupe
       const seen = new Set();
       all = all.filter(n => {
         const k = n.toLowerCase();
@@ -1285,7 +1283,6 @@
 
       rosterNames = all;
 
-      // ✅ Copy into the score table name inputs (only as many rows exist)
       const nameInputs = Array.from(document.querySelectorAll(".player-name"));
       for (let i = 0; i < nameInputs.length; i++) {
         nameInputs[i].value = rosterNames[i] || "";
@@ -1294,15 +1291,18 @@
       startHoleSelected = norm.label;
       localStorage.setItem(startHoleKey(), startHoleSelected);
 
+      joinCompleted = true;
       joinScreen.style.display = "none";
+      setPreJoinLock(false);
 
       saveState();
-      scheduleTournamentPush();  // push once immediately after join
+      scheduleTournamentPush();
 
       setTimeout(() => scrollToStartHole(norm.holeNum), 250);
     });
 
     joinCancel.addEventListener("click", () => {
+      joinCompleted = false;
       joinScreen.style.display = "none";
       isTournamentMode = false;
       tournamentId = null;
@@ -1312,6 +1312,7 @@
       rosterNames = [];
       applySponsorUI("","","");
       build();
+      setPreJoinLock(false);
     });
 
     function readScoresFromDOM(){
@@ -1337,13 +1338,13 @@
 
     let pushTimer = null;
     function scheduleTournamentPush(){
-      if (!db || !tournamentId || !authReady) return;
+      if (!db || !tournamentId || !authReady || !joinCompleted) return;
       if (pushTimer) clearTimeout(pushTimer);
       pushTimer = setTimeout(pushTournamentNow, 250);
     }
 
     async function pushTournamentNow(){
-      if (!db || !tournamentId) return;
+      if (!db || !tournamentId || !joinCompleted) return;
 
       const deviceId = makeDeviceId();
       const payload = readScoresFromDOM();
@@ -1356,7 +1357,6 @@
 
       const subRef = doc(db, "tournaments", tournamentId, "submissions", deviceId);
 
-      // rosterNames fallback if user didn’t hit Join properly
       const rosterSafe = (Array.isArray(rosterNames) && rosterNames.length)
         ? rosterNames
         : [playerName, ...(payload.names || []).slice(1)].filter(Boolean).slice(0, 6);
@@ -1366,22 +1366,11 @@
           deviceId,
           courseId: currentCourseId,
           format: tournamentFormat,
-
-          // scorer
           playerName,
-
-          // company/team name (kept as "group" for compatibility)
           group,
-
-          // "2A" / "2B" / "2"
           startHole: startHoleLabel,
-
-          // scoring row names (may be 1 or 2 for scramble/bestball)
           names: payload.names,
-
-          // ✅ roster list for organizer billing (always full team if provided)
           rosterNames: rosterSafe,
-
           scoresFlat: payload.scoresFlat,
           totals: payload.totals,
           updatedAt: serverTimestamp()
@@ -1415,13 +1404,11 @@
       hardRefreshApp();
     });
 
-    // ====================== INIT ======================
     wireButtons();
     build();
     await checkTournamentFromURL();
   </script>
 
-  <!-- Service worker registration -->
   <script src="./pwa.js"></script>
 </body>
 </html>
