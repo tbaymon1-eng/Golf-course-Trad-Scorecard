@@ -327,7 +327,7 @@
           </div>
 
           <div class="row">
-            <label for="tSideGame">Side Game (optional)</label>
+            <label for="tSideGame">Side Game</label>
             <select id="tSideGame">
               <option value="none">None</option>
               <option value="skins">Skins</option>
@@ -360,7 +360,7 @@
               <option value="off">Off</option>
               <option value="on">On</option>
             </select>
-            <div class="note">Currently stored for future rules. It does not change scoring yet.</div>
+            <div class="note">This is stored for future rules; it won’t break anything if left Off.</div>
           </div>
 
           <div class="row">
@@ -372,6 +372,44 @@
             <label for="adminToken">Admin Token (auto)</label>
             <input id="adminToken" placeholder="auto-generated" autocapitalize="none" />
             <div class="note">Keep this private. It’s a simple gate for admin edits.</div>
+          </div>
+        </div>
+
+        <div class="soft">
+          <div style="font-family:Cinzel,serif;font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-size:13px;">
+            Additional Side Games
+          </div>
+
+          <div class="grid2" style="margin-top:10px;">
+            <div class="row">
+              <label for="ctpEnabled">Closest to the Pin</label>
+              <select id="ctpEnabled">
+                <option value="off">Off</option>
+                <option value="on">On</option>
+              </select>
+              <div class="note">Turn Closest to the Pin on or off for this tournament.</div>
+            </div>
+
+            <div class="row">
+              <label for="ctpHoles">Closest to the Pin Holes</label>
+              <input id="ctpHoles" placeholder="5,8,12,17" autocapitalize="none" />
+              <div class="note">Comma-separated hole numbers. Example: 5,8,12,17</div>
+            </div>
+
+            <div class="row">
+              <label for="longDriveEnabled">Long Drive</label>
+              <select id="longDriveEnabled">
+                <option value="off">Off</option>
+                <option value="on">On</option>
+              </select>
+              <div class="note">Turn Long Drive on or off for this tournament.</div>
+            </div>
+
+            <div class="row">
+              <label for="longDriveHoles">Long Drive Holes</label>
+              <input id="longDriveHoles" placeholder="2,9,14" autocapitalize="none" />
+              <div class="note">Comma-separated hole numbers. Example: 2,9,14</div>
+            </div>
           </div>
         </div>
 
@@ -544,6 +582,11 @@
     const tId = $("tId");
     const adminToken = $("adminToken");
 
+    const ctpEnabled = $("ctpEnabled");
+    const ctpHoles = $("ctpHoles");
+    const longDriveEnabled = $("longDriveEnabled");
+    const longDriveHoles = $("longDriveHoles");
+
     const joinLinkEl = $("joinLink");
     const lbLinkEl = $("lbLink");
     const rosterLinkEl = $("rosterLink");
@@ -576,7 +619,6 @@
     const spState = $("spState");
 
     let sponsors = [];
-    let sponsorsDirty = false;
 
     function makeId(len=10){
       const chars="abcdefghijklmnopqrstuvwxyz0123456789";
@@ -673,23 +715,40 @@
       renderQR(rosterQREl, roster);
     }
 
+    function parseHoleList(value){
+      return String(value || "")
+        .split(",")
+        .map(s => parseInt(s.trim(), 10))
+        .filter(n => Number.isFinite(n) && n >= 1 && n <= 18)
+        .filter((n, i, arr) => arr.indexOf(n) === i)
+        .sort((a,b) => a - b);
+    }
+
     function readForm(){
       const fmt = (tFormat.value || "stroke").toLowerCase().trim();
       const format = ["stroke","scramble","bestball"].includes(fmt) ? fmt : "stroke";
 
-      const sg = (tSideGame.value || "none").toLowerCase().trim();
-      const sideGame = ["none","skins"].includes(sg) ? sg : "none";
+      const sideGameValue = (tSideGame.value || "none").trim().toLowerCase();
+
+      const sideGames = {
+        skinsEnabled: sideGameValue === "skins",
+        ctpEnabled: (ctpEnabled.value || "off") === "on",
+        ctpHoles: parseHoleList(ctpHoles.value || ""),
+        longDriveEnabled: (longDriveEnabled.value || "off") === "on",
+        longDriveHoles: parseHoleList(longDriveHoles.value || "")
+      };
 
       return {
         name: (tName.value || "").trim(),
         courseDefault: (tCourse.value || "tradition").trim(),
         format,
-        sideGame,
+        sideGame: sideGameValue,
         date: (tDate.value || "").trim(),
         organizer: (tOrg.value || "").trim(),
         status: (tStatus.value || "open").trim(),
         handicapMode: (tHandicapMode.value || "off").trim(),
         sponsors: Array.isArray(sponsors) ? sponsors : [],
+        sideGames,
         updatedAt: serverTimestamp()
       };
     }
@@ -795,14 +854,12 @@
 
         wrap.querySelector("[data-act]").addEventListener("click", ()=>{
           s.active = !(s.active !== false);
-          sponsorsDirty = true;
           renderSponsorList();
         });
 
         wrap.querySelector("[data-del]").addEventListener("click", ()=>{
           if(!confirm(`Remove sponsor "${name}"?`)) return;
           sponsors = (Array.isArray(sponsors) ? sponsors : []).filter(x => x !== s);
-          sponsorsDirty = true;
           renderSponsorList();
         });
 
@@ -869,7 +926,6 @@
 
         sponsors = Array.isArray(sponsors) ? sponsors : [];
         sponsors.push(obj);
-        sponsorsDirty = true;
 
         renderSponsorList();
         clearSponsorForm();
@@ -895,7 +951,6 @@
       adminToken.value = token;
 
       sponsors = Array.isArray(sponsors) ? sponsors : [];
-      sponsorsDirty = false;
 
       const data = {
         ...readForm(),
@@ -934,12 +989,18 @@
         tName.value = d.name || "";
         tCourse.value = d.courseDefault || "tradition";
         tFormat.value = d.format || "stroke";
-        tSideGame.value = d.sideGame || "none";
+        tSideGame.value = d.sideGame || (d?.sideGames?.skinsEnabled ? "skins" : "none");
         tDate.value = d.date || "";
         tOrg.value = d.organizer || "";
         tStatus.value = d.status || "open";
         tHandicapMode.value = d.handicapMode || "off";
         adminToken.value = d.adminToken || "";
+
+        const sg = d.sideGames || {};
+        ctpEnabled.value = sg.ctpEnabled ? "on" : "off";
+        ctpHoles.value = Array.isArray(sg.ctpHoles) ? sg.ctpHoles.join(",") : "";
+        longDriveEnabled.value = sg.longDriveEnabled ? "on" : "off";
+        longDriveHoles.value = Array.isArray(sg.longDriveHoles) ? sg.longDriveHoles.join(",") : "";
 
         if(Array.isArray(d.sponsors)){
           sponsors = d.sponsors;
@@ -962,9 +1023,7 @@
           }
         }
 
-        sponsorsDirty = false;
         renderSponsorList();
-
         buildLinks(id);
         showToast("Loaded ✅");
       }catch(e){
@@ -1003,7 +1062,6 @@
         payload.sponsorUrl  = best?.website || "";
 
         await setDoc(doc(db, "tournaments", id), payload, { merge:true });
-        sponsorsDirty = false;
 
         buildLinks(id);
         showToast("Saved ✅");
