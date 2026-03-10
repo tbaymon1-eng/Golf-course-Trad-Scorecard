@@ -122,14 +122,16 @@
     }
 
     .brand{
-      display:flex; gap:10px; align-items:center;
-      min-width: 240px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      min-width:240px;
     }
 
     .courseHeaderMini{
-      width: 150px;
-      height: 44px;
-      object-fit: contain;
+      width:150px;
+      height:44px;
+      object-fit:contain;
       background: rgba(255,255,255,.34);
       border: 2px solid rgba(255,255,255,.18);
       border-radius: 12px;
@@ -138,60 +140,72 @@
       -webkit-backdrop-filter: blur(10px);
     }
 
-    .titleBlock{ display:flex; flex-direction:column; gap:2px; }
+    .titleBlock{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
 
     h1{
       margin:0;
       font-family: var(--font-head);
-      font-weight: 900;
+      font-weight:900;
       letter-spacing: var(--caps-track);
-      font-size: 18px;
+      font-size:18px;
       line-height: var(--lh-tight);
       text-transform: uppercase;
       color: rgba(255,255,255,.92);
       text-shadow: 0 2px 10px rgba(0,0,0,.35);
     }
+
     .clubName{
       font-family: var(--font-head);
-      font-weight: 900;
-      letter-spacing: .06em;
-      font-size: 12px;
+      font-weight:900;
+      letter-spacing:.06em;
+      font-size:12px;
       opacity:.92;
-      text-transform: uppercase;
+      text-transform:uppercase;
       color: rgba(255,255,255,.86);
       text-shadow: 0 2px 10px rgba(0,0,0,.30);
     }
+
     .meta{
       margin-top:2px;
-      font-size: 12px;
+      font-size:12px;
       color: rgba(255,255,255,.78);
-      font-weight: 800;
+      font-weight:800;
       font-family: var(--font-ui);
-      letter-spacing: .02em;
+      letter-spacing:.02em;
       text-shadow: 0 2px 10px rgba(0,0,0,.30);
     }
 
     .pillRow{
-      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
       justify-content:flex-end;
     }
 
     .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 2px solid rgba(255,255,255,.18);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:2px solid rgba(255,255,255,.18);
       background: rgba(255,255,255,.14);
-      font-weight: 900;
-      font-size: 12px;
+      font-weight:900;
+      font-size:12px;
       white-space:nowrap;
       font-family: var(--font-ui);
-      letter-spacing: .06em;
-      text-transform: uppercase;
+      letter-spacing:.06em;
+      text-transform:uppercase;
       color: rgba(255,255,255,.92);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
     }
+
     .pill.live{
       border-color: rgba(184,255,184,.20);
       background: rgba(47,107,47,.16);
@@ -206,15 +220,19 @@
     }
 
     .actions{
-      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
     }
+
     button, a.btn{
-      border: 2px solid rgba(255,255,255,.16);
+      border:2px solid rgba(255,255,255,.16);
       background: rgba(255,255,255,.12);
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-weight: 900;
-      font-size: 14px;
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:900;
+      font-size:14px;
       cursor:pointer;
       text-decoration:none;
       color: rgba(255,255,255,.92);
@@ -223,73 +241,96 @@
       gap:8px;
       white-space:nowrap;
       font-family: var(--font-ui);
-      letter-spacing: .02em;
+      letter-spacing:.02em;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
     }
+
     button:active, a.btn:active{ transform: translateY(1px); }
-    .primary{ border-color: rgba(180,210,255,.18); background: rgba(13,42,85,.18); }
-    .green{ border-color: rgba(184,255,184,.18); background: rgba(47,107,47,.16); }
+
+    .primary{
+      border-color: rgba(180,210,255,.18);
+      background: rgba(13,42,85,.18);
+    }
+
+    .green{
+      border-color: rgba(184,255,184,.18);
+      background: rgba(47,107,47,.16);
+    }
 
     #sponsorHero{
       display:none;
-      margin-top: 10px;
-      border-radius: 14px;
-      border: 2px solid rgba(255,255,255,.16);
+      margin-top:10px;
+      border-radius:14px;
+      border:2px solid rgba(255,255,255,.16);
       background:
         linear-gradient(135deg, rgba(202,162,74,.14), rgba(13,42,85,.10)),
         rgba(255,255,255,.12);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      padding: 10px 12px;
+      padding:10px 12px;
     }
+
     #sponsorHeroTop{
-      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
     }
+
     #sponsorHeroTitle{
       font-family: var(--font-ui);
-      font-weight: 900;
-      font-size: 12px;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      opacity: .95;
+      font-weight:900;
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      opacity:.95;
       color: rgba(255,255,255,.88);
     }
+
     #sponsorHeroRow{
-      margin-top: 8px;
-      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      margin-top:8px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
     }
+
     #sponsorHeroLogo{
-      width: 44px; height: 44px;
-      border-radius: 12px;
-      object-fit: cover;
-      border: 2px solid rgba(255,255,255,.16);
+      width:44px;
+      height:44px;
+      border-radius:12px;
+      object-fit:cover;
+      border:2px solid rgba(255,255,255,.16);
       background: rgba(0,0,0,.14);
       display:none;
     }
+
     #sponsorHeroName{
       font-family: var(--font-row);
-      font-weight: 900;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-      font-size: 18px;
+      font-weight:900;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      font-size:18px;
       color: rgba(255,255,255,.92);
     }
+
     #sponsorHeroLink{
       display:none;
       border:2px solid rgba(180,210,255,.18);
       background: rgba(13,42,85,.18);
       color: rgba(255,255,255,.92);
-      padding: 8px 10px;
-      border-radius: 12px;
-      font-weight: 900;
+      padding:8px 10px;
+      border-radius:12px;
+      font-weight:900;
       text-decoration:none;
       font-family: var(--font-ui);
-      letter-spacing: .02em;
+      letter-spacing:.02em;
     }
 
     .board{
-      padding: 10px 10px 14px;
+      padding:10px 10px 14px;
       background: var(--glassBoard);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
@@ -297,8 +338,8 @@
 
     .lb-wrap{
       background: linear-gradient(180deg, rgba(15,42,85,.22), rgba(10,31,61,.18));
-      border-radius: 16px;
-      overflow: hidden;
+      border-radius:16px;
+      overflow:hidden;
       box-shadow: 0 20px 40px rgba(0,0,0,.25);
       border: 2px solid var(--panelBorder);
       backdrop-filter: blur(12px);
@@ -307,30 +348,33 @@
 
     .lb-head{
       display:grid;
-      grid-template-columns: 74px 1fr 118px 88px 92px;
+      grid-template-columns:74px 1fr 118px 88px 92px;
       align-items:center;
-      padding: 12px 14px;
+      padding:12px 14px;
       background: linear-gradient(90deg, var(--lbHeadBg1), var(--lbHeadBg2));
       color: rgba(255,255,255,.92);
       font-family: var(--font-ui);
-      font-weight: 800;
-      letter-spacing: .12em;
-      text-transform: uppercase;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
       font-size: var(--hdr);
-      border-bottom: 1px solid rgba(255,255,255,.12);
+      border-bottom:1px solid rgba(255,255,255,.12);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
     }
 
-    .lb-list{ display:flex; flex-direction:column; }
+    .lb-list{
+      display:flex;
+      flex-direction:column;
+    }
 
     .lb-row{
       display:grid;
-      grid-template-columns: 74px 1fr 118px 88px 92px;
+      grid-template-columns:74px 1fr 118px 88px 92px;
       align-items:center;
-      padding: 11px 14px;
+      padding:11px 14px;
       background: var(--lbRowOdd);
-      border-top: 1px solid rgba(255,255,255,.10);
+      border-top:1px solid rgba(255,255,255,.10);
       transition: background .18s ease;
       cursor:pointer;
       font-family: var(--font-row);
@@ -338,6 +382,7 @@
       text-transform: uppercase;
       font-feature-settings: "tnum" 1;
     }
+
     .lb-row:nth-child(even){ background: var(--lbRowEven); }
     .lb-row:hover{ background: var(--lbRowHover); }
     .lb-row:active{ transform: translateY(1px); }
@@ -351,28 +396,39 @@
       align-items:center;
       gap:8px;
       color: rgba(255,255,255,.95);
-      font-weight: 900;
+      font-weight:900;
       letter-spacing: var(--num-track);
       font-size: var(--rank);
       line-height: var(--lh-tight);
     }
+
     .lb-move{
-      width: 22px; height: 22px;
-      border-radius: 999px;
+      width:22px;
+      height:22px;
+      border-radius:999px;
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      font-size: 12px;
-      border: 1px solid rgba(255,255,255,.20);
+      font-size:12px;
+      border:1px solid rgba(255,255,255,.20);
       background: rgba(0,0,0,.18);
     }
-    .lb-move.up{ color:#b8ffb8; border-color: rgba(184,255,184,.35); }
-    .lb-move.down{ color:#ffb8b8; border-color: rgba(255,184,184,.35); }
+
+    .lb-move.up{
+      color:#b8ffb8;
+      border-color: rgba(184,255,184,.35);
+    }
+
+    .lb-move.down{
+      color:#ffb8b8;
+      border-color: rgba(255,184,184,.35);
+    }
 
     .lb-nameWrap{ min-width:0; }
+
     .lb-name{
       color: rgba(255,255,255,.95);
-      font-weight: 900;
+      font-weight:900;
       font-size: var(--name);
       line-height: var(--lh);
       white-space:nowrap;
@@ -380,13 +436,14 @@
       text-overflow:ellipsis;
       text-shadow: 0 2px 10px rgba(0,0,0,.25);
     }
+
     .lb-sub{
-      margin-top: 2px;
+      margin-top:2px;
       font-family: var(--font-ui);
-      font-weight: 900;
+      font-weight:900;
       font-size: var(--sub);
-      letter-spacing: .08em;
-      text-transform: none;
+      letter-spacing:.08em;
+      text-transform:none;
       color: rgba(255,255,255,.88);
       white-space:nowrap;
       overflow:hidden;
@@ -398,49 +455,51 @@
     .lb-score{
       text-align:right;
       color: rgba(255,255,255,.96);
-      font-weight: 900;
+      font-weight:900;
       letter-spacing: var(--num-track);
       font-size: var(--score);
       line-height: var(--lh-tight);
       white-space:nowrap;
       text-shadow: 0 2px 12px rgba(0,0,0,.35);
     }
+
     .lb-score.under{ color:#ff4d4d; }
     .lb-score.even{ color:#ffffff; }
     .lb-score.over{ color:#ffb347; }
+
     .lb-score .evenMark{
       font-family: var(--font-ui);
-      font-weight: 900;
-      letter-spacing: .14em;
+      font-weight:900;
+      letter-spacing:.14em;
     }
 
     .lb-thin{
       text-align:right;
       font-family: var(--font-ui);
-      font-weight: 900;
-      letter-spacing: .04em;
-      font-size: 12px;
+      font-weight:900;
+      letter-spacing:.04em;
+      font-size:12px;
       color: rgba(255,255,255,.88);
       white-space:nowrap;
       text-shadow: 0 2px 10px rgba(0,0,0,.22);
     }
 
     .emptyBox{
-      padding: 14px;
+      padding:14px;
       font-family: var(--font-ui);
-      font-weight: 900;
-      letter-spacing: .02em;
+      font-weight:900;
+      letter-spacing:.02em;
       color: rgba(255,255,255,.90);
       text-shadow: 0 2px 10px rgba(0,0,0,.25);
     }
 
     #ticker{
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 20;
-      border-top: 3px solid rgba(255,255,255,.12);
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      z-index:20;
+      border-top:3px solid rgba(255,255,255,.12);
       background:
         linear-gradient(90deg, rgba(13,42,85,.18), rgba(202,162,74,.16)),
         rgba(20,20,20,.30);
@@ -449,104 +508,118 @@
       display:none;
       color: rgba(255,255,255,.92);
     }
+
     .tickerTop{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
-      padding: 8px 12px;
-      border-bottom: 1px solid rgba(255,255,255,.10);
+      padding:8px 12px;
+      border-bottom:1px solid rgba(255,255,255,.10);
     }
+
     .tickerLabel{
       font-family: var(--font-ui);
-      font-weight: 900;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      font-size: 12px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      font-size:12px;
     }
+
     .tickerHint{
       font-family: var(--font-ui);
-      font-size: 12px;
-      font-weight: 900;
+      font-size:12px;
+      font-weight:900;
       color: rgba(255,255,255,.72);
-      letter-spacing: .02em;
+      letter-spacing:.02em;
     }
-    .tickerTrackWrap{ overflow:hidden; white-space:nowrap; }
+
+    .tickerTrackWrap{
+      overflow:hidden;
+      white-space:nowrap;
+    }
+
     .tickerTrack{
       display:inline-flex;
       align-items:center;
       gap:12px;
-      padding: 10px 12px;
+      padding:10px 12px;
       animation: marquee 24s linear infinite;
       will-change: transform;
     }
+
     @keyframes marquee{
       0%{ transform: translateX(0); }
       100%{ transform: translateX(-50%); }
     }
+
     .sponsorPill{
       display:inline-flex;
       align-items:center;
       gap:10px;
-      padding: 10px 12px;
-      border-radius: 999px;
-      border: 2px solid rgba(255,255,255,.14);
+      padding:10px 12px;
+      border-radius:999px;
+      border:2px solid rgba(255,255,255,.14);
       background: rgba(255,255,255,.12);
       text-decoration:none;
       color: rgba(255,255,255,.92);
-      font-weight: 1000;
-      font-size: 13px;
+      font-weight:1000;
+      font-size:13px;
       cursor:pointer;
       font-family: var(--font-ui);
-      letter-spacing: .02em;
+      letter-spacing:.02em;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
     }
+
     .sponsorPill img{
-      width: 26px; height: 26px;
-      border-radius: 8px;
-      object-fit: cover;
-      border: 2px solid rgba(255,255,255,.14);
+      width:26px;
+      height:26px;
+      border-radius:8px;
+      object-fit:cover;
+      border:2px solid rgba(255,255,255,.14);
       background: rgba(0,0,0,.16);
     }
 
     .modal{
-      position: fixed;
-      inset: 0;
-      z-index: 50;
+      position:fixed;
+      inset:0;
+      z-index:50;
       display:none;
       align-items:flex-end;
       justify-content:center;
       background: rgba(0,0,0,.62);
-      padding: 12px;
+      padding:12px;
     }
+
     .modal.show{ display:flex; }
 
     .sheet{
-      width: min(1020px, 100%);
-      max-height: 90vh;
+      width:min(1020px, 100%);
+      max-height:90vh;
       overflow:auto;
-      border-radius: 18px;
-      border: 2px solid rgba(255,255,255,.18);
+      border-radius:18px;
+      border:2px solid rgba(255,255,255,.18);
       background:
         radial-gradient(circle at 18% 0%, rgba(202,162,74,.22), transparent 60%),
         radial-gradient(circle at 82% 8%, rgba(13,42,85,.22), transparent 65%),
         rgba(239,231,215,.98);
       box-shadow: 0 18px 50px rgba(0,0,0,.45);
-      position: relative;
+      position:relative;
     }
 
     .sheetBanner{
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      padding: 10px 12px;
+      position:sticky;
+      top:0;
+      z-index:10;
+      padding:10px 12px;
       background:
         linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.20)),
         linear-gradient(90deg, var(--fairway1), var(--fairway2));
-      border-bottom: 1px solid rgba(255,255,255,.12);
+      border-bottom:1px solid rgba(255,255,255,.12);
       overflow:hidden;
     }
+
     .sheetBannerTop{
       display:flex;
       justify-content:space-between;
@@ -554,78 +627,84 @@
       align-items:flex-start;
       flex-wrap:wrap;
     }
-    .sheetBannerLeft{ min-width: 220px; }
+
+    .sheetBannerLeft{ min-width:220px; }
+
     .sheetName{
       margin:0;
       font-family: var(--font-head);
-      font-weight: 900;
-      font-size: 18px;
+      font-weight:900;
+      font-size:18px;
       letter-spacing: var(--caps-track);
       color: rgba(255,255,255,.95);
       text-shadow: 0 2px 10px rgba(0,0,0,.35);
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-      max-width: 100%;
-      text-transform: uppercase;
+      max-width:100%;
+      text-transform:uppercase;
     }
+
     .sheetSub{
       margin-top:6px;
       font-family: var(--font-ui);
-      font-weight: 900;
-      font-size: 12px;
+      font-weight:900;
+      font-size:12px;
       color: rgba(255,255,255,.80);
       text-shadow: 0 2px 10px rgba(0,0,0,.35);
       display:flex;
       gap:8px;
       flex-wrap:wrap;
-      letter-spacing: .02em;
+      letter-spacing:.02em;
     }
+
     .tag{
       display:inline-flex;
       align-items:center;
       gap:6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.18);
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
       background: rgba(0,0,0,.18);
       backdrop-filter: blur(6px);
       font-family: var(--font-ui);
-      letter-spacing: .02em;
-      font-weight: 900;
+      letter-spacing:.02em;
+      font-weight:900;
     }
 
     .sheetBannerRight{
       text-align:right;
-      min-width: 160px;
+      min-width:160px;
     }
+
     .bigScore{
       font-family: var(--font-row);
-      font-weight: 900;
-      font-size: 42px;
+      font-weight:900;
+      font-size:42px;
       color: rgba(255,255,255,.96);
       text-shadow: 0 2px 14px rgba(0,0,0,.40);
-      line-height: 1;
-      letter-spacing: .06em;
-      text-transform: uppercase;
+      line-height:1;
+      letter-spacing:.06em;
+      text-transform:uppercase;
     }
+
     .smallScore{
       margin-top:6px;
       font-family: var(--font-ui);
-      font-weight: 900;
-      font-size: 12px;
+      font-weight:900;
+      font-size:12px;
       color: rgba(255,255,255,.78);
       text-shadow: 0 2px 10px rgba(0,0,0,.35);
-      letter-spacing: .02em;
+      letter-spacing:.02em;
     }
 
     .closeBtn{
-      border: 2px solid rgba(255,255,255,.18);
+      border:2px solid rgba(255,255,255,.18);
       background: rgba(0,0,0,.22);
       color: rgba(255,255,255,.92);
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-weight: 900;
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:900;
       cursor:pointer;
       display:inline-flex;
       align-items:center;
@@ -633,47 +712,48 @@
       height: fit-content;
       backdrop-filter: blur(6px);
       font-family: var(--font-ui);
-      letter-spacing: .02em;
+      letter-spacing:.02em;
     }
+
     .closeBtn:active{ transform: translateY(1px); }
 
     .sheetBody{
-      padding: 12px;
+      padding:12px;
       display:grid;
       gap:12px;
     }
 
     .cardBlock{
-      border-radius: 18px;
-      border: 2px solid rgba(202,162,74,.45);
+      border-radius:18px;
+      border:2px solid rgba(202,162,74,.45);
       background: rgba(15,42,85,.48);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      overflow: hidden;
+      overflow:hidden;
       box-shadow:
         0 18px 40px rgba(0,0,0,.45),
         inset 0 1px 0 rgba(255,255,255,.08);
     }
 
     .blockHdr{
-      padding: 10px 12px;
+      padding:10px 12px;
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
-      border-bottom: 1px solid rgba(255,255,255,.10);
+      border-bottom:1px solid rgba(255,255,255,.10);
       background:
         linear-gradient(90deg, rgba(13,42,85,.18), rgba(202,162,74,.14));
       font-family: var(--font-ui);
-      font-weight: 900;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      font-size: 12px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      font-size:12px;
       color: rgba(255,255,255,.92);
     }
 
     .scoreGrid{
-      padding: 12px;
+      padding:12px;
       display:grid;
       gap:10px;
     }
@@ -681,26 +761,27 @@
     .nine{
       display:grid;
       grid-template-columns: repeat(9, 1fr);
-      gap: 9px;
+      gap:9px;
     }
 
     @media (max-width: 900px){
-      .lb-head, .lb-row{ grid-template-columns: 74px 1fr 118px 84px 88px; }
+      .lb-head, .lb-row{ grid-template-columns:74px 1fr 118px 84px 88px; }
       .nine{ grid-template-columns: repeat(3, 1fr); }
     }
+
     @media (max-width: 740px){
-      .lb-head, .lb-row{ grid-template-columns: 74px 1fr 118px; }
+      .lb-head, .lb-row{ grid-template-columns:74px 1fr 118px; }
       .lb-head .colThru, .lb-head .colUpdated,
       .lb-row .colThru, .lb-row .colUpdated{ display:none; }
     }
 
     .holeCell{
-      border-radius: 16px;
-      border: 2px solid rgba(255,255,255,.14);
+      border-radius:16px;
+      border:2px solid rgba(255,255,255,.14);
       background:
         radial-gradient(circle at 30% 0%, rgba(202,162,74,.10), transparent 60%),
         rgba(255,255,255,.86);
-      padding: 10px 8px 10px;
+      padding:10px 8px 10px;
       text-align:center;
       position:relative;
       overflow:hidden;
@@ -714,51 +795,54 @@
       position:relative;
       z-index:1;
     }
+
     .holeBadge{
-      width: 30px; height: 30px;
-      border-radius: 999px;
+      width:30px;
+      height:30px;
+      border-radius:999px;
       display:flex;
       align-items:center;
       justify-content:center;
       font-family: var(--font-row);
-      font-weight: 900;
-      font-size: 14px;
-      border: 2px solid rgba(13,42,85,.18);
+      font-weight:900;
+      font-size:14px;
+      border:2px solid rgba(13,42,85,.18);
       background: rgba(13,42,85,.10);
       color: var(--navy2);
-      letter-spacing: .02em;
+      letter-spacing:.02em;
     }
 
     .holeScore{
-      margin-top: 8px;
+      margin-top:8px;
       font-family: var(--font-row);
-      font-weight: 900;
-      font-size: 24px;
-      color: #111;
-      line-height: 1;
+      font-weight:900;
+      font-size:24px;
+      color:#111;
+      line-height:1;
       position:relative;
       z-index:1;
-      letter-spacing: .02em;
+      letter-spacing:.02em;
     }
 
     .holeMeta{
-      margin-top: 8px;
+      margin-top:8px;
       display:flex;
       justify-content:center;
       gap:6px;
       flex-wrap:wrap;
-      font-size: 10px;
-      font-weight: 900;
+      font-size:10px;
+      font-weight:900;
       color: rgba(0,0,0,.60);
       position:relative;
       z-index:1;
       font-family: var(--font-ui);
-      letter-spacing: .02em;
+      letter-spacing:.02em;
     }
+
     .holeMeta span{
-      padding: 4px 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(0,0,0,.10);
+      padding:4px 6px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.10);
       background: rgba(255,255,255,.78);
     }
 
@@ -769,48 +853,53 @@
     .holeCell.blank{ opacity:.75; background: rgba(255,255,255,.72); }
 
     .sumRow{
-      padding: 10px 12px 12px;
+      padding:10px 12px 12px;
       display:flex;
       gap:10px;
       flex-wrap:wrap;
       justify-content:space-between;
-      border-top: 1px solid rgba(255,255,255,.10);
+      border-top:1px solid rgba(255,255,255,.10);
       background:
         linear-gradient(90deg, rgba(13,42,85,.10), rgba(202,162,74,.08));
     }
+
     .sumPill{
-      display:flex; align-items:baseline; gap:8px;
-      padding: 10px 12px;
-      border-radius: 999px;
-      border: 2px solid rgba(255,255,255,.14);
+      display:flex;
+      align-items:baseline;
+      gap:8px;
+      padding:10px 12px;
+      border-radius:999px;
+      border:2px solid rgba(255,255,255,.14);
       background: rgba(255,255,255,.84);
-      min-width: 160px;
+      min-width:160px;
       justify-content:space-between;
-      font-weight: 1000;
+      font-weight:1000;
       font-family: var(--font-ui);
-      letter-spacing: .02em;
-    }
-    .sumPill b{
-      font-family: var(--font-ui);
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      font-size: 11px;
-      opacity:.9;
-    }
-    .sumPill span{
-      font-family: var(--font-row);
-      font-weight: 900;
-      font-size: 20px;
-      color: var(--navy2);
-      letter-spacing: .04em;
-      text-transform: uppercase;
+      letter-spacing:.02em;
     }
 
-    body.tv .wrap{ max-width: 1400px; padding: 12px 12px 70px; }
-    body.tv h1{ font-size: 22px; }
-    body.tv .courseHeaderMini{ width: 200px; height: 52px; }
-    body.tv .lb-row{ padding: 12px 16px; }
-    body.tv .lb-score{ font-size: 36px; }
+    .sumPill b{
+      font-family: var(--font-ui);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      font-size:11px;
+      opacity:.9;
+    }
+
+    .sumPill span{
+      font-family: var(--font-row);
+      font-weight:900;
+      font-size:20px;
+      color: var(--navy2);
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+
+    body.tv .wrap{ max-width:1400px; padding:12px 12px 70px; }
+    body.tv h1{ font-size:22px; }
+    body.tv .courseHeaderMini{ width:200px; height:52px; }
+    body.tv .lb-row{ padding:12px 16px; }
+    body.tv .lb-score{ font-size:36px; }
   </style>
 </head>
 
@@ -859,6 +948,7 @@
         <div id="viewToggleBar" style="display:none; margin-bottom:10px;">
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <button id="viewLeaderboardBtn" class="primary">🏆 Leaderboard</button>
+            <button id="viewSideGamesBtn">🎯 Side Games</button>
             <button id="viewSkinsBtn">🔥 Skins</button>
           </div>
         </div>
@@ -873,6 +963,14 @@
           </div>
 
           <div class="lb-list" id="list"></div>
+        </div>
+
+        <div class="lb-wrap" id="sideGamesWrap" style="display:none; margin-top:10px;">
+          <div class="lb-head" style="grid-template-columns: 110px 1fr;">
+            <div>GAME</div>
+            <div>RESULT</div>
+          </div>
+          <div class="lb-list" id="sideGamesList"></div>
         </div>
 
         <div class="lb-wrap" id="skinsWrap" style="display:none; margin-top:10px;">
@@ -989,13 +1087,18 @@
     const COURSES = { tradition: COURSE_TRADITION, cypress: COURSE_CYPRESS };
 
     const listEl = document.getElementById("list");
+    const sideGamesListEl = document.getElementById("sideGamesList");
     const skinsListEl = document.getElementById("skinsList");
     const skinsHolesListEl = document.getElementById("skinsHolesList");
+
     const leaderboardWrap = document.getElementById("leaderboardWrap");
+    const sideGamesWrap = document.getElementById("sideGamesWrap");
     const skinsWrap = document.getElementById("skinsWrap");
     const skinsHolesWrap = document.getElementById("skinsHolesWrap");
+
     const viewToggleBar = document.getElementById("viewToggleBar");
     const viewLeaderboardBtn = document.getElementById("viewLeaderboardBtn");
+    const viewSideGamesBtn = document.getElementById("viewSideGamesBtn");
     const viewSkinsBtn = document.getElementById("viewSkinsBtn");
 
     const pageMeta = document.getElementById("pageMeta");
@@ -1036,6 +1139,7 @@
 
     let currentView = "leaderboard";
     let latestEntries = [];
+    let latestSubmissionDocs = [];
 
     let tournament = {
       name: "Tournament",
@@ -1044,6 +1148,13 @@
       courseDefault: "tradition",
       format: "stroke",
       sideGame: "none",
+      sideGames: {
+        skinsEnabled:false,
+        ctpEnabled:false,
+        ctpHoles:[],
+        longDriveEnabled:false,
+        longDriveHoles:[]
+      },
       sponsorName: "",
       sponsorLogo: "",
       sponsorUrl: "",
@@ -1086,6 +1197,22 @@
         .replaceAll(">","&gt;")
         .replaceAll('"',"&quot;")
         .replaceAll("'","&#039;");
+    }
+
+    function normalizeSideGames(raw){
+      const sg = raw || {};
+      const out = {
+        skinsEnabled: !!sg.skinsEnabled,
+        ctpEnabled: !!sg.ctpEnabled,
+        ctpHoles: Array.isArray(sg.ctpHoles) ? sg.ctpHoles.map(n => parseInt(n,10)).filter(n => Number.isFinite(n) && n >= 1 && n <= 18) : [],
+        longDriveEnabled: !!sg.longDriveEnabled,
+        longDriveHoles: Array.isArray(sg.longDriveHoles) ? sg.longDriveHoles.map(n => parseInt(n,10)).filter(n => Number.isFinite(n) && n >= 1 && n <= 18) : []
+      };
+
+      out.ctpHoles = out.ctpHoles.filter((n,i,a) => a.indexOf(n) === i).sort((a,b)=>a-b);
+      out.longDriveHoles = out.longDriveHoles.filter((n,i,a) => a.indexOf(n) === i).sort((a,b)=>a-b);
+
+      return out;
     }
 
     function setCourseHeaderMini(courseId){
@@ -1347,7 +1474,6 @@
 
     function buildEntriesFromSubmissionDoc(docData, docId){
       const deviceId = docId;
-
       const companyOrTeam = (docData.companyName || docData.group || "").trim();
       const playerName = (docData.playerName || "").trim();
       const names = Array.isArray(docData.names) ? docData.names : [];
@@ -1357,9 +1483,7 @@
 
       const courseId = docData.courseId || tournament.courseDefault || "tradition";
       const course = getCourseForEntry(courseId);
-
       const scorerName = playerName || names[0] || "";
-
       const fmt = (tournament.format || "stroke").toLowerCase();
 
       const base = {
@@ -1372,7 +1496,8 @@
         updatedAt,
         courseId,
         course,
-        startHole: docData.startHole || ""
+        startHole: docData.startHole || "",
+        sideGames: docData.sideGames || {}
       };
 
       if (fmt === "scramble"){
@@ -1488,6 +1613,7 @@
           }
         }
       }
+
       if (out.length >= 2 && out[1] === "T1") out[0] = "T1";
       return out;
     }
@@ -1657,32 +1783,142 @@
       `).join("");
     }
 
-    function updateViewButtons(){
-      const skinsEnabled = String(tournament.sideGame || "none").toLowerCase() === "skins";
-      viewToggleBar.style.display = skinsEnabled ? "block" : "none";
+    function getLatestWinnerFor(kind, hole){
+      let winner = "";
+      let latest = -1;
 
-      if (!skinsEnabled){
-        currentView = "leaderboard";
-        leaderboardWrap.style.display = "";
-        skinsWrap.style.display = "none";
-        skinsHolesWrap.style.display = "none";
+      for(const d of latestSubmissionDocs){
+        const sideGames = d.sideGames || {};
+        const group = sideGames[kind] || {};
+        const value = String(group[String(hole)] || "").trim();
+        if (!value) continue;
+
+        const ms = d.updatedAt?.toDate ? d.updatedAt.toDate().getTime() : 0;
+        if (ms >= latest){
+          latest = ms;
+          winner = value;
+        }
+      }
+
+      return winner;
+    }
+
+    function getLatestWinnerTimeFor(kind, hole){
+      let latest = null;
+
+      for(const d of latestSubmissionDocs){
+        const sideGames = d.sideGames || {};
+        const group = sideGames[kind] || {};
+        const value = String(group[String(hole)] || "").trim();
+        if (!value) continue;
+
+        const ms = d.updatedAt?.toDate ? d.updatedAt.toDate().getTime() : 0;
+        if (!latest || ms >= latest.ms){
+          latest = { ms, ts: d.updatedAt };
+        }
+      }
+
+      return latest?.ts || null;
+    }
+        function renderSideGames(){
+      const sg = normalizeSideGames(tournament.sideGames || {});
+      const rows = [];
+
+      if (sg.ctpEnabled && sg.ctpHoles.length){
+        for(const hole of sg.ctpHoles){
+          const winner = getLatestWinnerFor("ctp", hole);
+          const ts = getLatestWinnerTimeFor("ctp", hole);
+          rows.push({
+            game: `CTP ${hole}`,
+            result: winner || "Open",
+            updated: tsToText(ts)
+          });
+        }
+      }
+
+      if (sg.longDriveEnabled && sg.longDriveHoles.length){
+        for(const hole of sg.longDriveHoles){
+          const winner = getLatestWinnerFor("longDrive", hole);
+          const ts = getLatestWinnerTimeFor("longDrive", hole);
+          rows.push({
+            game: `LD ${hole}`,
+            result: winner || "Open",
+            updated: tsToText(ts)
+          });
+        }
+      }
+
+      if (!rows.length){
+        sideGamesListEl.innerHTML = `<div class="emptyBox">No side games enabled for this tournament.</div>`;
         return;
       }
 
-      const showSkins = currentView === "skins";
-      leaderboardWrap.style.display = showSkins ? "none" : "";
-      skinsWrap.style.display = showSkins ? "" : "none";
-      skinsHolesWrap.style.display = showSkins ? "" : "none";
+      sideGamesListEl.innerHTML = rows.map(r => `
+        <div class="lb-row" style="grid-template-columns: 110px 1fr;">
+          <div class="lb-rank" style="font-size:18px;">${escapeHtml(r.game)}</div>
+          <div class="lb-nameWrap">
+            <div class="lb-name">${escapeHtml(r.result)}</div>
+            ${r.updated ? `<div class="lb-sub">Updated ${escapeHtml(r.updated)}</div>` : ``}
+          </div>
+        </div>
+      `).join("");
+    }
 
-      viewLeaderboardBtn.className = showSkins ? "" : "primary";
-      viewSkinsBtn.className = showSkins ? "primary" : "";
+    function hasSideGamesEnabled(){
+      const sg = normalizeSideGames(tournament.sideGames || {});
+      return !!(
+        sg.skinsEnabled ||
+        (sg.ctpEnabled && sg.ctpHoles.length) ||
+        (sg.longDriveEnabled && sg.longDriveHoles.length)
+      );
+    }
+
+    function skinsEnabled(){
+      const sg = normalizeSideGames(tournament.sideGames || {});
+      return !!sg.skinsEnabled || String(tournament.sideGame || "none").toLowerCase() === "skins";
+    }
+
+    function nonSkinsSideGamesEnabled(){
+      const sg = normalizeSideGames(tournament.sideGames || {});
+      return !!(
+        (sg.ctpEnabled && sg.ctpHoles.length) ||
+        (sg.longDriveEnabled && sg.longDriveHoles.length)
+      );
+    }
+
+    function updateViewButtons(){
+      const showBar = hasSideGamesEnabled();
+      const showSkinsBtn = skinsEnabled();
+      const showSideBtn = nonSkinsSideGamesEnabled();
+
+      viewToggleBar.style.display = showBar ? "block" : "none";
+      viewSkinsBtn.style.display = showSkinsBtn ? "inline-flex" : "none";
+      viewSideGamesBtn.style.display = showSideBtn ? "inline-flex" : "none";
+
+      if (!showBar){
+        currentView = "leaderboard";
+      } else {
+        if (currentView === "skins" && !showSkinsBtn) currentView = "leaderboard";
+        if (currentView === "sidegames" && !showSideBtn) currentView = "leaderboard";
+      }
+
+      leaderboardWrap.style.display = currentView === "leaderboard" ? "" : "none";
+      sideGamesWrap.style.display = currentView === "sidegames" ? "" : "none";
+      skinsWrap.style.display = currentView === "skins" ? "" : "none";
+      skinsHolesWrap.style.display = currentView === "skins" ? "" : "none";
+
+      viewLeaderboardBtn.className = currentView === "leaderboard" ? "primary" : "";
+      viewSideGamesBtn.className = currentView === "sidegames" ? "primary" : "";
+      viewSkinsBtn.className = currentView === "skins" ? "primary" : "";
     }
 
     function renderCurrentView(){
       const entries = latestEntries.slice();
 
-      if (currentView === "skins" && String(tournament.sideGame || "none").toLowerCase() === "skins"){
+      if (currentView === "skins" && skinsEnabled()){
         renderSkins(entries);
+      } else if (currentView === "sidegames"){
+        renderSideGames();
       } else {
         sortEntries(entries);
         render(entries);
@@ -1773,8 +2009,11 @@
       modal.classList.remove("show");
       document.body.style.overflow = "";
     }
+
     closeModalBtn.addEventListener("click", closeModal);
-    modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
 
     if (!tournamentId){
       pageMeta.textContent = "Missing tournament id (?t=...)";
@@ -1792,7 +2031,7 @@
         try{
           await navigator.clipboard.writeText(location.href);
           copyBtn.textContent = "✅ Copied";
-          setTimeout(()=> copyBtn.textContent = "📋 Copy Link", 900);
+          setTimeout(() => copyBtn.textContent = "📋 Copy Link", 900);
         }catch(e){
           alert("Copy blocked. Tap the address bar and copy the URL.");
         }
@@ -1805,8 +2044,12 @@
         renderCurrentView();
       });
 
+      viewSideGamesBtn?.addEventListener("click", () => {
+        currentView = "sidegames";
+        renderCurrentView();
+      });
+
       viewSkinsBtn?.addEventListener("click", () => {
-        if (String(tournament.sideGame || "none").toLowerCase() !== "skins") return;
         currentView = "skins";
         renderCurrentView();
       });
@@ -1818,12 +2061,21 @@
           tournament = {
             ...tournament,
             ...t,
+            sideGames: normalizeSideGames(t.sideGames || {}),
             sponsorUrl: t.sponsorUrl || t.sponsorWebsite || t.sponsorLink || "",
             sponsors: Array.isArray(t.sponsors) ? t.sponsors : []
           };
 
+          const skinsOn = skinsEnabled();
+          const sideOn = nonSkinsSideGamesEnabled();
+
           pageMeta.textContent = `${tournament.name || "Tournament"}${tournament.date ? " • " + tournament.date : ""}`;
-          formatPill.textContent = `FORMAT: ${fmtFormat(tournament.format)}${String(tournament.sideGame || "none").toLowerCase() === "skins" ? " • SKINS" : ""}`;
+
+          let fmtText = `FORMAT: ${fmtFormat(tournament.format)}`;
+          if (skinsOn && sideOn) fmtText += ` • SIDE GAMES`;
+          else if (skinsOn) fmtText += ` • SKINS`;
+          else if (sideOn) fmtText += ` • SIDE GAMES`;
+          formatPill.textContent = fmtText;
 
           setCourseHeaderMini(tournament.courseDefault || "tradition");
           renderSponsors();
@@ -1842,7 +2094,7 @@
           statusPill.classList.remove("live");
           hideSponsors();
         }
-      }catch(e){
+      } catch(e){
         pageMeta.textContent = "Tournament load error.";
         statusPill.textContent = "⚠️ ERROR";
         statusPill.classList.remove("live");
@@ -1854,12 +2106,18 @@
 
       onSnapshot(q, (snap) => {
         const entries = [];
+        const docs = [];
+
         snap.forEach(d => {
-          const built = buildEntriesFromSubmissionDoc(d.data() || {}, d.id);
-          for(const b of built) entries.push(b);
+          const data = d.data() || {};
+          docs.push(data);
+
+          const built = buildEntriesFromSubmissionDoc(data, d.id);
+          for (const b of built) entries.push(b);
         });
 
         latestEntries = entries;
+        latestSubmissionDocs = docs;
         renderCurrentView();
       }, () => {
         pageMeta.textContent = "Live updates blocked (rules/network).";
