@@ -30,7 +30,7 @@
       --chip:#ffffff55;
     }
 
-    *{ -webkit-tap-highlight-color: transparent; }
+    *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
     body{
       margin:0;
       background: var(--paper);
@@ -317,6 +317,68 @@
       font-variant-numeric: tabular-nums;
     }
 
+    .sidegames{
+      display:none;
+      margin: 12px 10px 0;
+      padding: 12px;
+      border: 2px dashed rgba(0,0,0,.18);
+      border-radius: 12px;
+      background: rgba(255,255,255,.38);
+    }
+    .sidegames.show{ display:block; }
+    .sidegames-title{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:15px;
+      letter-spacing:.04em;
+    }
+    .sidegames-note{
+      margin-top:6px;
+      font-size:12px;
+      opacity:.82;
+      font-weight:800;
+      line-height:1.35;
+    }
+    .sidegames-grid{
+      display:grid;
+      gap:12px;
+      margin-top:12px;
+    }
+    .sidegame-block{
+      border:2px solid rgba(122,74,11,.14);
+      border-radius:12px;
+      background: rgba(255,255,255,.58);
+      padding:10px;
+      display:grid;
+      gap:10px;
+    }
+    .sidegame-block-title{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:13px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+    .sidegame-row{
+      display:grid;
+      grid-template-columns: 120px 1fr;
+      gap:10px;
+      align-items:center;
+    }
+    .sidegame-hole{
+      font-weight:900;
+      font-size:13px;
+    }
+    .sidegame-select{
+      width:100%;
+      border:2px solid var(--border);
+      border-radius:10px;
+      background:#fff;
+      padding:10px;
+      font-weight:900;
+      font-size:15px;
+    }
+
     .actions{
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -396,6 +458,12 @@
     input:disabled{
       cursor:not-allowed;
       opacity:.72;
+    }
+
+    @media (max-width: 620px){
+      .sidegame-row{
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -479,7 +547,7 @@
       </div>
 
       <div id="lockBanner" class="lockBanner">
-        Complete the tournament form above to unlock player names, score entry, and tournament actions.
+        Complete the tournament form above to unlock player names, score entry, side games, and tournament actions.
       </div>
 
       <div id="scorecardStage">
@@ -492,6 +560,14 @@
               <tbody id="tbody"></tbody>
             </table>
           </div>
+        </div>
+
+        <div id="sideGamesPanel" class="sidegames">
+          <div class="sidegames-title">Side Games</div>
+          <div class="sidegames-note" id="sideGamesNote">
+            Select winners for enabled side games. These choices will update the live tournament data.
+          </div>
+          <div class="sidegames-grid" id="sideGamesGrid"></div>
         </div>
 
         <div class="actions">
@@ -628,6 +704,10 @@
     const lockBanner = document.getElementById("lockBanner");
     const scorecardStage = document.getElementById("scorecardStage");
 
+    const sideGamesPanel = document.getElementById("sideGamesPanel");
+    const sideGamesGrid = document.getElementById("sideGamesGrid");
+    const sideGamesNote = document.getElementById("sideGamesNote");
+
     let currentCourseId = "tradition";
     let tournamentId = null;
     let isTournamentMode = false;
@@ -636,6 +716,14 @@
     let rosterNames = [];
     let sponsorUrl = "";
     let joinCompleted = false;
+
+    let tournamentSideGames = {
+      skinsEnabled: false,
+      ctpEnabled: false,
+      ctpHoles: [],
+      longDriveEnabled: false,
+      longDriveHoles: []
+    };
 
     document.getElementById("yr").textContent = String(new Date().getFullYear());
 
@@ -687,10 +775,30 @@
       };
     }
 
+    function normalizeTournamentSideGames(raw){
+      const sg = raw || {};
+      const clean = {
+        skinsEnabled: !!sg.skinsEnabled,
+        ctpEnabled: !!sg.ctpEnabled,
+        ctpHoles: Array.isArray(sg.ctpHoles)
+          ? sg.ctpHoles.map(n => parseInt(n,10)).filter(n => Number.isFinite(n) && n >= 1 && n <= 18)
+          : [],
+        longDriveEnabled: !!sg.longDriveEnabled,
+        longDriveHoles: Array.isArray(sg.longDriveHoles)
+          ? sg.longDriveHoles.map(n => parseInt(n,10)).filter(n => Number.isFinite(n) && n >= 1 && n <= 18)
+          : []
+      };
+
+      clean.ctpHoles = clean.ctpHoles.filter((n,i,a) => a.indexOf(n) === i).sort((a,b)=>a-b);
+      clean.longDriveHoles = clean.longDriveHoles.filter((n,i,a) => a.indexOf(n) === i).sort((a,b)=>a-b);
+
+      return clean;
+    }
+
     function storageKeyFor(courseId){
       const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
       const fPart = tournamentFormat ? `_f_${tournamentFormat}` : "";
-      return `scorecard_state_${courseId}${tPart}${fPart}_v5`;
+      return `scorecard_state_${courseId}${tPart}${fPart}_v6`;
     }
 
     function startHoleKey(){
@@ -753,10 +861,106 @@
       }
     }
 
+    function getRosterOptionNames(){
+      const fromRoster = Array.isArray(rosterNames) ? rosterNames.map(s => String(s||"").trim()).filter(Boolean) : [];
+      const fromInputs = Array.from(document.querySelectorAll(".player-name")).map(el => String(el.value || "").trim()).filter(Boolean);
+      const merged = [...fromRoster, ...fromInputs];
+      const seen = new Set();
+      return merged.filter(name => {
+        const k = name.toLowerCase();
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+    }
+
+    function sideGameSelectHtml(kind, hole, selectedValue, disabled){
+      const names = getRosterOptionNames();
+      const opts = [
+        `<option value="">Select winner</option>`,
+        ...names.map(name => `<option value="${escapeHtmlAttr(name)}"${selectedValue === name ? " selected" : ""}>${escapeHtml(name)}</option>`)
+      ].join("");
+
+      return `
+        <div class="sidegame-row">
+          <div class="sidegame-hole">Hole ${hole}</div>
+          <select class="sidegame-select" data-sidegame="${kind}" data-hole="${hole}" ${disabled ? "disabled" : ""}>
+            ${opts}
+          </select>
+        </div>
+      `;
+    }
+
+    function renderSideGamesPanel(savedSideGames = null){
+      sideGamesGrid.innerHTML = "";
+
+      const hasCtp = tournamentSideGames.ctpEnabled && tournamentSideGames.ctpHoles.length;
+      const hasLong = tournamentSideGames.longDriveEnabled && tournamentSideGames.longDriveHoles.length;
+
+      if(!isTournamentMode || (!hasCtp && !hasLong)){
+        sideGamesPanel.classList.remove("show");
+        return;
+      }
+
+      const saved = savedSideGames || { ctp:{}, longDrive:{} };
+      const disabled = !joinCompleted;
+
+      if(disabled){
+        sideGamesNote.textContent = "Join the tournament first, then select winners for enabled side games.";
+      }else{
+        sideGamesNote.textContent = "Select winners for enabled side games. These choices will update the live tournament data.";
+      }
+
+      if(hasCtp){
+        const block = document.createElement("div");
+        block.className = "sidegame-block";
+        block.innerHTML = `
+          <div class="sidegame-block-title">Closest to the Pin</div>
+          ${tournamentSideGames.ctpHoles.map(h => sideGameSelectHtml("ctp", h, saved?.ctp?.[String(h)] || "", disabled)).join("")}
+        `;
+        sideGamesGrid.appendChild(block);
+      }
+
+      if(hasLong){
+        const block = document.createElement("div");
+        block.className = "sidegame-block";
+        block.innerHTML = `
+          <div class="sidegame-block-title">Long Drive</div>
+          ${tournamentSideGames.longDriveHoles.map(h => sideGameSelectHtml("longDrive", h, saved?.longDrive?.[String(h)] || "", disabled)).join("")}
+        `;
+        sideGamesGrid.appendChild(block);
+      }
+
+      sideGamesPanel.classList.add("show");
+
+      sideGamesGrid.querySelectorAll(".sidegame-select").forEach(sel => {
+        sel.addEventListener("change", () => {
+          saveState();
+        });
+      });
+    }
+
+    function readSideGamesFromDOM(){
+      const out = { ctp:{}, longDrive:{} };
+
+      document.querySelectorAll(".sidegame-select").forEach(sel => {
+        const kind = sel.getAttribute("data-sidegame");
+        const hole = String(sel.getAttribute("data-hole") || "").trim();
+        const val = String(sel.value || "").trim();
+        if(!hole || !val) return;
+
+        if(kind === "ctp") out.ctp[hole] = val;
+        if(kind === "longDrive") out.longDrive[hole] = val;
+      });
+
+      return out;
+    }
+
     function getScoreLockTargets(){
       return {
         playerNames: Array.from(document.querySelectorAll(".player-name")),
         scoreInputs: Array.from(document.querySelectorAll(".score-input")),
+        sideGameInputs: Array.from(document.querySelectorAll(".sidegame-select")),
         saveBtn: document.getElementById("saveImg"),
         shareBtn: document.getElementById("share"),
         finishBtn: document.getElementById("finishRound"),
@@ -766,10 +970,11 @@
     }
 
     function setPreJoinLock(locked){
-      const { playerNames, scoreInputs, saveBtn, shareBtn, finishBtn, clearBtn, courseSel } = getScoreLockTargets();
+      const { playerNames, scoreInputs, sideGameInputs, saveBtn, shareBtn, finishBtn, clearBtn, courseSel } = getScoreLockTargets();
 
       playerNames.forEach(el => el.disabled = !!locked);
       scoreInputs.forEach(el => el.disabled = !!locked);
+      sideGameInputs.forEach(el => el.disabled = !!locked);
 
       if(saveBtn) saveBtn.disabled = !!locked;
       if(shareBtn) shareBtn.disabled = !!locked;
@@ -914,7 +1119,8 @@
             const el = document.getElementById(`p${p}_h${h+1}`);
             return el ? (el.value || "") : "";
           })
-        )
+        ),
+        sideGames: readSideGamesFromDOM()
       };
       localStorage.setItem(key, JSON.stringify(state));
 
@@ -924,7 +1130,10 @@
     function loadState(){
       const key = storageKeyFor(currentCourseId);
       const raw = localStorage.getItem(key);
-      if(!raw) return;
+      if(!raw) {
+        renderSideGamesPanel();
+        return;
+      }
 
       try{
         const state = JSON.parse(raw);
@@ -942,7 +1151,11 @@
         });
 
         for(let i=0;i<playersCount;i++) recalcPlayer(i);
-      }catch(e){}
+
+        renderSideGamesPanel(state.sideGames || null);
+      }catch(e){
+        renderSideGamesPanel();
+      }
     }
 
     function clearState(){
@@ -969,6 +1182,9 @@
       document.querySelectorAll(".score-input").forEach(el=>{
         el.disabled=true;
       });
+      document.querySelectorAll(".sidegame-select").forEach(el=>{
+        el.disabled=true;
+      });
     }
 
     function wireInputs(){
@@ -987,7 +1203,10 @@
       }
 
       document.querySelectorAll(".player-name").forEach(inp => {
-        inp.addEventListener("input", saveState);
+        inp.addEventListener("input", () => {
+          renderSideGamesPanel(readSideGamesFromDOM());
+          saveState();
+        });
       });
     }
 
@@ -1142,11 +1361,13 @@
 
       clearBtn.addEventListener("click", () => {
         if (isTournamentMode && !joinCompleted) return;
-        if(!confirm("Clear all scores for this course?")) return;
+        if(!confirm("Clear all scores and side game selections for this course?")) return;
         document.querySelectorAll(".score-input").forEach(i => i.value = "");
         document.querySelectorAll(".player-name").forEach(i => i.value = "");
+        document.querySelectorAll(".sidegame-select").forEach(i => i.value = "");
         clearState();
         for (let i=0;i<playersCount;i++) recalcPlayer(i);
+        renderSideGamesPanel();
         if (isTournamentMode && joinCompleted) scheduleTournamentPush();
       });
 
@@ -1189,8 +1410,8 @@
           await setDoc(subRef,{
             roundStatus:"finished",
             finishedHoles:finishHoles,
-            finishedAt:serverTimestamp(),
-            updatedAt:serverTimestamp()
+            updatedAt:serverTimestamp(),
+            finishedAt:serverTimestamp()
           },{merge:true});
 
           alert(`Round finished (${finishHoles} holes).`);
@@ -1225,6 +1446,8 @@
 
             const courseDefault = (t.courseDefault || "tradition").toString().trim();
             currentCourseId = COURSES[courseDefault] ? courseDefault : "tradition";
+
+            tournamentSideGames = normalizeTournamentSideGames(t.sideGames || {});
 
             const sName = t.sponsorName || "";
             const sLogo = t.sponsorLogo || "";
@@ -1293,6 +1516,7 @@
 
       joinCompleted = true;
       joinScreen.style.display = "none";
+      renderSideGamesPanel(readSideGamesFromDOM());
       setPreJoinLock(false);
 
       saveState();
@@ -1307,6 +1531,13 @@
       isTournamentMode = false;
       tournamentId = null;
       tournamentFormat = "stroke";
+      tournamentSideGames = {
+        skinsEnabled:false,
+        ctpEnabled:false,
+        ctpHoles:[],
+        longDriveEnabled:false,
+        longDriveHoles:[]
+      };
       playersCount = 6;
       startHoleSelected = "";
       rosterNames = [];
@@ -1361,6 +1592,8 @@
         ? rosterNames
         : [playerName, ...(payload.names || []).slice(1)].filter(Boolean).slice(0, 6);
 
+      const sideGames = readSideGamesFromDOM();
+
       try{
         await setDoc(subRef, {
           deviceId,
@@ -1373,12 +1606,26 @@
           rosterNames: rosterSafe,
           scoresFlat: payload.scoresFlat,
           totals: payload.totals,
+          sideGames,
           updatedAt: serverTimestamp()
         }, { merge:true });
       } catch (e) {
         console.error("WRITE FAILED ❌", e);
         alert("Firestore write failed: " + (e?.message || e));
       }
+    }
+
+    function escapeHtml(s){
+      return String(s || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function escapeHtmlAttr(s){
+      return escapeHtml(s);
     }
 
     async function hardRefreshApp(){
