@@ -1385,57 +1385,91 @@
 
       return filled.length ? filled[0] : null;
     }
+function enforceStartHoleLock(){
+  if(!isTournamentMode || !joinCompleted || roundFinished){
+    return;
+  }
 
-    function wireInputs(){
-      for (let i=0;i<playersCount;i++){
-        for (let h=1;h<=18;h++){
-          const el = document.getElementById(`p${i}_h${h}`);
-          if(!el) continue;
+  const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
+  if(!norm) return;
 
-          el.addEventListener("input", () => {
-            if(roundFinished){
-              el.value = sanitizeScoreValue(el.value, tournamentFormat === "scramble");
-              return;
-            }
+  const scoreInputs = getAllScoreInputs();
+  const anyFilled = scoreInputs.some(inp => String(inp.value || "").trim() !== "");
 
-            const beforeAnyScore = !hasAnyEnteredScore();
-            const rawHole = parseInt(el.id.split("_h")[1],10);
-            const isScoreRowAllowed = (tournamentFormat !== "scramble") || i === 0;
+  if(anyFilled){
+    scoreInputs.forEach(inp => {
+      const isScoreRowAllowed =
+        (tournamentFormat !== "scramble") ||
+        inp.id.startsWith("p0_");
 
-            if(!isScoreRowAllowed){
-              el.value = "";
-              return;
-            }
+      inp.disabled = !isScoreRowAllowed || roundFinished;
+    });
+    return;
+  }
 
-            if(isTournamentMode && joinCompleted){
-              const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
-              if(norm && beforeAnyScore && rawHole !== norm.holeNum){
-                alert(`Your first score must be entered on hole ${norm.holeNum}.`);
-                el.value = "";
-                return;
-              }
-            }
+  scoreInputs.forEach(inp => {
+    const holeNum = parseInt(inp.id.split("_h")[1], 10);
+    const isStartHole = holeNum === norm.holeNum;
+    const isScoreRowAllowed =
+      (tournamentFormat !== "scramble") ||
+      inp.id.startsWith("p0_");
 
-            el.value = sanitizeScoreValue(el.value, tournamentFormat === "scramble");
-            recalcPlayer(i);
-            saveState();
-          });
+    inp.disabled = !(isStartHole && isScoreRowAllowed) || roundFinished;
+  });
+}
+    
+
+function wireInputs(){
+  for (let i=0;i<playersCount;i++){
+    for (let h=1;h<=18;h++){
+      const el = document.getElementById(`p${i}_h${h}`);
+      if(!el) continue;
+
+      el.addEventListener("input", () => {
+        if(roundFinished){
+          el.value = sanitizeScoreValue(el.value, tournamentFormat === "scramble");
+          return;
         }
-        recalcPlayer(i);
-      }
 
-      document.querySelectorAll(".player-name").forEach(inp => {
-        inp.addEventListener("input", () => {
-          if(roundFinished){
-            inp.blur();
-            return;
-          }
-          renderSideGamesPanel(readSideGamesFromDOM());
-          saveState();
-        });
+        const isScoreRowAllowed = (tournamentFormat !== "scramble") || i === 0;
+        if(!isScoreRowAllowed){
+          el.value = "";
+          return;
+        }
+
+        el.value = sanitizeScoreValue(el.value, tournamentFormat === "scramble");
+        recalcPlayer(i);
+        saveState();
+        enforceStartHoleLock();
+      });
+
+      el.addEventListener("focus", () => {
+        if(roundFinished){
+          el.blur();
+          return;
+        }
+
+        if(isTournamentMode && joinCompleted){
+          enforceStartHoleLock();
+        }
       });
     }
+    recalcPlayer(i);
+  }
 
+  document.querySelectorAll(".player-name").forEach(inp => {
+    inp.addEventListener("input", () => {
+      if(roundFinished){
+        inp.blur();
+        return;
+      }
+      renderSideGamesPanel(readSideGamesFromDOM());
+      saveState();
+    });
+  });
+
+  enforceStartHoleLock();
+}
     function build(){
       const course = COURSES[currentCourseId];
       courseTitle.textContent = course.title;
