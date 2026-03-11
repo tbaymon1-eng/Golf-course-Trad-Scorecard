@@ -716,6 +716,7 @@
     let rosterNames = [];
     let sponsorUrl = "";
     let joinCompleted = false;
+    let roundFinished = false;
 
     let tournamentSideGames = {
       skinsEnabled: false,
@@ -746,6 +747,19 @@
       if(!s) return "";
       if(/^https?:\/\//i.test(s)) return s;
       return "https://" + s;
+    }
+
+    function escapeHtml(s){
+      return String(s || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function escapeHtmlAttr(s){
+      return escapeHtml(s);
     }
 
     function applySponsorUI(name, logo, url){
@@ -798,12 +812,17 @@
     function storageKeyFor(courseId){
       const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
       const fPart = tournamentFormat ? `_f_${tournamentFormat}` : "";
-      return `scorecard_state_${courseId}${tPart}${fPart}_v6`;
+      return `scorecard_state_${courseId}${tPart}${fPart}_v7`;
     }
 
     function startHoleKey(){
       const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
-      return `scorecard_startHole${tPart}_v2`;
+      return `scorecard_startHole${tPart}_v3`;
+    }
+
+    function joinFormKey(){
+      const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
+      return `scorecard_join_form${tPart}_v3`;
     }
 
     function makeDeviceId(){
@@ -843,6 +862,116 @@
       return { label: `${holeNum}${suffix}`, holeNum };
     }
 
+    function saveJoinFormState(extra = {}){
+      if(!isTournamentMode || !tournamentId) return;
+
+      const payload = {
+        scorerName: String(joinName.value || "").trim(),
+        groupName: String(joinGroup.value || "").trim(),
+        startHole: String(joinStartHole.value || "").trim().toUpperCase(),
+        mates: [
+          String(joinMate1.value || "").trim(),
+          String(joinMate2.value || "").trim(),
+          String(joinMate3.value || "").trim(),
+          String(joinMate4.value || "").trim(),
+          String(joinMate5.value || "").trim()
+        ],
+        joinCompleted: !!joinCompleted,
+        roundFinished: !!roundFinished,
+        rosterNames: Array.isArray(rosterNames) ? rosterNames : [],
+        ...extra
+      };
+
+      localStorage.setItem(joinFormKey(), JSON.stringify(payload));
+    }
+
+    function loadJoinFormState(){
+      if(!isTournamentMode || !tournamentId) return null;
+      const raw = localStorage.getItem(joinFormKey());
+      if(!raw) return null;
+
+      try{
+        return JSON.parse(raw);
+      }catch(e){
+        return null;
+      }
+    }
+
+    function clearJoinFormState(){
+      if(!isTournamentMode || !tournamentId) return;
+      localStorage.removeItem(joinFormKey());
+    }
+
+    function applyJoinFormState(saved){
+      if(!saved) return;
+
+      joinName.value = saved.scorerName || "";
+      joinGroup.value = saved.groupName || "";
+      joinStartHole.value = saved.startHole || "";
+
+      const mates = Array.isArray(saved.mates) ? saved.mates : [];
+      joinMate1.value = mates[0] || "";
+      joinMate2.value = mates[1] || "";
+      joinMate3.value = mates[2] || "";
+      joinMate4.value = mates[3] || "";
+      joinMate5.value = mates[4] || "";
+
+      if(Array.isArray(saved.rosterNames) && saved.rosterNames.length){
+        rosterNames = saved.rosterNames.slice(0,6);
+      }
+
+      joinCompleted = !!saved.joinCompleted;
+      roundFinished = !!saved.roundFinished;
+
+      const norm = normalizeStartHole(saved.startHole || "");
+      if(norm){
+        startHoleSelected = norm.label;
+      }
+    }
+
+    async function slotAlreadyTaken(slotLabel){
+      if(!db || !tournamentId) return false;
+
+      try{
+        const ref = doc(db, "tournaments", tournamentId, "assignments", slotLabel);
+        const snap = await getDoc(ref);
+        if(!snap.exists()) return false;
+
+        const d = snap.data() || {};
+        const myDeviceId = makeDeviceId();
+
+        if((d.deviceId || "") === myDeviceId) return false;
+        return true;
+      }catch(e){
+        console.warn("Slot check failed", e);
+        return false;
+      }
+    }
+
+    async function reserveSlot(slotLabel){
+      if(!db || !tournamentId) return;
+
+      const ref = doc(db, "tournaments", tournamentId, "assignments", slotLabel);
+      await setDoc(ref,{
+        slot: slotLabel,
+        deviceId: makeDeviceId(),
+        scorerName: String(joinName.value || "").trim(),
+        rosterNames: Array.isArray(rosterNames) ? rosterNames : [],
+        status: "active",
+        updatedAt: serverTimestamp()
+      }, { merge:true });
+    }
+
+    async function markSlotFinished(slotLabel){
+      if(!db || !tournamentId || !slotLabel) return;
+
+      const ref = doc(db, "tournaments", tournamentId, "assignments", slotLabel);
+      await setDoc(ref,{
+        status: "finished",
+        updatedAt: serverTimestamp()
+      }, { merge:true });
+    }
+
     function scrollToStartHole(hole){
       const h = Number(hole);
       if(!h || h < 1 || h > 18) return;
@@ -874,7 +1003,44 @@
       });
     }
 
-    function sideGameSelectHtml(kind, hole, selectedValue, disabled){
+    function setPlayerRowNames(names){
+      const list = Array.isArray(names) ? names : [];
+      const inputs = Array.from(document.querySelectorAll(".player-name"));
+      for(let i=0;i<inputs.length;i++){
+        inputs[i].value = list[i] || "";
+      }
+    }
+
+    function applyScoresFlatToDOM(scoresFlat){
+      if(!scoresFlat) return;
+      for(let p=0; p<playersCount; p++){
+        for(let h=1; h<=18; h++){
+          const el = document.getElementById(`p${p}_h${h}`);
+          const key = `p${p}_h${h}`;
+          if(el) el.value = String(scoresFlat[key] || "");
+        }
+      }
+      for(let i=0;i<playersCount;i++) recalcPlayer(i);
+    }
+
+    function getAllScoreInputs(){
+      return Array.from(document.querySelectorAll(".score-input"));
+    }
+
+    function hasAnyEnteredScore(){
+      return getAllScoreInputs().some(el => String(el.value || "").trim() !== "");
+    }
+
+    function sanitizeScoreValue(raw, isScramble){
+      let v = String(raw || "");
+      if(isScramble){
+        v = v.replace(/\D/g,"").slice(0,1);
+      }else{
+        v = v.replace(/\D/g,"").slice(0,2);
+      }
+      return v;
+    }
+        function sideGameSelectHtml(kind, hole, selectedValue, disabled){
       const names = getRosterOptionNames();
       const opts = [
         `<option value="">Select winner</option>`,
@@ -903,10 +1069,12 @@
       }
 
       const saved = savedSideGames || { ctp:{}, longDrive:{} };
-      const disabled = !joinCompleted;
+      const disabled = !joinCompleted || roundFinished;
 
       if(disabled){
-        sideGamesNote.textContent = "Join the tournament first, then select winners for enabled side games.";
+        sideGamesNote.textContent = roundFinished
+          ? "This round has been finalized. Side games are locked."
+          : "Join the tournament first, then select winners for enabled side games.";
       }else{
         sideGamesNote.textContent = "Select winners for enabled side games. These choices will update the live tournament data.";
       }
@@ -972,18 +1140,24 @@
     function setPreJoinLock(locked){
       const { playerNames, scoreInputs, sideGameInputs, saveBtn, shareBtn, finishBtn, clearBtn, courseSel } = getScoreLockTargets();
 
-      playerNames.forEach(el => el.disabled = !!locked);
-      scoreInputs.forEach(el => el.disabled = !!locked);
-      sideGameInputs.forEach(el => el.disabled = !!locked);
+      playerNames.forEach(el => el.disabled = !!locked || roundFinished);
+      scoreInputs.forEach(el => el.disabled = !!locked || roundFinished);
+      sideGameInputs.forEach(el => el.disabled = !!locked || roundFinished);
 
       if(saveBtn) saveBtn.disabled = !!locked;
       if(shareBtn) shareBtn.disabled = !!locked;
-      if(finishBtn) finishBtn.disabled = !!locked;
-      if(clearBtn) clearBtn.disabled = !!locked;
-      if(courseSel) courseSel.disabled = !!locked;
+      if(finishBtn) finishBtn.disabled = !!locked || roundFinished;
+      if(clearBtn) clearBtn.disabled = !!locked || roundFinished;
+      if(courseSel) courseSel.disabled = !!locked || roundFinished;
 
       if(lockBanner){
-        lockBanner.classList.toggle("show", !!locked);
+        if(roundFinished){
+          lockBanner.textContent = "This round has been finalized and is now locked.";
+          lockBanner.classList.add("show");
+        }else{
+          lockBanner.textContent = "Complete the tournament form above to unlock player names, score entry, side games, and tournament actions.";
+          lockBanner.classList.toggle("show", !!locked);
+        }
       }
       if(scorecardStage){
         scorecardStage.classList.toggle("lockedStage", !!locked);
@@ -1058,13 +1232,14 @@
 
     function cellInput(playerIdx, holeNum){
       const id = `p${playerIdx}_h${holeNum}`;
+      const maxlength = tournamentFormat === "scramble" ? "1" : "2";
       return `
         <td>
           <input
             id="${id}"
             class="score-input"
-            inputmode="text"
-            maxlength="3"
+            inputmode="numeric"
+            maxlength="${maxlength}"
             autocomplete="off"
           />
         </td>
@@ -1120,11 +1295,18 @@
             return el ? (el.value || "") : "";
           })
         ),
-        sideGames: readSideGamesFromDOM()
+        sideGames: readSideGamesFromDOM(),
+        roundFinished: !!roundFinished
       };
       localStorage.setItem(key, JSON.stringify(state));
 
-      if (isTournamentMode && joinCompleted) scheduleTournamentPush();
+      saveJoinFormState({
+        joinCompleted,
+        roundFinished,
+        rosterNames
+      });
+
+      if (isTournamentMode && joinCompleted && !roundFinished) scheduleTournamentPush();
     }
 
     function loadState(){
@@ -1149,6 +1331,8 @@
             if(el) el.value = v || "";
           });
         });
+
+        roundFinished = !!state.roundFinished;
 
         for(let i=0;i<playersCount;i++) recalcPlayer(i);
 
@@ -1179,12 +1363,27 @@
     }
 
     function lockScorecard(){
+      roundFinished = true;
       document.querySelectorAll(".score-input").forEach(el=>{
+        el.disabled=true;
+      });
+      document.querySelectorAll(".player-name").forEach(el=>{
         el.disabled=true;
       });
       document.querySelectorAll(".sidegame-select").forEach(el=>{
         el.disabled=true;
       });
+      setPreJoinLock(false);
+      saveState();
+    }
+
+    function firstFilledScoreHole(){
+      const filled = getAllScoreInputs()
+        .filter(el => String(el.value || "").trim() !== "")
+        .map(el => parseInt(el.id.split("_h")[1],10))
+        .filter(n => Number.isFinite(n));
+
+      return filled.length ? filled[0] : null;
     }
 
     function wireInputs(){
@@ -1194,7 +1393,30 @@
           if(!el) continue;
 
           el.addEventListener("input", () => {
-            el.value = (el.value || "").slice(0,3);
+            if(roundFinished){
+              el.value = sanitizeScoreValue(el.value, tournamentFormat === "scramble");
+              return;
+            }
+
+            const beforeAnyScore = !hasAnyEnteredScore();
+            const rawHole = parseInt(el.id.split("_h")[1],10);
+            const isScoreRowAllowed = (tournamentFormat !== "scramble") || i === 0;
+
+            if(!isScoreRowAllowed){
+              el.value = "";
+              return;
+            }
+
+            if(isTournamentMode && joinCompleted){
+              const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
+              if(norm && beforeAnyScore && rawHole !== norm.holeNum){
+                alert(`Your first score must be entered on hole ${norm.holeNum}.`);
+                el.value = "";
+                return;
+              }
+            }
+
+            el.value = sanitizeScoreValue(el.value, tournamentFormat === "scramble");
             recalcPlayer(i);
             saveState();
           });
@@ -1204,6 +1426,10 @@
 
       document.querySelectorAll(".player-name").forEach(inp => {
         inp.addEventListener("input", () => {
+          if(roundFinished){
+            inp.blur();
+            return;
+          }
           renderSideGamesPanel(readSideGamesFromDOM());
           saveState();
         });
@@ -1218,8 +1444,8 @@
 
       hintLine.textContent =
         tournamentFormat === "scramble"
-          ? "Scramble: enter ONE team score row. Start Hole jumps you to your first hole. Out/In/Tot auto-calc."
-          : "Start Hole jumps you to your first hole. Swipe to scroll. Tap a box to type. Out/In/Tot auto-calc.";
+          ? "Scramble: enter ONE team score row. First score must start on your selected start hole. One digit per hole. Out/In/Tot auto-calc."
+          : "Start Hole jumps you to your first hole. First score must be entered on that hole. Swipe to scroll. Tap a box to type. Out/In/Tot auto-calc.";
 
       tbody.innerHTML = "";
       buildHeader();
@@ -1235,6 +1461,10 @@
 
       wireInputs();
       loadState();
+
+      if(Array.isArray(rosterNames) && rosterNames.length){
+        setPlayerRowNames(rosterNames);
+      }
 
       if(isTournamentMode){
         const saved = (localStorage.getItem(startHoleKey()) || "").trim();
@@ -1261,6 +1491,10 @@
         return;
       }
 
+      if (roundFinished && courseId !== currentCourseId){
+        return;
+      }
+
       currentCourseId = courseId;
       build();
     }
@@ -1279,6 +1513,7 @@
       if (Math.abs(dx) < 50) return;
 
       if (isTournamentMode && !joinCompleted) return;
+      if (roundFinished) return;
 
       if (dx < 0) setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
       else        setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
@@ -1361,12 +1596,16 @@
 
       clearBtn.addEventListener("click", () => {
         if (isTournamentMode && !joinCompleted) return;
+        if (roundFinished) return;
         if(!confirm("Clear all scores and side game selections for this course?")) return;
         document.querySelectorAll(".score-input").forEach(i => i.value = "");
         document.querySelectorAll(".player-name").forEach(i => i.value = "");
         document.querySelectorAll(".sidegame-select").forEach(i => i.value = "");
         clearState();
         for (let i=0;i<playersCount;i++) recalcPlayer(i);
+        if(Array.isArray(rosterNames) && rosterNames.length){
+          setPlayerRowNames(rosterNames);
+        }
         renderSideGamesPanel();
         if (isTournamentMode && joinCompleted) scheduleTournamentPush();
       });
@@ -1374,6 +1613,11 @@
       finishBtn?.addEventListener("click", async () => {
         if(!isTournamentMode || !tournamentId || !joinCompleted){
           alert("Finish Round only works after you join the tournament.");
+          return;
+        }
+
+        if(roundFinished){
+          alert("This round is already finalized.");
           return;
         }
 
@@ -1414,6 +1658,15 @@
             finishedAt:serverTimestamp()
           },{merge:true});
 
+          roundFinished = true;
+          await markSlotFinished(startHoleSelected || String(norm.label || ""));
+          saveJoinFormState({
+            joinCompleted: true,
+            roundFinished: true,
+            rosterNames
+          });
+          saveState();
+
           alert(`Round finished (${finishHoles} holes).`);
           lockScorecard();
         }catch(e){
@@ -1431,6 +1684,7 @@
       tournamentId = tId;
       isTournamentMode = true;
       joinCompleted = false;
+      roundFinished = false;
 
       joinScreen.style.display = "block";
       joinMeta.textContent = `Tournament ID: ${tournamentId}`;
@@ -1454,11 +1708,37 @@
             const sUrl  = t.sponsorUrl || t.sponsorWebsite || t.sponsorLink || "";
             applySponsorUI(sName, sLogo, sUrl);
 
+            const savedJoin = loadJoinFormState();
+
             build();
-            setPreJoinLock(true);
+
+            if(savedJoin){
+              applyJoinFormState(savedJoin);
+
+              if(Array.isArray(rosterNames) && rosterNames.length){
+                setPlayerRowNames(rosterNames);
+              }
+
+              if(joinCompleted){
+                joinScreen.style.display = "none";
+                renderSideGamesPanel(readSideGamesFromDOM());
+                setPreJoinLock(false);
+
+                const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
+                if(norm){
+                  setTimeout(() => scrollToStartHole(norm.holeNum), 250);
+                }
+              }else{
+                joinScreen.style.display = "block";
+                setPreJoinLock(true);
+              }
+            }else{
+              joinScreen.style.display = "block";
+              setPreJoinLock(true);
+            }
 
             const saved = (localStorage.getItem(startHoleKey()) || "").trim();
-            if(saved) joinStartHole.value = saved;
+            if(saved && !joinStartHole.value) joinStartHole.value = saved;
           }
         }catch(e){
           console.warn("Tournament settings load failed", e);
@@ -1466,8 +1746,22 @@
       }
     }
 
+    joinName.addEventListener("input", () => saveJoinFormState());
+    joinGroup.addEventListener("input", () => saveJoinFormState());
+    joinStartHole.addEventListener("input", () => saveJoinFormState());
+    joinMate1.addEventListener("input", () => saveJoinFormState());
+    joinMate2.addEventListener("input", () => saveJoinFormState());
+    joinMate3.addEventListener("input", () => saveJoinFormState());
+    joinMate4.addEventListener("input", () => saveJoinFormState());
+    joinMate5.addEventListener("input", () => saveJoinFormState());
+
     joinBtn.addEventListener("click", async () => {
       if (!tournamentId) return;
+
+      if(roundFinished){
+        alert("This round is already finalized and cannot be reopened.");
+        return;
+      }
 
       const norm = normalizeStartHole(joinStartHole.value);
       if (!norm) {
@@ -1494,6 +1788,12 @@
         return;
       }
 
+      const taken = await slotAlreadyTaken(norm.label);
+      if(taken){
+        alert(`Starting hole ${norm.label} is already assigned. Please choose another.`);
+        return;
+      }
+
       let all = [scorerName, ...matesRaw].slice(0, 6);
 
       const seen = new Set();
@@ -1513,11 +1813,19 @@
 
       startHoleSelected = norm.label;
       localStorage.setItem(startHoleKey(), startHoleSelected);
+      await reserveSlot(norm.label);
 
       joinCompleted = true;
+      roundFinished = false;
       joinScreen.style.display = "none";
       renderSideGamesPanel(readSideGamesFromDOM());
       setPreJoinLock(false);
+
+      saveJoinFormState({
+        joinCompleted: true,
+        roundFinished: false,
+        rosterNames
+      });
 
       saveState();
       scheduleTournamentPush();
@@ -1527,6 +1835,7 @@
 
     joinCancel.addEventListener("click", () => {
       joinCompleted = false;
+      roundFinished = false;
       joinScreen.style.display = "none";
       isTournamentMode = false;
       tournamentId = null;
@@ -1569,7 +1878,7 @@
 
     let pushTimer = null;
     function scheduleTournamentPush(){
-      if (!db || !tournamentId || !authReady || !joinCompleted) return;
+      if (!db || !tournamentId || !authReady || !joinCompleted || roundFinished) return;
       if (pushTimer) clearTimeout(pushTimer);
       pushTimer = setTimeout(pushTournamentNow, 250);
     }
@@ -1607,25 +1916,13 @@
           scoresFlat: payload.scoresFlat,
           totals: payload.totals,
           sideGames,
+          roundStatus: roundFinished ? "finished" : "active",
           updatedAt: serverTimestamp()
         }, { merge:true });
       } catch (e) {
         console.error("WRITE FAILED ❌", e);
         alert("Firestore write failed: " + (e?.message || e));
       }
-    }
-
-    function escapeHtml(s){
-      return String(s || "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    function escapeHtmlAttr(s){
-      return escapeHtml(s);
     }
 
     async function hardRefreshApp(){
