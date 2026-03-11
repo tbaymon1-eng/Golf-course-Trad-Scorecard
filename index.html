@@ -1757,7 +1757,7 @@ function wireInputs(){
                 joinScreen.style.display = "none";
                 renderSideGamesPanel(readSideGamesFromDOM());
                 setPreJoinLock(false);
-
+                enforceStartHoleLock();
                 const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
                 if(norm){
                   setTimeout(() => scrollToStartHole(norm.holeNum), 250);
