@@ -1854,6 +1854,7 @@ function wireInputs(){
       joinScreen.style.display = "none";
       renderSideGamesPanel(readSideGamesFromDOM());
       setPreJoinLock(false);
+      enforceStartHoleLock();
 
       saveJoinFormState({
         joinCompleted: true,
