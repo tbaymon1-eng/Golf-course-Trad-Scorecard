@@ -624,3 +624,156 @@
     }
   </style>
 </head>
+  <body>
+  <div class="wrap">
+    <div class="card" id="card">
+
+      <img id="courseHeader" class="header-img" src="./assets/cypresswood_header.png" alt="Scorecard Header" />
+
+      <div id="teamPickerScreen">
+        <div class="team-picker-top">
+          <div class="team-picker-title">Select Your Team</div>
+          <div class="team-picker-meta" id="teamPickerMeta">
+            Scan the tournament QR code, then tap your team below to start scoring.
+          </div>
+        </div>
+
+        <div class="team-picker-search">
+          <input id="teamSearchInput" placeholder="Search by team, captain, player, or hole…" />
+        </div>
+
+        <div id="teamList" class="team-list"></div>
+        <div id="teamPickerEmpty" class="team-picker-empty">
+          No matching teams found.
+        </div>
+      </div>
+
+      <div id="joinScreen">
+        <div style="font-family:Cinzel,serif; font-weight:900; font-size:16px;">Join Tournament</div>
+        <div id="joinMeta" style="margin-top:6px; font-size:13px; opacity:.85;"></div>
+
+        <div style="display:grid; gap:10px; margin-top:12px;">
+
+          <label style="font-weight:900; font-size:13px;">
+            Your Name (Scorer)
+            <input id="joinName" autocomplete="name"
+              style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
+          </label>
+
+          <div class="team-mates-block">
+            <div style="font-family:Cinzel,serif; font-weight:900; font-size:13px; opacity:.9;">Team Players</div>
+            <label>Teammate 1 <input id="joinMate1" placeholder="Teammate name"></label>
+            <label>Teammate 2 <input id="joinMate2" placeholder="Teammate name"></label>
+            <label>Teammate 3 <input id="joinMate3" placeholder="Teammate name"></label>
+            <label>Teammate 4 <input id="joinMate4" placeholder="Teammate name"></label>
+            <label>Teammate 5 <input id="joinMate5" placeholder="Teammate name"></label>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <label style="font-weight:900; font-size:13px;">
+              Company Name
+              <input id="joinGroup"
+                style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
+            </label>
+
+            <label style="font-weight:900; font-size:13px;">
+              Start Hole
+              <input id="joinStartHole" placeholder="2A" inputmode="text" autocapitalize="characters"
+                style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
+              <div style="margin-top:6px; font-size:12px; opacity:.8;">
+                Examples: <b>2A</b>, <b>10B</b>
+              </div>
+            </label>
+          </div>
+
+          <button id="joinBtn" style="border:2px solid #7a4a0b; background:#2f6b2f; color:#fff; border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
+            Join & Start Scoring
+          </button>
+
+          <button id="joinCancel" style="border:2px solid #7a4a0b; background:#e7ddcb; border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
+            Back to Team List
+          </button>
+
+          <div style="font-size:12px; opacity:.85; line-height:1.3;">
+            By joining, you agree to our <a href="./terms.html">Terms</a> and <a href="./privacy.html">Privacy Policy</a>.
+          </div>
+        </div>
+      </div>
+
+      <div id="scoreSponsor" role="button" aria-label="Tournament Sponsor">
+        <div id="scoreSponsorTitle">Tournament Sponsor</div>
+        <div id="scoreSponsorRow">
+          <img id="scoreSponsorLogo" alt="Sponsor Logo" />
+          <div id="scoreSponsorName"></div>
+        </div>
+      </div>
+
+      <div class="coursebar" id="courseSwipeZone">
+        <div>
+          <div class="course-title" id="courseTitle">Tradition Course</div>
+          <div class="course-hint" id="courseHint">Swipe left/right here to switch courses</div>
+        </div>
+
+        <select class="course-select" id="courseSelect" aria-label="Select course">
+          <option value="tradition">Tradition</option>
+          <option value="cypress">Cypress</option>
+        </select>
+      </div>
+
+      <div id="lockBanner" class="lockBanner">
+        Select your team above to unlock player names, score entry, side games, and tournament actions.
+      </div>
+
+      <div id="scorecardStage">
+        <div class="table-shell">
+          <div class="hint" id="hintLine">Swipe left/right inside the table to scroll. Tap a box to type. Out/In/Tot auto-calc.</div>
+
+          <div class="scroll-x" id="scrollX">
+            <table id="scoreTable">
+              <thead><tr id="hdrRow"></tr></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="sideGamesPanel" class="sidegames">
+          <div class="sidegames-title">Side Games</div>
+          <div class="sidegames-note" id="sideGamesNote">
+            Select winners for enabled side games. These choices will update the live tournament data.
+          </div>
+          <div class="sidegames-grid" id="sideGamesGrid"></div>
+        </div>
+
+        <div class="actions">
+          <button id="saveImg">Save as Image</button>
+
+          <a
+            id="bookBtn"
+            href="https://foresightcypress.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225"
+            target="_blank"
+            class="book-btn"
+          >
+            Book Your Next Tee Time Here!
+          </a>
+
+          <button id="share">Share</button>
+          <button id="finishRound">✅ Finish Round</button>
+          <button class="danger" id="clear">Clear Card</button>
+          <button class="mini" id="refreshApp">Refresh App (update)</button>
+        </div>
+      </div>
+
+      <div class="legal">
+        <div class="left">
+          <a href="./privacy.html">Privacy</a>
+          <a href="./terms.html">Terms</a>
+        </div>
+        <div class="right">
+          © <span id="yr"></span> Electronic Scorecard Solutions (DBA) • Elb Solutions LLC
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
