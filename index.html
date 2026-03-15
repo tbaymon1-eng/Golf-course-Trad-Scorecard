@@ -777,3 +777,95 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
+  authDomain: "cypresswood-tournaments.firebaseapp.com",
+  projectId: "cypresswood-tournaments",
+  storageBucket: "cypresswood-tournaments.firebasestorage.app",
+  messagingSenderId: "162441374966",
+  appId: "1:162441374966:web:157285a2d5c39db1e810d7",
+  measurementId: "G-HL6Y9CLV8K"
+};
+
+let db = null;
+let authReady = false;
+
+try {
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  await signInAnonymously(auth);
+  db = getFirestore(app);
+  authReady = true;
+  console.log("Firebase ready ✅");
+} catch (e) {
+  console.error("Firebase init/auth failed ❌", e);
+  alert("Firebase init/auth failed: " + (e?.message || e));
+}
+
+const COURSE_TRADITION = {
+  id: "tradition",
+  title: "Tradition Course",
+  headerImg: "./assets/cypresswood_header.png",
+  teeRows: [
+    { css:"row-black", label:"Black Tees", front:[465,384,203,448,606,376,528,196,453], out:3657, back:[405,256,545,464,185,394,472,318,546], inn:3563, tot:7220 },
+    { css:"row-blue", label:"Blue Tees", front:[373,356,195,422,565,343,508,169,409], out:3340, back:[370,211,518,423,169,357,439,291,520], inn:3298, tot:6638 },
+    { css:"row-white", label:"White Tees", front:[348,328,169,398,547,311,482,169,394], out:3146, back:[348,187,468,395,151,328,378,265,496], inn:3016, tot:6162 },
+    { css:"row-silver", label:"Silver Tees", front:[348,328,129,528,461,277,482,107,305], out:2765, back:[315,153,413,348,151,328,318,215,435], inn:2676, tot:5441 }
+  ],
+  parFront:[4,4,3,4,5,4,5,3,4],
+  parBack:[4,3,5,4,3,4,4,4,5],
+  hcpFront:[7,17,11,1,3,13,9,15,5],
+  hcpBack:[14,8,10,6,18,12,2,16,4],
+  bottomRow:{ css:"row-copper", label:"Copper Tees", front:[296,287,117,242,411,277,388,107,284], out:2409, back:[315,131,400,318,75,245,291,215,386], inn:2376, tot:4785 }
+};
+
+const COURSE_CYPRESS = {
+  id: "cypress",
+  title: "Cypress Course",
+  headerImg: "./assets/cypress_header.png",
+  teeRows: [
+    { css:"row-blue", label:"Blue", front:[514,396,387,426,182,417,160,563,427], out:3472, back:[416,409,388,349,149,586,193,531,413], inn:3434, tot:6906 },
+    { css:"row-forest", label:"Forest", front:[485,335,326,375,155,361,137,527,352], out:3053, back:[381,368,354,320,117,546,160,490,379], inn:3115, tot:6168 }
+  ],
+  parFront:[5,4,4,4,3,4,3,5,4],
+  parBack:[4,4,4,4,3,5,3,5,4],
+  hcpFront:[3,13,11,7,15,9,17,1,5],
+  hcpBack:[6,10,12,14,18,2,16,4,8],
+  extraRow:{ css:"row-silver", label:"Silver", front:[456,328,297,337,119,337,137,499,321], out:2831, back:[277,315,319,320,117,515,127,461,342], inn:2793, tot:5624 },
+  bottomRow:{ css:"row-copper", label:"Copper - Ladies", front:[401,268,257,265,79,302,83,419,284], out:2358, back:[257,296,249,295,92,445,93,375,284], inn:2386, tot:4744 }
+};
+
+const COURSES = {
+  tradition: COURSE_TRADITION,
+  cypress: COURSE_CYPRESS
+};
+
+let currentCourseId = "tradition";
+let tournamentId = null;
+let isTournamentMode = false;
+let startHoleSelected = "";
+let rosterNames = [];
+let joinCompleted = false;
+let roundFinished = false;
+
+const teamPickerScreen = document.getElementById("teamPickerScreen");
+const teamList = document.getElementById("teamList");
+const teamSearchInput = document.getElementById("teamSearchInput");
+const teamPickerEmpty = document.getElementById("teamPickerEmpty");
+
+const joinScreen = document.getElementById("joinScreen");
+
+const courseSelect = document.getElementById("courseSelect");
+const courseTitle = document.getElementById("courseTitle");
+const courseHeaderImg = document.getElementById("courseHeader");
+
+const tbody = document.getElementById("tbody");
+const hdrRow = document.getElementById("hdrRow");
+
+document.getElementById("yr").textContent = new Date().getFullYear();
