@@ -555,7 +555,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const params = new URLSearchParams(location.search);
-const tournamentId = (params.get("t") || "").trim();
+const tournamentId = (params.get("id") || params.get("t") || "").trim();
 
 /* ---------------------------------------------------- */
 /* DOM REFERENCES */
