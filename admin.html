@@ -394,7 +394,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
@@ -455,12 +455,31 @@
         .filter(n => Number.isFinite(n) && n >= 1 && n <= 18);
     }
 
+    function cleanTournamentId(raw){
+      return String(raw || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-_]/g, "");
+    }
+
+    function buildBasePath(){
+      const path = location.pathname;
+      if(path.endsWith("/admin.html")){
+        return location.origin + path.replace(/admin\.html$/, "");
+      }
+      const idx = path.lastIndexOf("/");
+      return location.origin + path.slice(0, idx + 1);
+    }
+
     function buildLinks(tournamentId){
-      const base = location.origin + location.pathname.replace("admin.html","");
-      const registration = `${base}register-complete.html?t=${encodeURIComponent(tournamentId)}`;
-      const roster = `${base}roster.html?t=${encodeURIComponent(tournamentId)}`;
-      const scoring = `${base}index.html?t=${encodeURIComponent(tournamentId)}`;
-      const leaderboard = `${base}leaderboard.html?t=${encodeURIComponent(tournamentId)}`;
+      const safeId = encodeURIComponent(tournamentId);
+      const base = buildBasePath();
+
+      const registration = `${base}register-complete.html?t=${safeId}`;
+      const roster = `${base}roster.html?t=${safeId}`;
+      const scoring = `${base}index.html?t=${safeId}`;
+      const leaderboard = `${base}leaderboard.html?t=${safeId}`;
 
       regLink.textContent = registration;
       rosterLink.textContent = roster;
@@ -473,21 +492,37 @@
       openLeaderboard.href = leaderboard;
     }
 
-    async function copyText(text){
+    async function copyText(text, btn){
       try{
         await navigator.clipboard.writeText(text);
+        if(btn){
+          const old = btn.textContent;
+          btn.textContent = "✅ Copied";
+          setTimeout(() => btn.textContent = old, 900);
+        }
       }catch(e){
         alert("Copy blocked. Copy manually.");
       }
     }
 
-    copyReg.onclick = () => copyText(regLink.textContent);
-    copyRoster.onclick = () => copyText(rosterLink.textContent);
-    copyScore.onclick = () => copyText(scoringLink.textContent);
-    copyLead.onclick = () => copyText(leaderboardLink.textContent);
+    function showStatus(msg){
+      statusBox.classList.add("show");
+      statusBox.textContent = msg;
+    }
+
+    copyReg.onclick = () => copyText(regLink.textContent, copyReg);
+    copyRoster.onclick = () => copyText(rosterLink.textContent, copyRoster);
+    copyScore.onclick = () => copyText(scoringLink.textContent, copyScore);
+    copyLead.onclick = () => copyText(leaderboardLink.textContent, copyLead);
+
+    idInput.addEventListener("blur", () => {
+      idInput.value = cleanTournamentId(idInput.value);
+    });
 
     saveBtn.addEventListener("click", async () => {
-      const id = (idInput.value || "").trim();
+      const id = cleanTournamentId(idInput.value);
+      idInput.value = id;
+
       if(!id){
         alert("Tournament ID required.");
         return;
@@ -502,6 +537,7 @@
         sponsorName: sponsorName.value || "",
         sponsorLogo: sponsorLogo.value || "",
         sponsorUrl: sponsorUrl.value || "",
+        updatedAt: serverTimestamp(),
         sideGames:{
           skinsEnabled: skinsEnabled.checked,
           ctpEnabled: ctpEnabled.checked,
@@ -514,8 +550,7 @@
       try{
         await setDoc(doc(db,"tournaments",id), data, { merge:true });
         buildLinks(id);
-        statusBox.classList.add("show");
-        statusBox.textContent = "Tournament saved successfully.";
+        showStatus("Tournament saved successfully.");
       }catch(e){
         console.error(e);
         alert("Save failed.");
@@ -523,7 +558,9 @@
     });
 
     loadBtn.addEventListener("click", async () => {
-      const id = (idInput.value || "").trim();
+      const id = cleanTournamentId(idInput.value);
+      idInput.value = id;
+
       if(!id){
         alert("Enter tournament ID to load.");
         return;
@@ -558,9 +595,7 @@
         longDriveHolesInput.value = (t?.sideGames?.longDriveHoles || []).join(", ");
 
         buildLinks(id);
-
-        statusBox.classList.add("show");
-        statusBox.textContent = "Tournament loaded.";
+        showStatus("Tournament loaded.");
       }catch(e){
         console.error(e);
         alert("Load failed.");
