@@ -524,4 +524,317 @@
       </div>
     </div>
   </div>
+  <script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  onSnapshot,
+  query,
+  serverTimestamp,
+  writeBatch
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
+  authDomain: "cypresswood-tournaments.firebaseapp.com",
+  projectId: "cypresswood-tournaments",
+  storageBucket: "cypresswood-tournaments.firebasestorage.app",
+  messagingSenderId: "162441374966",
+  appId: "1:162441374966:web:157285a2d5c39db1e810d7",
+  measurementId: "G-HL6Y9CLV8K"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const params = new URLSearchParams(location.search);
+const tournamentId = (params.get("t") || "").trim();
+
+/* ---------------------------------------------------- */
+/* DOM REFERENCES */
+/* ---------------------------------------------------- */
+
+const title = document.getElementById("title");
+const meta = document.getElementById("meta");
+
+const leaderBtn = document.getElementById("leaderBtn");
+const joinBtn = document.getElementById("joinBtn");
+
+const refreshBtn = document.getElementById("refreshBtn");
+const copyBtn = document.getElementById("copyBtn");
+const autoAssignBtn = document.getElementById("autoAssignBtn");
+const addTeamBtn = document.getElementById("addTeamBtn");
+
+const searchInput = document.getElementById("searchInput");
+const statusFilter = document.getElementById("statusFilter");
+
+const teamCountEl = document.getElementById("teamCount");
+const assignedCountEl = document.getElementById("assignedCount");
+const openSlotHintEl = document.getElementById("openSlotHint");
+const uniqueCountEl = document.getElementById("uniqueCount");
+
+const tbody = document.getElementById("tbody");
+const emptyState = document.getElementById("emptyState");
+const textOut = document.getElementById("textOut");
+
+/* MODAL */
+
+const teamModal = document.getElementById("teamModal");
+const closeModalBtn = document.getElementById("closeModalBtn");
+
+const modalTitle = document.getElementById("modalTitle");
+
+const teamNameInput = document.getElementById("teamNameInput");
+const assignedHoleInput = document.getElementById("assignedHoleInput");
+const captainNameInput = document.getElementById("captainNameInput");
+const statusInput = document.getElementById("statusInput");
+const playersInput = document.getElementById("playersInput");
+
+const saveTeamBtn = document.getElementById("saveTeamBtn");
+const deleteTeamBtn = document.getElementById("deleteTeamBtn");
+
+/* ---------------------------------------------------- */
+/* STATE */
+/* ---------------------------------------------------- */
+
+let tournamentMeta = null;
+let registrations = [];
+let editingId = null;
+
+/* ---------------------------------------------------- */
+/* HELPERS */
+/* ---------------------------------------------------- */
+
+function norm(v){
+  return String(v || "").trim().replace(/\s+/g," ");
+}
+
+function normalizePlayers(arr){
+
+  const out=[];
+  const seen=new Set();
+
+  (arr||[]).forEach(p=>{
+    const n=norm(p);
+    if(!n) return;
+    const key=n.toLowerCase();
+    if(seen.has(key)) return;
+    seen.add(key);
+    out.push(n);
+  });
+
+  return out.slice(0,6);
+}
+
+function parsePlayersTextarea(text){
+  return normalizePlayers(
+    String(text||"").split(/\n+/)
+  );
+}
+
+function normalizeStatus(v){
+
+  const s=String(v||"").toLowerCase();
+
+  if(["registered","assigned","checked_in","scoring","finished","cancelled"].includes(s))
+    return s;
+
+  return "registered";
+}
+
+function humanStatus(v){
+
+  const s=normalizeStatus(v);
+
+  if(s==="checked_in") return "Checked In";
+
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
+
+/* ---------------------------------------------------- */
+/* HOLE ASSIGNMENT ENGINE */
+/* ---------------------------------------------------- */
+
+function normalizeHoleLabel(raw){
+
+  const s=String(raw||"").trim().toUpperCase();
+
+  if(!s) return "";
+
+  const m=s.match(/^([1-9]|1[0-8])([A-Z])$/);
+
+  if(!m) return "";
+
+  return `${parseInt(m[1])}${m[2]}`;
+}
+
+function holeSortKey(label){
+
+  const s=normalizeHoleLabel(label);
+
+  if(!s) return {hole:999,wave:999};
+
+  const m=s.match(/^([1-9]|1[0-8])([A-Z])$/);
+
+  const hole=parseInt(m[1]);
+  const wave=m[2].charCodeAt(0)-65;
+
+  return {hole,wave};
+}
+
+function compareHoleLabels(a,b){
+
+  const A=holeSortKey(a);
+  const B=holeSortKey(b);
+
+  if(A.wave!==B.wave) return A.wave-B.wave;
+
+  return A.hole-B.hole;
+}
+
+/* ---------------------------------------------------- */
+/* SLOT GENERATOR */
+/* ---------------------------------------------------- */
+
+function buildSlotSequence(maxWaves=8){
+
+  const slots=[];
+
+  for(let wave=0;wave<maxWaves;wave++){
+
+    const letter=String.fromCharCode(65+wave);
+
+    for(let hole=1;hole<=18;hole++){
+
+      slots.push(`${hole}${letter}`);
+
+    }
+
+  }
+
+  return slots;
+}
+
+function getUsedSlots(){
+
+  const set=new Set();
+
+  registrations.forEach(r=>{
+
+    const hole=normalizeHoleLabel(r.assignedHole);
+
+    if(!hole) return;
+
+    if(normalizeStatus(r.status)==="cancelled") return;
+
+    set.add(hole);
+
+  });
+
+  return set;
+}
+
+function getNextAvailableHole(){
+
+  const used=getUsedSlots();
+
+  const slots=buildSlotSequence(12);
+
+  for(const slot of slots){
+
+    if(!used.has(slot))
+      return slot;
+
+  }
+
+  return "";
+}
+
+/* ---------------------------------------------------- */
+/* UTILS */
+/* ---------------------------------------------------- */
+
+function uniquePlayerCount(){
+
+  const set=new Set();
+
+  registrations.forEach(r=>{
+
+    if(normalizeStatus(r.status)==="cancelled") return;
+
+    normalizePlayers(r.players).forEach(p=>{
+      set.add(p.toLowerCase());
+    });
+
+  });
+
+  return set.size;
+}
+
+function registrationsToText(){
+
+  const lines=[];
+
+  lines.push(`Tournament: ${(tournamentMeta?.name || "Tournament")}`);
+
+  if(tournamentMeta?.date)
+    lines.push(`Date: ${tournamentMeta.date}`);
+
+  lines.push("");
+
+  registrations
+  .slice()
+  .sort((a,b)=>compareHoleLabels(a.assignedHole,b.assignedHole))
+  .forEach(r=>{
+
+    lines.push(`${r.teamName} | Hole ${r.assignedHole || "—"} | ${humanStatus(r.status)}`);
+
+    if(r.captainName)
+      lines.push(`Captain: ${r.captainName}`);
+
+    normalizePlayers(r.players).forEach(p=>{
+      lines.push(`- ${p}`);
+    });
+
+    lines.push("");
+
+  });
+
+  return lines.join("\n");
+}
+
+/* ---------------------------------------------------- */
+/* LOAD TOURNAMENT META */
+/* ---------------------------------------------------- */
+
+async function loadTournamentMeta(){
+
+  if(!tournamentId){
+
+    meta.textContent="Missing tournament id";
+    return;
+
+  }
+
+  joinBtn.href=`./index.html?t=${tournamentId}`;
+  leaderBtn.href=`./leaderboard.html?t=${tournamentId}`;
+
+  const snap=await getDoc(doc(db,"tournaments",tournamentId));
+
+  if(snap.exists()){
+
+    tournamentMeta=snap.data();
+
+    meta.textContent=`${tournamentMeta.name || "Tournament"} • ${tournamentMeta.date || ""}`;
+
+  }
+
+}
   
