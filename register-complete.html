@@ -3,549 +3,735 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Complete Team Registration</title>
+  <title>Tournament Registration</title>
 
-  <meta name="theme-color" content="#0d2a55" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#d9d1c2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --navy:#0d2a55;
-      --gold:#caa24a;
-      --green:#2f6b2f;
-      --danger:#b6422d;
-      --border: rgba(255,255,255,.18);
-      --ink: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.75);
-      --panel: rgba(255,255,255,.08);
+      --bg:#d9d1c2;
+      --panel:#ece7dc;
+      --panel-2:#e8e2d6;
+      --ink:#2f2a26;
+      --muted:#6c645c;
+      --line:#9a6217;
+      --line-soft:#d2cbc0;
+      --white:#ffffff;
+      --green:#2f7a31;
+      --blue:#12356f;
+      --shadow:0 8px 24px rgba(0,0,0,.06);
+      --radius:26px;
+      --radius-sm:18px;
     }
 
-    *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-
+    *{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; }
     body{
+      background:var(--bg);
+      color:var(--ink);
+      font-family:"Barlow", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+
+    .page{
+      width:min(920px, calc(100vw - 22px));
+      margin:18px auto 30px;
+      background:rgba(255,255,255,.18);
+      border:6px solid rgba(154,98,23,.45);
+      border-radius:32px;
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .main-card{
+      background:rgba(255,255,255,.18);
+      border:3px solid rgba(154,98,23,.75);
+      border-radius:28px;
+      overflow:hidden;
+    }
+
+    .hero{
+      padding:22px 20px 20px;
+      border-bottom:2px solid rgba(0,0,0,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
+      text-align:center;
+    }
+
+    .course-brand{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      margin-bottom:16px;
+    }
+
+    .course-logo-wrap{
+      width:min(220px, 60vw);
+      min-height:86px;
+      border-radius:22px;
+      border:3px solid rgba(154,98,23,.45);
+      background:rgba(255,255,255,.32);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:14px;
+      overflow:hidden;
+    }
+
+    .course-logo-wrap img{
+      max-width:100%;
+      max-height:76px;
+      object-fit:contain;
+      display:block;
+    }
+
+    .course-brand-name{
+      font-family:"Cinzel", serif;
+      font-size:clamp(18px, 3vw, 30px);
+      font-weight:800;
+      color:#2e2a28;
+      line-height:1.02;
+    }
+
+    .event-title{
       margin:0;
-      font-family: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 20% 0%, rgba(202,162,74,.18), transparent 55%),
-        linear-gradient(180deg, rgba(13,42,85,.72), rgba(0,0,0,.45)),
-        #0d2a55;
-      min-height:100vh;
-    }
-
-    .wrap{
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 16px 12px 24px;
-    }
-
-    .card{
-      border: 2px solid var(--border);
-      background: var(--panel);
-      border-radius: 18px;
-      padding: 14px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 18px 44px rgba(0,0,0,.25);
-    }
-
-    h1{
-      margin:0;
-      font-family: "Cinzel", Georgia, serif;
-      font-weight: 900;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      font-size: 20px;
-      line-height: 1.08;
-    }
-
-    .meta{
-      margin-top:6px;
-      color: var(--muted);
-      font-weight: 800;
-      font-size: 13px;
+      font-family:"Cinzel", serif;
       letter-spacing:.02em;
-      line-height: 1.35;
+      color:#2e2a28;
+      font-size:clamp(30px, 6vw, 58px);
+      line-height:.98;
+      font-weight:900;
+    }
+
+    .event-meta{
+      margin:14px auto 0;
+      max-width:760px;
+      font-size:clamp(17px, 2.8vw, 28px);
+      line-height:1.08;
+      color:#4b4641;
+      font-weight:700;
+    }
+
+    .hero-divider{
+      width:100%;
+      height:2px;
+      margin:18px 0 16px;
+      background:linear-gradient(90deg, transparent, rgba(154,98,23,.55), transparent);
+    }
+
+    .sponsor-hero{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+    }
+
+    .sponsor-kicker{
+      font-family:"Cinzel", serif;
+      font-size:clamp(14px, 2.2vw, 20px);
+      font-weight:800;
+      letter-spacing:.05em;
+      color:#6d5730;
+    }
+
+    .sponsor-logo-wrap{
+      width:min(240px, 64vw);
+      min-height:84px;
+      border-radius:22px;
+      border:3px solid rgba(154,98,23,.45);
+      background:rgba(255,255,255,.34);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:14px;
+      overflow:hidden;
+    }
+
+    .sponsor-logo-wrap img{
+      max-width:100%;
+      max-height:74px;
+      object-fit:contain;
+      display:block;
+    }
+
+    .sponsor-name{
+      font-size:clamp(20px, 3.4vw, 34px);
+      font-weight:900;
+      color:#2d2824;
+      line-height:1.04;
+    }
+
+    .sponsor-link{
+      color:#1b5fc8;
+      font-size:clamp(15px, 2.3vw, 18px);
+      font-weight:800;
+      text-decoration:none;
+      word-break:break-word;
+    }
+
+    .content{
+      padding:20px;
     }
 
     .notice{
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 14px;
-      border: 2px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.18);
-      font-size: 13px;
-      font-weight: 800;
-      color: rgba(255,255,255,.88);
-      line-height: 1.4;
-    }
-
-    .form{
-      margin-top: 14px;
-      display:grid;
-      gap:12px;
-    }
-
-    .grid2{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
-    }
-
-    .field label{
-      display:block;
-      font-size:12px;
-      font-weight:1000;
-      letter-spacing:.10em;
-      text-transform:uppercase;
-      color:rgba(255,255,255,.86);
-      margin-bottom:6px;
-    }
-
-    input, textarea{
-      width:100%;
-      padding:12px 12px;
-      border-radius:12px;
-      border:2px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.12);
-      color:#fff;
-      font-size:14px;
+      margin:0 0 18px;
+      padding:16px 18px;
+      border-radius:20px;
+      border:3px solid rgba(154,98,23,.3);
+      background:rgba(255,255,255,.26);
+      font-size:clamp(17px, 2.4vw, 22px);
       font-weight:800;
-      outline:none;
+      color:#4d463f;
+      text-align:center;
     }
 
-    input::placeholder, textarea::placeholder{
-      color: rgba(255,255,255,.58);
+    .dash-box{
+      margin:18px 0 0;
+      padding:18px;
+      border:4px dashed var(--line-soft);
+      border-radius:28px;
+      background:rgba(255,255,255,.22);
     }
 
-    .actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:flex-end;
-      margin-top: 4px;
-    }
-
-    button, a.btn{
-      border: 2px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.12);
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-weight: 900;
-      font-size: 14px;
-      cursor:pointer;
-      text-decoration:none;
-      color: rgba(255,255,255,.92);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      white-space:nowrap;
+    .dash-title{
+      margin:0 0 14px;
+      font-family:"Cinzel", serif;
+      font-size:clamp(24px, 3.6vw, 42px);
+      font-weight:900;
       letter-spacing:.02em;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      color:#2e2a28;
     }
 
-    button:active, a.btn:active{ transform: translateY(1px); }
-
-    .green{
-      border-color: rgba(184,255,184,.22);
-      background: rgba(47,107,47,.18);
+    .field{
+      margin:0 0 18px;
     }
 
-    .primary{
-      border-color: rgba(180,210,255,.22);
-      background: rgba(13,42,85,.22);
+    .label{
+      display:block;
+      margin:0 0 10px;
+      font-family:"Cinzel", serif;
+      font-weight:800;
+      font-size:clamp(18px, 2.6vw, 28px);
+      color:#1f1b18;
+      letter-spacing:.01em;
     }
 
-    .result{
-      display:none;
-      margin-top: 16px;
-      padding: 14px;
-      border-radius: 16px;
-      border: 2px solid rgba(184,255,184,.24);
-      background: rgba(47,107,47,.16);
+    .hint{
+      margin:10px 0 0;
+      color:#5f5851;
+      font-size:clamp(14px, 2vw, 18px);
+      line-height:1.15;
+      font-weight:700;
     }
 
-    .result.show{ display:block; }
-
-    .resultTitle{
-      font-family: "Cinzel", Georgia, serif;
-      font-size: 16px;
-      font-weight: 900;
-      letter-spacing: .08em;
-      text-transform: uppercase;
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    textarea{
+      width:100%;
+      min-height:72px;
+      padding:18px 24px;
+      border-radius:24px;
+      border:4px solid var(--line);
+      background:#f4f4f4;
+      color:#1f1b18;
+      font-size:clamp(20px, 3.1vw, 34px);
+      font-weight:800;
+      font-family:"Barlow", sans-serif;
+      outline:none;
+      box-shadow:none;
+      appearance:none;
+      -webkit-appearance:none;
     }
 
-    .resultMeta{
-      margin-top: 8px;
-      font-size: 14px;
-      font-weight: 800;
-      line-height: 1.45;
-      color: rgba(255,255,255,.92);
+    textarea{
+      min-height:110px;
+      resize:vertical;
     }
 
-    .holeBadge{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-width: 76px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.12);
-      font-size: 13px;
-      font-weight: 1000;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      margin-left: 6px;
+    input::placeholder,
+    textarea::placeholder{
+      color:transparent;
+      opacity:0;
     }
 
-    .errorBox{
-      display:none;
-      margin-top: 14px;
-      padding: 12px;
-      border-radius: 14px;
-      border: 2px solid rgba(255,180,180,.24);
-      background: rgba(182,66,45,.18);
-      font-size: 13px;
-      font-weight: 800;
-      color: rgba(255,255,255,.92);
-      line-height: 1.4;
+    .btn{
+      width:100%;
+      min-height:88px;
+      border:none;
+      border-radius:24px;
+      font-family:"Barlow", sans-serif;
+      font-size:clamp(24px, 4vw, 40px);
+      font-weight:900;
+      letter-spacing:.01em;
+      cursor:pointer;
+      padding:16px 18px;
+      text-align:center;
+      box-shadow:none;
+      -webkit-tap-highlight-color:transparent;
     }
 
-    .errorBox.show{ display:block; }
+    .btn-green{ background:var(--green); color:#fff; }
 
-    .small{
-      font-size: 12px;
-      color: rgba(255,255,255,.72);
-      font-weight: 800;
-      line-height: 1.35;
+    .fine-print{
+      margin-top:16px;
+      text-align:center;
+      color:#635b53;
+      font-size:clamp(14px, 2vw, 17px);
+      line-height:1.15;
+      font-weight:700;
     }
 
-    @media (max-width: 720px){
-      .grid2{ grid-template-columns: 1fr; }
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:22px;
+      transform:translateX(-50%);
+      background:#1f1f1f;
+      color:#fff;
+      padding:12px 18px;
+      border-radius:999px;
+      font-weight:800;
+      font-size:16px;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease, transform .2s ease;
+      z-index:9999;
     }
+
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(-4px);
+    }
+
+    .hidden{ display:none !important; }
   </style>
 </head>
-
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1 id="pageTitle">Complete Team Registration</h1>
-      <div class="meta" id="pageMeta">Loading tournament…</div>
-
-      <div class="notice">
-        Payment is handled outside this app. This page completes your team registration, assigns your starting hole, and prepares your group for tournament-day scoring.
-      </div>
-
-      <div class="errorBox" id="errorBox"></div>
-
-      <div class="form" id="formWrap">
-        <div class="grid2">
-          <div class="field">
-            <label for="teamNameInput">Team / Company Name</label>
-            <input id="teamNameInput" placeholder="Chevron Energy" />
+  <div class="page">
+    <div class="main-card">
+      <section class="hero">
+        <div class="course-brand" id="courseBrandWrap">
+          <div class="course-logo-wrap hidden" id="courseLogoWrap">
+            <img id="courseLogoImg" alt="Course logo">
           </div>
-
-          <div class="field">
-            <label for="captainNameInput">Captain Name</label>
-            <input id="captainNameInput" placeholder="Mike Smith" />
-          </div>
+          <div class="course-brand-name" id="courseBrandName">Golf Tournament</div>
         </div>
 
-        <div class="grid2">
-          <div class="field">
-            <label for="player2Input">Player 2</label>
-            <input id="player2Input" placeholder="Tom Brown" />
-          </div>
+        <h1 class="event-title" id="eventTitle">TOURNAMENT REGISTRATION</h1>
+        <div class="event-meta" id="eventMeta">Team and player registration</div>
 
-          <div class="field">
-            <label for="player3Input">Player 3</label>
-            <input id="player3Input" placeholder="David Nguyen" />
+        <div class="hero-divider"></div>
+
+        <div class="sponsor-hero" id="sponsorHeroWrap">
+          <div class="sponsor-kicker">SPONSORED BY</div>
+          <div class="sponsor-logo-wrap hidden" id="sponsorLogoWrap">
+            <img id="sponsorLogoImg" alt="Sponsor logo">
           </div>
+          <div class="sponsor-name" id="sponsorHeroName"></div>
+          <a id="sponsorHeroLink" class="sponsor-link hidden" target="_blank" rel="noopener">Visit Sponsor</a>
+        </div>
+      </section>
+
+      <section class="content">
+        <div class="notice" id="topNotice">
+          Enter as much or as little information as you want, then submit.
         </div>
 
-        <div class="grid2">
+        <div class="dash-box">
+          <h2 class="dash-title">TEAM REGISTRATION</h2>
+
           <div class="field">
-            <label for="player4Input">Player 4</label>
-            <input id="player4Input" placeholder="Chris Adams" />
+            <label class="label" for="teamName">Team / Company Name</label>
+            <input id="teamName" type="text" />
           </div>
 
           <div class="field">
-            <label for="player5Input">Player 5 (optional)</label>
-            <input id="player5Input" placeholder="Optional" />
-          </div>
-        </div>
-
-        <div class="grid2">
-          <div class="field">
-            <label for="player6Input">Player 6 (optional)</label>
-            <input id="player6Input" placeholder="Optional" />
+            <label class="label" for="captainName">Captain Name</label>
+            <input id="captainName" type="text" />
           </div>
 
           <div class="field">
-            <label>&nbsp;</label>
-            <div class="small">
-              Standard flow is full-team registration. The system auto-assigns the next open hole in order:
-              <b>1A → 2A → … → 18A → 1B → 2B → …</b>
-            </div>
+            <label class="label" for="player2">Player 2</label>
+            <input id="player2" type="text" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="player3">Player 3</label>
+            <input id="player3" type="text" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="player4">Player 4</label>
+            <input id="player4" type="text" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="player5">Player 5</label>
+            <input id="player5" type="text" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="player6">Player 6</label>
+            <input id="player6" type="text" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="captainEmail">Captain Email</label>
+            <input id="captainEmail" type="email" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="captainPhone">Captain Phone</label>
+            <input id="captainPhone" type="tel" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="notes">Notes</label>
+            <textarea id="notes"></textarea>
+          </div>
+
+          <button class="btn btn-green" id="submitRegistrationBtn" type="button">Submit Registration</button>
+
+          <div class="fine-print" id="submitMessage">
+            Your registration will be saved for this tournament.
           </div>
         </div>
-
-        <div class="actions">
-          <button class="green" id="submitBtn">✅ Register Team & Get Hole Assignment</button>
-        </div>
-      </div>
-
-      <div class="result" id="resultBox">
-        <div class="resultTitle">Team Registered</div>
-        <div class="resultMeta" id="resultMeta"></div>
-
-        <div class="actions" style="margin-top:12px;">
-          <a class="btn primary" id="rosterBtn" href="./roster.html">📋 View Roster</a>
-          <a class="btn" id="leaderboardBtn" href="./leaderboard.html">🏆 Leaderboard</a>
-          <a class="btn" id="scorecardBtn" href="./index.html">⛳ Tournament Scorecard</a>
-        </div>
-      </div>
+              </section>
     </div>
   </div>
-  <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  collection,
-  getDocs,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
-  authDomain: "cypresswood-tournaments.firebaseapp.com",
-  projectId: "cypresswood-tournaments",
-  storageBucket: "cypresswood-tournaments.firebasestorage.app",
-  messagingSenderId: "162441374966",
-  appId: "1:162441374966:web:157285a2d5c39db1e810d7",
-  measurementId: "G-HL6Y9CLV8K"
-};
+  <div class="toast" id="toast">Saved</div>
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  <script>
+    const $ = (id) => document.getElementById(id);
 
-const params = new URLSearchParams(location.search);
-const tournamentId = (params.get("t") || "").trim();
+    const params = new URLSearchParams(location.search);
+    const tournamentId = params.get("id") || params.get("t") || "";
 
-const pageTitle = document.getElementById("pageTitle");
-const pageMeta = document.getElementById("pageMeta");
+    const state = {
+      tournamentId,
+      tournament: null
+    };
 
-const teamNameInput = document.getElementById("teamNameInput");
-const captainNameInput = document.getElementById("captainNameInput");
-const player2Input = document.getElementById("player2Input");
-const player3Input = document.getElementById("player3Input");
-const player4Input = document.getElementById("player4Input");
-const player5Input = document.getElementById("player5Input");
-const player6Input = document.getElementById("player6Input");
-
-const submitBtn = document.getElementById("submitBtn");
-
-const resultBox = document.getElementById("resultBox");
-const resultMeta = document.getElementById("resultMeta");
-
-const rosterBtn = document.getElementById("rosterBtn");
-const leaderboardBtn = document.getElementById("leaderboardBtn");
-const scorecardBtn = document.getElementById("scorecardBtn");
-
-const errorBox = document.getElementById("errorBox");
-
-function norm(v){
-  return String(v || "").trim().replace(/\s+/g, " ");
-}
-
-function normalizePlayers(arr){
-  const out = [];
-  const seen = new Set();
-
-  (arr || []).forEach(p => {
-    const n = norm(p);
-    if(!n) return;
-    const k = n.toLowerCase();
-    if(seen.has(k)) return;
-    seen.add(k);
-    out.push(n);
-  });
-
-  return out.slice(0, 6);
-}
-
-function buildSlotSequence(maxWaves = 12){
-  const slots = [];
-  for(let wave = 0; wave < maxWaves; wave++){
-    const letter = String.fromCharCode(65 + wave);
-    for(let hole = 1; hole <= 18; hole++){
-      slots.push(`${hole}${letter}`);
-    }
-  }
-  return slots;
-}
-
-function normalizeHoleLabel(raw){
-  const s = String(raw || "").trim().toUpperCase();
-  const m = s.match(/^([1-9]|1[0-8])([A-Z])$/);
-  if(!m) return "";
-  return `${parseInt(m[1], 10)}${m[2]}`;
-}
-
-async function getNextAvailableHole(){
-  const snap = await getDocs(collection(db, "tournaments", tournamentId, "registrations"));
-  const used = new Set();
-
-  snap.forEach(d => {
-    const x = d.data() || {};
-    const status = String(x.status || "").toLowerCase();
-    if(status === "cancelled") return;
-    const hole = normalizeHoleLabel(x.assignedHole || x.startHole || "");
-    if(hole) used.add(hole);
-  });
-
-  const slots = buildSlotSequence(12);
-  for(const slot of slots){
-    if(!used.has(slot)) return slot;
-  }
-  return "";
-}
-
-function showError(msg){
-  errorBox.textContent = msg;
-  errorBox.classList.add("show");
-}
-
-function clearError(){
-  errorBox.textContent = "";
-  errorBox.classList.remove("show");
-}
-
-function showSuccess(teamName, hole, players){
-  resultMeta.innerHTML = `
-    Team <b>${escapeHtml(teamName)}</b> has been registered.<br><br>
-    Starting Hole <span class="holeBadge">${escapeHtml(hole)}</span><br><br>
-    Players:<br>
-    ${players.map(p => `• ${escapeHtml(p)}`).join("<br>")}<br><br>
-    On tournament day, scan the tournament scoring QR code, select your team, and start scoring.
-  `;
-
-  rosterBtn.href = `./roster.html?t=${encodeURIComponent(tournamentId)}`;
-  leaderboardBtn.href = `./leaderboard.html?t=${encodeURIComponent(tournamentId)}`;
-  scorecardBtn.href = `./index.html?t=${encodeURIComponent(tournamentId)}`;
-
-  resultBox.classList.add("show");
-}
-
-function escapeHtml(s){
-  return String(s || "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-async function loadTournament(){
-  if(!tournamentId){
-    pageMeta.textContent = "Missing tournament id (?t=...)";
-    return false;
-  }
-
-  try{
-    const snap = await getDoc(doc(db, "tournaments", tournamentId));
-    if(snap.exists()){
-      const t = snap.data() || {};
-      pageTitle.textContent = "Complete Team Registration";
-      pageMeta.textContent = `${t.name || "Tournament"}${t.date ? " • " + t.date : ""}`;
-      rosterBtn.href = `./roster.html?t=${encodeURIComponent(tournamentId)}`;
-      leaderboardBtn.href = `./leaderboard.html?t=${encodeURIComponent(tournamentId)}`;
-      scorecardBtn.href = `./index.html?t=${encodeURIComponent(tournamentId)}`;
-      return true;
-    }
-    pageMeta.textContent = `Tournament not found • ID: ${tournamentId}`;
-    return false;
-  }catch(e){
-    console.error(e);
-    pageMeta.textContent = `Tournament load error • ID: ${tournamentId}`;
-    return false;
-  }
-}
-
-submitBtn.addEventListener("click", async () => {
-  clearError();
-
-  if(!tournamentId){
-    showError("Missing tournament id.");
-    return;
-  }
-
-  const teamName = norm(teamNameInput.value);
-  const captain = norm(captainNameInput.value);
-  const players = normalizePlayers([
-    captain,
-    player2Input.value,
-    player3Input.value,
-    player4Input.value,
-    player5Input.value,
-    player6Input.value
-  ]);
-
-  if(!teamName){
-    showError("Please enter a team / company name.");
-    return;
-  }
-
-  if(!captain){
-    showError("Please enter the captain name.");
-    return;
-  }
-
-  if(players.length < 4){
-    showError("Please enter at least 4 players for a standard team registration.");
-    return;
-  }
-
-  submitBtn.disabled = true;
-
-  try{
-    const assignedHole = await getNextAvailableHole();
-
-    if(!assignedHole){
-      showError("No hole assignments are available.");
-      submitBtn.disabled = false;
-      return;
+    function showToast(msg){
+      const el = $("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => el.classList.remove("show"), 1700);
     }
 
-    const ref = doc(collection(db, "tournaments", tournamentId, "registrations"));
+    function storageKey(id){
+      return `tournament_admin_${id}`;
+    }
 
-    await setDoc(ref, {
-      teamName,
-      captainName: captain,
-      players,
-      assignedHole,
-      status: "assigned",
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+    function registrationKey(id){
+      return `tournament_registrations_${id}`;
+    }
+
+    function safeText(value, fallback=""){
+      return String(value || fallback || "").trim();
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function normalizeUrl(url){
+      const raw = String(url || "").trim();
+      if(!raw) return "";
+      if(/^https?:\/\//i.test(raw)) return raw;
+      if(raw.startsWith("//")) return location.protocol + raw;
+      return raw;
+    }
+
+    function getTournamentFromLocal(id){
+      if(!id) return null;
+      const raw = localStorage.getItem(storageKey(id));
+      if(!raw) return null;
+      try{
+        return JSON.parse(raw);
+      }catch(err){
+        return null;
+      }
+    }
+
+    function getTopSponsor(tournament){
+      const sponsors = Array.isArray(tournament?.sponsors) ? tournament.sponsors : [];
+      const active = sponsors
+        .filter(s => s && s.active !== false)
+        .sort((a,b)=>(Number(a.order ?? 999) - Number(b.order ?? 999)));
+
+      if(active.length) return active[0];
+
+      const legacyName = safeText(tournament?.sponsorName);
+      const legacyLogo = safeText(tournament?.sponsorLogo);
+      const legacyUrl  = safeText(tournament?.sponsorUrl);
+
+      if(legacyName || legacyLogo || legacyUrl){
+        return {
+          name: legacyName,
+          logoUrl: legacyLogo,
+          website: legacyUrl
+        };
+      }
+
+      return null;
+    }
+
+    function getCourseBranding(courseName){
+      const name = safeText(courseName).toLowerCase();
+
+      const map = {
+        tradition: {
+          brandName: "Tradition Course",
+          logoUrl: ""
+        },
+        cypress: {
+          brandName: "Cypress Course",
+          logoUrl: ""
+        },
+        lake: {
+          brandName: "Lake Course",
+          logoUrl: ""
+        },
+        other: {
+          brandName: safeText(courseName, "Golf Course"),
+          logoUrl: ""
+        }
+      };
+
+      return map[name] || {
+        brandName: safeText(courseName, "Golf Course"),
+        logoUrl: ""
+      };
+    }
+
+    function setVisible(el, show){
+      if(!el) return;
+      el.classList.toggle("hidden", !show);
+    }
+
+    function renderCourseBrand(tournament){
+      const courseName = safeText(tournament?.defaultCourse, "Golf Tournament");
+      const customLogo = safeText(
+        tournament?.courseLogoUrl ||
+        tournament?.courseBrandLogoUrl ||
+        tournament?.golfCourseLogoUrl
+      );
+
+      const branding = getCourseBranding(courseName);
+      const logoUrl = normalizeUrl(customLogo || branding.logoUrl || "");
+
+      $("courseBrandName").textContent = branding.brandName || courseName || "Golf Tournament";
+
+      if(logoUrl){
+        $("courseLogoImg").src = logoUrl;
+        $("courseLogoImg").alt = `${courseName || "Course"} logo`;
+        setVisible($("courseLogoWrap"), true);
+      }else{
+        $("courseLogoImg").removeAttribute("src");
+        setVisible($("courseLogoWrap"), false);
+      }
+    }
+
+    function renderSponsorHero(tournament){
+      const sponsor = getTopSponsor(tournament);
+
+      if(!sponsor){
+        $("sponsorHeroName").textContent = "";
+        $("sponsorHeroLink").removeAttribute("href");
+        $("sponsorHeroLink").textContent = "";
+        $("sponsorLogoImg").removeAttribute("src");
+        setVisible($("sponsorLogoWrap"), false);
+        setVisible($("sponsorHeroLink"), false);
+        setVisible($("sponsorHeroWrap"), false);
+        return;
+      }
+
+      const sponsorName = safeText(sponsor.name, "");
+      const sponsorLogo = normalizeUrl(safeText(sponsor.logoUrl, ""));
+      const sponsorUrl  = normalizeUrl(safeText(sponsor.website, ""));
+
+      setVisible($("sponsorHeroWrap"), true);
+      $("sponsorHeroName").textContent = sponsorName || "";
+
+      if(sponsorLogo){
+        $("sponsorLogoImg").src = sponsorLogo;
+        $("sponsorLogoImg").alt = sponsorName ? `${sponsorName} logo` : "Sponsor logo";
+        setVisible($("sponsorLogoWrap"), true);
+      }else{
+        $("sponsorLogoImg").removeAttribute("src");
+        setVisible($("sponsorLogoWrap"), false);
+      }
+
+      if(sponsorUrl){
+        $("sponsorHeroLink").href = sponsorUrl;
+        $("sponsorHeroLink").textContent = sponsorUrl.replace(/^https?:\/\//i, "");
+        setVisible($("sponsorHeroLink"), true);
+      }else{
+        $("sponsorHeroLink").removeAttribute("href");
+        $("sponsorHeroLink").textContent = "";
+        setVisible($("sponsorHeroLink"), false);
+      }
+    }
+
+    function renderEventHeader(tournament){
+      const title = safeText(tournament?.tournamentName, "TOURNAMENT REGISTRATION");
+      const date  = safeText(tournament?.eventDate, "");
+      const course = safeText(tournament?.defaultCourse, "");
+      const format = safeText(tournament?.formatOfPlay, "");
+
+      $("eventTitle").textContent = title;
+
+      const parts = [date, course, format].filter(Boolean);
+      $("eventMeta").textContent = parts.length ? parts.join(" • ") : "Team and player registration";
+
+      renderCourseBrand(tournament);
+      renderSponsorHero(tournament);
+    }
+
+    function renderMissingTournamentState(){
+      $("eventTitle").textContent = "TOURNAMENT REGISTRATION";
+      $("eventMeta").textContent = "Team and player registration";
+      $("courseBrandName").textContent = "Golf Tournament";
+      setVisible($("courseLogoWrap"), false);
+      setVisible($("sponsorHeroWrap"), false);
+      $("topNotice").textContent = "Enter as much or as little information as you want, then submit.";
+    }
+
+    function loadTournament(){
+      if(!state.tournamentId){
+        state.tournament = null;
+        renderMissingTournamentState();
+        return;
+      }
+
+      const tournament = getTournamentFromLocal(state.tournamentId);
+
+      if(!tournament){
+        state.tournament = null;
+        renderMissingTournamentState();
+        $("topNotice").textContent = "This registration page is ready. Tournament details will appear when available.";
+        return;
+      }
+
+      state.tournament = tournament;
+      renderEventHeader(tournament);
+      $("topNotice").textContent = "Enter as much or as little information as you want, then submit.";
+    }
+
+    function getVal(id){
+      const el = $(id);
+      return el ? el.value.trim() : "";
+    }
+
+    function buildRegistrationPayload(){
+      return {
+        tournamentId: state.tournamentId || "",
+        submittedAt: new Date().toISOString(),
+        tournamentName: safeText(state.tournament?.tournamentName, ""),
+        defaultCourse: safeText(state.tournament?.defaultCourse, ""),
+        formatOfPlay: safeText(state.tournament?.formatOfPlay, ""),
+        teamName: getVal("teamName"),
+        captainName: getVal("captainName"),
+        player2: getVal("player2"),
+        player3: getVal("player3"),
+        player4: getVal("player4"),
+        player5: getVal("player5"),
+        player6: getVal("player6"),
+        captainEmail: getVal("captainEmail"),
+        captainPhone: getVal("captainPhone"),
+        notes: getVal("notes")
+      };
+    }
+        function saveRegistration(payload){
+      const key = registrationKey(state.tournamentId || "general");
+      let list = [];
+
+      try{
+        const raw = localStorage.getItem(key);
+        list = raw ? JSON.parse(raw) : [];
+        if(!Array.isArray(list)) list = [];
+      }catch(err){
+        list = [];
+      }
+
+      payload.registrationId = `reg_${Date.now().toString(36)}${Math.random().toString(36).slice(2,7)}`;
+      list.push(payload);
+      localStorage.setItem(key, JSON.stringify(list));
+      return payload;
+    }
+
+    function clearForm(){
+      [
+        "teamName",
+        "captainName",
+        "player2",
+        "player3",
+        "player4",
+        "player5",
+        "player6",
+        "captainEmail",
+        "captainPhone",
+        "notes"
+      ].forEach(id => {
+        const el = $(id);
+        if(el) el.value = "";
+      });
+    }
+
+    function handleSubmit(){
+      const payload = buildRegistrationPayload();
+
+      const hasAnyValue = [
+        payload.teamName,
+        payload.captainName,
+        payload.player2,
+        payload.player3,
+        payload.player4,
+        payload.player5,
+        payload.player6,
+        payload.captainEmail,
+        payload.captainPhone,
+        payload.notes
+      ].some(Boolean);
+
+      if(!hasAnyValue){
+        showToast("Add anything you want, then submit");
+        $("submitMessage").textContent = "You can submit with any combination of team, players, or contact information.";
+        return;
+      }
+
+      saveRegistration(payload);
+      clearForm();
+      $("submitMessage").textContent = "Registration submitted successfully.";
+      showToast("Registration submitted");
+    }
+
+    $("submitRegistrationBtn").addEventListener("click", handleSubmit);
+
+    $("sponsorHeroLink").addEventListener("click", (e) => {
+      const href = $("sponsorHeroLink").getAttribute("href");
+      if(!href) e.preventDefault();
     });
 
-    showSuccess(teamName, assignedHole, players);
-  }catch(e){
-    console.error(e);
-    showError("Could not complete registration. Please try again.");
-  }finally{
-    submitBtn.disabled = false;
-  }
-});
-
-await loadTournament();
-</script>
-
+    (function init(){
+      loadTournament();
+    })();
+  </script>
 </body>
 </html>
+    
