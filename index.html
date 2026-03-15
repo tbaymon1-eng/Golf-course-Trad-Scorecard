@@ -28,20 +28,27 @@
       --border:#7a4a0b;
       --card:#efe7d7;
       --chip:#ffffff55;
+      --navy:#0d2a55;
+      --navy2:#0b2246;
+      --green:#2f6b2f;
+      --danger:#b6422d;
     }
 
     *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
+
     body{
       margin:0;
       background: var(--paper);
       color: var(--ink);
       font-family: Georgia, 'Times New Roman', serif;
     }
+
     .wrap{
       max-width: 980px;
       margin: 0 auto;
       padding: 10px 10px 24px;
     }
+
     .card{
       background: var(--card);
       border: 3px solid var(--border);
@@ -60,6 +67,115 @@
       background: var(--card);
     }
 
+    #teamPickerScreen{
+      display:none;
+      padding:12px 10px;
+      background: var(--card);
+      border-bottom:1px solid rgba(0,0,0,.08);
+    }
+
+    .team-picker-top{
+      display:grid;
+      gap:8px;
+    }
+
+    .team-picker-title{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:16px;
+    }
+
+    .team-picker-meta{
+      font-size:13px;
+      opacity:.85;
+      line-height:1.35;
+    }
+
+    .team-picker-search{
+      margin-top:10px;
+      display:grid;
+      gap:10px;
+    }
+
+    .team-picker-search input{
+      width:100%;
+      padding:12px 10px;
+      border:2px solid #7a4a0b;
+      border-radius:10px;
+      background:#fff;
+      font-size:16px;
+      font-weight:800;
+      color:#111;
+    }
+
+    .team-list{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .team-card{
+      border:2px solid rgba(122,74,11,.18);
+      border-radius:12px;
+      background: rgba(255,255,255,.55);
+      padding:12px;
+      display:grid;
+      gap:8px;
+      cursor:pointer;
+    }
+
+    .team-card:active{
+      transform: translateY(1px);
+    }
+
+    .team-card-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .team-card-name{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:14px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+
+    .team-card-hole{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:6px 10px;
+      border-radius:999px;
+      border:2px solid rgba(122,74,11,.18);
+      background:#fff;
+      font-weight:900;
+      font-size:12px;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    .team-card-players{
+      font-size:13px;
+      line-height:1.35;
+      font-weight:800;
+      color:rgba(0,0,0,.82);
+    }
+
+    .team-picker-empty{
+      margin-top:10px;
+      padding:12px;
+      border-radius:12px;
+      border:2px dashed rgba(0,0,0,.16);
+      background: rgba(255,255,255,.40);
+      font-weight:900;
+      font-size:13px;
+      display:none;
+    }
+
     #joinScreen{
       display:none;
       padding:12px 10px;
@@ -76,11 +192,13 @@
       border-radius:12px;
       background: rgba(255,255,255,.35);
     }
+
     .team-mates-block label{
       font-weight:900;
       font-size:13px;
       display:block;
     }
+
     .team-mates-block input{
       width:100%;
       padding:12px 10px;
@@ -101,19 +219,23 @@
       padding:10px 12px;
       cursor:pointer;
     }
+
     #scoreSponsor:active{ transform: translateY(1px); }
+
     #scoreSponsorTitle{
       font-family:Cinzel,serif;
       font-weight:900;
       font-size:13px;
       opacity:.9;
     }
+
     #scoreSponsorRow{
       display:flex;
       align-items:center;
       gap:10px;
       margin-top:8px;
     }
+
     #scoreSponsorLogo{
       width:44px;
       height:44px;
@@ -123,6 +245,7 @@
       background:rgba(0,0,0,.06);
       display:none;
     }
+
     #scoreSponsorName{
       font-weight:900;
       font-size:16px;
@@ -138,6 +261,7 @@
       border-top: 1px solid rgba(0,0,0,.08);
       border-bottom: 1px solid rgba(0,0,0,.08);
     }
+
     .course-title{
       font-family:'Cinzel', serif;
       font-weight: 900;
@@ -145,10 +269,12 @@
       font-size: 14px;
       line-height: 1.1;
     }
+
     .course-hint{
       font-size: 12px;
       opacity:.8;
     }
+
     .course-select{
       border: 2px solid var(--border);
       background: #e7ddcb;
@@ -159,6 +285,7 @@
     }
 
     .table-shell{ padding: 0px; background: var(--card); }
+
     .hint{
       padding: 8px 12px 0;
       font-size: 13px;
@@ -176,6 +303,7 @@
       font-size: 13px;
       line-height: 1.35;
     }
+
     .lockBanner.show{ display:block; }
 
     .lockedStage{
@@ -281,9 +409,11 @@
       font-family: Georgia, 'Times New Roman', serif;
       font-variant-numeric: tabular-nums;
     }
+
     td:has(.score-input){
       background: linear-gradient(to bottom, rgba(255,255,255,.45), rgba(255,255,255,.15));
     }
+
     .score-input:focus{
       box-shadow: inset 0 0 0 2px rgba(122,74,11,.55);
       background: rgba(255,255,255,.55) !important;
@@ -302,6 +432,7 @@
       -webkit-appearance: none;
       appearance: none;
     }
+
     .player-name:focus{
       box-shadow: inset 0 0 0 2px rgba(122,74,11,.35);
       border-radius: 8px;
@@ -325,13 +456,16 @@
       border-radius: 12px;
       background: rgba(255,255,255,.38);
     }
+
     .sidegames.show{ display:block; }
+
     .sidegames-title{
       font-family:Cinzel,serif;
       font-weight:900;
       font-size:15px;
       letter-spacing:.04em;
     }
+
     .sidegames-note{
       margin-top:6px;
       font-size:12px;
@@ -339,11 +473,13 @@
       font-weight:800;
       line-height:1.35;
     }
+
     .sidegames-grid{
       display:grid;
       gap:12px;
       margin-top:12px;
     }
+
     .sidegame-block{
       border:2px solid rgba(122,74,11,.14);
       border-radius:12px;
@@ -352,6 +488,7 @@
       display:grid;
       gap:10px;
     }
+
     .sidegame-block-title{
       font-family:Cinzel,serif;
       font-weight:900;
@@ -359,16 +496,19 @@
       letter-spacing:.04em;
       text-transform:uppercase;
     }
+
     .sidegame-row{
       display:grid;
       grid-template-columns: 120px 1fr;
       gap:10px;
       align-items:center;
     }
+
     .sidegame-hole{
       font-weight:900;
       font-size:13px;
     }
+
     .sidegame-select{
       width:100%;
       border:2px solid var(--border);
@@ -396,6 +536,7 @@
       font-size: 16px;
       cursor:pointer;
     }
+
     button:active{ transform: translateY(1px); }
 
     .book-btn{
@@ -412,6 +553,7 @@
       text-decoration:none;
       text-align:center;
     }
+
     .book-btn:active{ transform: translateY(1px); }
 
     .danger{
@@ -420,7 +562,12 @@
       border-color:#7a2b20;
       grid-column: 1 / -1;
     }
-    .mini{ font-size: 14px; padding: 10px 10px; opacity: .95; }
+
+    .mini{
+      font-size: 14px;
+      padding: 10px 10px;
+      opacity: .95;
+    }
 
     .legal{
       padding: 10px 12px 14px;
@@ -434,14 +581,23 @@
       align-items:center;
       justify-content: space-between;
     }
+
     .legal a{
       color: #3d2a09;
       font-weight: 900;
       text-decoration: none;
       border-bottom: 1px dashed rgba(61,42,9,.4);
     }
+
     .legal a:active{ transform: translateY(1px); }
-    .legal .left{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+
+    .legal .left{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
     .legal .right{ opacity:.9; }
 
     #finishRound{
@@ -455,7 +611,8 @@
 
     button:disabled,
     select:disabled,
-    input:disabled{
+    input:disabled,
+    textarea:disabled{
       cursor:not-allowed;
       opacity:.72;
     }
@@ -467,1527 +624,3 @@
     }
   </style>
 </head>
-
-<body>
-  <div class="wrap">
-    <div class="card" id="card">
-
-      <img id="courseHeader" class="header-img" src="./assets/cypresswood_header.png" alt="Scorecard Header" />
-
-      <div id="joinScreen">
-        <div style="font-family:Cinzel,serif; font-weight:900; font-size:16px;">Join Tournament</div>
-        <div id="joinMeta" style="margin-top:6px; font-size:13px; opacity:.85;"></div>
-
-        <div style="display:grid; gap:10px; margin-top:12px;">
-
-          <label style="font-weight:900; font-size:13px;">
-            Your Name (Scorer)
-            <input id="joinName" autocomplete="name"
-              style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
-          </label>
-
-          <div class="team-mates-block">
-            <div style="font-family:Cinzel,serif; font-weight:900; font-size:13px; opacity:.9;">Team Players (required: at least 1 teammate)</div>
-            <label>Teammate 1 <input id="joinMate1" placeholder="Teammate name"></label>
-            <label>Teammate 2 <input id="joinMate2" placeholder="Teammate name"></label>
-            <label>Teammate 3 <input id="joinMate3" placeholder="Teammate name"></label>
-            <label>Teammate 4 <input id="joinMate4" placeholder="Teammate name"></label>
-            <label>Teammate 5 <input id="joinMate5" placeholder="Teammate name"></label>
-          </div>
-
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <label style="font-weight:900; font-size:13px;">
-              Company Name (optional)
-              <input id="joinGroup"
-                style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
-            </label>
-
-            <label style="font-weight:900; font-size:13px;">
-              Start Hole (required)
-              <input id="joinStartHole" placeholder="2A" inputmode="text" autocapitalize="characters"
-                style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
-              <div style="margin-top:6px; font-size:12px; opacity:.8;">
-                Examples: <b>2</b>, <b>2A</b>, <b>2B</b>, <b>10B</b>
-              </div>
-            </label>
-          </div>
-
-          <button id="joinBtn" style="border:2px solid #7a4a0b; background:#2f6b2f; color:#fff; border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
-            Join & Start Scoring
-          </button>
-
-          <button id="joinCancel" style="border:2px solid #7a4a0b; background:#e7ddcb; border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
-            Exit Tournament
-          </button>
-
-          <div style="font-size:12px; opacity:.85; line-height:1.3;">
-            By joining, you agree to our <a href="./terms.html">Terms</a> and <a href="./privacy.html">Privacy Policy</a>.
-          </div>
-        </div>
-      </div>
-
-      <div id="scoreSponsor" role="button" aria-label="Tournament Sponsor">
-        <div id="scoreSponsorTitle">Tournament Sponsor</div>
-        <div id="scoreSponsorRow">
-          <img id="scoreSponsorLogo" alt="Sponsor Logo" />
-          <div id="scoreSponsorName"></div>
-        </div>
-      </div>
-
-      <div class="coursebar" id="courseSwipeZone">
-        <div>
-          <div class="course-title" id="courseTitle">Tradition Course</div>
-          <div class="course-hint" id="courseHint">Swipe left/right here to switch courses</div>
-        </div>
-
-        <select class="course-select" id="courseSelect" aria-label="Select course">
-          <option value="tradition">Tradition</option>
-          <option value="cypress">Cypress</option>
-        </select>
-      </div>
-
-      <div id="lockBanner" class="lockBanner">
-        Complete the tournament form above to unlock player names, score entry, side games, and tournament actions.
-      </div>
-
-      <div id="scorecardStage">
-        <div class="table-shell">
-          <div class="hint" id="hintLine">Swipe left/right inside the table to scroll. Tap a box to type. Out/In/Tot auto-calc.</div>
-
-          <div class="scroll-x" id="scrollX">
-            <table id="scoreTable">
-              <thead><tr id="hdrRow"></tr></thead>
-              <tbody id="tbody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div id="sideGamesPanel" class="sidegames">
-          <div class="sidegames-title">Side Games</div>
-          <div class="sidegames-note" id="sideGamesNote">
-            Select winners for enabled side games. These choices will update the live tournament data.
-          </div>
-          <div class="sidegames-grid" id="sideGamesGrid"></div>
-        </div>
-
-        <div class="actions">
-          <button id="saveImg">Save as Image</button>
-
-          <a
-            id="bookBtn"
-            href="https://foresightcypress.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225"
-            target="_blank"
-            class="book-btn"
-          >
-            Book Your Next Tee Time Here!
-          </a>
-
-          <button id="share">Share</button>
-          <button id="finishRound">✅ Finish Round</button>
-          <button class="danger" id="clear">Clear Card</button>
-          <button class="mini" id="refreshApp">Refresh App (update)</button>
-        </div>
-      </div>
-
-      <div class="legal">
-        <div class="left">
-          <a href="./privacy.html">Privacy</a>
-          <a href="./terms.html">Terms</a>
-        </div>
-        <div class="right">
-          © <span id="yr"></span> Electronic Scorecard Solutions (DBA) • Elb Solutions LLC
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
-      authDomain: "cypresswood-tournaments.firebaseapp.com",
-      projectId: "cypresswood-tournaments",
-      storageBucket: "cypresswood-tournaments.firebasestorage.app",
-      messagingSenderId: "162441374966",
-      appId: "1:162441374966:web:157285a2d5c39db1e810d7",
-      measurementId: "G-HL6Y9CLV8K"
-    };
-
-    let db = null;
-    let authReady = false;
-
-    try {
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      await signInAnonymously(auth);
-      db = getFirestore(app);
-      authReady = true;
-      console.log("Firebase ready ✅");
-    } catch (e) {
-      console.error("Firebase init/auth failed ❌", e);
-      alert("Firebase init/auth failed: " + (e?.message || e));
-    }
-
-    const COURSE_TRADITION = {
-      id: "tradition",
-      title: "Tradition Course",
-      headerImg: "./assets/cypresswood_header.png",
-      teeRows: [
-        { css:"row-black", label:"Black Tees", front:[465,384,203,448,606,376,528,196,453], out:3657, back:[405,256,545,464,185,394,472,318,546], inn:3563, tot:7220 },
-        { css:"row-blue", label:"Blue Tees", front:[373,356,195,422,565,343,508,169,409], out:3340, back:[370,211,518,423,169,357,439,291,520], inn:3298, tot:6638 },
-        { css:"row-white", label:"White Tees", front:[348,328,169,398,547,311,482,169,394], out:3146, back:[348,187,468,395,151,328,378,265,496], inn:3016, tot:6162 },
-        { css:"row-silver", label:"Silver Tees", front:[348,328,129,528,461,277,482,107,305], out:2765, back:[315,153,413,348,151,328,318,215,435], inn:2676, tot:5441 }
-      ],
-      parFront:[4,4,3,4,5,4,5,3,4],
-      parBack:[4,3,5,4,3,4,4,4,5],
-      hcpFront:[7,17,11,1,3,13,9,15,5],
-      hcpBack:[14,8,10,6,18,12,2,16,4],
-      bottomRow:{ css:"row-copper", label:"Copper Tees", front:[296,287,117,242,411,277,388,107,284], out:2409, back:[315,131,400,318,75,245,291,215,386], inn:2376, tot:4785 }
-    };
-
-    const COURSE_CYPRESS = {
-      id: "cypress",
-      title: "Cypress Course",
-      headerImg: "./assets/cypress_header.png",
-      teeRows: [
-        { css:"row-blue", label:"Blue", front:[514,396,387,426,182,417,160,563,427], out:3472, back:[416,409,388,349,149,586,193,531,413], inn:3434, tot:6906 },
-        { css:"row-forest", label:"Forest", front:[485,335,326,375,155,361,137,527,352], out:3053, back:[381,368,354,320,117,546,160,490,379], inn:3115, tot:6168 }
-      ],
-      parFront:[5,4,4,4,3,4,3,5,4],
-      parBack:[4,4,4,4,3,5,3,5,4],
-      hcpFront:[3,13,11,7,15,9,17,1,5],
-      hcpBack:[6,10,12,14,18,2,16,4,8],
-      extraRow:{ css:"row-silver", label:"Silver", front:[456,328,297,337,119,337,137,499,321], out:2831, back:[277,315,319,320,117,515,127,461,342], inn:2793, tot:5624 },
-      bottomRow:{ css:"row-copper", label:"Copper - Ladies", front:[401,268,257,265,79,302,83,419,284], out:2358, back:[257,296,249,295,92,445,93,375,284], inn:2386, tot:4744 }
-    };
-
-    const COURSES = { tradition: COURSE_TRADITION, cypress: COURSE_CYPRESS };
-
-    const holesFront = [1,2,3,4,5,6,7,8,9];
-    const holesBack  = [10,11,12,13,14,15,16,17,18];
-
-    let playersCount = 6;
-
-    const tbody = document.getElementById("tbody");
-    const hdrRow = document.getElementById("hdrRow");
-    const courseSelect = document.getElementById("courseSelect");
-    const courseTitle = document.getElementById("courseTitle");
-    const swipeZone = document.getElementById("courseSwipeZone");
-    const courseHeaderImg = document.getElementById("courseHeader");
-    const hintLine = document.getElementById("hintLine");
-    const scrollX = document.getElementById("scrollX");
-
-    const joinScreen = document.getElementById("joinScreen");
-    const joinMeta = document.getElementById("joinMeta");
-    const joinBtn = document.getElementById("joinBtn");
-    const joinCancel = document.getElementById("joinCancel");
-    const joinName = document.getElementById("joinName");
-    const joinGroup = document.getElementById("joinGroup");
-    const joinStartHole = document.getElementById("joinStartHole");
-    const joinMate1 = document.getElementById("joinMate1");
-    const joinMate2 = document.getElementById("joinMate2");
-    const joinMate3 = document.getElementById("joinMate3");
-    const joinMate4 = document.getElementById("joinMate4");
-    const joinMate5 = document.getElementById("joinMate5");
-    const refreshBtn = document.getElementById("refreshApp");
-
-    const scoreSponsor = document.getElementById("scoreSponsor");
-    const scoreSponsorLogo = document.getElementById("scoreSponsorLogo");
-    const scoreSponsorName = document.getElementById("scoreSponsorName");
-
-    const lockBanner = document.getElementById("lockBanner");
-    const scorecardStage = document.getElementById("scorecardStage");
-
-    const sideGamesPanel = document.getElementById("sideGamesPanel");
-    const sideGamesGrid = document.getElementById("sideGamesGrid");
-    const sideGamesNote = document.getElementById("sideGamesNote");
-
-    let currentCourseId = "tradition";
-    let tournamentId = null;
-    let isTournamentMode = false;
-    let tournamentFormat = "stroke";
-    let startHoleSelected = "";
-    let rosterNames = [];
-    let sponsorUrl = "";
-    let joinCompleted = false;
-    let roundFinished = false;
-
-    let tournamentSideGames = {
-      skinsEnabled: false,
-      ctpEnabled: false,
-      ctpHoles: [],
-      longDriveEnabled: false,
-      longDriveHoles: []
-    };
-
-    document.getElementById("yr").textContent = String(new Date().getFullYear());
-
-    function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
-
-    function yardCell(v){
-      if (v === -1) return `<td class="yard"></td>`;
-      return `<td class="yard">${v ?? ""}</td>`;
-    }
-
-    function setCourseHeader(courseKey){
-      const course = COURSES[courseKey];
-      if(!courseHeaderImg || !course) return;
-      courseHeaderImg.src = course.headerImg;
-      courseHeaderImg.alt = courseKey === "cypress" ? "Cypress Header" : "Tradition Header";
-    }
-
-    function normalizeUrl(u){
-      const s = (u || "").trim();
-      if(!s) return "";
-      if(/^https?:\/\//i.test(s)) return s;
-      return "https://" + s;
-    }
-
-    function escapeHtml(s){
-      return String(s || "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    function escapeHtmlAttr(s){
-      return escapeHtml(s);
-    }
-
-    function applySponsorUI(name, logo, url){
-      const n = (name || "").trim();
-      const l = (logo || "").trim();
-      sponsorUrl = normalizeUrl(url);
-
-      if(!n && !l){
-        scoreSponsor.style.display = "none";
-        scoreSponsor.onclick = null;
-        return;
-      }
-
-      scoreSponsor.style.display = "block";
-      scoreSponsorName.textContent = n || "Tournament Sponsor";
-
-      if(l){
-        scoreSponsorLogo.src = l;
-        scoreSponsorLogo.style.display = "block";
-      }else{
-        scoreSponsorLogo.style.display = "none";
-      }
-
-      scoreSponsor.style.cursor = sponsorUrl ? "pointer" : "default";
-      scoreSponsor.onclick = () => {
-        if(sponsorUrl) window.open(sponsorUrl, "_blank");
-      };
-    }
-
-    function normalizeTournamentSideGames(raw){
-      const sg = raw || {};
-      const clean = {
-        skinsEnabled: !!sg.skinsEnabled,
-        ctpEnabled: !!sg.ctpEnabled,
-        ctpHoles: Array.isArray(sg.ctpHoles)
-          ? sg.ctpHoles.map(n => parseInt(n,10)).filter(n => Number.isFinite(n) && n >= 1 && n <= 18)
-          : [],
-        longDriveEnabled: !!sg.longDriveEnabled,
-        longDriveHoles: Array.isArray(sg.longDriveHoles)
-          ? sg.longDriveHoles.map(n => parseInt(n,10)).filter(n => Number.isFinite(n) && n >= 1 && n <= 18)
-          : []
-      };
-
-      clean.ctpHoles = clean.ctpHoles.filter((n,i,a) => a.indexOf(n) === i).sort((a,b)=>a-b);
-      clean.longDriveHoles = clean.longDriveHoles.filter((n,i,a) => a.indexOf(n) === i).sort((a,b)=>a-b);
-
-      return clean;
-    }
-
-    function storageKeyFor(courseId){
-      const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
-      const fPart = tournamentFormat ? `_f_${tournamentFormat}` : "";
-      return `scorecard_state_${courseId}${tPart}${fPart}_v7`;
-    }
-
-    function startHoleKey(){
-      const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
-      return `scorecard_startHole${tPart}_v3`;
-    }
-
-    function joinFormKey(){
-      const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
-      return `scorecard_join_form${tPart}_v3`;
-    }
-
-    function makeDeviceId(){
-      const existing = localStorage.getItem("t_device_id");
-      if (existing) return existing;
-
-      let id = "";
-      try{
-        id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : "";
-      }catch(e){}
-
-      if(!id){
-        id = "dev_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
-      }
-      localStorage.setItem("t_device_id", id);
-      return id;
-    }
-
-    function formatToPlayersCount(fmt){
-      if(fmt === "scramble") return 1;
-      if(fmt === "bestball") return 2;
-      return 6;
-    }
-
-    function playerRowLabel(i){
-      if(tournamentFormat === "scramble") return "Team Score";
-      return `Player ${i+1}`;
-    }
-
-    function normalizeStartHole(raw){
-      const s = String(raw || "").trim().toUpperCase();
-      if(!s) return null;
-      const m = s.match(/^([1-9]|1[0-8])([A-Z])?$/);
-      if(!m) return null;
-      const holeNum = parseInt(m[1], 10);
-      const suffix = m[2] || "";
-      return { label: `${holeNum}${suffix}`, holeNum };
-    }
-
-    function saveJoinFormState(extra = {}){
-      if(!isTournamentMode || !tournamentId) return;
-
-      const payload = {
-        scorerName: String(joinName.value || "").trim(),
-        groupName: String(joinGroup.value || "").trim(),
-        startHole: String(joinStartHole.value || "").trim().toUpperCase(),
-        mates: [
-          String(joinMate1.value || "").trim(),
-          String(joinMate2.value || "").trim(),
-          String(joinMate3.value || "").trim(),
-          String(joinMate4.value || "").trim(),
-          String(joinMate5.value || "").trim()
-        ],
-        joinCompleted: !!joinCompleted,
-        roundFinished: !!roundFinished,
-        rosterNames: Array.isArray(rosterNames) ? rosterNames : [],
-        ...extra
-      };
-
-      localStorage.setItem(joinFormKey(), JSON.stringify(payload));
-    }
-
-    function loadJoinFormState(){
-      if(!isTournamentMode || !tournamentId) return null;
-      const raw = localStorage.getItem(joinFormKey());
-      if(!raw) return null;
-
-      try{
-        return JSON.parse(raw);
-      }catch(e){
-        return null;
-      }
-    }
-
-    function clearJoinFormState(){
-      if(!isTournamentMode || !tournamentId) return;
-      localStorage.removeItem(joinFormKey());
-    }
-
-    function applyJoinFormState(saved){
-      if(!saved) return;
-
-      joinName.value = saved.scorerName || "";
-      joinGroup.value = saved.groupName || "";
-      joinStartHole.value = saved.startHole || "";
-
-      const mates = Array.isArray(saved.mates) ? saved.mates : [];
-      joinMate1.value = mates[0] || "";
-      joinMate2.value = mates[1] || "";
-      joinMate3.value = mates[2] || "";
-      joinMate4.value = mates[3] || "";
-      joinMate5.value = mates[4] || "";
-
-      if(Array.isArray(saved.rosterNames) && saved.rosterNames.length){
-        rosterNames = saved.rosterNames.slice(0,6);
-      }
-
-      joinCompleted = !!saved.joinCompleted;
-      roundFinished = !!saved.roundFinished;
-
-      const norm = normalizeStartHole(saved.startHole || "");
-      if(norm){
-        startHoleSelected = norm.label;
-      }
-    }
-
-    async function slotAlreadyTaken(slotLabel){
-      if(!db || !tournamentId) return false;
-
-      try{
-        const ref = doc(db, "tournaments", tournamentId, "assignments", slotLabel);
-        const snap = await getDoc(ref);
-        if(!snap.exists()) return false;
-
-        const d = snap.data() || {};
-        const myDeviceId = makeDeviceId();
-
-        if((d.deviceId || "") === myDeviceId) return false;
-        return true;
-      }catch(e){
-        console.warn("Slot check failed", e);
-        return false;
-      }
-    }
-
-    async function reserveSlot(slotLabel){
-      if(!db || !tournamentId) return;
-
-      const ref = doc(db, "tournaments", tournamentId, "assignments", slotLabel);
-      await setDoc(ref,{
-        slot: slotLabel,
-        deviceId: makeDeviceId(),
-        scorerName: String(joinName.value || "").trim(),
-        rosterNames: Array.isArray(rosterNames) ? rosterNames : [],
-        status: "active",
-        updatedAt: serverTimestamp()
-      }, { merge:true });
-    }
-
-    async function markSlotFinished(slotLabel){
-      if(!db || !tournamentId || !slotLabel) return;
-
-      const ref = doc(db, "tournaments", tournamentId, "assignments", slotLabel);
-      await setDoc(ref,{
-        status: "finished",
-        updatedAt: serverTimestamp()
-      }, { merge:true });
-    }
-
-    function scrollToStartHole(hole){
-      const h = Number(hole);
-      if(!h || h < 1 || h > 18) return;
-
-      const target = document.getElementById(`p0_h${h}`);
-      if(target && typeof target.scrollIntoView === "function"){
-        target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-        return;
-      }
-
-      const ths = Array.from(document.querySelectorAll("#hdrRow th.hole"));
-      const th = ths.find(x => String(x.textContent).trim() === String(h));
-      if(th && scrollX){
-        const left = th.offsetLeft - 180;
-        scrollX.scrollTo({ left: Math.max(0,left), behavior:"smooth" });
-      }
-    }
-
-    function getRosterOptionNames(){
-      const fromRoster = Array.isArray(rosterNames) ? rosterNames.map(s => String(s||"").trim()).filter(Boolean) : [];
-      const fromInputs = Array.from(document.querySelectorAll(".player-name")).map(el => String(el.value || "").trim()).filter(Boolean);
-      const merged = [...fromRoster, ...fromInputs];
-      const seen = new Set();
-      return merged.filter(name => {
-        const k = name.toLowerCase();
-        if (seen.has(k)) return false;
-        seen.add(k);
-        return true;
-      });
-    }
-
-    function setPlayerRowNames(names){
-      const list = Array.isArray(names) ? names : [];
-      const inputs = Array.from(document.querySelectorAll(".player-name"));
-      for(let i=0;i<inputs.length;i++){
-        inputs[i].value = list[i] || "";
-      }
-    }
-
-    function applyScoresFlatToDOM(scoresFlat){
-      if(!scoresFlat) return;
-      for(let p=0; p<playersCount; p++){
-        for(let h=1; h<=18; h++){
-          const el = document.getElementById(`p${p}_h${h}`);
-          const key = `p${p}_h${h}`;
-          if(el) el.value = String(scoresFlat[key] || "");
-        }
-      }
-      for(let i=0;i<playersCount;i++) recalcPlayer(i);
-    }
-
-    function getAllScoreInputs(){
-      return Array.from(document.querySelectorAll(".score-input"));
-    }
-
-    function hasAnyEnteredScore(){
-      return getAllScoreInputs().some(el => String(el.value || "").trim() !== "");
-    }
-
-    function sanitizeScoreValue(raw, isScramble){
-      let v = String(raw || "");
-      if(isScramble){
-        v = v.replace(/\D/g,"").slice(0,1);
-      }else{
-        v = v.replace(/\D/g,"").slice(0,2);
-      }
-      return v;
-    }
-        function sideGameSelectHtml(kind, hole, selectedValue, disabled){
-      const names = getRosterOptionNames();
-      const opts = [
-        `<option value="">Select winner</option>`,
-        ...names.map(name => `<option value="${escapeHtmlAttr(name)}"${selectedValue === name ? " selected" : ""}>${escapeHtml(name)}</option>`)
-      ].join("");
-
-      return `
-        <div class="sidegame-row">
-          <div class="sidegame-hole">Hole ${hole}</div>
-          <select class="sidegame-select" data-sidegame="${kind}" data-hole="${hole}" ${disabled ? "disabled" : ""}>
-            ${opts}
-          </select>
-        </div>
-      `;
-    }
-
-    function renderSideGamesPanel(savedSideGames = null){
-      sideGamesGrid.innerHTML = "";
-
-      const hasCtp = tournamentSideGames.ctpEnabled && tournamentSideGames.ctpHoles.length;
-      const hasLong = tournamentSideGames.longDriveEnabled && tournamentSideGames.longDriveHoles.length;
-
-      if(!isTournamentMode || (!hasCtp && !hasLong)){
-        sideGamesPanel.classList.remove("show");
-        return;
-      }
-
-      const saved = savedSideGames || { ctp:{}, longDrive:{} };
-      const disabled = !joinCompleted || roundFinished;
-
-      if(disabled){
-        sideGamesNote.textContent = roundFinished
-          ? "This round has been finalized. Side games are locked."
-          : "Join the tournament first, then select winners for enabled side games.";
-      }else{
-        sideGamesNote.textContent = "Select winners for enabled side games. These choices will update the live tournament data.";
-      }
-
-      if(hasCtp){
-        const block = document.createElement("div");
-        block.className = "sidegame-block";
-        block.innerHTML = `
-          <div class="sidegame-block-title">Closest to the Pin</div>
-          ${tournamentSideGames.ctpHoles.map(h => sideGameSelectHtml("ctp", h, saved?.ctp?.[String(h)] || "", disabled)).join("")}
-        `;
-        sideGamesGrid.appendChild(block);
-      }
-
-      if(hasLong){
-        const block = document.createElement("div");
-        block.className = "sidegame-block";
-        block.innerHTML = `
-          <div class="sidegame-block-title">Long Drive</div>
-          ${tournamentSideGames.longDriveHoles.map(h => sideGameSelectHtml("longDrive", h, saved?.longDrive?.[String(h)] || "", disabled)).join("")}
-        `;
-        sideGamesGrid.appendChild(block);
-      }
-
-      sideGamesPanel.classList.add("show");
-
-      sideGamesGrid.querySelectorAll(".sidegame-select").forEach(sel => {
-        sel.addEventListener("change", () => {
-          saveState();
-        });
-      });
-    }
-
-    function readSideGamesFromDOM(){
-      const out = { ctp:{}, longDrive:{} };
-
-      document.querySelectorAll(".sidegame-select").forEach(sel => {
-        const kind = sel.getAttribute("data-sidegame");
-        const hole = String(sel.getAttribute("data-hole") || "").trim();
-        const val = String(sel.value || "").trim();
-        if(!hole || !val) return;
-
-        if(kind === "ctp") out.ctp[hole] = val;
-        if(kind === "longDrive") out.longDrive[hole] = val;
-      });
-
-      return out;
-    }
-
-    function getScoreLockTargets(){
-      return {
-        playerNames: Array.from(document.querySelectorAll(".player-name")),
-        scoreInputs: Array.from(document.querySelectorAll(".score-input")),
-        sideGameInputs: Array.from(document.querySelectorAll(".sidegame-select")),
-        saveBtn: document.getElementById("saveImg"),
-        shareBtn: document.getElementById("share"),
-        finishBtn: document.getElementById("finishRound"),
-        clearBtn: document.getElementById("clear"),
-        courseSel: document.getElementById("courseSelect")
-      };
-    }
-
-    function setPreJoinLock(locked){
-      const { playerNames, scoreInputs, sideGameInputs, saveBtn, shareBtn, finishBtn, clearBtn, courseSel } = getScoreLockTargets();
-
-      playerNames.forEach(el => el.disabled = !!locked || roundFinished);
-      scoreInputs.forEach(el => el.disabled = !!locked || roundFinished);
-      sideGameInputs.forEach(el => el.disabled = !!locked || roundFinished);
-
-      if(saveBtn) saveBtn.disabled = !!locked;
-      if(shareBtn) shareBtn.disabled = !!locked;
-      if(finishBtn) finishBtn.disabled = !!locked || roundFinished;
-      if(clearBtn) clearBtn.disabled = !!locked || roundFinished;
-      if(courseSel) courseSel.disabled = !!locked || roundFinished;
-
-      if(lockBanner){
-        if(roundFinished){
-          lockBanner.textContent = "This round has been finalized and is now locked.";
-          lockBanner.classList.add("show");
-        }else{
-          lockBanner.textContent = "Complete the tournament form above to unlock player names, score entry, side games, and tournament actions.";
-          lockBanner.classList.toggle("show", !!locked);
-        }
-      }
-      if(scorecardStage){
-        scorecardStage.classList.toggle("lockedStage", !!locked);
-      }
-    }
-
-    function buildHeader(){
-      hdrRow.innerHTML = `
-        <th class="label">Hole</th>
-        ${holesFront.map(h=>`<th class="hole">${h}</th>`).join("")}
-        <th class="sum">Out</th>
-        <th class="sum">I<br>N<br>I<br>T</th>
-        ${holesBack.map(h=>`<th class="hole">${h}</th>`).join("")}
-        <th class="sum">In</th>
-        <th class="sum">Tot</th>
-        <th class="sum">Hcp</th>
-        <th class="sum">Net</th>
-      `;
-    }
-
-    function buildYardageRow(row){
-      const tr = document.createElement("tr");
-      tr.className = row.css;
-      tr.innerHTML = `
-        <td class="label">${row.label}</td>
-        ${row.front.map(n=>yardCell(n)).join("")}
-        ${yardCell(row.out)}
-        ${yardCell("")}
-        ${row.back.map(n=>yardCell(n)).join("")}
-        ${yardCell(row.inn)}
-        ${yardCell(row.tot)}
-        ${yardCell("")}
-        ${yardCell("")}
-      `;
-      return tr;
-    }
-
-    function buildParRow(course){
-      const out = sum(course.parFront), inn = sum(course.parBack), tot = out + inn;
-      const tr = document.createElement("tr");
-      tr.className = "row-par";
-      tr.innerHTML = `
-        <td class="label">Par:</td>
-        ${course.parFront.map(n=>yardCell(n)).join("")}
-        ${yardCell(out)}
-        ${yardCell("")}
-        ${course.parBack.map(n=>yardCell(n)).join("")}
-        ${yardCell(inn)}
-        ${yardCell(tot)}
-        ${yardCell("")}
-        ${yardCell("")}
-      `;
-      return tr;
-    }
-
-    function buildHcpRow(course){
-      const tr = document.createElement("tr");
-      tr.className = "row-hcp";
-      tr.innerHTML = `
-        <td class="label">Handicap</td>
-        ${course.hcpFront.map(n=>yardCell(n)).join("")}
-        ${yardCell("")}
-        ${yardCell("")}
-        ${course.hcpBack.map(n=>yardCell(n)).join("")}
-        ${yardCell("")}
-        ${yardCell("")}
-        ${yardCell("")}
-        ${yardCell("")}
-      `;
-      return tr;
-    }
-
-    function cellInput(playerIdx, holeNum){
-      const id = `p${playerIdx}_h${holeNum}`;
-      const maxlength = tournamentFormat === "scramble" ? "1" : "2";
-      return `
-        <td>
-          <input
-            id="${id}"
-            class="score-input"
-            inputmode="numeric"
-            maxlength="${maxlength}"
-            autocomplete="off"
-          />
-        </td>
-      `;
-    }
-
-    function buildPlayerRow(i){
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td class="label"><input class="player-name" placeholder="${playerRowLabel(i)}" /></td>
-        ${holesFront.map(h=>cellInput(i,h)).join("")}
-        <td class="total" data-out="${i}">0</td>
-        <td></td>
-        ${holesBack.map(h=>cellInput(i,h)).join("")}
-        <td class="total" data-in="${i}">0</td>
-        <td class="total" data-tot="${i}">0</td>
-        <td></td>
-        <td></td>
-      `;
-      return tr;
-    }
-
-    function recalcPlayer(i){
-      let out=0, inn=0;
-
-      for (const h of holesFront){
-        const v = document.getElementById(`p${i}_h${h}`)?.value || "";
-        out += parseInt(v, 10) || 0;
-      }
-      for (const h of holesBack){
-        const v = document.getElementById(`p${i}_h${h}`)?.value || "";
-        inn += parseInt(v, 10) || 0;
-      }
-
-      const tot = out + inn;
-
-      const outEl = document.querySelector(`[data-out="${i}"]`);
-      const inEl  = document.querySelector(`[data-in="${i}"]`);
-      const totEl = document.querySelector(`[data-tot="${i}"]`);
-
-      if(outEl) outEl.textContent = out;
-      if(inEl)  inEl.textContent = inn;
-      if(totEl) totEl.textContent = tot;
-    }
-
-    function saveState(){
-      const key = storageKeyFor(currentCourseId);
-      const state = {
-        names: Array.from(document.querySelectorAll(".player-name")).map(i => i.value || ""),
-        scores: Array.from({length: playersCount}, (_,p) =>
-          Array.from({length: 18}, (_,h) => {
-            const el = document.getElementById(`p${p}_h${h+1}`);
-            return el ? (el.value || "") : "";
-          })
-        ),
-        sideGames: readSideGamesFromDOM(),
-        roundFinished: !!roundFinished
-      };
-      localStorage.setItem(key, JSON.stringify(state));
-
-      saveJoinFormState({
-        joinCompleted,
-        roundFinished,
-        rosterNames
-      });
-
-      if (isTournamentMode && joinCompleted && !roundFinished) scheduleTournamentPush();
-    }
-
-    function loadState(){
-      const key = storageKeyFor(currentCourseId);
-      const raw = localStorage.getItem(key);
-      if(!raw) {
-        renderSideGamesPanel();
-        return;
-      }
-
-      try{
-        const state = JSON.parse(raw);
-
-        const nameInputs = document.querySelectorAll(".player-name");
-        (state.names || []).forEach((v, idx) => {
-          if(nameInputs[idx]) nameInputs[idx].value = v;
-        });
-
-        (state.scores || []).forEach((row, p) => {
-          (row || []).forEach((v, hIdx) => {
-            const el = document.getElementById(`p${p}_h${hIdx+1}`);
-            if(el) el.value = v || "";
-          });
-        });
-
-        roundFinished = !!state.roundFinished;
-
-        for(let i=0;i<playersCount;i++) recalcPlayer(i);
-
-        renderSideGamesPanel(state.sideGames || null);
-      }catch(e){
-        renderSideGamesPanel();
-      }
-    }
-
-    function clearState(){
-      localStorage.removeItem(storageKeyFor(currentCourseId));
-    }
-
-    function getCompletedHoleCount(startHoleNum){
-      const seq = [];
-      for(let i=0;i<18;i++){
-        const h=((startHoleNum-1+i)%18)+1;
-        seq.push(h);
-      }
-
-      let completed=0;
-      for(const h of seq){
-        const v=document.getElementById(`p0_h${h}`)?.value || "";
-        const n=parseInt(v,10);
-        if(Number.isFinite(n)) completed++;
-      }
-      return completed;
-    }
-
-    function lockScorecard(){
-      roundFinished = true;
-      document.querySelectorAll(".score-input").forEach(el=>{
-        el.disabled=true;
-      });
-      document.querySelectorAll(".player-name").forEach(el=>{
-        el.disabled=true;
-      });
-      document.querySelectorAll(".sidegame-select").forEach(el=>{
-        el.disabled=true;
-      });
-      setPreJoinLock(false);
-      saveState();
-    }
-
-    function firstFilledScoreHole(){
-      const filled = getAllScoreInputs()
-        .filter(el => String(el.value || "").trim() !== "")
-        .map(el => parseInt(el.id.split("_h")[1],10))
-        .filter(n => Number.isFinite(n));
-
-      return filled.length ? filled[0] : null;
-    }
-function enforceStartHoleLock(){
-  if(!isTournamentMode || !joinCompleted || roundFinished){
-    return;
-  }
-
-  const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
-  if(!norm) return;
-
-  const scoreInputs = getAllScoreInputs();
-  const anyFilled = scoreInputs.some(inp => String(inp.value || "").trim() !== "");
-
-  if(anyFilled){
-    scoreInputs.forEach(inp => {
-      const isScoreRowAllowed =
-        (tournamentFormat !== "scramble") ||
-        inp.id.startsWith("p0_");
-
-      inp.disabled = !isScoreRowAllowed || roundFinished;
-    });
-    return;
-  }
-
-  scoreInputs.forEach(inp => {
-    const holeNum = parseInt(inp.id.split("_h")[1], 10);
-    const isStartHole = holeNum === norm.holeNum;
-    const isScoreRowAllowed =
-      (tournamentFormat !== "scramble") ||
-      inp.id.startsWith("p0_");
-
-    inp.disabled = !(isStartHole && isScoreRowAllowed) || roundFinished;
-  });
-}
-    
-
-function wireInputs(){
-  for (let i=0;i<playersCount;i++){
-    for (let h=1;h<=18;h++){
-      const el = document.getElementById(`p${i}_h${h}`);
-      if(!el) continue;
-
-      el.addEventListener("input", () => {
-        if(roundFinished){
-          el.value = sanitizeScoreValue(el.value, tournamentFormat === "scramble");
-          return;
-        }
-
-        const isScoreRowAllowed = (tournamentFormat !== "scramble") || i === 0;
-        if(!isScoreRowAllowed){
-          el.value = "";
-          return;
-        }
-
-        el.value = sanitizeScoreValue(el.value, tournamentFormat === "scramble");
-        recalcPlayer(i);
-        saveState();
-        enforceStartHoleLock();
-      });
-
-      el.addEventListener("focus", () => {
-        if(roundFinished){
-          el.blur();
-          return;
-        }
-
-        if(isTournamentMode && joinCompleted){
-          enforceStartHoleLock();
-        }
-      });
-    }
-    recalcPlayer(i);
-  }
-
-  document.querySelectorAll(".player-name").forEach(inp => {
-    inp.addEventListener("input", () => {
-      if(roundFinished){
-        inp.blur();
-        return;
-      }
-      renderSideGamesPanel(readSideGamesFromDOM());
-      saveState();
-    });
-  });
-
-  enforceStartHoleLock();
-}
-    function build(){
-      const course = COURSES[currentCourseId];
-      courseTitle.textContent = course.title;
-      courseSelect.value = currentCourseId;
-      setCourseHeader(currentCourseId);
-
-      hintLine.textContent =
-        tournamentFormat === "scramble"
-          ? "Scramble: enter ONE team score row. First score must start on your selected start hole. One digit per hole. Out/In/Tot auto-calc."
-          : "Start Hole jumps you to your first hole. First score must be entered on that hole. Swipe to scroll. Tap a box to type. Out/In/Tot auto-calc.";
-
-      tbody.innerHTML = "";
-      buildHeader();
-
-      course.teeRows.forEach(r => tbody.appendChild(buildYardageRow(r)));
-      tbody.appendChild(buildParRow(course));
-      tbody.appendChild(buildHcpRow(course));
-
-      for (let i=0;i<playersCount;i++) tbody.appendChild(buildPlayerRow(i));
-
-      if (course.extraRow) tbody.appendChild(buildYardageRow(course.extraRow));
-      tbody.appendChild(buildYardageRow(course.bottomRow));
-
-      wireInputs();
-      loadState();
-
-      if(Array.isArray(rosterNames) && rosterNames.length){
-        setPlayerRowNames(rosterNames);
-      }
-
-      if(isTournamentMode){
-        const saved = (localStorage.getItem(startHoleKey()) || "").trim();
-        const norm = normalizeStartHole(saved);
-        if(norm){
-          startHoleSelected = norm.label;
-          if(joinCompleted){
-            setTimeout(() => scrollToStartHole(norm.holeNum), 250);
-          }
-        }
-      }
-
-      if(isTournamentMode && !joinCompleted){
-        setPreJoinLock(true);
-      }else{
-        setPreJoinLock(false);
-      }
-    }
-
-    function setCourse(courseId){
-      if (!COURSES[courseId]) return;
-
-      if (isTournamentMode && !joinCompleted && courseId !== currentCourseId){
-        return;
-      }
-
-      if (roundFinished && courseId !== currentCourseId){
-        return;
-      }
-
-      currentCourseId = courseId;
-      build();
-    }
-
-    courseSelect.addEventListener("change", () => setCourse(courseSelect.value));
-
-    let touchStartX = null;
-    swipeZone.addEventListener("touchstart", (e) => {
-      touchStartX = e.changedTouches[0].clientX;
-    }, { passive:true });
-
-    swipeZone.addEventListener("touchend", (e) => {
-      if (touchStartX === null) return;
-      const dx = e.changedTouches[0].clientX - touchStartX;
-      touchStartX = null;
-      if (Math.abs(dx) < 50) return;
-
-      if (isTournamentMode && !joinCompleted) return;
-      if (roundFinished) return;
-
-      if (dx < 0) setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
-      else        setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
-    }, { passive:true });
-
-    async function captureFullCardCanvas(){
-      const card = document.getElementById("card");
-      const scroll = document.querySelector(".scroll-x");
-      const table = document.getElementById("scoreTable");
-
-      const oldOverflowX = scroll.style.overflowX;
-      const oldOverflowY = scroll.style.overflowY;
-      const oldWidth = scroll.style.width;
-      const oldCardWidth = card.style.width;
-
-      scroll.style.overflowX = "visible";
-      scroll.style.overflowY = "visible";
-      scroll.style.width = table.scrollWidth + "px";
-      card.style.width = (table.scrollWidth + 40) + "px";
-
-      try{
-        return await html2canvas(card, {
-          scale: 2,
-          backgroundColor: null,
-          windowWidth: card.scrollWidth,
-          windowHeight: card.scrollHeight
-        });
-      } finally {
-        scroll.style.overflowX = oldOverflowX;
-        scroll.style.overflowY = oldOverflowY;
-        scroll.style.width = oldWidth;
-        card.style.width = oldCardWidth;
-      }
-    }
-
-    function wireButtons(){
-      const saveBtn = document.getElementById("saveImg");
-      const shareBtn = document.getElementById("share");
-      const clearBtn = document.getElementById("clear");
-      const finishBtn = document.getElementById("finishRound");
-
-      saveBtn.addEventListener("click", async () => {
-        if (isTournamentMode && !joinCompleted) return;
-        try{
-          const canvas = await captureFullCardCanvas();
-          canvas.toBlob(async (blob) => {
-            const file = new File([blob], "scorecard.png", { type: "image/png" });
-
-            if (navigator.canShare && navigator.canShare({ files:[file] })) {
-              await navigator.share({ files:[file], title:"Scorecard" });
-              return;
-            }
-
-            const dataUrl = canvas.toDataURL("image/png");
-            const w = window.open();
-            if (w) w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
-            else alert("Pop-up blocked. Try Share instead.");
-          }, "image/png");
-        }catch(e){
-          alert("Save failed. Try again.");
-        }
-      });
-
-      shareBtn.addEventListener("click", async () => {
-        if (isTournamentMode && !joinCompleted) return;
-        try{
-          const canvas = await captureFullCardCanvas();
-          const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
-          const file = new File([blob], "scorecard.png", { type:"image/png" });
-
-          if (navigator.canShare && navigator.canShare({ files:[file] })){
-            await navigator.share({ files:[file], title:"Scorecard" });
-          } else {
-            alert("Sharing not supported here. Use Save as Image.");
-          }
-        }catch(e){
-          alert("Share failed. Use Save as Image.");
-        }
-      });
-
-      clearBtn.addEventListener("click", () => {
-        if (isTournamentMode && !joinCompleted) return;
-        if (roundFinished) return;
-        if(!confirm("Clear all scores and side game selections for this course?")) return;
-        document.querySelectorAll(".score-input").forEach(i => i.value = "");
-        document.querySelectorAll(".player-name").forEach(i => i.value = "");
-        document.querySelectorAll(".sidegame-select").forEach(i => i.value = "");
-        clearState();
-        for (let i=0;i<playersCount;i++) recalcPlayer(i);
-        if(Array.isArray(rosterNames) && rosterNames.length){
-          setPlayerRowNames(rosterNames);
-        }
-        renderSideGamesPanel();
-        if (isTournamentMode && joinCompleted) scheduleTournamentPush();
-      });
-
-      finishBtn?.addEventListener("click", async () => {
-        if(!isTournamentMode || !tournamentId || !joinCompleted){
-          alert("Finish Round only works after you join the tournament.");
-          return;
-        }
-
-        if(roundFinished){
-          alert("This round is already finalized.");
-          return;
-        }
-
-        const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
-        if(!norm){
-          alert("Start hole missing/invalid. Use 1–18, optionally with A/B (ex: 2A).");
-          return;
-        }
-
-        const completed = getCompletedHoleCount(norm.holeNum);
-
-        if(completed < 9){
-          alert(`You must complete at least 9 holes.\nCurrent: ${completed}`);
-          return;
-        }
-
-        let finishHoles = 9;
-
-        if(completed >= 18){
-          const finish18 = confirm(
-            "18 holes detected.\n\nPress OK for Finish 18.\nPress Cancel for Finish 9."
-          );
-          finishHoles = finish18 ? 18 : 9;
-        }else{
-          const ok = confirm(`Finish 9 holes?\nCompleted: ${completed}`);
-          if(!ok) return;
-          finishHoles = 9;
-        }
-
-        try{
-          const deviceId = makeDeviceId();
-          const subRef = doc(db, "tournaments", tournamentId, "submissions", deviceId);
-
-          await setDoc(subRef,{
-            roundStatus:"finished",
-            finishedHoles:finishHoles,
-            updatedAt:serverTimestamp(),
-            finishedAt:serverTimestamp()
-          },{merge:true});
-
-          roundFinished = true;
-          await markSlotFinished(startHoleSelected || String(norm.label || ""));
-          saveJoinFormState({
-            joinCompleted: true,
-            roundFinished: true,
-            rosterNames
-          });
-          saveState();
-
-          alert(`Round finished (${finishHoles} holes).`);
-          lockScorecard();
-        }catch(e){
-          console.error(e);
-          alert("Could not finish round.");
-        }
-      });
-    }
-
-    async function checkTournamentFromURL(){
-      const params = new URLSearchParams(location.search);
-      const tId = (params.get("t") || "").trim();
-      if (!tId) return;
-
-      tournamentId = tId;
-      isTournamentMode = true;
-      joinCompleted = false;
-      roundFinished = false;
-
-      joinScreen.style.display = "block";
-      joinMeta.textContent = `Tournament ID: ${tournamentId}`;
-
-      if(db){
-        try{
-          const snap = await getDoc(doc(db, "tournaments", tournamentId));
-          if(snap.exists()){
-            const t = snap.data() || {};
-
-            tournamentFormat = (t.format || "stroke").toString().trim();
-            playersCount = formatToPlayersCount(tournamentFormat);
-
-            const courseDefault = (t.courseDefault || "tradition").toString().trim();
-            currentCourseId = COURSES[courseDefault] ? courseDefault : "tradition";
-
-            tournamentSideGames = normalizeTournamentSideGames(t.sideGames || {});
-
-            const sName = t.sponsorName || "";
-            const sLogo = t.sponsorLogo || "";
-            const sUrl  = t.sponsorUrl || t.sponsorWebsite || t.sponsorLink || "";
-            applySponsorUI(sName, sLogo, sUrl);
-
-            const savedJoin = loadJoinFormState();
-
-            build();
-
-            if(savedJoin){
-              applyJoinFormState(savedJoin);
-
-              if(Array.isArray(rosterNames) && rosterNames.length){
-                setPlayerRowNames(rosterNames);
-              }
-
-              if(joinCompleted){
-                joinScreen.style.display = "none";
-                renderSideGamesPanel(readSideGamesFromDOM());
-                setPreJoinLock(false);
-                enforceStartHoleLock();
-                const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
-                if(norm){
-                  setTimeout(() => scrollToStartHole(norm.holeNum), 250);
-                }
-              }else{
-                joinScreen.style.display = "block";
-                setPreJoinLock(true);
-              }
-            }else{
-              joinScreen.style.display = "block";
-              setPreJoinLock(true);
-            }
-
-            const saved = (localStorage.getItem(startHoleKey()) || "").trim();
-            if(saved && !joinStartHole.value) joinStartHole.value = saved;
-          }
-        }catch(e){
-          console.warn("Tournament settings load failed", e);
-        }
-      }
-    }
-
-    joinName.addEventListener("input", () => saveJoinFormState());
-    joinGroup.addEventListener("input", () => saveJoinFormState());
-    joinStartHole.addEventListener("input", () => saveJoinFormState());
-    joinMate1.addEventListener("input", () => saveJoinFormState());
-    joinMate2.addEventListener("input", () => saveJoinFormState());
-    joinMate3.addEventListener("input", () => saveJoinFormState());
-    joinMate4.addEventListener("input", () => saveJoinFormState());
-    joinMate5.addEventListener("input", () => saveJoinFormState());
-
-    joinBtn.addEventListener("click", async () => {
-      if (!tournamentId) return;
-
-      if(roundFinished){
-        alert("This round is already finalized and cannot be reopened.");
-        return;
-      }
-
-      const norm = normalizeStartHole(joinStartHole.value);
-      if (!norm) {
-        alert("Please enter a valid starting hole (1–18). You can optionally add A/B (ex: 2A).");
-        return;
-      }
-
-      const scorerName = (joinName.value || "").trim();
-      if (!scorerName) {
-        alert("Please enter your name (Scorer).");
-        return;
-      }
-
-      const matesRaw = [
-        joinMate1?.value || "",
-        joinMate2?.value || "",
-        joinMate3?.value || "",
-        joinMate4?.value || "",
-        joinMate5?.value || ""
-      ].map(s => s.trim()).filter(Boolean);
-
-      if (matesRaw.length < 1) {
-        alert("Please enter at least 1 teammate name.");
-        return;
-      }
-
-      const taken = await slotAlreadyTaken(norm.label);
-      if(taken){
-        alert(`Starting hole ${norm.label} is already assigned. Please choose another.`);
-        return;
-      }
-
-      let all = [scorerName, ...matesRaw].slice(0, 6);
-
-      const seen = new Set();
-      all = all.filter(n => {
-        const k = n.toLowerCase();
-        if (seen.has(k)) return false;
-        seen.add(k);
-        return true;
-      });
-
-      rosterNames = all;
-
-      const nameInputs = Array.from(document.querySelectorAll(".player-name"));
-      for (let i = 0; i < nameInputs.length; i++) {
-        nameInputs[i].value = rosterNames[i] || "";
-      }
-
-      startHoleSelected = norm.label;
-      localStorage.setItem(startHoleKey(), startHoleSelected);
-      await reserveSlot(norm.label);
-
-      joinCompleted = true;
-      roundFinished = false;
-      joinScreen.style.display = "none";
-      renderSideGamesPanel(readSideGamesFromDOM());
-      setPreJoinLock(false);
-      enforceStartHoleLock();
-
-      saveJoinFormState({
-        joinCompleted: true,
-        roundFinished: false,
-        rosterNames
-      });
-
-      saveState();
-      scheduleTournamentPush();
-
-      setTimeout(() => scrollToStartHole(norm.holeNum), 250);
-    });
-
-    joinCancel.addEventListener("click", () => {
-      joinCompleted = false;
-      roundFinished = false;
-      joinScreen.style.display = "none";
-      isTournamentMode = false;
-      tournamentId = null;
-      tournamentFormat = "stroke";
-      tournamentSideGames = {
-        skinsEnabled:false,
-        ctpEnabled:false,
-        ctpHoles:[],
-        longDriveEnabled:false,
-        longDriveHoles:[]
-      };
-      playersCount = 6;
-      startHoleSelected = "";
-      rosterNames = [];
-      applySponsorUI("","","");
-      build();
-      setPreJoinLock(false);
-    });
-
-    function readScoresFromDOM(){
-      const names = Array.from(document.querySelectorAll(".player-name")).map(i => i.value || "");
-
-      const scoresFlat = {};
-      for(let p=0; p<playersCount; p++){
-        for(let h=1; h<=18; h++){
-          const el = document.getElementById(`p${p}_h${h}`);
-          const key = `p${p}_h${h}`;
-          scoresFlat[key] = el && typeof el.value !== "undefined" ? String(el.value || "") : "";
-        }
-      }
-
-      const totals = Array.from({length: playersCount}, (_,i) => ({
-        out: Number(document.querySelector(`[data-out="${i}"]`)?.textContent || 0) || 0,
-        inn: Number(document.querySelector(`[data-in="${i}"]`)?.textContent || 0) || 0,
-        tot: Number(document.querySelector(`[data-tot="${i}"]`)?.textContent || 0) || 0
-      }));
-
-      return { names, scoresFlat, totals };
-    }
-
-    let pushTimer = null;
-    function scheduleTournamentPush(){
-      if (!db || !tournamentId || !authReady || !joinCompleted || roundFinished) return;
-      if (pushTimer) clearTimeout(pushTimer);
-      pushTimer = setTimeout(pushTournamentNow, 250);
-    }
-
-    async function pushTournamentNow(){
-      if (!db || !tournamentId || !joinCompleted) return;
-
-      const deviceId = makeDeviceId();
-      const payload = readScoresFromDOM();
-
-      const playerName = (joinName.value || payload.names[0] || "Player").trim();
-      const group = (joinGroup.value || "").trim();
-
-      const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
-      const startHoleLabel = norm ? norm.label : "";
-
-      const subRef = doc(db, "tournaments", tournamentId, "submissions", deviceId);
-
-      const rosterSafe = (Array.isArray(rosterNames) && rosterNames.length)
-        ? rosterNames
-        : [playerName, ...(payload.names || []).slice(1)].filter(Boolean).slice(0, 6);
-
-      const sideGames = readSideGamesFromDOM();
-
-      try{
-        await setDoc(subRef, {
-          deviceId,
-          courseId: currentCourseId,
-          format: tournamentFormat,
-          playerName,
-          group,
-          startHole: startHoleLabel,
-          names: payload.names,
-          rosterNames: rosterSafe,
-          scoresFlat: payload.scoresFlat,
-          totals: payload.totals,
-          sideGames,
-          roundStatus: roundFinished ? "finished" : "active",
-          updatedAt: serverTimestamp()
-        }, { merge:true });
-      } catch (e) {
-        console.error("WRITE FAILED ❌", e);
-        alert("Firestore write failed: " + (e?.message || e));
-      }
-    }
-
-    async function hardRefreshApp(){
-      try{
-        if ('serviceWorker' in navigator){
-          const regs = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(regs.map(r => r.unregister()));
-        }
-      }catch(e){}
-
-      try{
-        if (window.caches){
-          const keys = await caches.keys();
-          await Promise.all(keys.map(k => caches.delete(k)));
-        }
-      }catch(e){}
-
-      location.reload();
-    }
-
-    refreshBtn.addEventListener("click", () => {
-      if(!confirm("Refresh app and pull latest update?")) return;
-      hardRefreshApp();
-    });
-
-    wireButtons();
-    build();
-    await checkTournamentFromURL();
-  </script>
-
-  <script src="./pwa.js"></script>
-</body>
-</html>
