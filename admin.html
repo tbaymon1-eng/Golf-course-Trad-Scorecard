@@ -625,14 +625,14 @@
   }
 
   function buildLinks(id, token){
-    const root = getBaseShareRoot();
-    return {
-      join: `${root}join.html?id=${encodeURIComponent(id)}`,
-      leaderboard: `${root}leaderboard.html?id=${encodeURIComponent(id)}`,
-      roster: `${root}roster.html?id=${encodeURIComponent(id)}&admin=${encodeURIComponent(token)}`,
-      registration: `${root}register-complete.html?id=${encodeURIComponent(id)}`
-    };
-  }
+  const root = getBaseShareRoot();
+  return {
+    join: `${root}index.html?id=${encodeURIComponent(id)}`,
+    leaderboard: `${root}leaderboard.html?id=${encodeURIComponent(id)}`,
+    roster: `${root}roster.html?id=${encodeURIComponent(id)}&admin=${encodeURIComponent(token)}`,
+    registration: `${root}register-complete.html?id=${encodeURIComponent(id)}`
+  };
+}
 
   function setBox(id, value){
     const el = $(id);
