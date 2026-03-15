@@ -5,602 +5,992 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Tournament Admin</title>
 
-  <meta name="theme-color" content="#0d2a55" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#d9d1c2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --navy:#0d2a55;
-      --navy2:#0b2246;
-      --gold:#caa24a;
-      --green:#2f6b2f;
-      --danger:#b6422d;
-      --border: rgba(255,255,255,.18);
-      --ink: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.75);
-      --panel: rgba(255,255,255,.08);
+      --bg:#d9d1c2;
+      --panel:#ece7dc;
+      --panel-2:#e8e2d6;
+      --ink:#2f2a26;
+      --muted:#6c645c;
+      --line:#9a6217;
+      --line-soft:#d2cbc0;
+      --white:#ffffff;
+      --green:#2f7a31;
+      --blue:#12356f;
+      --red:#c4462f;
+      --link:#2180ff;
+      --shadow:0 8px 24px rgba(0,0,0,.06);
+      --radius:26px;
+      --radius-sm:18px;
     }
 
-    *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-
+    *{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; }
     body{
+      background:var(--bg);
+      color:var(--ink);
+      font-family:"Barlow", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+
+    .page{
+      width:min(920px, calc(100vw - 22px));
+      margin:18px auto 30px;
+      background:rgba(255,255,255,.18);
+      border:6px solid rgba(154,98,23,.45);
+      border-radius:32px;
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .main-card{
+      background:rgba(255,255,255,.18);
+      border:3px solid rgba(154,98,23,.75);
+      border-radius:28px;
+      overflow:hidden;
+    }
+
+    .hero{
+      padding:26px 24px 20px;
+      border-bottom:2px solid rgba(0,0,0,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
+    }
+
+    .hero h1,
+    .section-title,
+    .dash-title{
       margin:0;
-      font-family: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 20% 0%, rgba(202,162,74,.18), transparent 55%),
-        linear-gradient(180deg, rgba(13,42,85,.72), rgba(0,0,0,.45)),
-        #0d2a55;
-      min-height:100vh;
-    }
-
-    .wrap{
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 14px 12px 24px;
-    }
-
-    .panel{
-      border: 2px solid var(--border);
-      background: var(--panel);
-      border-radius: 18px;
-      padding: 14px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 18px 44px rgba(0,0,0,.25);
-    }
-
-    .panel + .panel{ margin-top: 12px; }
-
-    h1,h2{
-      margin:0;
-      font-family: "Cinzel", Georgia, serif;
-      font-weight: 900;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      line-height: 1.08;
-    }
-
-    h1{ font-size: 20px; }
-    h2{ font-size: 15px; }
-
-    .meta{
-      margin-top:6px;
-      color: var(--muted);
-      font-weight: 800;
-      font-size: 13px;
+      font-family:"Cinzel", serif;
       letter-spacing:.02em;
-      line-height: 1.35;
+      color:#2e2a28;
+    }
+
+    .hero h1{
+      font-size:clamp(28px, 5.6vw, 56px);
+      line-height:.98;
+      font-weight:800;
+    }
+
+    .hero p{
+      margin:18px 0 0;
+      max-width:760px;
+      font-size:clamp(18px, 3vw, 30px);
+      line-height:1.08;
+      color:#4b4641;
+      font-weight:700;
+    }
+
+    .content{
+      padding:20px;
+    }
+
+    .field{
+      margin:0 0 18px;
+    }
+
+    .label{
+      display:block;
+      margin:0 0 10px;
+      font-family:"Cinzel", serif;
+      font-weight:800;
+      font-size:clamp(18px, 2.6vw, 28px);
+      color:#1f1b18;
+      letter-spacing:.01em;
+    }
+
+    .hint{
+      margin:10px 0 0;
+      color:#5f5851;
+      font-size:clamp(14px, 2vw, 18px);
+      line-height:1.15;
+      font-weight:700;
+    }
+
+    input[type="text"],
+    input[type="url"],
+    input[type="date"],
+    input[type="number"],
+    select,
+    textarea{
+      width:100%;
+      min-height:72px;
+      padding:18px 24px;
+      border-radius:24px;
+      border:4px solid var(--line);
+      background:#f4f4f4;
+      color:#1f1b18;
+      font-size:clamp(20px, 3.1vw, 34px);
+      font-weight:800;
+      font-family:"Barlow", sans-serif;
+      outline:none;
+      box-shadow:none;
+      appearance:none;
+      -webkit-appearance:none;
+    }
+
+    textarea{
+      min-height:110px;
+      resize:vertical;
+    }
+
+    input::placeholder,
+    textarea::placeholder{
+      color:#a7a5a8;
+      opacity:1;
+      font-weight:700;
+    }
+
+    select{
+      background-image:
+        linear-gradient(45deg, transparent 50%, #111 50%),
+        linear-gradient(135deg, #111 50%, transparent 50%);
+      background-position:
+        calc(100% - 28px) calc(50% - 5px),
+        calc(100% - 18px) calc(50% - 5px);
+      background-size:10px 10px, 10px 10px;
+      background-repeat:no-repeat;
+      padding-right:56px;
     }
 
     .grid{
       display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
-      margin-top: 12px;
+      grid-template-columns:1fr;
+      gap:0 18px;
     }
 
-    .grid-1{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:12px;
-      margin-top: 12px;
+    .dash-box{
+      margin:18px 0 0;
+      padding:18px;
+      border:4px dashed var(--line-soft);
+      border-radius:28px;
+      background:rgba(255,255,255,.22);
     }
 
-    .field label{
-      display:block;
-      font-size:12px;
-      font-weight:1000;
-      letter-spacing:.10em;
-      text-transform:uppercase;
-      color:rgba(255,255,255,.86);
-      margin-bottom:6px;
+    .dash-title{
+      font-size:clamp(24px, 3.6vw, 42px);
+      margin-bottom:14px;
+      font-weight:900;
     }
 
-    input, select, textarea{
+    .btn{
       width:100%;
-      padding:12px 12px;
-      border-radius:12px;
-      border:2px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.12);
-      color:#fff;
-      font-size:14px;
-      font-weight:800;
-      outline:none;
-    }
-
-    input::placeholder, textarea::placeholder{
-      color: rgba(255,255,255,.58);
-    }
-
-    textarea{ resize: vertical; }
-
-    .actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:flex-end;
-      margin-top: 12px;
-    }
-
-    button, a.btn{
-      border: 2px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.12);
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-weight: 900;
-      font-size: 14px;
+      min-height:88px;
+      border:none;
+      border-radius:24px;
+      font-family:"Barlow", sans-serif;
+      font-size:clamp(24px, 4vw, 40px);
+      font-weight:900;
+      letter-spacing:.01em;
       cursor:pointer;
-      text-decoration:none;
-      color: rgba(255,255,255,.92);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      white-space:nowrap;
-      letter-spacing:.02em;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      padding:16px 18px;
+      text-align:center;
+      box-shadow:none;
+      -webkit-tap-highlight-color:transparent;
     }
 
-    button:active, a.btn:active{ transform: translateY(1px); }
-
-    .primary{
-      border-color: rgba(180,210,255,.22);
-      background: rgba(13,42,85,.22);
+    .btn + .btn{ margin-top:18px; }
+    .btn-green{ background:var(--green); color:#fff; }
+    .btn-blue{ background:var(--blue); color:#fff; }
+    .btn-red{ background:var(--red); color:#fff; }
+    .btn-ghost{
+      background:transparent;
+      color:var(--link);
+      border:4px solid var(--line);
     }
 
-    .green{
-      border-color: rgba(184,255,184,.22);
-      background: rgba(47,107,47,.18);
-    }
-
-    .danger{
-      border-color: rgba(255,180,180,.24);
-      background: rgba(182,66,45,.20);
-    }
-
-    .pillRow{
+    .readonly-box{
+      width:100%;
+      min-height:72px;
+      padding:18px 24px;
+      border-radius:24px;
+      border:4px solid #c9c9c9;
+      background:#f6f6f6;
+      color:#333;
+      font-size:clamp(18px, 2.8vw, 30px);
+      font-weight:800;
       display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top: 10px;
+      align-items:center;
+      overflow:auto;
+    }
+
+    .qr-box{
+      min-height:148px;
+      border-radius:24px;
+      border:4px solid #d5d5d5;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:14px;
+      overflow:hidden;
     }
 
     .pill{
       display:inline-flex;
       align-items:center;
-      gap:8px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.18);
-      font-weight: 1000;
-      letter-spacing: .02em;
-      font-size: 12px;
-      color: rgba(255,255,255,.90);
-      white-space:nowrap;
-    }
-
-    .subtle{
-      font-size:12px;
-      color: rgba(255,255,255,.72);
+      justify-content:center;
+      min-height:56px;
+      padding:8px 22px;
+      border-radius:999px;
+      border:4px solid #d0d0d0;
+      background:#f8f8f8;
+      font-size:clamp(18px, 2.5vw, 26px);
       font-weight:800;
-      line-height:1.35;
+      color:#2b2724;
     }
 
-    .linkGrid{
-      display:grid;
-      gap:10px;
-      margin-top: 12px;
+    .muted-block{
+      color:#5d5650;
+      font-size:clamp(16px, 2.2vw, 19px);
+      line-height:1.12;
+      font-weight:700;
     }
 
-    .linkCard{
-      border:2px solid rgba(255,255,255,.14);
-      border-radius:14px;
-      background: rgba(0,0,0,.16);
-      padding:12px;
-      display:grid;
-      gap:8px;
-    }
-
-    .linkTitle{
-      font-size:12px;
-      letter-spacing:.10em;
-      text-transform:uppercase;
-      font-weight:1000;
-      color: rgba(255,255,255,.86);
-    }
-
-    .linkValue{
-      word-break: break-all;
-      font-size:13px;
-      font-weight:800;
-      color: rgba(255,255,255,.94);
-    }
-
-    .linkActions{
+    .sponsor-list{
       display:flex;
-      gap:8px;
-      flex-wrap:wrap;
+      flex-direction:column;
+      gap:12px;
+      margin-top:14px;
     }
 
-    .smallBtn{
-      padding:8px 10px;
-      font-size:12px;
-      border-radius:10px;
+    .sponsor-item{
+      border:3px solid rgba(154,98,23,.45);
+      border-radius:18px;
+      padding:12px 14px;
+      background:rgba(255,255,255,.3);
     }
 
-    .statusBox{
-      display:none;
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 14px;
-      border: 2px solid rgba(184,255,184,.24);
-      background: rgba(47,107,47,.16);
-      font-size: 13px;
-      font-weight: 800;
-      line-height: 1.4;
+    .sponsor-item strong{
+      display:block;
+      font-size:20px;
+      margin-bottom:4px;
     }
 
-    .statusBox.show{ display:block; }
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:22px;
+      transform:translateX(-50%);
+      background:#1f1f1f;
+      color:#fff;
+      padding:12px 18px;
+      border-radius:999px;
+      font-weight:800;
+      font-size:16px;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease, transform .2s ease;
+      z-index:9999;
+    }
 
-    @media (max-width: 760px){
-      .grid{ grid-template-columns: 1fr; }
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(-4px);
+    }
+
+    .hidden{ display:none !important; }
+
+    .row-2{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:18px;
+    }
+
+    @media (min-width:760px){
+      .content{ padding:26px; }
+      .row-2{ grid-template-columns:1fr 1fr; }
     }
   </style>
 </head>
-
 <body>
-  <div class="wrap">
+  <div class="page">
+    <div class="main-card">
+      <section class="hero">
+        <h1>ADMIN TOURNAMENT<br>SETUP</h1>
+        <p>Create or load a tournament, then share the Join QR + Live Leaderboard QR (and Organizer Roster QR).</p>
+      </section>
 
-    <div class="panel">
-      <h1>Tournament Admin</h1>
-      <div class="meta">
-        Create a tournament first. After save, this page will generate the links your coordinator needs:
-        registration, roster, scoring, and leaderboard.
-      </div>
-
-      <div class="grid">
+      <section class="content">
         <div class="field">
-          <label for="tournamentName">Tournament Name</label>
-          <input id="tournamentName" placeholder="Cypresswood Charity Scramble" />
+          <label class="label" for="tournamentName">Tournament Name</label>
+          <input id="tournamentName" type="text" placeholder="Cypresswood Saturday Classic" />
         </div>
 
         <div class="field">
-          <label for="tournamentDate">Tournament Date</label>
-          <input id="tournamentDate" placeholder="2026-04-18" />
-        </div>
-
-        <div class="field">
-          <label for="tournamentIdInput">Tournament ID</label>
-          <input id="tournamentIdInput" placeholder="charity-scramble-2026" />
-        </div>
-
-        <div class="field">
-          <label for="organizerName">Organizer</label>
-          <input id="organizerName" placeholder="Cypresswood Golf Club" />
-        </div>
-
-        <div class="field">
-          <label for="formatSelect">Format</label>
-          <select id="formatSelect">
-            <option value="stroke">Stroke</option>
-            <option value="scramble">Scramble</option>
-            <option value="bestball">Best Ball</option>
+          <label class="label" for="defaultCourse">Default Course</label>
+          <select id="defaultCourse">
+            <option value="Tradition">Tradition</option>
+            <option value="Cypress">Cypress</option>
+            <option value="Lake">Lake</option>
+            <option value="Other">Other</option>
           </select>
         </div>
 
         <div class="field">
-          <label for="courseDefault">Default Course</label>
-          <select id="courseDefault">
-            <option value="tradition">Tradition</option>
-            <option value="cypress">Cypress</option>
+          <label class="label" for="formatOfPlay">Format of Play</label>
+          <select id="formatOfPlay">
+            <option value="Stroke Play">Stroke Play</option>
+            <option value="Scramble">Scramble</option>
+            <option value="Best Ball">Best Ball</option>
+            <option value="Modified Stableford">Modified Stableford</option>
           </select>
         </div>
-      </div>
 
-      <div class="grid">
         <div class="field">
-          <label for="sponsorName">Sponsor Name</label>
-          <input id="sponsorName" placeholder="Chevron Energy" />
+          <label class="label" for="sideGame">Side Game</label>
+          <select id="sideGame">
+            <option value="None">None</option>
+            <option value="Skins">Skins</option>
+            <option value="Skins + Team">Skins + Team</option>
+          </select>
+          <div class="hint">If enabled, the leaderboard can show a Leaderboard / Skins toggle.</div>
         </div>
 
         <div class="field">
-          <label for="sponsorUrl">Sponsor URL</label>
-          <input id="sponsorUrl" placeholder="https://example.com" />
-        </div>
-      </div>
-
-      <div class="grid-1">
-        <div class="field">
-          <label for="sponsorLogo">Sponsor Logo URL</label>
-          <input id="sponsorLogo" placeholder="https://example.com/logo.png" />
-        </div>
-      </div>
-
-      <div class="grid">
-        <div class="field">
-          <label for="ctpHoles">CTP Holes</label>
-          <input id="ctpHoles" placeholder="3, 8, 12, 17" />
+          <label class="label" for="eventDate">Date (optional)</label>
+          <input id="eventDate" type="date" />
         </div>
 
         <div class="field">
-          <label for="longDriveHoles">Long Drive Holes</label>
-          <input id="longDriveHoles" placeholder="7, 15" />
+          <label class="label" for="organizerName">Organizer Name (optional)</label>
+          <input id="organizerName" type="text" placeholder="Name" />
         </div>
-      </div>
 
-      <div class="pillRow">
-        <label class="pill"><input type="checkbox" id="skinsEnabled" style="width:auto; margin:0;"> Skins Enabled</label>
-        <label class="pill"><input type="checkbox" id="ctpEnabled" style="width:auto; margin:0;"> Closest to Pin Enabled</label>
-        <label class="pill"><input type="checkbox" id="longDriveEnabled" style="width:auto; margin:0;"> Long Drive Enabled</label>
-      </div>
+        <div class="field">
+          <label class="label" for="status">Status</label>
+          <select id="status">
+            <option value="open">Open (Live)</option>
+            <option value="draft">Draft</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>
 
-      <div class="actions">
-        <button class="primary" id="loadTournamentBtn">📥 Load Tournament</button>
-        <button class="green" id="saveTournamentBtn">💾 Save Tournament</button>
-      </div>
+        <div class="field">
+          <label class="label" for="handicapMode">Handicap Mode (optional)</label>
+          <select id="handicapMode">
+            <option value="off">Off</option>
+            <option value="net">Net</option>
+            <option value="mixed">Mixed</option>
+          </select>
+          <div class="hint">This is stored for future rules; it won’t break anything if left Off.</div>
+        </div>
 
-      <div class="statusBox" id="statusBox"></div>
+        <div class="field">
+          <label class="label" for="tournamentId">Tournament ID (for Load Existing)</label>
+          <input id="tournamentId" type="text" placeholder="paste tournament id here" />
+        </div>
+
+        <div class="field">
+          <label class="label" for="adminToken">Admin Token (auto)</label>
+          <input id="adminToken" type="text" placeholder="auto-generated" readonly />
+          <div class="hint">Keep this private. It’s a simple gate for admin edits.</div>
+        </div>
+
+        <div class="dash-box">
+          <h2 class="dash-title">ADDITIONAL SIDE GAMES</h2>
+
+          <div class="field">
+            <label class="label" for="closestToPinEnabled">Closest to the Pin</label>
+            <select id="closestToPinEnabled">
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>
+            <div class="hint">Turn Closest to the Pin on or off for this tournament.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="closestToPinHoles">Closest to the Pin Holes</label>
+            <input id="closestToPinHoles" type="text" placeholder="5,8,12,17" />
+            <div class="hint">Comma-separated hole numbers. Example: 5,8,12,17</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="longDriveEnabled">Long Drive</label>
+            <select id="longDriveEnabled">
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>
+            <div class="hint">Turn Long Drive on or off for this tournament.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="longDriveHoles">Long Drive Holes</label>
+            <input id="longDriveHoles" type="text" placeholder="2,9,14" />
+            <div class="hint">Comma-separated hole numbers. Example: 2,9,14</div>
+          </div>
+        </div>
+
+        <div style="height:18px"></div>
+
+        <button class="btn btn-green" id="createTournamentBtn" type="button">Create Tournament</button>
+        <button class="btn btn-blue" id="loadTournamentBtn" type="button">Load Existing (by ID)</button>
+        <button class="btn btn-ghost" id="saveChangesBtn" type="button">Save Changes</button>
+        <button class="btn btn-red" id="closeTournamentBtn" type="button">Close Tournament</button>
+                <div class="dash-box">
+          <h2 class="dash-title">SHARE LINKS & QR CODES</h2>
+
+          <div class="field">
+            <label class="label">Join Link</label>
+            <div id="joinLinkBox" class="readonly-box">—</div>
+          </div>
+
+          <button class="btn btn-ghost" id="copyJoinBtn" type="button">Copy Join</button>
+
+          <div class="field">
+            <label class="label">Leaderboard Link</label>
+            <div id="leaderboardLinkBox" class="readonly-box">—</div>
+          </div>
+
+          <button class="btn btn-ghost" id="copyLeaderboardBtn" type="button">Copy Leaderboard</button>
+
+          <div class="field">
+            <label class="label">Organizer Roster Link</label>
+            <div id="rosterLinkBox" class="readonly-box">—</div>
+          </div>
+
+          <button class="btn btn-ghost" id="copyRosterBtn" type="button">Copy Roster</button>
+
+          <div style="height:10px"></div>
+
+          <div class="field">
+            <label class="label">Registration Link</label>
+            <div id="registrationLinkBox" class="readonly-box">—</div>
+            <div class="hint">Use this link for player or team registration.</div>
+          </div>
+
+          <button class="btn btn-ghost" id="copyRegistrationBtn" type="button">Copy Registration</button>
+
+          <div style="height:16px"></div>
+
+          <div class="row-2">
+
+            <div>
+              <div class="label">Join QR</div>
+              <div id="joinQr" class="qr-box"></div>
+            </div>
+
+            <div>
+              <div class="label">Leaderboard QR</div>
+              <div id="leaderboardQr" class="qr-box"></div>
+            </div>
+
+            <div>
+              <div class="label">Roster QR</div>
+              <div id="rosterQr" class="qr-box"></div>
+            </div>
+
+            <div>
+              <div class="label">Registration QR</div>
+              <div id="registrationQr" class="qr-box"></div>
+            </div>
+
+          </div>
+
+          <div style="height:12px"></div>
+
+          <div class="muted-block">
+            Tip: after you create or load, tap Copy and you’ll see “✔ Copied” + a toast.
+          </div>
+
+        </div>
+                <div class="dash-box" style="margin-top:22px;">
+          <h2 class="dash-title">SPONSORS (ENTERPRISE)</h2>
+
+          <div class="field">
+            <label class="label" for="sponsorTier">Sponsor Tier</label>
+            <select id="sponsorTier">
+              <option value="presenting">Presenting</option>
+              <option value="title">Title</option>
+              <option value="gold">Gold</option>
+              <option value="silver">Silver</option>
+              <option value="bronze">Bronze</option>
+              <option value="supporting">Supporting</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorOrder">Sponsor Order (lower shows first)</label>
+            <input id="sponsorOrder" type="number" placeholder="1" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorName">Sponsor Name</label>
+            <input id="sponsorName" type="text" placeholder="Acme Roofing" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorWebsite">Sponsor Website (optional)</label>
+            <input id="sponsorWebsite" type="url" placeholder="https://example.com" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorLogoFile">Sponsor Logo (Upload PNG/JPG) (optional)</label>
+            <input
+              id="sponsorLogoFile"
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              style="min-height:auto;padding:18px;background:#f4f4f4;"
+            />
+            <div class="hint">Upload once or use a logo URL below.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorLogoUrl">Sponsor Logo URL (optional)</label>
+            <input id="sponsorLogoUrl" type="url" placeholder="https://..." />
+          </div>
+
+          <div class="field">
+            <span class="pill" id="sponsorEmptyPill">No sponsors yet</span>
+          </div>
+
+          <button class="btn btn-green" id="addSponsorBtn" type="button">Add Sponsor</button>
+          <button class="btn btn-ghost" id="clearSponsorFormBtn" type="button">Clear Sponsor Form</button>
+
+          <div id="sponsorList" class="sponsor-list">
+            <div class="muted-block" id="sponsorListEmpty">No sponsors added yet.</div>
+          </div>
+        </div>
+
+      </section>
     </div>
-
-    <div class="panel">
-      <h2>Tournament Links</h2>
-      <div class="meta">
-        After the tournament is saved, copy the registration link and attach it to the back end of the course’s payment or registration process.
-      </div>
-
-      <div class="linkGrid">
-        <div class="linkCard">
-          <div class="linkTitle">Registration Link</div>
-          <div class="linkValue" id="registrationLinkValue">Save a tournament first.</div>
-          <div class="linkActions">
-            <button class="smallBtn primary" id="copyRegistrationBtn">📋 Copy</button>
-            <a class="btn smallBtn" id="openRegistrationBtn" href="#" target="_blank">↗ Open</a>
-          </div>
-        </div>
-
-        <div class="linkCard">
-          <div class="linkTitle">Roster Link</div>
-          <div class="linkValue" id="rosterLinkValue">Save a tournament first.</div>
-          <div class="linkActions">
-            <button class="smallBtn primary" id="copyRosterBtn">📋 Copy</button>
-            <a class="btn smallBtn" id="openRosterBtn" href="#" target="_blank">↗ Open</a>
-          </div>
-        </div>
-
-        <div class="linkCard">
-          <div class="linkTitle">Scoring Link</div>
-          <div class="linkValue" id="scoringLinkValue">Save a tournament first.</div>
-          <div class="linkActions">
-            <button class="smallBtn primary" id="copyScoringBtn">📋 Copy</button>
-            <a class="btn smallBtn" id="openScoringBtn" href="#" target="_blank">↗ Open</a>
-          </div>
-        </div>
-
-        <div class="linkCard">
-          <div class="linkTitle">Leaderboard Link</div>
-          <div class="linkValue" id="leaderboardLinkValue">Save a tournament first.</div>
-          <div class="linkActions">
-            <button class="smallBtn primary" id="copyLeaderboardBtn">📋 Copy</button>
-            <a class="btn smallBtn" id="openLeaderboardBtn" href="#" target="_blank">↗ Open</a>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  <div class="toast" id="toast">Copied</div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
-      authDomain: "cypresswood-tournaments.firebaseapp.com",
-      projectId: "cypresswood-tournaments",
-      storageBucket: "cypresswood-tournaments.firebasestorage.app",
-      messagingSenderId: "162441374966",
-      appId: "1:162441374966:web:157285a2d5c39db1e810d7",
-      measurementId: "G-HL6Y9CLV8K"
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const state = {
+      tournamentId: "",
+      adminToken: "",
+      sponsors: []
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const nameInput = document.getElementById("tournamentName");
-    const dateInput = document.getElementById("tournamentDate");
-    const idInput = document.getElementById("tournamentIdInput");
-    const organizerInput = document.getElementById("organizerName");
-
-    const formatSelect = document.getElementById("formatSelect");
-    const courseSelect = document.getElementById("courseDefault");
-
-    const sponsorName = document.getElementById("sponsorName");
-    const sponsorLogo = document.getElementById("sponsorLogo");
-    const sponsorUrl = document.getElementById("sponsorUrl");
-
-    const skinsEnabled = document.getElementById("skinsEnabled");
-    const ctpEnabled = document.getElementById("ctpEnabled");
-    const longDriveEnabled = document.getElementById("longDriveEnabled");
-
-    const ctpHolesInput = document.getElementById("ctpHoles");
-    const longDriveHolesInput = document.getElementById("longDriveHoles");
-
-    const saveBtn = document.getElementById("saveTournamentBtn");
-    const loadBtn = document.getElementById("loadTournamentBtn");
-
-    const statusBox = document.getElementById("statusBox");
-
-    const regLink = document.getElementById("registrationLinkValue");
-    const rosterLink = document.getElementById("rosterLinkValue");
-    const scoringLink = document.getElementById("scoringLinkValue");
-    const leaderboardLink = document.getElementById("leaderboardLinkValue");
-
-    const openRegistration = document.getElementById("openRegistrationBtn");
-    const openRoster = document.getElementById("openRosterBtn");
-    const openScoring = document.getElementById("openScoringBtn");
-    const openLeaderboard = document.getElementById("openLeaderboardBtn");
-
-    const copyReg = document.getElementById("copyRegistrationBtn");
-    const copyRoster = document.getElementById("copyRosterBtn");
-    const copyScore = document.getElementById("copyScoringBtn");
-    const copyLead = document.getElementById("copyLeaderboardBtn");
-
-    function parseHoleList(str){
-      return String(str || "")
-        .split(",")
-        .map(x => parseInt(x.trim(),10))
-        .filter(n => Number.isFinite(n) && n >= 1 && n <= 18);
+    function randomId(prefix="trn"){
+      const part = Math.random().toString(36).slice(2, 8);
+      const stamp = Date.now().toString(36).slice(-6);
+      return `${prefix}_${stamp}${part}`;
     }
 
-    function cleanTournamentId(raw){
-      return String(raw || "")
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-_]/g, "");
+    function randomToken(){
+      return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
     }
 
-    function buildBasePath(){
-      const path = location.pathname;
-      if(path.endsWith("/admin.html")){
-        return location.origin + path.replace(/admin\.html$/, "");
+    function showToast(msg){
+      const el = $("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => el.classList.remove("show"), 1500);
+    }
+
+    function storageKey(id){
+      return `tournament_admin_${id}`;
+    }
+
+    function getBaseShareRoot(){
+      const url = new URL(location.href);
+      const path = url.pathname;
+      const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
+      return `${url.origin}${dir}`;
+    }
+
+    function buildLinks(id, token){
+      const root = getBaseShareRoot();
+      return {
+        join: `${root}join.html?id=${encodeURIComponent(id)}`,
+        leaderboard: `${root}leaderboard.html?id=${encodeURIComponent(id)}`,
+        roster: `${root}roster.html?id=${encodeURIComponent(id)}&admin=${encodeURIComponent(token)}`,
+        registration: `${root}register.html?id=${encodeURIComponent(id)}`
+      };
+    }
+
+    function setBox(id, value){
+      $(id).textContent = value || "—";
+    }
+
+    async function copyText(text, successMessage){
+      if(!text || text === "—"){
+        showToast("Nothing to copy yet");
+        return;
       }
-      const idx = path.lastIndexOf("/");
-      return location.origin + path.slice(0, idx + 1);
-    }
 
-    function buildLinks(tournamentId){
-      const safeId = encodeURIComponent(tournamentId);
-      const base = buildBasePath();
-
-      const registration = `${base}register-complete.html?t=${safeId}`;
-      const roster = `${base}roster.html?t=${safeId}`;
-      const scoring = `${base}index.html?t=${safeId}`;
-      const leaderboard = `${base}leaderboard.html?t=${safeId}`;
-
-      regLink.textContent = registration;
-      rosterLink.textContent = roster;
-      scoringLink.textContent = scoring;
-      leaderboardLink.textContent = leaderboard;
-
-      openRegistration.href = registration;
-      openRoster.href = roster;
-      openScoring.href = scoring;
-      openLeaderboard.href = leaderboard;
-    }
-
-    async function copyText(text, btn){
       try{
         await navigator.clipboard.writeText(text);
-        if(btn){
-          const old = btn.textContent;
-          btn.textContent = "✅ Copied";
-          setTimeout(() => btn.textContent = old, 900);
-        }
-      }catch(e){
-        alert("Copy blocked. Copy manually.");
+        showToast(successMessage || "✔ Copied");
+      }catch(err){
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        showToast(successMessage || "✔ Copied");
       }
     }
 
-    function showStatus(msg){
-      statusBox.classList.add("show");
-      statusBox.textContent = msg;
-    }
+    function drawFakeQr(elId, text){
+      const box = $(elId);
+      if(!box) return;
 
-    copyReg.onclick = () => copyText(regLink.textContent, copyReg);
-    copyRoster.onclick = () => copyText(rosterLink.textContent, copyRoster);
-    copyScore.onclick = () => copyText(scoringLink.textContent, copyScore);
-    copyLead.onclick = () => copyText(leaderboardLink.textContent, copyLead);
+      box.innerHTML = "";
 
-    idInput.addEventListener("blur", () => {
-      idInput.value = cleanTournamentId(idInput.value);
-    });
+      const canvas = document.createElement("canvas");
+      canvas.width = 220;
+      canvas.height = 220;
+      box.appendChild(canvas);
 
-    saveBtn.addEventListener("click", async () => {
-      const id = cleanTournamentId(idInput.value);
-      idInput.value = id;
+      const ctx = canvas.getContext("2d");
+      const size = canvas.width;
 
-      if(!id){
-        alert("Tournament ID required.");
+      ctx.clearRect(0,0,size,size);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0,0,size,size);
+
+      if(!text || text === "—"){
+        ctx.strokeStyle = "#ddd";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(10,10,size-20,size-20);
+        ctx.fillStyle = "#666";
+        ctx.font = "700 16px Barlow";
+        ctx.textAlign = "center";
+        ctx.fillText("QR pending", size/2, size/2);
         return;
       }
 
-      const data = {
-        name: nameInput.value || "",
-        date: dateInput.value || "",
-        organizer: organizerInput.value || "",
-        format: formatSelect.value,
-        courseDefault: courseSelect.value,
-        sponsorName: sponsorName.value || "",
-        sponsorLogo: sponsorLogo.value || "",
-        sponsorUrl: sponsorUrl.value || "",
-        updatedAt: serverTimestamp(),
-        sideGames:{
-          skinsEnabled: skinsEnabled.checked,
-          ctpEnabled: ctpEnabled.checked,
-          longDriveEnabled: longDriveEnabled.checked,
-          ctpHoles: parseHoleList(ctpHolesInput.value),
-          longDriveHoles: parseHoleList(longDriveHolesInput.value)
+      const seed = Array.from(text).reduce((a,c)=>a + c.charCodeAt(0), 0);
+      const cells = 25;
+      const pad = 12;
+      const cell = (size - pad*2) / cells;
+
+      function finder(x,y){
+        ctx.fillStyle = "#111";
+        ctx.fillRect(x,y,cell*7,cell*7);
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(x+cell,y+cell,cell*5,cell*5);
+        ctx.fillStyle = "#111";
+        ctx.fillRect(x+cell*2,y+cell*2,cell*3,cell*3);
+      }
+
+      finder(pad, pad);
+      finder(size-pad-cell*7, pad);
+      finder(pad, size-pad-cell*7);
+
+      for(let r=0;r<cells;r++){
+        for(let c=0;c<cells;c++){
+          const inTopLeft = r < 7 && c < 7;
+          const inTopRight = r < 7 && c >= cells - 7;
+          const inBottomLeft = r >= cells - 7 && c < 7;
+          if(inTopLeft || inTopRight || inBottomLeft) continue;
+
+          const n = (r * cells + c + seed * 13) % 7;
+          if(n === 0 || n === 2 || ((r + c + seed) % 11 === 0)){
+            ctx.fillStyle = "#111";
+            ctx.fillRect(pad + c*cell, pad + r*cell, cell*0.92, cell*0.92);
+          }
         }
+      }
+    }
+
+    function renderAllQrs(){
+      drawFakeQr("joinQr", $("joinLinkBox")?.textContent || "");
+      drawFakeQr("leaderboardQr", $("leaderboardLinkBox")?.textContent || "");
+      drawFakeQr("rosterQr", $("rosterLinkBox")?.textContent || "");
+      drawFakeQr("registrationQr", $("registrationLinkBox")?.textContent || "");
+    }
+
+    function collectForm(){
+      return {
+        tournamentName: $("tournamentName").value.trim(),
+        defaultCourse: $("defaultCourse").value,
+        formatOfPlay: $("formatOfPlay").value,
+        sideGame: $("sideGame").value,
+        eventDate: $("eventDate").value,
+        organizerName: $("organizerName").value.trim(),
+        status: $("status").value,
+        handicapMode: $("handicapMode").value,
+        tournamentId: state.tournamentId,
+        adminToken: $("adminToken").value.trim(),
+        closestToPinEnabled: $("closestToPinEnabled").value,
+        closestToPinHoles: $("closestToPinHoles").value.trim(),
+        longDriveEnabled: $("longDriveEnabled").value,
+        longDriveHoles: $("longDriveHoles").value.trim(),
+        sponsors: state.sponsors
       };
+    }
 
-      try{
-        await setDoc(doc(db,"tournaments",id), data, { merge:true });
-        buildLinks(id);
-        showStatus("Tournament saved successfully.");
-      }catch(e){
-        console.error(e);
-        alert("Save failed.");
+    function fillForm(data){
+      $("tournamentName").value = data.tournamentName || "";
+      $("defaultCourse").value = data.defaultCourse || "Tradition";
+      $("formatOfPlay").value = data.formatOfPlay || "Stroke Play";
+      $("sideGame").value = data.sideGame || "None";
+      $("eventDate").value = data.eventDate || "";
+      $("organizerName").value = data.organizerName || "";
+      $("status").value = data.status || "open";
+      $("handicapMode").value = data.handicapMode || "off";
+      $("adminToken").value = data.adminToken || "";
+      $("closestToPinEnabled").value = data.closestToPinEnabled || "off";
+      $("closestToPinHoles").value = data.closestToPinHoles || "";
+      $("longDriveEnabled").value = data.longDriveEnabled || "off";
+      $("longDriveHoles").value = data.longDriveHoles || "";
+      state.sponsors = Array.isArray(data.sponsors) ? data.sponsors : [];
+      renderSponsorList();
+    }
+
+    function saveTournamentToLocal(){
+      if(!state.tournamentId){
+        showToast("Create or load a tournament first");
+        return;
       }
-    });
+      const data = collectForm();
+      localStorage.setItem(storageKey(state.tournamentId), JSON.stringify(data));
+      applyLinks();
+      showToast("Changes saved");
+    }
 
-    loadBtn.addEventListener("click", async () => {
-      const id = cleanTournamentId(idInput.value);
-      idInput.value = id;
+    function loadTournamentFromLocal(id){
+      const raw = localStorage.getItem(storageKey(id));
+      if(!raw) return null;
+      try{
+        return JSON.parse(raw);
+      }catch{
+        return null;
+      }
+    }
 
-      if(!id){
-        alert("Enter tournament ID to load.");
+    function applyLinks(){
+      const token = $("adminToken").value.trim();
+
+      if(!state.tournamentId || !token){
+        setBox("joinLinkBox", "—");
+        setBox("leaderboardLinkBox", "—");
+        setBox("rosterLinkBox", "—");
+        setBox("registrationLinkBox", "—");
+        renderAllQrs();
         return;
       }
 
-      try{
-        const snap = await getDoc(doc(db,"tournaments",id));
+      const links = buildLinks(state.tournamentId, token);
+      setBox("joinLinkBox", links.join);
+      setBox("leaderboardLinkBox", links.leaderboard);
+      setBox("rosterLinkBox", links.roster);
+      setBox("registrationLinkBox", links.registration);
+      renderAllQrs();
+    }
 
-        if(!snap.exists()){
-          alert("Tournament not found.");
-          return;
-        }
+    function clearSponsorForm(){
+      $("sponsorTier").value = "presenting";
+      $("sponsorOrder").value = "";
+      $("sponsorName").value = "";
+      $("sponsorWebsite").value = "";
+      $("sponsorLogoFile").value = "";
+      $("sponsorLogoUrl").value = "";
+    }
 
-        const t = snap.data() || {};
+    function sponsorFormData(){
+      return {
+        tier: $("sponsorTier").value,
+        order: Number($("sponsorOrder").value || 999),
+        name: $("sponsorName").value.trim(),
+        website: $("sponsorWebsite").value.trim(),
+        logoUrl: $("sponsorLogoUrl").value.trim(),
+        active: true
+      };
+    }
 
-        nameInput.value = t.name || "";
-        dateInput.value = t.date || "";
-        organizerInput.value = t.organizer || "";
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
 
-        formatSelect.value = t.format || "stroke";
-        courseSelect.value = t.courseDefault || "tradition";
+    function renderSponsorList(){
+      const wrap = $("sponsorList");
+      const empty = $("sponsorListEmpty");
 
-        sponsorName.value = t.sponsorName || "";
-        sponsorLogo.value = t.sponsorLogo || "";
-        sponsorUrl.value = t.sponsorUrl || "";
+      [...wrap.querySelectorAll(".sponsor-item")].forEach(el => el.remove());
 
-        skinsEnabled.checked = !!t?.sideGames?.skinsEnabled;
-        ctpEnabled.checked = !!t?.sideGames?.ctpEnabled;
-        longDriveEnabled.checked = !!t?.sideGames?.longDriveEnabled;
+      if(!state.sponsors.length){
+        empty.style.display = "";
+        $("sponsorEmptyPill").textContent = "No sponsors yet";
+        return;
+      }
 
-        ctpHolesInput.value = (t?.sideGames?.ctpHoles || []).join(", ");
-        longDriveHolesInput.value = (t?.sideGames?.longDriveHoles || []).join(", ");
+      empty.style.display = "none";
+      $("sponsorEmptyPill").textContent = `${state.sponsors.length} sponsor${state.sponsors.length === 1 ? "" : "s"}`;
 
-        buildLinks(id);
-        showStatus("Tournament loaded.");
-      }catch(e){
-        console.error(e);
-        alert("Load failed.");
+      const sorted = [...state.sponsors].sort((a,b)=>(a.order ?? 999) - (b.order ?? 999));
+
+      sorted.forEach((s, index) => {
+        const div = document.createElement("div");
+        div.className = "sponsor-item";
+        div.innerHTML = `
+          <strong>${escapeHtml(s.name || "Untitled Sponsor")}</strong>
+          <div><b>Tier:</b> ${escapeHtml(s.tier || "supporting")}</div>
+          <div><b>Order:</b> ${escapeHtml(String(s.order ?? 999))}</div>
+          <div><b>Website:</b> ${escapeHtml(s.website || "—")}</div>
+          <div><b>Logo:</b> ${escapeHtml(s.logoUrl || "—")}</div>
+          <div style="margin-top:10px;">
+            <button type="button" class="btn btn-red remove-sponsor-btn" data-remove-index="${index}" style="min-height:56px;font-size:22px;">
+              Remove Sponsor
+            </button>
+          </div>
+        `;
+        wrap.appendChild(div);
+      });
+
+      wrap.querySelectorAll(".remove-sponsor-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const idx = Number(btn.dataset.removeIndex);
+          const sortedNow = [...state.sponsors].sort((a,b)=>(a.order ?? 999) - (b.order ?? 999));
+          const target = sortedNow[idx];
+          state.sponsors = state.sponsors.filter(s => s !== target);
+          renderSponsorList();
+          if(state.tournamentId) saveTournamentToLocal();
+          showToast("Sponsor removed");
+        });
+      });
+    }
+
+    function createTournament(){
+      state.tournamentId = randomId("tournament");
+      state.adminToken = randomToken();
+      $("tournamentId").value = state.tournamentId;
+      $("adminToken").value = state.adminToken;
+      saveTournamentToLocal();
+      applyLinks();
+      showToast("Tournament created");
+    }
+
+    function loadTournament(){
+      const id = $("tournamentId").value.trim();
+      if(!id){
+        showToast("Enter a tournament ID");
+        return;
+      }
+
+      const data = loadTournamentFromLocal(id);
+      if(!data){
+        showToast("No local tournament found for that ID");
+        return;
+      }
+
+      state.tournamentId = id;
+      state.adminToken = data.adminToken || "";
+      fillForm(data);
+      applyLinks();
+      showToast("Tournament loaded");
+    }
+
+    function closeTournament(){
+      $("status").value = "closed";
+      if(state.tournamentId){
+        saveTournamentToLocal();
+      }else{
+        showToast("Tournament marked closed");
+      }
+    }
+
+    function addSponsor(){
+      const file = $("sponsorLogoFile").files?.[0];
+      const data = sponsorFormData();
+
+      if(!data.name){
+        showToast("Enter sponsor name");
+        return;
+      }
+
+      if(file && !data.logoUrl){
+        const reader = new FileReader();
+        reader.onload = () => {
+          data.logoUrl = reader.result;
+          state.sponsors.push(data);
+          renderSponsorList();
+          clearSponsorForm();
+          if(state.tournamentId) saveTournamentToLocal();
+          showToast("Sponsor added");
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      state.sponsors.push(data);
+      renderSponsorList();
+      clearSponsorForm();
+      if(state.tournamentId) saveTournamentToLocal();
+      showToast("Sponsor added");
+    }
+
+    $("createTournamentBtn").addEventListener("click", createTournament);
+    $("loadTournamentBtn").addEventListener("click", loadTournament);
+    $("saveChangesBtn").addEventListener("click", saveTournamentToLocal);
+    $("closeTournamentBtn").addEventListener("click", closeTournament);
+
+    $("copyJoinBtn").addEventListener("click", () =>
+      copyText($("joinLinkBox").textContent, "✔ Join copied")
+    );
+    $("copyLeaderboardBtn").addEventListener("click", () =>
+      copyText($("leaderboardLinkBox").textContent, "✔ Leaderboard copied")
+    );
+    $("copyRosterBtn").addEventListener("click", () =>
+      copyText($("rosterLinkBox").textContent, "✔ Roster copied")
+    );
+    $("copyRegistrationBtn").addEventListener("click", () =>
+      copyText($("registrationLinkBox").textContent, "✔ Registration copied")
+    );
+
+    $("addSponsorBtn").addEventListener("click", addSponsor);
+    $("clearSponsorFormBtn").addEventListener("click", clearSponsorForm);
+
+    [
+      "tournamentName",
+      "defaultCourse",
+      "formatOfPlay",
+      "sideGame",
+      "eventDate",
+      "organizerName",
+      "status",
+      "handicapMode",
+      "adminToken",
+      "closestToPinEnabled",
+      "closestToPinHoles",
+      "longDriveEnabled",
+      "longDriveHoles"
+    ].forEach(id => {
+      const el = $(id);
+      if(el){
+        el.addEventListener("input", applyLinks);
+        el.addEventListener("change", applyLinks);
       }
     });
+
+    (function init(){
+      const params = new URLSearchParams(location.search);
+      const urlId = params.get("id");
+
+      if(urlId){
+        $("tournamentId").value = urlId;
+        const data = loadTournamentFromLocal(urlId);
+        if(data){
+          state.tournamentId = urlId;
+          state.adminToken = data.adminToken || "";
+          fillForm(data);
+          applyLinks();
+        }
+      } else {
+        renderSponsorList();
+        applyLinks();
+      }
+    })();
   </script>
 </body>
 </html>
