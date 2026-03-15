@@ -869,3 +869,1173 @@ const tbody = document.getElementById("tbody");
 const hdrRow = document.getElementById("hdrRow");
 
 document.getElementById("yr").textContent = new Date().getFullYear();
+      const holesFront = [1,2,3,4,5,6,7,8,9];
+const holesBack  = [10,11,12,13,14,15,16,17,18];
+
+let playersCount = 6;
+let sponsorUrl = "";
+let tournamentFormat = "stroke";
+let tournamentSideGames = {
+  skinsEnabled:false,
+  ctpEnabled:false,
+  ctpHoles:[],
+  longDriveEnabled:false,
+  longDriveHoles:[]
+};
+let loadedRegistrations = [];
+let selectedRegistrationId = "";
+
+const swipeZone = document.getElementById("courseSwipeZone");
+const hintLine = document.getElementById("hintLine");
+const scrollX = document.getElementById("scrollX");
+
+const joinMeta = document.getElementById("joinMeta");
+const joinBtn = document.getElementById("joinBtn");
+const joinCancel = document.getElementById("joinCancel");
+const joinName = document.getElementById("joinName");
+const joinGroup = document.getElementById("joinGroup");
+const joinStartHole = document.getElementById("joinStartHole");
+const joinMate1 = document.getElementById("joinMate1");
+const joinMate2 = document.getElementById("joinMate2");
+const joinMate3 = document.getElementById("joinMate3");
+const joinMate4 = document.getElementById("joinMate4");
+const joinMate5 = document.getElementById("joinMate5");
+const refreshBtn = document.getElementById("refreshApp");
+
+const scoreSponsor = document.getElementById("scoreSponsor");
+const scoreSponsorLogo = document.getElementById("scoreSponsorLogo");
+const scoreSponsorName = document.getElementById("scoreSponsorName");
+
+const lockBanner = document.getElementById("lockBanner");
+const scorecardStage = document.getElementById("scorecardStage");
+
+const sideGamesPanel = document.getElementById("sideGamesPanel");
+const sideGamesGrid = document.getElementById("sideGamesGrid");
+const sideGamesNote = document.getElementById("sideGamesNote");
+
+function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
+
+function yardCell(v){
+  if (v === -1) return `<td class="yard"></td>`;
+  return `<td class="yard">${v ?? ""}</td>`;
+}
+
+function setCourseHeader(courseKey){
+  const course = COURSES[courseKey];
+  if(!courseHeaderImg || !course) return;
+  courseHeaderImg.src = course.headerImg;
+  courseHeaderImg.alt = courseKey === "cypress" ? "Cypress Header" : "Tradition Header";
+}
+
+function normalizeUrl(u){
+  const s = String(u || "").trim();
+  if(!s) return "";
+  if(/^https?:\/\//i.test(s)) return s;
+  return "https://" + s;
+}
+
+function escapeHtml(s){
+  return String(s || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function escapeHtmlAttr(s){
+  return escapeHtml(s);
+}
+
+function applySponsorUI(name, logo, url){
+  const n = String(name || "").trim();
+  const l = String(logo || "").trim();
+  sponsorUrl = normalizeUrl(url);
+
+  if(!n && !l){
+    scoreSponsor.style.display = "none";
+    scoreSponsor.onclick = null;
+    return;
+  }
+
+  scoreSponsor.style.display = "block";
+  scoreSponsorName.textContent = n || "Tournament Sponsor";
+
+  if(l){
+    scoreSponsorLogo.src = l;
+    scoreSponsorLogo.style.display = "block";
+  }else{
+    scoreSponsorLogo.style.display = "none";
+  }
+
+  scoreSponsor.style.cursor = sponsorUrl ? "pointer" : "default";
+  scoreSponsor.onclick = () => {
+    if(sponsorUrl) window.open(sponsorUrl, "_blank");
+  };
+}
+
+function normalizeTournamentSideGames(raw){
+  const sg = raw || {};
+  const clean = {
+    skinsEnabled: !!sg.skinsEnabled,
+    ctpEnabled: !!sg.ctpEnabled,
+    ctpHoles: Array.isArray(sg.ctpHoles)
+      ? sg.ctpHoles.map(n => parseInt(n,10)).filter(n => Number.isFinite(n) && n >= 1 && n <= 18)
+      : [],
+    longDriveEnabled: !!sg.longDriveEnabled,
+    longDriveHoles: Array.isArray(sg.longDriveHoles)
+      ? sg.longDriveHoles.map(n => parseInt(n,10)).filter(n => Number.isFinite(n) && n >= 1 && n <= 18)
+      : []
+  };
+
+  clean.ctpHoles = clean.ctpHoles.filter((n,i,a) => a.indexOf(n) === i).sort((a,b)=>a-b);
+  clean.longDriveHoles = clean.longDriveHoles.filter((n,i,a) => a.indexOf(n) === i).sort((a,b)=>a-b);
+  return clean;
+}
+
+function formatToPlayersCount(fmt){
+  if(fmt === "scramble") return 1;
+  if(fmt === "bestball") return 2;
+  return 6;
+}
+
+function playerRowLabel(i){
+  if(tournamentFormat === "scramble") return "Team Score";
+  return `Player ${i+1}`;
+}
+
+function normalizeStartHole(raw){
+  const s = String(raw || "").trim().toUpperCase();
+  if(!s) return null;
+  const m = s.match(/^([1-9]|1[0-8])([A-Z])?$/);
+  if(!m) return null;
+  const holeNum = parseInt(m[1], 10);
+  const suffix = m[2] || "";
+  return { label: `${holeNum}${suffix}`, holeNum };
+}
+
+function storageKeyFor(courseId){
+  const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
+  const fPart = tournamentFormat ? `_f_${tournamentFormat}` : "";
+  const teamPart = selectedRegistrationId ? `_r_${selectedRegistrationId}` : "";
+  return `scorecard_state_${courseId}${tPart}${fPart}${teamPart}_v8`;
+}
+
+function selectionKey(){
+  const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
+  return `scorecard_selected_team${tPart}_v1`;
+}
+
+function saveSelectedRegistrationId(id){
+  if(!isTournamentMode || !tournamentId) return;
+  localStorage.setItem(selectionKey(), String(id || ""));
+}
+
+function loadSelectedRegistrationId(){
+  if(!isTournamentMode || !tournamentId) return "";
+  return localStorage.getItem(selectionKey()) || "";
+}
+
+function clearSelectedRegistrationId(){
+  if(!isTournamentMode || !tournamentId) return;
+  localStorage.removeItem(selectionKey());
+}
+
+function makeDeviceId(){
+  const existing = localStorage.getItem("t_device_id");
+  if (existing) return existing;
+
+  let id = "";
+  try{
+    id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : "";
+  }catch(e){}
+
+  if(!id){
+    id = "dev_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+  }
+  localStorage.setItem("t_device_id", id);
+  return id;
+}
+
+function getRosterOptionNames(){
+  const fromRoster = Array.isArray(rosterNames) ? rosterNames.map(s => String(s||"").trim()).filter(Boolean) : [];
+  const fromInputs = Array.from(document.querySelectorAll(".player-name")).map(el => String(el.value || "").trim()).filter(Boolean);
+  const merged = [...fromRoster, ...fromInputs];
+  const seen = new Set();
+  return merged.filter(name => {
+    const k = name.toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+function setPlayerRowNames(names){
+  const list = Array.isArray(names) ? names : [];
+  const inputs = Array.from(document.querySelectorAll(".player-name"));
+  for(let i=0;i<inputs.length;i++){
+    inputs[i].value = list[i] || "";
+  }
+}
+
+function getAllScoreInputs(){
+  return Array.from(document.querySelectorAll(".score-input"));
+}
+
+function sanitizeScoreValue(raw, isScramble){
+  let v = String(raw || "");
+  if(isScramble){
+    v = v.replace(/\D/g,"").slice(0,1);
+  }else{
+    v = v.replace(/\D/g,"").slice(0,2);
+  }
+  return v;
+}
+
+function scrollToStartHole(hole){
+  const h = Number(hole);
+  if(!h || h < 1 || h > 18) return;
+
+  const target = document.getElementById(`p0_h${h}`);
+  if(target && typeof target.scrollIntoView === "function"){
+    target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    return;
+  }
+
+  const ths = Array.from(document.querySelectorAll("#hdrRow th.hole"));
+  const th = ths.find(x => String(x.textContent).trim() === String(h));
+  if(th && scrollX){
+    const left = th.offsetLeft - 180;
+    scrollX.scrollTo({ left: Math.max(0,left), behavior:"smooth" });
+  }
+}
+
+function sideGameSelectHtml(kind, hole, selectedValue, disabled){
+  const names = getRosterOptionNames();
+  const opts = [
+    `<option value="">Select winner</option>`,
+    ...names.map(name => `<option value="${escapeHtmlAttr(name)}"${selectedValue === name ? " selected" : ""}>${escapeHtml(name)}</option>`)
+  ].join("");
+
+  return `
+    <div class="sidegame-row">
+      <div class="sidegame-hole">Hole ${hole}</div>
+      <select class="sidegame-select" data-sidegame="${kind}" data-hole="${hole}" ${disabled ? "disabled" : ""}>
+        ${opts}
+      </select>
+    </div>
+  `;
+}
+
+function renderSideGamesPanel(savedSideGames = null){
+  sideGamesGrid.innerHTML = "";
+
+  const hasCtp = tournamentSideGames.ctpEnabled && tournamentSideGames.ctpHoles.length;
+  const hasLong = tournamentSideGames.longDriveEnabled && tournamentSideGames.longDriveHoles.length;
+
+  if(!isTournamentMode || (!hasCtp && !hasLong)){
+    sideGamesPanel.classList.remove("show");
+    return;
+  }
+
+  const saved = savedSideGames || { ctp:{}, longDrive:{} };
+  const disabled = !joinCompleted || roundFinished;
+
+  if(disabled){
+    sideGamesNote.textContent = roundFinished
+      ? "This round has been finalized. Side games are locked."
+      : "Select your team first, then side games will unlock.";
+  }else{
+    sideGamesNote.textContent = "Select winners for enabled side games. These choices will update the live tournament data.";
+  }
+
+  if(hasCtp){
+    const block = document.createElement("div");
+    block.className = "sidegame-block";
+    block.innerHTML = `
+      <div class="sidegame-block-title">Closest to the Pin</div>
+      ${tournamentSideGames.ctpHoles.map(h => sideGameSelectHtml("ctp", h, saved?.ctp?.[String(h)] || "", disabled)).join("")}
+    `;
+    sideGamesGrid.appendChild(block);
+  }
+
+  if(hasLong){
+    const block = document.createElement("div");
+    block.className = "sidegame-block";
+    block.innerHTML = `
+      <div class="sidegame-block-title">Long Drive</div>
+      ${tournamentSideGames.longDriveHoles.map(h => sideGameSelectHtml("longDrive", h, saved?.longDrive?.[String(h)] || "", disabled)).join("")}
+    `;
+    sideGamesGrid.appendChild(block);
+  }
+
+  sideGamesPanel.classList.add("show");
+
+  sideGamesGrid.querySelectorAll(".sidegame-select").forEach(sel => {
+    sel.addEventListener("change", () => saveState());
+  });
+}
+
+function readSideGamesFromDOM(){
+  const out = { ctp:{}, longDrive:{} };
+  document.querySelectorAll(".sidegame-select").forEach(sel => {
+    const kind = sel.getAttribute("data-sidegame");
+    const hole = String(sel.getAttribute("data-hole") || "").trim();
+    const val = String(sel.value || "").trim();
+    if(!hole || !val) return;
+    if(kind === "ctp") out.ctp[hole] = val;
+    if(kind === "longDrive") out.longDrive[hole] = val;
+  });
+  return out;
+}
+
+function getScoreLockTargets(){
+  return {
+    playerNames: Array.from(document.querySelectorAll(".player-name")),
+    scoreInputs: Array.from(document.querySelectorAll(".score-input")),
+    sideGameInputs: Array.from(document.querySelectorAll(".sidegame-select")),
+    saveBtn: document.getElementById("saveImg"),
+    shareBtn: document.getElementById("share"),
+    finishBtn: document.getElementById("finishRound"),
+    clearBtn: document.getElementById("clear"),
+    courseSel: document.getElementById("courseSelect")
+  };
+}
+
+function setPreJoinLock(locked){
+  const { playerNames, scoreInputs, sideGameInputs, saveBtn, shareBtn, finishBtn, clearBtn, courseSel } = getScoreLockTargets();
+
+  playerNames.forEach(el => el.disabled = !!locked || roundFinished);
+  scoreInputs.forEach(el => el.disabled = !!locked || roundFinished);
+  sideGameInputs.forEach(el => el.disabled = !!locked || roundFinished);
+
+  if(saveBtn) saveBtn.disabled = !!locked;
+  if(shareBtn) shareBtn.disabled = !!locked;
+  if(finishBtn) finishBtn.disabled = !!locked || roundFinished;
+  if(clearBtn) clearBtn.disabled = !!locked || roundFinished;
+  if(courseSel) courseSel.disabled = !!locked || roundFinished;
+
+  if(lockBanner){
+    if(roundFinished){
+      lockBanner.textContent = "This round has been finalized and is now locked.";
+      lockBanner.classList.add("show");
+    }else{
+      lockBanner.textContent = "Select your team above to unlock player names, score entry, side games, and tournament actions.";
+      lockBanner.classList.toggle("show", !!locked);
+    }
+  }
+
+  if(scorecardStage){
+    scorecardStage.classList.toggle("lockedStage", !!locked);
+  }
+}
+
+function buildHeader(){
+  hdrRow.innerHTML = `
+    <th class="label">Hole</th>
+    ${holesFront.map(h=>`<th class="hole">${h}</th>`).join("")}
+    <th class="sum">Out</th>
+    <th class="sum">I<br>N<br>I<br>T</th>
+    ${holesBack.map(h=>`<th class="hole">${h}</th>`).join("")}
+    <th class="sum">In</th>
+    <th class="sum">Tot</th>
+    <th class="sum">Hcp</th>
+    <th class="sum">Net</th>
+  `;
+}
+
+function buildYardageRow(row){
+  const tr = document.createElement("tr");
+  tr.className = row.css;
+  tr.innerHTML = `
+    <td class="label">${row.label}</td>
+    ${row.front.map(n=>yardCell(n)).join("")}
+    ${yardCell(row.out)}
+    ${yardCell("")}
+    ${row.back.map(n=>yardCell(n)).join("")}
+    ${yardCell(row.inn)}
+    ${yardCell(row.tot)}
+    ${yardCell("")}
+    ${yardCell("")}
+  `;
+  return tr;
+}
+
+function buildParRow(course){
+  const out = sum(course.parFront), inn = sum(course.parBack), tot = out + inn;
+  const tr = document.createElement("tr");
+  tr.className = "row-par";
+  tr.innerHTML = `
+    <td class="label">Par:</td>
+    ${course.parFront.map(n=>yardCell(n)).join("")}
+    ${yardCell(out)}
+    ${yardCell("")}
+    ${course.parBack.map(n=>yardCell(n)).join("")}
+    ${yardCell(inn)}
+    ${yardCell(tot)}
+    ${yardCell("")}
+    ${yardCell("")}
+  `;
+  return tr;
+}
+
+function buildHcpRow(course){
+  const tr = document.createElement("tr");
+  tr.className = "row-hcp";
+  tr.innerHTML = `
+    <td class="label">Handicap</td>
+    ${course.hcpFront.map(n=>yardCell(n)).join("")}
+    ${yardCell("")}
+    ${yardCell("")}
+    ${course.hcpBack.map(n=>yardCell(n)).join("")}
+    ${yardCell("")}
+    ${yardCell("")}
+    ${yardCell("")}
+    ${yardCell("")}
+  `;
+  return tr;
+}
+
+function cellInput(playerIdx, holeNum){
+  const id = `p${playerIdx}_h${holeNum}`;
+  const maxlength = tournamentFormat === "scramble" ? "1" : "2";
+  return `
+    <td>
+      <input
+        id="${id}"
+        class="score-input"
+        inputmode="numeric"
+        maxlength="${maxlength}"
+        autocomplete="off"
+      />
+    </td>
+  `;
+}
+
+function buildPlayerRow(i){
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td class="label"><input class="player-name" placeholder="${playerRowLabel(i)}" /></td>
+    ${holesFront.map(h=>cellInput(i,h)).join("")}
+    <td class="total" data-out="${i}">0</td>
+    <td></td>
+    ${holesBack.map(h=>cellInput(i,h)).join("")}
+    <td class="total" data-in="${i}">0</td>
+    <td class="total" data-tot="${i}">0</td>
+    <td></td>
+    <td></td>
+  `;
+  return tr;
+}
+
+function recalcPlayer(i){
+  let out=0, inn=0;
+
+  for (const h of holesFront){
+    const v = document.getElementById(`p${i}_h${h}`)?.value || "";
+    out += parseInt(v, 10) || 0;
+  }
+  for (const h of holesBack){
+    const v = document.getElementById(`p${i}_h${h}`)?.value || "";
+    inn += parseInt(v, 10) || 0;
+  }
+
+  const tot = out + inn;
+  const outEl = document.querySelector(`[data-out="${i}"]`);
+  const inEl  = document.querySelector(`[data-in="${i}"]`);
+  const totEl = document.querySelector(`[data-tot="${i}"]`);
+
+  if(outEl) outEl.textContent = out;
+  if(inEl)  inEl.textContent = inn;
+  if(totEl) totEl.textContent = tot;
+}
+
+function saveState(){
+  const key = storageKeyFor(currentCourseId);
+  const state = {
+    names: Array.from(document.querySelectorAll(".player-name")).map(i => i.value || ""),
+    scores: Array.from({length: playersCount}, (_,p) =>
+      Array.from({length: 18}, (_,h) => {
+        const el = document.getElementById(`p${p}_h${h+1}`);
+        return el ? (el.value || "") : "";
+      })
+    ),
+    sideGames: readSideGamesFromDOM(),
+    roundFinished: !!roundFinished,
+    selectedRegistrationId,
+    startHoleSelected,
+    rosterNames,
+    joinCompleted
+  };
+  localStorage.setItem(key, JSON.stringify(state));
+}
+
+function loadState(){
+  const key = storageKeyFor(currentCourseId);
+  const raw = localStorage.getItem(key);
+  if(!raw){
+    renderSideGamesPanel();
+    return;
+  }
+
+  try{
+    const state = JSON.parse(raw);
+
+    const nameInputs = document.querySelectorAll(".player-name");
+    (state.names || []).forEach((v, idx) => {
+      if(nameInputs[idx]) nameInputs[idx].value = v;
+    });
+
+    (state.scores || []).forEach((row, p) => {
+      (row || []).forEach((v, hIdx) => {
+        const el = document.getElementById(`p${p}_h${hIdx+1}`);
+        if(el) el.value = v || "";
+      });
+    });
+
+    roundFinished = !!state.roundFinished;
+    for(let i=0;i<playersCount;i++) recalcPlayer(i);
+    renderSideGamesPanel(state.sideGames || null);
+  }catch(e){
+    renderSideGamesPanel();
+  }
+}
+
+function clearState(){
+  localStorage.removeItem(storageKeyFor(currentCourseId));
+}
+
+function getCompletedHoleCount(startHoleNum){
+  const seq = [];
+  for(let i=0;i<18;i++){
+    const h=((startHoleNum-1+i)%18)+1;
+    seq.push(h);
+  }
+
+  let completed=0;
+  for(const h of seq){
+    const v=document.getElementById(`p0_h${h}`)?.value || "";
+    const n=parseInt(v,10);
+    if(Number.isFinite(n)) completed++;
+  }
+  return completed;
+}
+
+function lockScorecard(){
+  roundFinished = true;
+  document.querySelectorAll(".score-input").forEach(el => el.disabled = true);
+  document.querySelectorAll(".player-name").forEach(el => el.disabled = true);
+  document.querySelectorAll(".sidegame-select").forEach(el => el.disabled = true);
+  setPreJoinLock(false);
+  saveState();
+}
+
+function enforceStartHoleLock(){
+  if(!isTournamentMode || !joinCompleted || roundFinished) return;
+
+  const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
+  if(!norm) return;
+
+  const scoreInputs = getAllScoreInputs();
+  const anyFilled = scoreInputs.some(inp => String(inp.value || "").trim() !== "");
+
+  if(anyFilled){
+    scoreInputs.forEach(inp => {
+      const isScoreRowAllowed = (tournamentFormat !== "scramble") || inp.id.startsWith("p0_");
+      inp.disabled = !isScoreRowAllowed || roundFinished;
+    });
+    return;
+  }
+
+  scoreInputs.forEach(inp => {
+    const holeNum = parseInt(inp.id.split("_h")[1], 10);
+    const isStartHole = holeNum === norm.holeNum;
+    const isScoreRowAllowed = (tournamentFormat !== "scramble") || inp.id.startsWith("p0_");
+    inp.disabled = !(isStartHole && isScoreRowAllowed) || roundFinished;
+  });
+}
+
+function wireInputs(){
+  for (let i=0;i<playersCount;i++){
+    for (let h=1;h<=18;h++){
+      const el = document.getElementById(`p${i}_h${h}`);
+      if(!el) continue;
+
+      el.addEventListener("input", () => {
+        if(roundFinished){
+          el.value = sanitizeScoreValue(el.value, tournamentFormat === "scramble");
+          return;
+        }
+
+        const isScoreRowAllowed = (tournamentFormat !== "scramble") || i === 0;
+        if(!isScoreRowAllowed){
+          el.value = "";
+          return;
+        }
+
+        el.value = sanitizeScoreValue(el.value, tournamentFormat === "scramble");
+        recalcPlayer(i);
+        saveState();
+        enforceStartHoleLock();
+        scheduleTournamentPush();
+      });
+
+      el.addEventListener("focus", () => {
+        if(roundFinished){
+          el.blur();
+          return;
+        }
+        if(isTournamentMode && joinCompleted){
+          enforceStartHoleLock();
+        }
+      });
+    }
+    recalcPlayer(i);
+  }
+
+  document.querySelectorAll(".player-name").forEach(inp => {
+    inp.addEventListener("input", () => {
+      if(roundFinished){
+        inp.blur();
+        return;
+      }
+      renderSideGamesPanel(readSideGamesFromDOM());
+      saveState();
+      scheduleTournamentPush();
+    });
+  });
+
+  enforceStartHoleLock();
+}
+
+function build(){
+  const course = COURSES[currentCourseId];
+  courseTitle.textContent = course.title;
+  courseSelect.value = currentCourseId;
+  setCourseHeader(currentCourseId);
+
+  hintLine.textContent =
+    tournamentFormat === "scramble"
+      ? "Scramble: enter ONE team score row. First score must start on your assigned hole. One digit per hole. Out/In/Tot auto-calc."
+      : "Assigned hole locks the first score location. Swipe to scroll. Tap a box to type. Out/In/Tot auto-calc.";
+
+  tbody.innerHTML = "";
+  buildHeader();
+
+  course.teeRows.forEach(r => tbody.appendChild(buildYardageRow(r)));
+  tbody.appendChild(buildParRow(course));
+  tbody.appendChild(buildHcpRow(course));
+
+  for (let i=0;i<playersCount;i++) tbody.appendChild(buildPlayerRow(i));
+
+  if (course.extraRow) tbody.appendChild(buildYardageRow(course.extraRow));
+  tbody.appendChild(buildYardageRow(course.bottomRow));
+
+  wireInputs();
+  loadState();
+
+  if(Array.isArray(rosterNames) && rosterNames.length){
+    setPlayerRowNames(rosterNames);
+  }
+
+  if(isTournamentMode && joinCompleted){
+    const norm = normalizeStartHole(startHoleSelected);
+    if(norm){
+      setTimeout(() => scrollToStartHole(norm.holeNum), 250);
+    }
+  }
+
+  if(isTournamentMode && !joinCompleted){
+    setPreJoinLock(true);
+  }else{
+    setPreJoinLock(false);
+  }
+}
+
+function setCourse(courseId){
+  if (!COURSES[courseId]) return;
+  if (isTournamentMode && !joinCompleted && courseId !== currentCourseId) return;
+  if (roundFinished && courseId !== currentCourseId) return;
+  currentCourseId = courseId;
+  build();
+}
+
+courseSelect.addEventListener("change", () => setCourse(courseSelect.value));
+
+let touchStartX = null;
+swipeZone.addEventListener("touchstart", (e) => {
+  touchStartX = e.changedTouches[0].clientX;
+}, { passive:true });
+
+swipeZone.addEventListener("touchend", (e) => {
+  if (touchStartX === null) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  touchStartX = null;
+  if (Math.abs(dx) < 50) return;
+
+  if (isTournamentMode && !joinCompleted) return;
+  if (roundFinished) return;
+
+  if (dx < 0) setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
+  else        setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
+}, { passive:true });
+
+async function captureFullCardCanvas(){
+  const card = document.getElementById("card");
+  const scroll = document.querySelector(".scroll-x");
+  const table = document.getElementById("scoreTable");
+
+  const oldOverflowX = scroll.style.overflowX;
+  const oldOverflowY = scroll.style.overflowY;
+  const oldWidth = scroll.style.width;
+  const oldCardWidth = card.style.width;
+
+  scroll.style.overflowX = "visible";
+  scroll.style.overflowY = "visible";
+  scroll.style.width = table.scrollWidth + "px";
+  card.style.width = (table.scrollWidth + 40) + "px";
+
+  try{
+    return await html2canvas(card, {
+      scale: 2,
+      backgroundColor: null,
+      windowWidth: card.scrollWidth,
+      windowHeight: card.scrollHeight
+    });
+  } finally {
+    scroll.style.overflowX = oldOverflowX;
+    scroll.style.overflowY = oldOverflowY;
+    scroll.style.width = oldWidth;
+    card.style.width = oldCardWidth;
+  }
+}
+
+function readScoresFromDOM(){
+  const names = Array.from(document.querySelectorAll(".player-name")).map(i => i.value || "");
+
+  const scoresFlat = {};
+  for(let p=0; p<playersCount; p++){
+    for(let h=1; h<=18; h++){
+      const el = document.getElementById(`p${p}_h${h}`);
+      const key = `p${p}_h${h}`;
+      scoresFlat[key] = el && typeof el.value !== "undefined" ? String(el.value || "") : "";
+    }
+  }
+
+  const totals = Array.from({length: playersCount}, (_,i) => ({
+    out: Number(document.querySelector(`[data-out="${i}"]`)?.textContent || 0) || 0,
+    inn: Number(document.querySelector(`[data-in="${i}"]`)?.textContent || 0) || 0,
+    tot: Number(document.querySelector(`[data-tot="${i}"]`)?.textContent || 0) || 0
+  }));
+
+  return { names, scoresFlat, totals };
+}
+
+function normalizeRegistration(r){
+  const players = Array.isArray(r.players) ? r.players : (Array.isArray(r.rosterNames) ? r.rosterNames : []);
+  return {
+    id: r.id || "",
+    teamName: String(r.teamName || r.group || "").trim(),
+    captainName: String(r.captainName || "").trim(),
+    players: players.map(x => String(x || "").trim()).filter(Boolean).slice(0,6),
+    assignedHole: String(r.assignedHole || r.startHole || "").trim().toUpperCase(),
+    status: String(r.status || "assigned").trim().toLowerCase(),
+    courseId: String(r.courseId || "").trim().toLowerCase()
+  };
+}
+
+function teamMatchesSearch(team, q){
+  if(!q) return true;
+  const hay = [
+    team.teamName,
+    team.captainName,
+    team.assignedHole,
+    ...(team.players || [])
+  ].join(" ").toLowerCase();
+  return hay.includes(q);
+}
+
+function renderTeamPicker(){
+  const q = String(teamSearchInput.value || "").trim().toLowerCase();
+  const visible = loadedRegistrations
+    .filter(t => t.status !== "cancelled")
+    .filter(t => teamMatchesSearch(t, q))
+    .sort((a,b) => {
+      const A = normalizeStartHole(a.assignedHole) || { holeNum:999, label:"999Z" };
+      const B = normalizeStartHole(b.assignedHole) || { holeNum:999, label:"999Z" };
+      if(A.label.endsWith("A") && !B.label.endsWith("A")) return -1;
+      if(!A.label.endsWith("A") && B.label.endsWith("A")) return 1;
+      if(A.holeNum !== B.holeNum) return A.holeNum - B.holeNum;
+      return a.teamName.localeCompare(b.teamName);
+    });
+
+  teamList.innerHTML = visible.map(team => `
+    <div class="team-card" data-team-id="${escapeHtmlAttr(team.id)}">
+      <div class="team-card-top">
+        <div class="team-card-name">${escapeHtml(team.teamName || "Team")}</div>
+        <div class="team-card-hole">Hole ${escapeHtml(team.assignedHole || "—")}</div>
+      </div>
+      <div class="team-card-players">${escapeHtml((team.players || []).join(" • "))}</div>
+    </div>
+  `).join("");
+
+  teamPickerEmpty.style.display = visible.length ? "none" : "block";
+
+  teamList.querySelectorAll(".team-card").forEach(card => {
+    card.addEventListener("click", () => {
+      const id = card.getAttribute("data-team-id");
+      const reg = loadedRegistrations.find(x => x.id === id);
+      if(reg) applyRegistrationSelection(reg);
+    });
+  });
+}
+
+async function loadRegistrations(){
+  if(!db || !tournamentId) return;
+  const snap = await getDocs(collection(db, "tournaments", tournamentId, "registrations"));
+  loadedRegistrations = [];
+  snap.forEach(d => {
+    loadedRegistrations.push(normalizeRegistration({ id: d.id, ...(d.data() || {}) }));
+  });
+  renderTeamPicker();
+}
+
+function applyRegistrationSelection(reg){
+  selectedRegistrationId = reg.id || "";
+  saveSelectedRegistrationId(selectedRegistrationId);
+
+  rosterNames = Array.isArray(reg.players) ? reg.players.slice(0,6) : [];
+  joinGroup.value = reg.teamName || "";
+  joinName.value = reg.captainName || rosterNames[0] || "";
+  joinMate1.value = rosterNames[1] || "";
+  joinMate2.value = rosterNames[2] || "";
+  joinMate3.value = rosterNames[3] || "";
+  joinMate4.value = rosterNames[4] || "";
+  joinMate5.value = rosterNames[5] || "";
+  joinStartHole.value = reg.assignedHole || "";
+  startHoleSelected = reg.assignedHole || "";
+  currentCourseId = COURSES[reg.courseId] ? reg.courseId : currentCourseId;
+
+  setPlayerRowNames(rosterNames);
+  build();
+
+  teamPickerScreen.style.display = "none";
+  joinScreen.style.display = "block";
+  joinMeta.textContent = `${reg.teamName || "Team"} • Start Hole ${reg.assignedHole || "—"}`;
+}
+
+function backToTeamPicker(){
+  joinScreen.style.display = "none";
+  teamPickerScreen.style.display = "block";
+  joinCompleted = false;
+  setPreJoinLock(true);
+}
+
+async function pushTournamentNow(){
+  if (!db || !tournamentId || !joinCompleted) return;
+
+  const deviceId = makeDeviceId();
+  const payload = readScoresFromDOM();
+  const playerName = (joinName.value || payload.names[0] || "Player").trim();
+  const group = (joinGroup.value || "").trim();
+  const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
+  const startHoleLabel = norm ? norm.label : "";
+
+  const subRef = doc(db, "tournaments", tournamentId, "submissions", deviceId);
+  const rosterSafe = (Array.isArray(rosterNames) && rosterNames.length)
+    ? rosterNames
+    : [playerName, ...(payload.names || []).slice(1)].filter(Boolean).slice(0, 6);
+
+  const sideGames = readSideGamesFromDOM();
+
+  await setDoc(subRef, {
+    deviceId,
+    registrationId: selectedRegistrationId || "",
+    courseId: currentCourseId,
+    format: tournamentFormat,
+    playerName,
+    group,
+    startHole: startHoleLabel,
+    names: payload.names,
+    rosterNames: rosterSafe,
+    scoresFlat: payload.scoresFlat,
+    totals: payload.totals,
+    sideGames,
+    roundStatus: roundFinished ? "finished" : "active",
+    updatedAt: serverTimestamp()
+  }, { merge:true });
+}
+
+let pushTimer = null;
+function scheduleTournamentPush(){
+  if (!db || !tournamentId || !authReady || !joinCompleted || roundFinished) return;
+  if (pushTimer) clearTimeout(pushTimer);
+  pushTimer = setTimeout(async () => {
+    try{
+      await pushTournamentNow();
+    }catch(e){
+      console.error("WRITE FAILED ❌", e);
+    }
+  }, 250);
+}
+
+function wireButtons(){
+  const saveBtn = document.getElementById("saveImg");
+  const shareBtn = document.getElementById("share");
+  const clearBtn = document.getElementById("clear");
+  const finishBtn = document.getElementById("finishRound");
+
+  saveBtn.addEventListener("click", async () => {
+    if (isTournamentMode && !joinCompleted) return;
+    try{
+      const canvas = await captureFullCardCanvas();
+      canvas.toBlob(async (blob) => {
+        const file = new File([blob], "scorecard.png", { type: "image/png" });
+
+        if (navigator.canShare && navigator.canShare({ files:[file] })) {
+          await navigator.share({ files:[file], title:"Scorecard" });
+          return;
+        }
+
+        const dataUrl = canvas.toDataURL("image/png");
+        const w = window.open();
+        if (w) w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
+        else alert("Pop-up blocked. Try Share instead.");
+      }, "image/png");
+    }catch(e){
+      alert("Save failed. Try again.");
+    }
+  });
+
+  shareBtn.addEventListener("click", async () => {
+    if (isTournamentMode && !joinCompleted) return;
+    try{
+      const canvas = await captureFullCardCanvas();
+      const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+      const file = new File([blob], "scorecard.png", { type:"image/png" });
+
+      if (navigator.canShare && navigator.canShare({ files:[file] })){
+        await navigator.share({ files:[file], title:"Scorecard" });
+      } else {
+        alert("Sharing not supported here. Use Save as Image.");
+      }
+    }catch(e){
+      alert("Share failed. Use Save as Image.");
+    }
+  });
+
+  clearBtn.addEventListener("click", () => {
+    if (isTournamentMode && !joinCompleted) return;
+    if (roundFinished) return;
+    if(!confirm("Clear all scores and side game selections for this course?")) return;
+    document.querySelectorAll(".score-input").forEach(i => i.value = "");
+    document.querySelectorAll(".player-name").forEach(i => i.value = "");
+    document.querySelectorAll(".sidegame-select").forEach(i => i.value = "");
+    clearState();
+    for (let i=0;i<playersCount;i++) recalcPlayer(i);
+    if(Array.isArray(rosterNames) && rosterNames.length){
+      setPlayerRowNames(rosterNames);
+    }
+    renderSideGamesPanel();
+    scheduleTournamentPush();
+  });
+
+  finishBtn.addEventListener("click", async () => {
+    if(!isTournamentMode || !tournamentId || !joinCompleted){
+      alert("Finish Round only works after you select your team.");
+      return;
+    }
+
+    if(roundFinished){
+      alert("This round is already finalized.");
+      return;
+    }
+
+    const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
+    if(!norm){
+      alert("Start hole missing/invalid.");
+      return;
+    }
+
+    const completed = getCompletedHoleCount(norm.holeNum);
+    if(completed < 9){
+      alert(`You must complete at least 9 holes.\nCurrent: ${completed}`);
+      return;
+    }
+
+    let finishHoles = 9;
+    if(completed >= 18){
+      const finish18 = confirm("18 holes detected.\n\nPress OK for Finish 18.\nPress Cancel for Finish 9.");
+      finishHoles = finish18 ? 18 : 9;
+    }else{
+      const ok = confirm(`Finish 9 holes?\nCompleted: ${completed}`);
+      if(!ok) return;
+    }
+
+    try{
+      await pushTournamentNow();
+      const deviceId = makeDeviceId();
+      const subRef = doc(db, "tournaments", tournamentId, "submissions", deviceId);
+      await setDoc(subRef,{
+        roundStatus:"finished",
+        finishedHoles:finishHoles,
+        updatedAt:serverTimestamp(),
+        finishedAt:serverTimestamp()
+      },{merge:true});
+
+      roundFinished = true;
+      saveState();
+      lockScorecard();
+      alert(`Round finished (${finishHoles} holes).`);
+    }catch(e){
+      console.error(e);
+      alert("Could not finish round.");
+    }
+  });
+}
+
+async function checkTournamentFromURL(){
+  const params = new URLSearchParams(location.search);
+  const tId = (params.get("t") || "").trim();
+  if (!tId) return;
+
+  tournamentId = tId;
+  isTournamentMode = true;
+  joinCompleted = false;
+  roundFinished = false;
+
+  if(db){
+    try{
+      const snap = await getDoc(doc(db, "tournaments", tournamentId));
+      if(snap.exists()){
+        const t = snap.data() || {};
+        tournamentFormat = (t.format || "stroke").toString().trim().toLowerCase();
+        playersCount = formatToPlayersCount(tournamentFormat);
+
+        const courseDefault = (t.courseDefault || "tradition").toString().trim();
+        currentCourseId = COURSES[courseDefault] ? courseDefault : "tradition";
+        tournamentSideGames = normalizeTournamentSideGames(t.sideGames || {});
+
+        const sName = t.sponsorName || "";
+        const sLogo = t.sponsorLogo || "";
+        const sUrl  = t.sponsorUrl || t.sponsorWebsite || t.sponsorLink || "";
+        applySponsorUI(sName, sLogo, sUrl);
+
+        build();
+        teamPickerScreen.style.display = "block";
+        joinScreen.style.display = "none";
+        joinMeta.textContent = `${t.name || "Tournament"}${t.date ? " • " + t.date : ""}`;
+        setPreJoinLock(true);
+
+        await loadRegistrations();
+
+        const savedRegId = loadSelectedRegistrationId();
+        if(savedRegId){
+          const found = loadedRegistrations.find(x => x.id === savedRegId);
+          if(found){
+            applyRegistrationSelection(found);
+          }
+        }
+      }
+    }catch(e){
+      console.warn("Tournament settings load failed", e);
+    }
+  }
+}
+
+joinBtn.addEventListener("click", async () => {
+  if (!tournamentId) return;
+  if(roundFinished){
+    alert("This round is already finalized and cannot be reopened.");
+    return;
+  }
+
+  const norm = normalizeStartHole(joinStartHole.value);
+  if (!norm) {
+    alert("Missing starting hole.");
+    return;
+  }
+
+  const scorerName = (joinName.value || "").trim();
+  if (!scorerName) {
+    alert("Please enter your name (Scorer).");
+    return;
+  }
+
+  const matesRaw = [
+    joinMate1?.value || "",
+    joinMate2?.value || "",
+    joinMate3?.value || "",
+    joinMate4?.value || "",
+    joinMate5?.value || ""
+  ].map(s => s.trim()).filter(Boolean);
+
+  let all = [scorerName, ...matesRaw].slice(0, 6);
+  const seen = new Set();
+  all = all.filter(n => {
+    const k = n.toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+
+  rosterNames = all;
+  setPlayerRowNames(rosterNames);
+
+  startHoleSelected = norm.label;
+  joinCompleted = true;
+  roundFinished = false;
+  joinScreen.style.display = "none";
+  teamPickerScreen.style.display = "none";
+  renderSideGamesPanel(readSideGamesFromDOM());
+  setPreJoinLock(false);
+  enforceStartHoleLock();
+  saveState();
+
+  try{
+    await pushTournamentNow();
+  }catch(e){
+    console.error(e);
+  }
+
+  setTimeout(() => scrollToStartHole(norm.holeNum), 250);
+});
+
+joinCancel.addEventListener("click", () => {
+  backToTeamPicker();
+});
+
+teamSearchInput.addEventListener("input", renderTeamPicker);
+
+async function hardRefreshApp(){
+  try{
+    if ('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+  }catch(e){}
+
+  try{
+    if (window.caches){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  }catch(e){}
+
+  location.reload();
+}
+
+refreshBtn.addEventListener("click", () => {
+  if(!confirm("Refresh app and pull latest update?")) return;
+  hardRefreshApp();
+});
+
+wireButtons();
+build();
+await checkTournamentFromURL();
+
+</script>
+
+<script src="./pwa.js"></script>
+</body>
+</html>
