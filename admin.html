@@ -563,434 +563,538 @@
 
   <div class="toast" id="toast">Copied</div>
 
-  <script>
-    const $ = (id) => document.getElementById(id);
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const state = {
-      tournamentId: "",
-      adminToken: "",
-      sponsors: []
+  const firebaseConfig = {
+    apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
+    authDomain: "cypresswood-tournaments.firebaseapp.com",
+    projectId: "cypresswood-tournaments",
+    storageBucket: "cypresswood-tournaments.firebasestorage.app",
+    messagingSenderId: "162441374966",
+    appId: "1:162441374966:web:157285a2d5c39db1e810d7",
+    measurementId: "G-HL6Y9CLV8K"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const $ = (id) => document.getElementById(id);
+
+  const state = {
+    tournamentId: "",
+    adminToken: "",
+    sponsors: []
+  };
+
+  function randomId(prefix="tournament"){
+    const part = Math.random().toString(36).slice(2, 8);
+    const stamp = Date.now().toString(36).slice(-6);
+    return `${prefix}_${stamp}${part}`;
+  }
+
+  function randomToken(){
+    return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  }
+
+  function showToast(msg){
+    const el = $("toast");
+    if(!el) return;
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => el.classList.remove("show"), 1500);
+  }
+
+  function storageKey(id){
+    return `tournament_admin_${id}`;
+  }
+
+  function getBaseShareRoot(){
+    const url = new URL(location.href);
+    const path = url.pathname;
+    const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
+    return `${url.origin}${dir}`;
+  }
+
+  function buildLinks(id, token){
+    const root = getBaseShareRoot();
+    return {
+      join: `${root}join.html?id=${encodeURIComponent(id)}`,
+      leaderboard: `${root}leaderboard.html?id=${encodeURIComponent(id)}`,
+      roster: `${root}roster.html?id=${encodeURIComponent(id)}&admin=${encodeURIComponent(token)}`,
+      registration: `${root}register-complete.html?id=${encodeURIComponent(id)}`
     };
+  }
 
-    function randomId(prefix="trn"){
-      const part = Math.random().toString(36).slice(2, 8);
-      const stamp = Date.now().toString(36).slice(-6);
-      return `${prefix}_${stamp}${part}`;
+  function setBox(id, value){
+    const el = $(id);
+    if(el) el.textContent = value || "—";
+  }
+
+  async function copyText(text, successMessage){
+    if(!text || text === "—"){
+      showToast("Nothing to copy yet");
+      return;
     }
 
-    function randomToken(){
-      return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    try{
+      await navigator.clipboard.writeText(text);
+      showToast(successMessage || "✔ Copied");
+    }catch(err){
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+      showToast(successMessage || "✔ Copied");
+    }
+  }
+
+  function drawFakeQr(elId, text){
+    const box = $(elId);
+    if(!box) return;
+
+    box.innerHTML = "";
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 220;
+    canvas.height = 220;
+    box.appendChild(canvas);
+
+    const ctx = canvas.getContext("2d");
+    const size = canvas.width;
+
+    ctx.clearRect(0,0,size,size);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0,0,size,size);
+
+    if(!text || text === "—"){
+      ctx.strokeStyle = "#ddd";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(10,10,size-20,size-20);
+      ctx.fillStyle = "#666";
+      ctx.font = "700 16px Barlow";
+      ctx.textAlign = "center";
+      ctx.fillText("QR pending", size/2, size/2);
+      return;
     }
 
-    function showToast(msg){
-      const el = $("toast");
-      el.textContent = msg;
-      el.classList.add("show");
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => el.classList.remove("show"), 1500);
-    }
+    const seed = Array.from(text).reduce((a,c)=>a + c.charCodeAt(0), 0);
+    const cells = 25;
+    const pad = 12;
+    const cell = (size - pad*2) / cells;
 
-    function storageKey(id){
-      return `tournament_admin_${id}`;
-    }
-
-    function getBaseShareRoot(){
-      const url = new URL(location.href);
-      const path = url.pathname;
-      const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
-      return `${url.origin}${dir}`;
-    }
-
-    function buildLinks(id, token){
-      const root = getBaseShareRoot();
-      return {
-        join: `${root}join.html?id=${encodeURIComponent(id)}`,
-        leaderboard: `${root}leaderboard.html?id=${encodeURIComponent(id)}`,
-        roster: `${root}roster.html?id=${encodeURIComponent(id)}&admin=${encodeURIComponent(token)}`,
-        registration: `${root}register-complete.html?id=${encodeURIComponent(id)}`
-      };
-    }
-
-    function setBox(id, value){
-      $(id).textContent = value || "—";
-    }
-
-    async function copyText(text, successMessage){
-      if(!text || text === "—"){
-        showToast("Nothing to copy yet");
-        return;
-      }
-
-      try{
-        await navigator.clipboard.writeText(text);
-        showToast(successMessage || "✔ Copied");
-      }catch(err){
-        const ta = document.createElement("textarea");
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        ta.remove();
-        showToast(successMessage || "✔ Copied");
-      }
-    }
-
-    function drawFakeQr(elId, text){
-      const box = $(elId);
-      if(!box) return;
-
-      box.innerHTML = "";
-
-      const canvas = document.createElement("canvas");
-      canvas.width = 220;
-      canvas.height = 220;
-      box.appendChild(canvas);
-
-      const ctx = canvas.getContext("2d");
-      const size = canvas.width;
-
-      ctx.clearRect(0,0,size,size);
+    function finder(x,y){
+      ctx.fillStyle = "#111";
+      ctx.fillRect(x,y,cell*7,cell*7);
       ctx.fillStyle = "#fff";
-      ctx.fillRect(0,0,size,size);
+      ctx.fillRect(x+cell,y+cell,cell*5,cell*5);
+      ctx.fillStyle = "#111";
+      ctx.fillRect(x+cell*2,y+cell*2,cell*3,cell*3);
+    }
 
-      if(!text || text === "—"){
-        ctx.strokeStyle = "#ddd";
-        ctx.lineWidth = 4;
-        ctx.strokeRect(10,10,size-20,size-20);
-        ctx.fillStyle = "#666";
-        ctx.font = "700 16px Barlow";
-        ctx.textAlign = "center";
-        ctx.fillText("QR pending", size/2, size/2);
-        return;
-      }
+    finder(pad, pad);
+    finder(size-pad-cell*7, pad);
+    finder(pad, size-pad-cell*7);
 
-      const seed = Array.from(text).reduce((a,c)=>a + c.charCodeAt(0), 0);
-      const cells = 25;
-      const pad = 12;
-      const cell = (size - pad*2) / cells;
+    for(let r=0;r<cells;r++){
+      for(let c=0;c<cells;c++){
+        const inTopLeft = r < 7 && c < 7;
+        const inTopRight = r < 7 && c >= cells - 7;
+        const inBottomLeft = r >= cells - 7 && c < 7;
+        if(inTopLeft || inTopRight || inBottomLeft) continue;
 
-      function finder(x,y){
-        ctx.fillStyle = "#111";
-        ctx.fillRect(x,y,cell*7,cell*7);
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(x+cell,y+cell,cell*5,cell*5);
-        ctx.fillStyle = "#111";
-        ctx.fillRect(x+cell*2,y+cell*2,cell*3,cell*3);
-      }
-
-      finder(pad, pad);
-      finder(size-pad-cell*7, pad);
-      finder(pad, size-pad-cell*7);
-
-      for(let r=0;r<cells;r++){
-        for(let c=0;c<cells;c++){
-          const inTopLeft = r < 7 && c < 7;
-          const inTopRight = r < 7 && c >= cells - 7;
-          const inBottomLeft = r >= cells - 7 && c < 7;
-          if(inTopLeft || inTopRight || inBottomLeft) continue;
-
-          const n = (r * cells + c + seed * 13) % 7;
-          if(n === 0 || n === 2 || ((r + c + seed) % 11 === 0)){
-            ctx.fillStyle = "#111";
-            ctx.fillRect(pad + c*cell, pad + r*cell, cell*0.92, cell*0.92);
-          }
+        const n = (r * cells + c + seed * 13) % 7;
+        if(n === 0 || n === 2 || ((r + c + seed) % 11 === 0)){
+          ctx.fillStyle = "#111";
+          ctx.fillRect(pad + c*cell, pad + r*cell, cell*0.92, cell*0.92);
         }
       }
     }
+  }
 
-    function renderAllQrs(){
-      drawFakeQr("joinQr", $("joinLinkBox")?.textContent || "");
-      drawFakeQr("leaderboardQr", $("leaderboardLinkBox")?.textContent || "");
-      drawFakeQr("rosterQr", $("rosterLinkBox")?.textContent || "");
-      drawFakeQr("registrationQr", $("registrationLinkBox")?.textContent || "");
+  function renderAllQrs(){
+    drawFakeQr("joinQr", $("joinLinkBox")?.textContent || "");
+    drawFakeQr("leaderboardQr", $("leaderboardLinkBox")?.textContent || "");
+    drawFakeQr("rosterQr", $("rosterLinkBox")?.textContent || "");
+    drawFakeQr("registrationQr", $("registrationLinkBox")?.textContent || "");
+  }
+
+  function collectForm(){
+    return {
+      tournamentName: $("tournamentName").value.trim(),
+      defaultCourse: $("defaultCourse").value,
+      formatOfPlay: $("formatOfPlay").value,
+      sideGame: $("sideGame").value,
+      eventDate: $("eventDate").value,
+      organizerName: $("organizerName").value.trim(),
+      status: $("status").value,
+      handicapMode: $("handicapMode").value,
+      tournamentId: state.tournamentId,
+      adminToken: $("adminToken").value.trim(),
+      closestToPinEnabled: $("closestToPinEnabled").value,
+      closestToPinHoles: $("closestToPinHoles").value.trim(),
+      longDriveEnabled: $("longDriveEnabled").value,
+      longDriveHoles: $("longDriveHoles").value.trim(),
+      sponsors: state.sponsors
+    };
+  }
+
+  function fillForm(data){
+    $("tournamentName").value = data.tournamentName || data.name || "";
+    $("defaultCourse").value = data.defaultCourse || "Tradition";
+    $("formatOfPlay").value = data.formatOfPlay || "Stroke Play";
+    $("sideGame").value = data.sideGame || "None";
+    $("eventDate").value = data.eventDate || data.date || "";
+    $("organizerName").value = data.organizerName || "";
+    $("status").value = data.status || "open";
+    $("handicapMode").value = data.handicapMode || "off";
+    $("adminToken").value = data.adminToken || "";
+    $("closestToPinEnabled").value = data.closestToPinEnabled || "off";
+    $("closestToPinHoles").value = data.closestToPinHoles || "";
+    $("longDriveEnabled").value = data.longDriveEnabled || "off";
+    $("longDriveHoles").value = data.longDriveHoles || "";
+    state.sponsors = Array.isArray(data.sponsors) ? data.sponsors : [];
+    renderSponsorList();
+  }
+
+  function saveTournamentToLocal(){
+    if(!state.tournamentId){
+      showToast("Create or load a tournament first");
+      return;
+    }
+    const data = collectForm();
+    localStorage.setItem(storageKey(state.tournamentId), JSON.stringify(data));
+  }
+
+  function loadTournamentFromLocal(id){
+    const raw = localStorage.getItem(storageKey(id));
+    if(!raw) return null;
+    try{
+      return JSON.parse(raw);
+    }catch{
+      return null;
+    }
+  }
+
+  async function saveTournamentToFirebase(){
+    if(!state.tournamentId){
+      showToast("Create or load a tournament first");
+      return;
     }
 
-    function collectForm(){
-      return {
-        tournamentName: $("tournamentName").value.trim(),
-        defaultCourse: $("defaultCourse").value,
-        formatOfPlay: $("formatOfPlay").value,
-        sideGame: $("sideGame").value,
-        eventDate: $("eventDate").value,
-        organizerName: $("organizerName").value.trim(),
-        status: $("status").value,
-        handicapMode: $("handicapMode").value,
+    const data = collectForm();
+
+    await setDoc(
+      doc(db, "tournaments", state.tournamentId),
+      {
         tournamentId: state.tournamentId,
-        adminToken: $("adminToken").value.trim(),
-        closestToPinEnabled: $("closestToPinEnabled").value,
-        closestToPinHoles: $("closestToPinHoles").value.trim(),
-        longDriveEnabled: $("longDriveEnabled").value,
-        longDriveHoles: $("longDriveHoles").value.trim(),
-        sponsors: state.sponsors
-      };
+        tournamentName: data.tournamentName,
+        name: data.tournamentName,
+        defaultCourse: data.defaultCourse,
+        formatOfPlay: data.formatOfPlay,
+        sideGame: data.sideGame,
+        eventDate: data.eventDate,
+        date: data.eventDate,
+        organizerName: data.organizerName,
+        status: data.status,
+        handicapMode: data.handicapMode,
+        adminToken: data.adminToken,
+        closestToPinEnabled: data.closestToPinEnabled,
+        closestToPinHoles: data.closestToPinHoles,
+        longDriveEnabled: data.longDriveEnabled,
+        longDriveHoles: data.longDriveHoles,
+        sponsors: data.sponsors || [],
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
+  }
+
+  async function loadTournamentFromFirebase(id){
+    if(!id) return null;
+    try{
+      const snap = await getDoc(doc(db, "tournaments", id));
+      return snap.exists() ? snap.data() : null;
+    }catch(err){
+      console.error(err);
+      return null;
     }
+  }
 
-    function fillForm(data){
-      $("tournamentName").value = data.tournamentName || "";
-      $("defaultCourse").value = data.defaultCourse || "Tradition";
-      $("formatOfPlay").value = data.formatOfPlay || "Stroke Play";
-      $("sideGame").value = data.sideGame || "None";
-      $("eventDate").value = data.eventDate || "";
-      $("organizerName").value = data.organizerName || "";
-      $("status").value = data.status || "open";
-      $("handicapMode").value = data.handicapMode || "off";
-      $("adminToken").value = data.adminToken || "";
-      $("closestToPinEnabled").value = data.closestToPinEnabled || "off";
-      $("closestToPinHoles").value = data.closestToPinHoles || "";
-      $("longDriveEnabled").value = data.longDriveEnabled || "off";
-      $("longDriveHoles").value = data.longDriveHoles || "";
-      state.sponsors = Array.isArray(data.sponsors) ? data.sponsors : [];
-      renderSponsorList();
-    }
+  function applyLinks(){
+    const token = $("adminToken").value.trim();
 
-    function saveTournamentToLocal(){
-      if(!state.tournamentId){
-        showToast("Create or load a tournament first");
-        return;
-      }
-      const data = collectForm();
-      localStorage.setItem(storageKey(state.tournamentId), JSON.stringify(data));
-      applyLinks();
-      showToast("Changes saved");
-    }
-
-    function loadTournamentFromLocal(id){
-      const raw = localStorage.getItem(storageKey(id));
-      if(!raw) return null;
-      try{
-        return JSON.parse(raw);
-      }catch{
-        return null;
-      }
-    }
-
-    function applyLinks(){
-      const token = $("adminToken").value.trim();
-
-      if(!state.tournamentId || !token){
-        setBox("joinLinkBox", "—");
-        setBox("leaderboardLinkBox", "—");
-        setBox("rosterLinkBox", "—");
-        setBox("registrationLinkBox", "—");
-        renderAllQrs();
-        return;
-      }
-
-      const links = buildLinks(state.tournamentId, token);
-      setBox("joinLinkBox", links.join);
-      setBox("leaderboardLinkBox", links.leaderboard);
-      setBox("rosterLinkBox", links.roster);
-      setBox("registrationLinkBox", links.registration);
+    if(!state.tournamentId || !token){
+      setBox("joinLinkBox", "—");
+      setBox("leaderboardLinkBox", "—");
+      setBox("rosterLinkBox", "—");
+      setBox("registrationLinkBox", "—");
       renderAllQrs();
+      return;
     }
 
-    function clearSponsorForm(){
-      $("sponsorTier").value = "presenting";
-      $("sponsorOrder").value = "";
-      $("sponsorName").value = "";
-      $("sponsorWebsite").value = "";
-      $("sponsorLogoFile").value = "";
-      $("sponsorLogoUrl").value = "";
+    const links = buildLinks(state.tournamentId, token);
+    setBox("joinLinkBox", links.join);
+    setBox("leaderboardLinkBox", links.leaderboard);
+    setBox("rosterLinkBox", links.roster);
+    setBox("registrationLinkBox", links.registration);
+    renderAllQrs();
+  }
+
+  function clearSponsorForm(){
+    $("sponsorTier").value = "presenting";
+    $("sponsorOrder").value = "";
+    $("sponsorName").value = "";
+    $("sponsorWebsite").value = "";
+    $("sponsorLogoFile").value = "";
+    $("sponsorLogoUrl").value = "";
+  }
+
+  function sponsorFormData(){
+    return {
+      tier: $("sponsorTier").value,
+      order: Number($("sponsorOrder").value || 999),
+      name: $("sponsorName").value.trim(),
+      website: $("sponsorWebsite").value.trim(),
+      logoUrl: $("sponsorLogoUrl").value.trim(),
+      active: true
+    };
+  }
+
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function renderSponsorList(){
+    const wrap = $("sponsorList");
+    const empty = $("sponsorListEmpty");
+
+    [...wrap.querySelectorAll(".sponsor-item")].forEach(el => el.remove());
+
+    if(!state.sponsors.length){
+      empty.style.display = "";
+      $("sponsorEmptyPill").textContent = "No sponsors yet";
+      return;
     }
 
-    function sponsorFormData(){
-      return {
-        tier: $("sponsorTier").value,
-        order: Number($("sponsorOrder").value || 999),
-        name: $("sponsorName").value.trim(),
-        website: $("sponsorWebsite").value.trim(),
-        logoUrl: $("sponsorLogoUrl").value.trim(),
-        active: true
-      };
-    }
+    empty.style.display = "none";
+    $("sponsorEmptyPill").textContent = `${state.sponsors.length} sponsor${state.sponsors.length === 1 ? "" : "s"}`;
 
-    function escapeHtml(str){
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-    }
+    const sorted = [...state.sponsors].sort((a,b)=>(a.order ?? 999) - (b.order ?? 999));
 
-    function renderSponsorList(){
-      const wrap = $("sponsorList");
-      const empty = $("sponsorListEmpty");
-
-      [...wrap.querySelectorAll(".sponsor-item")].forEach(el => el.remove());
-
-      if(!state.sponsors.length){
-        empty.style.display = "";
-        $("sponsorEmptyPill").textContent = "No sponsors yet";
-        return;
-      }
-
-      empty.style.display = "none";
-      $("sponsorEmptyPill").textContent = `${state.sponsors.length} sponsor${state.sponsors.length === 1 ? "" : "s"}`;
-
-      const sorted = [...state.sponsors].sort((a,b)=>(a.order ?? 999) - (b.order ?? 999));
-
-      sorted.forEach((s, index) => {
-        const div = document.createElement("div");
-        div.className = "sponsor-item";
-        div.innerHTML = `
-          <strong>${escapeHtml(s.name || "Untitled Sponsor")}</strong>
-          <div><b>Tier:</b> ${escapeHtml(s.tier || "supporting")}</div>
-          <div><b>Order:</b> ${escapeHtml(String(s.order ?? 999))}</div>
-          <div><b>Website:</b> ${escapeHtml(s.website || "—")}</div>
-          <div><b>Logo:</b> ${escapeHtml(s.logoUrl || "—")}</div>
-          <div style="margin-top:10px;">
-            <button type="button" class="btn btn-red remove-sponsor-btn" data-remove-index="${index}" style="min-height:56px;font-size:22px;">
-              Remove Sponsor
-            </button>
-          </div>
-        `;
-        wrap.appendChild(div);
-      });
-
-      wrap.querySelectorAll(".remove-sponsor-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const idx = Number(btn.dataset.removeIndex);
-          const sortedNow = [...state.sponsors].sort((a,b)=>(a.order ?? 999) - (b.order ?? 999));
-          const target = sortedNow[idx];
-          state.sponsors = state.sponsors.filter(s => s !== target);
-          renderSponsorList();
-          if(state.tournamentId) saveTournamentToLocal();
-          showToast("Sponsor removed");
-        });
-      });
-    }
-
-    function createTournament(){
-      state.tournamentId = randomId("tournament");
-      state.adminToken = randomToken();
-      $("tournamentId").value = state.tournamentId;
-      $("adminToken").value = state.adminToken;
-      saveTournamentToLocal();
-      applyLinks();
-      showToast("Tournament created");
-    }
-
-    function loadTournament(){
-      const id = $("tournamentId").value.trim();
-      if(!id){
-        showToast("Enter a tournament ID");
-        return;
-      }
-
-      const data = loadTournamentFromLocal(id);
-      if(!data){
-        showToast("No local tournament found for that ID");
-        return;
-      }
-
-      state.tournamentId = id;
-      state.adminToken = data.adminToken || "";
-      fillForm(data);
-      applyLinks();
-      showToast("Tournament loaded");
-    }
-
-    function closeTournament(){
-      $("status").value = "closed";
-      if(state.tournamentId){
-        saveTournamentToLocal();
-      }else{
-        showToast("Tournament marked closed");
-      }
-    }
-
-    function addSponsor(){
-      const file = $("sponsorLogoFile").files?.[0];
-      const data = sponsorFormData();
-
-      if(!data.name){
-        showToast("Enter sponsor name");
-        return;
-      }
-
-      if(file && !data.logoUrl){
-        const reader = new FileReader();
-        reader.onload = () => {
-          data.logoUrl = reader.result;
-          state.sponsors.push(data);
-          renderSponsorList();
-          clearSponsorForm();
-          if(state.tournamentId) saveTournamentToLocal();
-          showToast("Sponsor added");
-        };
-        reader.readAsDataURL(file);
-        return;
-      }
-
-      state.sponsors.push(data);
-      renderSponsorList();
-      clearSponsorForm();
-      if(state.tournamentId) saveTournamentToLocal();
-      showToast("Sponsor added");
-    }
-
-    $("createTournamentBtn").addEventListener("click", createTournament);
-    $("loadTournamentBtn").addEventListener("click", loadTournament);
-    $("saveChangesBtn").addEventListener("click", saveTournamentToLocal);
-    $("closeTournamentBtn").addEventListener("click", closeTournament);
-
-    $("copyJoinBtn").addEventListener("click", () =>
-      copyText($("joinLinkBox").textContent, "✔ Join copied")
-    );
-    $("copyLeaderboardBtn").addEventListener("click", () =>
-      copyText($("leaderboardLinkBox").textContent, "✔ Leaderboard copied")
-    );
-    $("copyRosterBtn").addEventListener("click", () =>
-      copyText($("rosterLinkBox").textContent, "✔ Roster copied")
-    );
-    $("copyRegistrationBtn").addEventListener("click", () =>
-      copyText($("registrationLinkBox").textContent, "✔ Registration copied")
-    );
-
-    $("addSponsorBtn").addEventListener("click", addSponsor);
-    $("clearSponsorFormBtn").addEventListener("click", clearSponsorForm);
-
-    [
-      "tournamentName",
-      "defaultCourse",
-      "formatOfPlay",
-      "sideGame",
-      "eventDate",
-      "organizerName",
-      "status",
-      "handicapMode",
-      "adminToken",
-      "closestToPinEnabled",
-      "closestToPinHoles",
-      "longDriveEnabled",
-      "longDriveHoles"
-    ].forEach(id => {
-      const el = $(id);
-      if(el){
-        el.addEventListener("input", applyLinks);
-        el.addEventListener("change", applyLinks);
-      }
+    sorted.forEach((s, index) => {
+      const div = document.createElement("div");
+      div.className = "sponsor-item";
+      div.innerHTML = `
+        <strong>${escapeHtml(s.name || "Untitled Sponsor")}</strong>
+        <div><b>Tier:</b> ${escapeHtml(s.tier || "supporting")}</div>
+        <div><b>Order:</b> ${escapeHtml(String(s.order ?? 999))}</div>
+        <div><b>Website:</b> ${escapeHtml(s.website || "—")}</div>
+        <div><b>Logo:</b> ${escapeHtml(s.logoUrl || "—")}</div>
+        <div style="margin-top:10px;">
+          <button type="button" class="btn btn-red remove-sponsor-btn" data-remove-index="${index}" style="min-height:56px;font-size:22px;">
+            Remove Sponsor
+          </button>
+        </div>
+      `;
+      wrap.appendChild(div);
     });
 
-    (function init(){
-      const params = new URLSearchParams(location.search);
-      const urlId = params.get("id");
-
-      if(urlId){
-        $("tournamentId").value = urlId;
-        const data = loadTournamentFromLocal(urlId);
-        if(data){
-          state.tournamentId = urlId;
-          state.adminToken = data.adminToken || "";
-          fillForm(data);
-          applyLinks();
-        }
-      } else {
+    wrap.querySelectorAll(".remove-sponsor-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const idx = Number(btn.dataset.removeIndex);
+        const sortedNow = [...state.sponsors].sort((a,b)=>(a.order ?? 999) - (b.order ?? 999));
+        const target = sortedNow[idx];
+        state.sponsors = state.sponsors.filter(s => s !== target);
         renderSponsorList();
-        applyLinks();
+        if(state.tournamentId){
+          saveTournamentToLocal();
+          await saveTournamentToFirebase();
+        }
+        showToast("Sponsor removed");
+      });
+    });
+  }
+
+  async function createTournament(){
+    state.tournamentId = randomId("tournament");
+    state.adminToken = randomToken();
+    $("tournamentId").value = state.tournamentId;
+    $("adminToken").value = state.adminToken;
+
+    saveTournamentToLocal();
+    await saveTournamentToFirebase();
+
+    applyLinks();
+    showToast("Tournament created");
+  }
+
+  async function loadTournament(){
+    const id = $("tournamentId").value.trim();
+    if(!id){
+      showToast("Enter a tournament ID");
+      return;
+    }
+
+    let data = loadTournamentFromLocal(id);
+
+    if(!data){
+      data = await loadTournamentFromFirebase(id);
+    }
+
+    if(!data){
+      showToast("No tournament found for that ID");
+      return;
+    }
+
+    state.tournamentId = id;
+    state.adminToken = data.adminToken || "";
+    fillForm(data);
+    applyLinks();
+    showToast("Tournament loaded");
+  }
+
+  async function saveChanges(){
+    if(!state.tournamentId){
+      showToast("Create or load a tournament first");
+      return;
+    }
+
+    saveTournamentToLocal();
+    await saveTournamentToFirebase();
+    applyLinks();
+    showToast("Changes saved");
+  }
+
+  async function closeTournament(){
+    $("status").value = "closed";
+
+    if(state.tournamentId){
+      saveTournamentToLocal();
+      await saveTournamentToFirebase();
+      applyLinks();
+      showToast("Tournament closed");
+    }else{
+      showToast("Tournament marked closed");
+    }
+  }
+
+  function addSponsor(){
+    const file = $("sponsorLogoFile").files?.[0];
+    const data = sponsorFormData();
+
+    if(!data.name){
+      showToast("Enter sponsor name");
+      return;
+    }
+
+    if(file && !data.logoUrl){
+      const reader = new FileReader();
+      reader.onload = async () => {
+        data.logoUrl = reader.result;
+        state.sponsors.push(data);
+        renderSponsorList();
+        clearSponsorForm();
+        if(state.tournamentId){
+          saveTournamentToLocal();
+          await saveTournamentToFirebase();
+        }
+        showToast("Sponsor added");
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    state.sponsors.push(data);
+    renderSponsorList();
+    clearSponsorForm();
+    if(state.tournamentId){
+      saveTournamentToLocal();
+      saveTournamentToFirebase().catch(console.error);
+    }
+    showToast("Sponsor added");
+  }
+
+  $("createTournamentBtn").addEventListener("click", createTournament);
+  $("loadTournamentBtn").addEventListener("click", loadTournament);
+  $("saveChangesBtn").addEventListener("click", saveChanges);
+  $("closeTournamentBtn").addEventListener("click", closeTournament);
+
+  $("copyJoinBtn").addEventListener("click", () =>
+    copyText($("joinLinkBox").textContent, "✔ Join copied")
+  );
+  $("copyLeaderboardBtn").addEventListener("click", () =>
+    copyText($("leaderboardLinkBox").textContent, "✔ Leaderboard copied")
+  );
+  $("copyRosterBtn").addEventListener("click", () =>
+    copyText($("rosterLinkBox").textContent, "✔ Roster copied")
+  );
+  $("copyRegistrationBtn").addEventListener("click", () =>
+    copyText($("registrationLinkBox").textContent, "✔ Registration copied")
+  );
+
+  $("addSponsorBtn").addEventListener("click", addSponsor);
+  $("clearSponsorFormBtn").addEventListener("click", clearSponsorForm);
+
+  [
+    "tournamentName",
+    "defaultCourse",
+    "formatOfPlay",
+    "sideGame",
+    "eventDate",
+    "organizerName",
+    "status",
+    "handicapMode",
+    "adminToken",
+    "closestToPinEnabled",
+    "closestToPinHoles",
+    "longDriveEnabled",
+    "longDriveHoles"
+  ].forEach(id => {
+    const el = $(id);
+    if(el){
+      el.addEventListener("input", applyLinks);
+      el.addEventListener("change", applyLinks);
+    }
+  });
+
+  (async function init(){
+    const params = new URLSearchParams(location.search);
+    const urlId = params.get("id");
+
+    if(urlId){
+      $("tournamentId").value = urlId;
+      let data = loadTournamentFromLocal(urlId);
+
+      if(!data){
+        data = await loadTournamentFromFirebase(urlId);
       }
-    })();
-  </script>
+
+      if(data){
+        state.tournamentId = urlId;
+        state.adminToken = data.adminToken || "";
+        fillForm(data);
+      }
+    }
+
+    renderSponsorList();
+    applyLinks();
+  })();
+</script>
 </body>
 </html>
