@@ -776,9 +776,7 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script type="module">
-
+  <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -869,7 +867,7 @@ const tbody = document.getElementById("tbody");
 const hdrRow = document.getElementById("hdrRow");
 
 document.getElementById("yr").textContent = new Date().getFullYear();
-      const holesFront = [1,2,3,4,5,6,7,8,9];
+const holesFront = [1,2,3,4,5,6,7,8,9];
 const holesBack  = [10,11,12,13,14,15,16,17,18];
 
 let playersCount = 6;
@@ -915,6 +913,14 @@ const sideGamesNote = document.getElementById("sideGamesNote");
 
 function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
 
+function normalizeFormatValue(v){
+  const s = String(v || "").trim().toLowerCase();
+  if (s === "scramble") return "scramble";
+  if (s === "best ball" || s === "bestball") return "bestball";
+  if (s === "stroke play" || s === "stroke") return "stroke";
+  return "stroke";
+}
+
 function yardCell(v){
   if (v === -1) return `<td class="yard"></td>`;
   return `<td class="yard">${v ?? ""}</td>`;
@@ -945,6 +951,27 @@ function escapeHtml(s){
 
 function escapeHtmlAttr(s){
   return escapeHtml(s);
+}
+
+function getPrimarySponsor(t){
+  const sponsors = Array.isArray(t?.sponsors) ? t.sponsors : [];
+  const active = sponsors
+    .filter(s => s && s.active !== false)
+    .sort((a,b) => Number(a?.order ?? 999) - Number(b?.order ?? 999));
+
+  if(active.length){
+    return {
+      name: String(active[0]?.name || "").trim(),
+      logo: String(active[0]?.logoUrl || "").trim(),
+      url: String(active[0]?.website || "").trim()
+    };
+  }
+
+  return {
+    name: String(t?.sponsorName || "").trim(),
+    logo: String(t?.sponsorLogo || "").trim(),
+    url: String(t?.sponsorUrl || t?.sponsorWebsite || t?.sponsorLink || "").trim()
+  };
 }
 
 function applySponsorUI(name, logo, url){
@@ -1018,7 +1045,7 @@ function storageKeyFor(courseId){
   const tPart = (isTournamentMode && tournamentId) ? `_t_${tournamentId}` : "";
   const fPart = tournamentFormat ? `_f_${tournamentFormat}` : "";
   const teamPart = selectedRegistrationId ? `_r_${selectedRegistrationId}` : "";
-  return `scorecard_state_${courseId}${tPart}${fPart}${teamPart}_v8`;
+  return `scorecard_state_${courseId}${tPart}${fPart}${teamPart}_v9`;
 }
 
 function selectionKey(){
@@ -1517,6 +1544,8 @@ function build(){
   hintLine.textContent =
     tournamentFormat === "scramble"
       ? "Scramble: enter ONE team score row. First score must start on your assigned hole. One digit per hole. Out/In/Tot auto-calc."
+      : tournamentFormat === "bestball"
+      ? "Best Ball: use the first two rows for scoring. Assigned hole locks the first score location."
       : "Assigned hole locks the first score location. Swipe to scroll. Tap a box to type. Out/In/Tot auto-calc.";
 
   tbody.innerHTML = "";
@@ -1755,6 +1784,7 @@ async function pushTournamentNow(){
     format: tournamentFormat,
     playerName,
     group,
+    companyName: group,
     startHole: startHoleLabel,
     names: payload.names,
     rosterNames: rosterSafe,
@@ -1896,7 +1926,7 @@ function wireButtons(){
 
 async function checkTournamentFromURL(){
   const params = new URLSearchParams(location.search);
-  const tId = (params.get("t") || "").trim();
+  const tId = (params.get("id") || params.get("t") || "").trim();
   if (!tId) return;
 
   tournamentId = tId;
@@ -1909,22 +1939,22 @@ async function checkTournamentFromURL(){
       const snap = await getDoc(doc(db, "tournaments", tournamentId));
       if(snap.exists()){
         const t = snap.data() || {};
-        tournamentFormat = (t.format || "stroke").toString().trim().toLowerCase();
+
+        tournamentFormat = normalizeFormatValue(t.formatOfPlay || t.format);
         playersCount = formatToPlayersCount(tournamentFormat);
 
-        const courseDefault = (t.courseDefault || "tradition").toString().trim();
+        const courseDefault = String(t.defaultCourse || t.courseDefault || "tradition").trim().toLowerCase();
         currentCourseId = COURSES[courseDefault] ? courseDefault : "tradition";
+
         tournamentSideGames = normalizeTournamentSideGames(t.sideGames || {});
 
-        const sName = t.sponsorName || "";
-        const sLogo = t.sponsorLogo || "";
-        const sUrl  = t.sponsorUrl || t.sponsorWebsite || t.sponsorLink || "";
-        applySponsorUI(sName, sLogo, sUrl);
+        const sponsor = getPrimarySponsor(t);
+        applySponsorUI(sponsor.name, sponsor.logo, sponsor.url);
 
         build();
         teamPickerScreen.style.display = "block";
         joinScreen.style.display = "none";
-        joinMeta.textContent = `${t.name || "Tournament"}${t.date ? " • " + t.date : ""}`;
+        joinMeta.textContent = `${t.tournamentName || t.name || "Tournament"}${(t.eventDate || t.date) ? " • " + (t.eventDate || t.date) : ""}`;
         setPreJoinLock(true);
 
         await loadRegistrations();
@@ -1979,7 +2009,14 @@ joinBtn.addEventListener("click", async () => {
     return true;
   });
 
-  rosterNames = all;
+  if(tournamentFormat === "scramble"){
+    rosterNames = [all[0] || scorerName];
+  }else if(tournamentFormat === "bestball"){
+    rosterNames = all.slice(0,2);
+  }else{
+    rosterNames = all;
+  }
+
   setPlayerRowNames(rosterNames);
 
   startHoleSelected = norm.label;
@@ -2033,9 +2070,6 @@ refreshBtn.addEventListener("click", () => {
 wireButtons();
 build();
 await checkTournamentFromURL();
-
 </script>
-
-<script src="./pwa.js"></script>
 </body>
 </html>
