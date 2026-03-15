@@ -409,329 +409,401 @@
 
   <div class="toast" id="toast">Saved</div>
 
-  <script>
-    const $ = (id) => document.getElementById(id);
+ <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    collection,
+    addDoc,
+    getDocs,
+    query,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const params = new URLSearchParams(location.search);
-    const tournamentId = params.get("id") || params.get("t") || "";
+  const firebaseConfig = {
+    apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
+    authDomain: "cypresswood-tournaments.firebaseapp.com",
+    projectId: "cypresswood-tournaments",
+    storageBucket: "cypresswood-tournaments.firebasestorage.app",
+    messagingSenderId: "162441374966",
+    appId: "1:162441374966:web:157285a2d5c39db1e810d7",
+    measurementId: "G-HL6Y9CLV8K"
+  };
 
-    const state = {
-      tournamentId,
-      tournament: null
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const $ = (id) => document.getElementById(id);
+
+  const params = new URLSearchParams(location.search);
+  const tournamentId = (params.get("id") || params.get("t") || "").trim();
+
+  const state = {
+    tournamentId,
+    tournament: null
+  };
+
+  function showToast(msg){
+    const el = $("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => el.classList.remove("show"), 1700);
+  }
+
+  function safeText(value, fallback=""){
+    return String(value || fallback || "").trim();
+  }
+
+  function normalizeUrl(url){
+    const raw = String(url || "").trim();
+    if(!raw) return "";
+    if(/^https?:\/\//i.test(raw)) return raw;
+    if(raw.startsWith("//")) return location.protocol + raw;
+    return raw;
+  }
+
+  function getTopSponsor(tournament){
+    const sponsors = Array.isArray(tournament?.sponsors) ? tournament.sponsors : [];
+    const active = sponsors
+      .filter(s => s && s.active !== false)
+      .sort((a,b)=>(Number(a.order ?? 999) - Number(b.order ?? 999)));
+
+    if(active.length) return active[0];
+
+    const legacyName = safeText(tournament?.sponsorName);
+    const legacyLogo = safeText(tournament?.sponsorLogo);
+    const legacyUrl  = safeText(tournament?.sponsorUrl);
+
+    if(legacyName || legacyLogo || legacyUrl){
+      return {
+        name: legacyName,
+        logoUrl: legacyLogo,
+        website: legacyUrl
+      };
+    }
+
+    return null;
+  }
+
+  function getCourseBranding(courseName){
+    const name = safeText(courseName).toLowerCase();
+
+    const map = {
+      tradition: {
+        brandName: "Tradition Course",
+        logoUrl: ""
+      },
+      cypress: {
+        brandName: "Cypress Course",
+        logoUrl: ""
+      }
     };
 
-    function showToast(msg){
-      const el = $("toast");
-      el.textContent = msg;
-      el.classList.add("show");
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => el.classList.remove("show"), 1700);
-    }
+    return map[name] || {
+      brandName: safeText(courseName, "Golf Course"),
+      logoUrl: ""
+    };
+  }
 
-    function storageKey(id){
-      return `tournament_admin_${id}`;
-    }
+  function setVisible(el, show){
+    if(!el) return;
+    el.classList.toggle("hidden", !show);
+  }
 
-    function registrationKey(id){
-      return `tournament_registrations_${id}`;
-    }
+  function renderCourseBrand(tournament){
+    const courseName = safeText(tournament?.defaultCourse, "Golf Tournament");
+    const customLogo = safeText(
+      tournament?.courseLogoUrl ||
+      tournament?.courseBrandLogoUrl ||
+      tournament?.golfCourseLogoUrl
+    );
 
-    function safeText(value, fallback=""){
-      return String(value || fallback || "").trim();
-    }
+    const branding = getCourseBranding(courseName);
+    const logoUrl = normalizeUrl(customLogo || branding.logoUrl || "");
 
-    function escapeHtml(str){
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-    }
+    $("courseBrandName").textContent = branding.brandName || courseName || "Golf Tournament";
 
-    function normalizeUrl(url){
-      const raw = String(url || "").trim();
-      if(!raw) return "";
-      if(/^https?:\/\//i.test(raw)) return raw;
-      if(raw.startsWith("//")) return location.protocol + raw;
-      return raw;
-    }
-
-    function getTournamentFromLocal(id){
-      if(!id) return null;
-      const raw = localStorage.getItem(storageKey(id));
-      if(!raw) return null;
-      try{
-        return JSON.parse(raw);
-      }catch(err){
-        return null;
-      }
-    }
-
-    function getTopSponsor(tournament){
-      const sponsors = Array.isArray(tournament?.sponsors) ? tournament.sponsors : [];
-      const active = sponsors
-        .filter(s => s && s.active !== false)
-        .sort((a,b)=>(Number(a.order ?? 999) - Number(b.order ?? 999)));
-
-      if(active.length) return active[0];
-
-      const legacyName = safeText(tournament?.sponsorName);
-      const legacyLogo = safeText(tournament?.sponsorLogo);
-      const legacyUrl  = safeText(tournament?.sponsorUrl);
-
-      if(legacyName || legacyLogo || legacyUrl){
-        return {
-          name: legacyName,
-          logoUrl: legacyLogo,
-          website: legacyUrl
-        };
-      }
-
-      return null;
-    }
-
-    function getCourseBranding(courseName){
-      const name = safeText(courseName).toLowerCase();
-
-      const map = {
-        tradition: {
-          brandName: "Tradition Course",
-          logoUrl: ""
-        },
-        cypress: {
-          brandName: "Cypress Course",
-          logoUrl: ""
-        },
-        lake: {
-          brandName: "Lake Course",
-          logoUrl: ""
-        },
-        other: {
-          brandName: safeText(courseName, "Golf Course"),
-          logoUrl: ""
-        }
-      };
-
-      return map[name] || {
-        brandName: safeText(courseName, "Golf Course"),
-        logoUrl: ""
-      };
-    }
-
-    function setVisible(el, show){
-      if(!el) return;
-      el.classList.toggle("hidden", !show);
-    }
-
-    function renderCourseBrand(tournament){
-      const courseName = safeText(tournament?.defaultCourse, "Golf Tournament");
-      const customLogo = safeText(
-        tournament?.courseLogoUrl ||
-        tournament?.courseBrandLogoUrl ||
-        tournament?.golfCourseLogoUrl
-      );
-
-      const branding = getCourseBranding(courseName);
-      const logoUrl = normalizeUrl(customLogo || branding.logoUrl || "");
-
-      $("courseBrandName").textContent = branding.brandName || courseName || "Golf Tournament";
-
-      if(logoUrl){
-        $("courseLogoImg").src = logoUrl;
-        $("courseLogoImg").alt = `${courseName || "Course"} logo`;
-        setVisible($("courseLogoWrap"), true);
-      }else{
-        $("courseLogoImg").removeAttribute("src");
-        setVisible($("courseLogoWrap"), false);
-      }
-    }
-
-    function renderSponsorHero(tournament){
-      const sponsor = getTopSponsor(tournament);
-
-      if(!sponsor){
-        $("sponsorHeroName").textContent = "";
-        $("sponsorHeroLink").removeAttribute("href");
-        $("sponsorHeroLink").textContent = "";
-        $("sponsorLogoImg").removeAttribute("src");
-        setVisible($("sponsorLogoWrap"), false);
-        setVisible($("sponsorHeroLink"), false);
-        setVisible($("sponsorHeroWrap"), false);
-        return;
-      }
-
-      const sponsorName = safeText(sponsor.name, "");
-      const sponsorLogo = normalizeUrl(safeText(sponsor.logoUrl, ""));
-      const sponsorUrl  = normalizeUrl(safeText(sponsor.website, ""));
-
-      setVisible($("sponsorHeroWrap"), true);
-      $("sponsorHeroName").textContent = sponsorName || "";
-
-      if(sponsorLogo){
-        $("sponsorLogoImg").src = sponsorLogo;
-        $("sponsorLogoImg").alt = sponsorName ? `${sponsorName} logo` : "Sponsor logo";
-        setVisible($("sponsorLogoWrap"), true);
-      }else{
-        $("sponsorLogoImg").removeAttribute("src");
-        setVisible($("sponsorLogoWrap"), false);
-      }
-
-      if(sponsorUrl){
-        $("sponsorHeroLink").href = sponsorUrl;
-        $("sponsorHeroLink").textContent = sponsorUrl.replace(/^https?:\/\//i, "");
-        setVisible($("sponsorHeroLink"), true);
-      }else{
-        $("sponsorHeroLink").removeAttribute("href");
-        $("sponsorHeroLink").textContent = "";
-        setVisible($("sponsorHeroLink"), false);
-      }
-    }
-
-    function renderEventHeader(tournament){
-      const title = safeText(tournament?.tournamentName, "TOURNAMENT REGISTRATION");
-      const date  = safeText(tournament?.eventDate, "");
-      const course = safeText(tournament?.defaultCourse, "");
-      const format = safeText(tournament?.formatOfPlay, "");
-
-      $("eventTitle").textContent = title;
-
-      const parts = [date, course, format].filter(Boolean);
-      $("eventMeta").textContent = parts.length ? parts.join(" • ") : "Team and player registration";
-
-      renderCourseBrand(tournament);
-      renderSponsorHero(tournament);
-    }
-
-    function renderMissingTournamentState(){
-      $("eventTitle").textContent = "TOURNAMENT REGISTRATION";
-      $("eventMeta").textContent = "Team and player registration";
-      $("courseBrandName").textContent = "Golf Tournament";
+    if(logoUrl){
+      $("courseLogoImg").src = logoUrl;
+      $("courseLogoImg").alt = `${courseName || "Course"} logo`;
+      setVisible($("courseLogoWrap"), true);
+    }else{
+      $("courseLogoImg").removeAttribute("src");
       setVisible($("courseLogoWrap"), false);
+    }
+  }
+
+  function renderSponsorHero(tournament){
+    const sponsor = getTopSponsor(tournament);
+
+    if(!sponsor){
+      $("sponsorHeroName").textContent = "";
+      $("sponsorHeroLink").removeAttribute("href");
+      $("sponsorHeroLink").textContent = "";
+      $("sponsorLogoImg").removeAttribute("src");
+      setVisible($("sponsorLogoWrap"), false);
+      setVisible($("sponsorHeroLink"), false);
       setVisible($("sponsorHeroWrap"), false);
-      $("topNotice").textContent = "Enter as much or as little information as you want, then submit.";
+      return;
     }
 
-    function loadTournament(){
-      if(!state.tournamentId){
-        state.tournament = null;
-        renderMissingTournamentState();
-        return;
-      }
+    const sponsorName = safeText(sponsor.name, "");
+    const sponsorLogo = normalizeUrl(safeText(sponsor.logoUrl, ""));
+    const sponsorUrl  = normalizeUrl(safeText(sponsor.website, ""));
 
-      const tournament = getTournamentFromLocal(state.tournamentId);
+    setVisible($("sponsorHeroWrap"), true);
+    $("sponsorHeroName").textContent = sponsorName || "";
 
-      if(!tournament){
+    if(sponsorLogo){
+      $("sponsorLogoImg").src = sponsorLogo;
+      $("sponsorLogoImg").alt = sponsorName ? `${sponsorName} logo` : "Sponsor logo";
+      setVisible($("sponsorLogoWrap"), true);
+    }else{
+      $("sponsorLogoImg").removeAttribute("src");
+      setVisible($("sponsorLogoWrap"), false);
+    }
+
+    if(sponsorUrl){
+      $("sponsorHeroLink").href = sponsorUrl;
+      $("sponsorHeroLink").textContent = sponsorUrl.replace(/^https?:\/\//i, "");
+      setVisible($("sponsorHeroLink"), true);
+    }else{
+      $("sponsorHeroLink").removeAttribute("href");
+      $("sponsorHeroLink").textContent = "";
+      setVisible($("sponsorHeroLink"), false);
+    }
+  }
+
+  function renderEventHeader(tournament){
+    const title = safeText(tournament?.tournamentName || tournament?.name, "TOURNAMENT REGISTRATION");
+    const date  = safeText(tournament?.eventDate || tournament?.date, "");
+    const course = safeText(tournament?.defaultCourse, "");
+    const format = safeText(tournament?.formatOfPlay, "");
+
+    $("eventTitle").textContent = title;
+
+    const parts = [date, course, format].filter(Boolean);
+    $("eventMeta").textContent = parts.length ? parts.join(" • ") : "Team and player registration";
+
+    renderCourseBrand(tournament);
+    renderSponsorHero(tournament);
+  }
+
+  function renderMissingTournamentState(){
+    $("eventTitle").textContent = "TOURNAMENT REGISTRATION";
+    $("eventMeta").textContent = "Team and player registration";
+    $("courseBrandName").textContent = "Golf Tournament";
+    setVisible($("courseLogoWrap"), false);
+    setVisible($("sponsorHeroWrap"), false);
+    $("topNotice").textContent = "Enter as much or as little information as you want, then submit.";
+  }
+
+  async function loadTournament(){
+    if(!state.tournamentId){
+      state.tournament = null;
+      renderMissingTournamentState();
+      $("topNotice").textContent = "This registration link is missing a tournament id.";
+      return;
+    }
+
+    try{
+      const snap = await getDoc(doc(db, "tournaments", state.tournamentId));
+
+      if(!snap.exists()){
         state.tournament = null;
         renderMissingTournamentState();
         $("topNotice").textContent = "This registration page is ready. Tournament details will appear when available.";
         return;
       }
 
-      state.tournament = tournament;
-      renderEventHeader(tournament);
+      state.tournament = snap.data() || {};
+      renderEventHeader(state.tournament);
       $("topNotice").textContent = "Enter as much or as little information as you want, then submit.";
+    }catch(err){
+      console.error(err);
+      state.tournament = null;
+      renderMissingTournamentState();
+      $("topNotice").textContent = "Unable to load tournament details right now.";
     }
+  }
 
-    function getVal(id){
-      const el = $(id);
-      return el ? el.value.trim() : "";
-    }
+  function getVal(id){
+    const el = $(id);
+    return el ? el.value.trim() : "";
+  }
 
-    function buildRegistrationPayload(){
-      return {
-        tournamentId: state.tournamentId || "",
-        submittedAt: new Date().toISOString(),
-        tournamentName: safeText(state.tournament?.tournamentName, ""),
-        defaultCourse: safeText(state.tournament?.defaultCourse, ""),
-        formatOfPlay: safeText(state.tournament?.formatOfPlay, ""),
-        teamName: getVal("teamName"),
-        captainName: getVal("captainName"),
-        player2: getVal("player2"),
-        player3: getVal("player3"),
-        player4: getVal("player4"),
-        player5: getVal("player5"),
-        player6: getVal("player6"),
-        captainEmail: getVal("captainEmail"),
-        captainPhone: getVal("captainPhone"),
-        notes: getVal("notes")
-      };
-    }
-        function saveRegistration(payload){
-      const key = registrationKey(state.tournamentId || "general");
-      let list = [];
+  function normalizePlayers(values){
+    const out = [];
+    const seen = new Set();
 
-      try{
-        const raw = localStorage.getItem(key);
-        list = raw ? JSON.parse(raw) : [];
-        if(!Array.isArray(list)) list = [];
-      }catch(err){
-        list = [];
-      }
-
-      payload.registrationId = `reg_${Date.now().toString(36)}${Math.random().toString(36).slice(2,7)}`;
-      list.push(payload);
-      localStorage.setItem(key, JSON.stringify(list));
-      return payload;
-    }
-
-    function clearForm(){
-      [
-        "teamName",
-        "captainName",
-        "player2",
-        "player3",
-        "player4",
-        "player5",
-        "player6",
-        "captainEmail",
-        "captainPhone",
-        "notes"
-      ].forEach(id => {
-        const el = $(id);
-        if(el) el.value = "";
-      });
-    }
-
-    function handleSubmit(){
-      const payload = buildRegistrationPayload();
-
-      const hasAnyValue = [
-        payload.teamName,
-        payload.captainName,
-        payload.player2,
-        payload.player3,
-        payload.player4,
-        payload.player5,
-        payload.player6,
-        payload.captainEmail,
-        payload.captainPhone,
-        payload.notes
-      ].some(Boolean);
-
-      if(!hasAnyValue){
-        showToast("Add anything you want, then submit");
-        $("submitMessage").textContent = "You can submit with any combination of team, players, or contact information.";
-        return;
-      }
-
-      saveRegistration(payload);
-      clearForm();
-      $("submitMessage").textContent = "Registration submitted successfully.";
-      showToast("Registration submitted");
-    }
-
-    $("submitRegistrationBtn").addEventListener("click", handleSubmit);
-
-    $("sponsorHeroLink").addEventListener("click", (e) => {
-      const href = $("sponsorHeroLink").getAttribute("href");
-      if(!href) e.preventDefault();
+    values.forEach(v => {
+      const n = safeText(v);
+      if(!n) return;
+      const key = n.toLowerCase();
+      if(seen.has(key)) return;
+      seen.add(key);
+      out.push(n);
     });
 
-    (function init(){
-      loadTournament();
-    })();
-  </script>
+    return out.slice(0, 6);
+  }
+
+  function normalizeHoleLabel(raw){
+    const s = String(raw || "").trim().toUpperCase();
+    if(!s) return "";
+    const m = s.match(/^([1-9]|1[0-8])([A-Z])$/);
+    if(!m) return "";
+    return `${parseInt(m[1],10)}${m[2]}`;
+  }
+
+  function buildSlotSequence(maxWaves=12){
+    const slots = [];
+    for(let wave=0; wave<maxWaves; wave++){
+      const letter = String.fromCharCode(65 + wave); // A, B, C...
+      for(let hole=1; hole<=18; hole++){
+        slots.push(`${hole}${letter}`);
+      }
+    }
+    return slots;
+  }
+
+  async function getNextAvailableHole(tournamentId){
+    const regCol = collection(db, "tournaments", tournamentId, "registrations");
+    const snap = await getDocs(query(regCol));
+
+    const used = new Set();
+
+    snap.forEach(docSnap => {
+      const x = docSnap.data() || {};
+      const status = String(x.status || "").toLowerCase();
+      if(status === "cancelled") return;
+
+      const hole = normalizeHoleLabel(x.assignedHole || x.startHole || "");
+      if(hole) used.add(hole);
+    });
+
+    const slots = buildSlotSequence(12);
+    for(const slot of slots){
+      if(!used.has(slot)) return slot;
+    }
+    return "";
+  }
+
+  function buildRegistrationPayload(assignedHole){
+    const teamName = getVal("teamName");
+    const captainName = getVal("captainName");
+    const player2 = getVal("player2");
+    const player3 = getVal("player3");
+    const player4 = getVal("player4");
+    const player5 = getVal("player5");
+    const player6 = getVal("player6");
+
+    const players = normalizePlayers([
+      captainName,
+      player2,
+      player3,
+      player4,
+      player5,
+      player6
+    ]);
+
+    return {
+      tournamentId: state.tournamentId || "",
+      tournamentName: safeText(state.tournament?.tournamentName || state.tournament?.name, ""),
+      defaultCourse: safeText(state.tournament?.defaultCourse, ""),
+      formatOfPlay: safeText(state.tournament?.formatOfPlay, ""),
+      teamName,
+      captainName,
+      captainEmail: getVal("captainEmail"),
+      captainPhone: getVal("captainPhone"),
+      players,
+      notes: getVal("notes"),
+      assignedHole: assignedHole || "",
+      status: assignedHole ? "assigned" : "registered",
+      source: "register-complete",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+  }
+
+  async function handleSubmit(){
+    if(!state.tournamentId){
+      $("submitMessage").textContent = "This registration link is missing a tournament id.";
+      showToast("Missing tournament id");
+      return;
+    }
+
+    const hasAnyValue = [
+      getVal("teamName"),
+      getVal("captainName"),
+      getVal("player2"),
+      getVal("player3"),
+      getVal("player4"),
+      getVal("player5"),
+      getVal("player6"),
+      getVal("captainEmail"),
+      getVal("captainPhone"),
+      getVal("notes")
+    ].some(Boolean);
+
+    if(!hasAnyValue){
+      $("submitMessage").textContent = "Please enter at least one name, team, or contact detail before submitting.";
+      showToast("Add some info first");
+      return;
+    }
+
+    const btn = $("submitRegistrationBtn");
+    btn.disabled = true;
+    btn.textContent = "Submitting...";
+
+    try{
+      const assignedHole = await getNextAvailableHole(state.tournamentId);
+      const payload = buildRegistrationPayload(assignedHole);
+
+      await addDoc(
+        collection(db, "tournaments", state.tournamentId, "registrations"),
+        payload
+      );
+
+      const box = document.querySelector(".dash-box");
+      box.innerHTML = `
+        <h2 class="dash-title">THANK YOU FOR REGISTERING</h2>
+        <div class="notice" style="margin-top:12px;">
+          Your registration has been received successfully.
+        </div>
+        <div class="fine-print" style="margin-top:14px; font-size:clamp(18px,2.6vw,24px); font-weight:900;">
+          ${assignedHole ? `Your starting hole is <b>${assignedHole}</b>.` : `Your team has been added to the roster.`}
+        </div>
+        <div class="fine-print" style="margin-top:10px;">
+          Please arrive at your starting hole before the shotgun start. The organizer can still adjust assignments if needed.
+        </div>
+      `;
+
+      showToast("Registration submitted");
+    }catch(err){
+      console.error(err);
+      $("submitMessage").textContent = "There was a problem submitting your registration. Please try again.";
+      showToast("Submission failed");
+      btn.disabled = false;
+      btn.textContent = "Submit Registration";
+    }
+  }
+
+  $("submitRegistrationBtn").addEventListener("click", handleSubmit);
+
+  $("sponsorHeroLink").addEventListener("click", (e) => {
+    const href = $("sponsorHeroLink").getAttribute("href");
+    if(!href) e.preventDefault();
+  });
+
+  (async function init(){
+    await loadTournament();
+  })();
+</script>);
+  
 </body>
 </html>
     
