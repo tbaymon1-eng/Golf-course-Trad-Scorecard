@@ -12,11 +12,16 @@
     :root{
       --navy:#0d2a55;
       --gold:#caa24a;
+      --green:#2f6b2f;
+      --red:#b6422d;
       --border: rgba(255,255,255,.18);
       --ink: rgba(255,255,255,.92);
       --muted: rgba(255,255,255,.75);
+      --panel: rgba(255,255,255,.08);
     }
+
     *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
     body{
       margin:0;
       font-family: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
@@ -27,28 +32,35 @@
         #0d2a55;
       min-height:100vh;
     }
+
     .wrap{
-      max-width: 1200px;
+      max-width: 1300px;
       margin: 0 auto;
       padding: 14px 12px 18px;
     }
 
-    .top{
+    .top,
+    .panel{
       border: 2px solid var(--border);
-      background: rgba(255,255,255,.08);
+      background: var(--panel);
       border-radius: 16px;
       padding: 12px;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       box-shadow: 0 18px 44px rgba(0,0,0,.25);
     }
-    .topRow{
+
+    .panel{ margin-top: 12px; }
+
+    .topRow,
+    .summaryRow{
       display:flex;
       gap:10px;
       align-items:flex-start;
       justify-content:space-between;
       flex-wrap:wrap;
     }
+
     h1{
       margin:0;
       font-family: "Cinzel", Georgia, serif;
@@ -58,6 +70,7 @@
       font-size: 18px;
       line-height: 1.05;
     }
+
     .meta{
       margin-top:6px;
       color: var(--muted);
@@ -65,6 +78,7 @@
       font-size: 13px;
       letter-spacing:.02em;
     }
+
     .actions{
       display:flex;
       gap:10px;
@@ -72,7 +86,8 @@
       justify-content:flex-end;
       align-items:center;
     }
-    button, a.btn{
+
+    button, a.btn, .miniBtn{
       border: 2px solid rgba(255,255,255,.18);
       background: rgba(255,255,255,.12);
       border-radius: 12px;
@@ -90,35 +105,24 @@
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
     }
-    button:active, a.btn:active{ transform: translateY(1px); }
+
+    button:active, a.btn:active, .miniBtn:active{ transform: translateY(1px); }
+
     .primary{
       border-color: rgba(180,210,255,.22);
       background: rgba(13,42,85,.22);
     }
+
     .green{
       border-color: rgba(184,255,184,.22);
       background: rgba(47,107,47,.18);
     }
 
-    .panel{
-      margin-top: 12px;
-      border: 2px solid var(--border);
-      background: rgba(255,255,255,.08);
-      border-radius: 16px;
-      padding: 12px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 18px 44px rgba(0,0,0,.20);
+    .danger{
+      border-color: rgba(255,180,180,.24);
+      background: rgba(182,66,45,.20);
     }
 
-    .summaryRow{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
-      margin-bottom: 10px;
-    }
     .pill{
       display:inline-flex;
       align-items:center;
@@ -134,108 +138,10 @@
       white-space:nowrap;
     }
 
-    .courseSection{
-      margin-top: 12px;
-      border-radius: 16px;
-      border: 2px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.16);
-      overflow:hidden;
-    }
-    .courseHdr{
-      padding: 10px 12px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      background:
-        linear-gradient(90deg, rgba(202,162,74,.14), rgba(13,42,85,.12));
-      border-bottom: 1px solid rgba(255,255,255,.10);
-    }
-    .courseHdrLeft{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      min-width: 220px;
-    }
-    .courseName{
-      font-family: "Cinzel", Georgia, serif;
-      font-weight: 900;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      font-size: 14px;
-      color: rgba(255,255,255,.92);
-    }
-    .courseCounts{
-      font-size: 12px;
-      color: rgba(255,255,255,.78);
-      font-weight: 900;
-      letter-spacing:.02em;
-    }
-
-    .grid{
-      display:grid;
-      gap:12px;
-      grid-template-columns: 1fr;
-      padding: 12px;
-    }
-    @media (min-width: 860px){
-      .grid{ grid-template-columns: 1fr 1fr; }
-    }
-
-    .block{
-      border-radius: 16px;
-      border: 2px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.18);
-      overflow:hidden;
-    }
-    .blockHdr{
-      padding: 10px 12px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,.08), rgba(0,0,0,.06));
-      border-bottom: 1px solid rgba(255,255,255,.10);
-      font-weight: 1000;
-      letter-spacing: .10em;
-      text-transform: uppercase;
-      font-size: 12px;
-      color: rgba(255,255,255,.90);
-    }
-    .countPill{
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.10);
-      font-size: 12px;
-      letter-spacing: .02em;
-      font-weight: 1000;
-      color: rgba(255,255,255,.88);
-      white-space:nowrap;
-    }
-    .blockBody{ padding: 10px 12px 12px; }
-
-    .company{
-      font-family: "Cinzel", Georgia, serif;
-      font-weight: 900;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      font-size: 14px;
-      margin-top: 8px;
-      color: rgba(255,255,255,.92);
-    }
-    ul{ margin: 8px 0 0; padding: 0 0 0 18px; }
-    li{
-      margin: 6px 0;
-      font-weight: 800;
-      letter-spacing:.01em;
-      color: rgba(255,255,255,.92);
-    }
     .empty{
       color: rgba(255,255,255,.80);
       font-weight: 900;
-      padding: 12px;
+      padding: 16px 8px 8px;
     }
 
     .monoBox{
@@ -247,6 +153,7 @@
       overflow:auto;
       color: rgba(255,255,255,.90);
     }
+
     pre{
       margin:0;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
@@ -262,6 +169,225 @@
       font-weight: 800;
       font-size: 12px;
       letter-spacing:.02em;
+      line-height: 1.35;
+    }
+
+    .toolbar{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin-top: 10px;
+    }
+
+    .searchRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      flex:1 1 420px;
+    }
+
+    input, select, textarea{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:2px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.12);
+      color:#fff;
+      font-size:14px;
+      font-weight:800;
+      outline:none;
+    }
+
+    input::placeholder, textarea::placeholder{
+      color: rgba(255,255,255,.58);
+    }
+
+    .tableWrap{
+      margin-top: 12px;
+      border: 2px solid rgba(255,255,255,.14);
+      border-radius: 16px;
+      overflow:auto;
+      background: rgba(0,0,0,.18);
+    }
+
+    table{
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 1080px;
+    }
+
+    th, td{
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      padding: 12px 10px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th{
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: linear-gradient(90deg, rgba(202,162,74,.14), rgba(13,42,85,.18));
+      font-size: 12px;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      font-weight: 1000;
+      color: rgba(255,255,255,.94);
+      white-space: nowrap;
+    }
+
+    tr:hover td{
+      background: rgba(255,255,255,.04);
+    }
+
+    .teamName{
+      font-family: "Cinzel", Georgia, serif;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.95);
+    }
+
+    .captainLine{
+      margin-top: 4px;
+      font-size: 12px;
+      color: rgba(255,255,255,.76);
+      font-weight: 800;
+    }
+
+    .playerList{
+      display:grid;
+      gap:4px;
+    }
+
+    .playerItem{
+      font-weight:800;
+      color: rgba(255,255,255,.92);
+      line-height: 1.25;
+    }
+
+    .holeBadge,
+    .statusBadge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width: 58px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.10);
+      font-size: 12px;
+      font-weight: 1000;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .status-registered{ background: rgba(255,255,255,.10); }
+    .status-assigned{ background: rgba(13,42,85,.26); }
+    .status-checked_in{ background: rgba(47,107,47,.22); }
+    .status-scoring{ background: rgba(202,162,74,.20); }
+    .status-finished{ background: rgba(47,107,47,.24); }
+    .status-cancelled{ background: rgba(182,66,45,.26); }
+
+    .rowActions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .miniBtn{
+      padding: 8px 10px;
+      font-size: 12px;
+      border-radius: 10px;
+    }
+
+    .modal{
+      position: fixed;
+      inset: 0;
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      background: rgba(0,0,0,.58);
+      z-index: 50;
+      padding: 12px;
+    }
+
+    .modal.show{ display:flex; }
+
+    .sheet{
+      width:min(760px,100%);
+      max-height: 92vh;
+      overflow:auto;
+      border-radius: 18px;
+      border: 2px solid rgba(255,255,255,.18);
+      background:
+        radial-gradient(circle at 18% 0%, rgba(202,162,74,.18), transparent 60%),
+        rgba(19,34,70,.96);
+      box-shadow: 0 18px 50px rgba(0,0,0,.45);
+      padding: 14px;
+    }
+
+    .sheetHdr{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+
+    .sheetTitle{
+      font-family: "Cinzel", Georgia, serif;
+      font-size:16px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin:0;
+    }
+
+    .sheetSubtle{
+      font-size:12px;
+      color:rgba(255,255,255,.72);
+      font-weight:800;
+      line-height:1.35;
+    }
+
+    .sheetGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+
+    .sheetGridSingle{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .fieldLabel{
+      display:block;
+      font-size:12px;
+      font-weight:1000;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.86);
+      margin-bottom:6px;
+    }
+
+    .sheetActions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      margin-top:12px;
+    }
+
+    @media (max-width: 720px){
+      .sheetGrid{ grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -284,18 +410,59 @@
       </div>
 
       <div class="footerHint">
-        Grouping: <b>Course</b> → <b>Start Hole (2A/2B ok)</b> → <b>Company/Team</b> → Player list (deduped).
+        Source of truth: <b>registrations</b>. Teams can be created before tournament day, auto-assigned to holes, edited, cancelled, and later picked up by scoring. Hole order is <b>1A → 2A → … → 18A → 1B → 2B → …</b>
       </div>
     </div>
 
     <div class="panel">
       <div class="summaryRow">
-        <div class="pill">Unique players (overall): <b id="uniqueCount">0</b></div>
-        <div class="pill">Submissions loaded: <b id="subCount">0</b></div>
+        <div class="pill">Teams: <b id="teamCount">0</b></div>
+        <div class="pill">Assigned: <b id="assignedCount">0</b></div>
+        <div class="pill">Next Open Hole: <b id="openSlotHint">—</b></div>
+        <div class="pill">Unique players: <b id="uniqueCount">0</b></div>
       </div>
 
-      <!-- course sections will render here -->
-      <div id="coursesWrap"></div>
+      <div class="toolbar">
+        <div class="searchRow">
+          <div style="min-width:240px; flex:1 1 320px;">
+            <input id="searchInput" placeholder="Search team, captain, player, or hole…" />
+          </div>
+
+          <div style="width:180px;">
+            <select id="statusFilter">
+              <option value="all">All Statuses</option>
+              <option value="registered">Registered</option>
+              <option value="assigned">Assigned</option>
+              <option value="checked_in">Checked In</option>
+              <option value="scoring">Scoring</option>
+              <option value="finished">Finished</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="green" id="autoAssignBtn">⚡ Auto Assign Missing Holes</button>
+          <button class="primary" id="addTeamBtn">➕ Add Team</button>
+        </div>
+      </div>
+
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="min-width:230px;">Team</th>
+              <th style="min-width:260px;">Players</th>
+              <th style="min-width:90px;">Hole</th>
+              <th style="min-width:120px;">Status</th>
+              <th style="min-width:240px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div id="emptyState" class="empty" style="display:none;">No teams yet.</div>
 
       <div class="monoBox">
         <pre id="textOut">Loading…</pre>
@@ -303,327 +470,58 @@
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
-      authDomain: "cypresswood-tournaments.firebaseapp.com",
-      projectId: "cypresswood-tournaments",
-      storageBucket: "cypresswood-tournaments.firebasestorage.app",
-      messagingSenderId: "162441374966",
-      appId: "1:162441374966:web:157285a2d5c39db1e810d7",
-      measurementId: "G-HL6Y9CLV8K"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const coursesWrap = document.getElementById("coursesWrap");
-    const textOut = document.getElementById("textOut");
-    const meta = document.getElementById("meta");
-    const title = document.getElementById("title");
-    const uniqueCountEl = document.getElementById("uniqueCount");
-    const subCountEl = document.getElementById("subCount");
-
-    const refreshBtn = document.getElementById("refreshBtn");
-    const copyBtn = document.getElementById("copyBtn");
-    const leaderBtn = document.getElementById("leaderBtn");
-    const joinBtn = document.getElementById("joinBtn");
-
-    const params = new URLSearchParams(location.search);
-    const tournamentId = (params.get("t") || "").trim();
-
-    // Optional safety cap for huge events (you can increase with ?cap=2000)
-    const CAP = Math.max(0, parseInt(params.get("cap") || "0", 10) || 0); // 0 = no cap
-
-    const COURSE_LABELS = {
-      tradition: "Tradition Course",
-      cypress: "Cypress Course"
-    };
-
-    function escapeHtml(s){
-      return String(s || "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    function normName(n){
-      return String(n||"").trim().replace(/\s+/g," ");
-    }
-
-    function normalizeStartHoleLabel(raw){
-      const s = String(raw || "").trim().toUpperCase();
-      if(!s) return "—";
-      const m = s.match(/^([1-9]|1[0-8])([A-Z])?$/);
-      if(!m) return s; // keep what they typed
-      return `${parseInt(m[1],10)}${m[2]||""}`;
-    }
-
-    function startHoleSortKey(label){
-      const s = String(label||"").toUpperCase().trim();
-      const m = s.match(/^([1-9]|1[0-8])([A-Z])?$/);
-      if(!m) return { num: 999, suf: "Z" };
-      return { num: parseInt(m[1],10), suf: m[2] || "" };
-    }
-
-    function groupCompanyName(raw){
-      const s = String(raw||"").trim();
-      return s || "—";
-    }
-
-    function getRosterNames(docData){
-      // prefer rosterNames if you ever add it later; fallback to names; finally playerName only
-      const rn = Array.isArray(docData.rosterNames) ? docData.rosterNames : null;
-      const nm = Array.isArray(docData.names) ? docData.names : null;
-      const base = (rn && rn.length) ? rn : ((nm && nm.length) ? nm : [docData.playerName || ""]);
-      return base.map(normName).filter(Boolean).slice(0, 20);
-    }
-
-    function normalizeCourseId(raw){
-      const s = String(raw || "").trim().toLowerCase();
-      if(!s) return "unknown";
-      return s;
-    }
-
-    function courseLabel(courseId){
-      if(courseId === "unknown") return "Unknown / Not Set";
-      return COURSE_LABELS[courseId] || courseId;
-    }
-
-    // MODEL:
-    // courseId -> startHoleLabel -> companyName -> Map(lowerName -> displayName)
-    function buildModel(submissions){
-      const model = new Map();
-      const globalUnique = new Map(); // lowerName -> displayName
-      const perCourseUnique = new Map(); // courseId -> Map(lower->display)
-
-      for(const s of submissions){
-        const courseId = normalizeCourseId(s.courseId);
-        const startHole = normalizeStartHoleLabel(s.startHole);
-        const company = groupCompanyName(s.group);
-        const names = getRosterNames(s);
-
-        if(!model.has(courseId)) model.set(courseId, new Map());
-        const byStart = model.get(courseId);
-
-        if(!byStart.has(startHole)) byStart.set(startHole, new Map());
-        const byCompany = byStart.get(startHole);
-
-        if(!byCompany.has(company)) byCompany.set(company, new Map());
-        const nameMap = byCompany.get(company);
-
-        if(!perCourseUnique.has(courseId)) perCourseUnique.set(courseId, new Map());
-        const courseUniq = perCourseUnique.get(courseId);
-
-        for(const n of names){
-          const lower = n.toLowerCase();
-          if(!nameMap.has(lower)) nameMap.set(lower, n);
-          if(!globalUnique.has(lower)) globalUnique.set(lower, n);
-          if(!courseUniq.has(lower)) courseUniq.set(lower, n);
-        }
-      }
-
-      return { model, globalUnique, perCourseUnique };
-    }
-
-    function render({ model, globalUnique, perCourseUnique }, submissionsLoaded){
-      uniqueCountEl.textContent = String(globalUnique.size);
-      subCountEl.textContent = String(submissionsLoaded);
-
-      coursesWrap.innerHTML = "";
-      const lines = [];
-
-      const courseIds = Array.from(model.keys()).sort((a,b)=>{
-        // put known courses first
-        const rank = (x) => (x === "tradition" ? 1 : (x === "cypress" ? 2 : (x === "unknown" ? 99 : 50)));
-        const ra = rank(a), rb = rank(b);
-        if(ra !== rb) return ra - rb;
-        return String(a).localeCompare(String(b));
-      });
-
-      if(!courseIds.length){
-        coursesWrap.innerHTML = `<div class="empty">No roster yet. Waiting for teams to join.</div>`;
-        textOut.textContent = "No roster yet.";
-        return;
-      }
-
-      for(const courseId of courseIds){
-        const byStart = model.get(courseId);
-        const courseUniq = perCourseUnique.get(courseId) || new Map();
-
-        // Count total (not unique) players listed in this course model
-        let courseListedCount = 0;
-        for(const startHole of byStart.keys()){
-          const byCompany = byStart.get(startHole);
-          for(const company of byCompany.keys()){
-            courseListedCount += byCompany.get(company).size;
-          }
-        }
-
-        const courseSection = document.createElement("div");
-        courseSection.className = "courseSection";
-
-        courseSection.innerHTML = `
-          <div class="courseHdr">
-            <div class="courseHdrLeft">
-              <div class="courseName">${escapeHtml(courseLabel(courseId))}</div>
-              <div class="courseCounts">
-                Unique players: <b>${courseUniq.size}</b> • Listed entries: <b>${courseListedCount}</b>
-              </div>
-            </div>
-            <div class="pill">Course ID: <b>${escapeHtml(courseId)}</b></div>
+  <div class="modal" id="teamModal">
+    <div class="sheet">
+      <div class="sheetHdr">
+        <div>
+          <p id="modalTitle" class="sheetTitle">Add Team</p>
+          <div class="sheetSubtle">
+            Save a team into <b>tournaments/{tId}/registrations</b>. Hole assignment can be automatic or manual.
           </div>
-          <div class="grid" id="grid_${escapeHtml(courseId)}"></div>
-        `;
+        </div>
+        <button id="closeModalBtn" class="miniBtn">✕ Close</button>
+      </div>
 
-        coursesWrap.appendChild(courseSection);
-        const grid = courseSection.querySelector(`#grid_${CSS.escape(courseId)}`);
+      <div class="sheetGrid">
+        <div>
+          <label for="teamNameInput" class="fieldLabel">Team / Company Name</label>
+          <input id="teamNameInput" />
+        </div>
 
-        // Text header per course
-        lines.push(`=== ${courseLabel(courseId)} ===`);
-        lines.push("");
+        <div>
+          <label for="assignedHoleInput" class="fieldLabel">Assigned Hole</label>
+          <input id="assignedHoleInput" placeholder="Leave blank for auto" />
+        </div>
 
-        // sort start holes within course
-        const startHoles = Array.from(byStart.keys()).sort((a,b)=>{
-          const A = startHoleSortKey(a);
-          const B = startHoleSortKey(b);
-          if(A.num !== B.num) return A.num - B.num;
-          return String(A.suf).localeCompare(String(B.suf));
-        });
+        <div>
+          <label for="captainNameInput" class="fieldLabel">Captain Name</label>
+          <input id="captainNameInput" />
+        </div>
 
-        for(const holeLabel of startHoles){
-          const byCompany = byStart.get(holeLabel);
+        <div>
+          <label for="statusInput" class="fieldLabel">Status</label>
+          <select id="statusInput">
+            <option value="registered">Registered</option>
+            <option value="assigned">Assigned</option>
+            <option value="checked_in">Checked In</option>
+            <option value="scoring">Scoring</option>
+            <option value="finished">Finished</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+      </div>
 
-          // sort company names
-          const companies = Array.from(byCompany.keys()).sort((a,b)=>{
-            const A = a === "—" ? "ZZZ" : a.toUpperCase();
-            const B = b === "—" ? "ZZZ" : b.toUpperCase();
-            return A.localeCompare(B);
-          });
+      <div class="sheetGridSingle">
+        <div>
+          <label for="playersInput" class="fieldLabel">Players (one per line)</label>
+          <textarea id="playersInput" rows="7" placeholder="Mike Smith&#10;Tom Brown&#10;David Nguyen&#10;Chris Adams"></textarea>
+        </div>
+      </div>
 
-          // count for this start hole
-          let holeCount = 0;
-          for(const c of companies) holeCount += byCompany.get(c).size;
-
-          const block = document.createElement("div");
-          block.className = "block";
-          block.innerHTML = `
-            <div class="blockHdr">
-              <div>Start H${escapeHtml(holeLabel)}</div>
-              <div class="countPill">${holeCount} player${holeCount===1?"":"s"}</div>
-            </div>
-            <div class="blockBody"></div>
-          `;
-          grid.appendChild(block);
-
-          const body = block.querySelector(".blockBody");
-
-          // Text section header
-          lines.push(`Team ${holeLabel}`);
-
-          for(const company of companies){
-            const nameMap = byCompany.get(company);
-            const names = Array.from(nameMap.values()).sort((a,b)=>a.localeCompare(b));
-
-            const compTitle = document.createElement("div");
-            compTitle.className = "company";
-            compTitle.textContent = (company === "—") ? "—" : company;
-            body.appendChild(compTitle);
-
-            const ul = document.createElement("ul");
-            for(const n of names){
-              const li = document.createElement("li");
-              li.textContent = n;
-              ul.appendChild(li);
-            }
-            body.appendChild(ul);
-
-            if(company !== "—") lines.push(company);
-            for(const n of names) lines.push(n);
-            lines.push("");
-          }
-
-          lines.push("");
-        }
-
-        lines.push("");
-      }
-
-      textOut.textContent = lines.join("\n").trim() + "\n";
-    }
-
-    async function loadTournamentMeta(){
-      if(!tournamentId){
-        title.textContent = "Tournament Roster";
-        meta.textContent = "Missing tournament id (?t=...)";
-        return;
-      }
-
-      joinBtn.href = `./index.html?t=${encodeURIComponent(tournamentId)}`;
-      leaderBtn.href = `./leaderboard.html?t=${encodeURIComponent(tournamentId)}`;
-
-      try{
-        const tSnap = await getDoc(doc(db, "tournaments", tournamentId));
-        if(tSnap.exists()){
-          const t = tSnap.data() || {};
-          title.textContent = "Tournament Roster";
-          meta.textContent = `${t.name || "Tournament"}${t.date ? " • " + t.date : ""} • ID: ${tournamentId}`;
-        }else{
-          meta.textContent = `Tournament not found • ID: ${tournamentId}`;
-        }
-      }catch(e){
-        meta.textContent = `Tournament load error • ID: ${tournamentId}`;
-      }
-    }
-
-    refreshBtn.addEventListener("click", () => location.reload());
-
-    copyBtn.addEventListener("click", async () => {
-      try{
-        await navigator.clipboard.writeText(textOut.textContent || "");
-        copyBtn.textContent = "✅ Copied";
-        setTimeout(()=> copyBtn.textContent = "📋 Copy Roster", 900);
-      }catch(e){
-        alert("Copy blocked. Select the text and copy manually.");
-      }
-    });
-
-    // Boot
-    await loadTournamentMeta();
-
-    if(!tournamentId){
-      coursesWrap.innerHTML = `<div class="empty">Missing tournament id (?t=...).</div>`;
-      textOut.textContent = "Missing tournament id.";
-    }else{
-      const subCol = collection(db, "tournaments", tournamentId, "submissions");
-      const q = query(subCol);
-
-      onSnapshot(q, (snap) => {
-        const submissions = [];
-        let count = 0;
-
-        snap.forEach(d => {
-          count++;
-          if(CAP > 0 && submissions.length >= CAP) return;
-          submissions.push(d.data() || {});
-        });
-
-        const model = buildModel(submissions);
-        render(model, count);
-
-        if(CAP > 0 && count > CAP){
-          meta.textContent = (meta.textContent || "") + ` • Showing first ${CAP} of ${count} submissions (use ?cap=0 to remove cap)`;
-        }
-      }, () => {
-        coursesWrap.innerHTML = `<div class="empty">Live updates blocked (rules/network).</div>`;
-        textOut.textContent = "Live updates blocked (rules/network).";
-      });
-    }
-  </script>
-</body>
-</html>
+      <div class="sheetActions">
+        <button id="deleteTeamBtn" class="danger" style="display:none;">🗑 Delete</button>
+        <button id="saveTeamBtn" class="green">💾 Save Team</button>
+      </div>
+    </div>
+  </div>
+  
