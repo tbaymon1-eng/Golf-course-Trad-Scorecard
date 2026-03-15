@@ -823,8 +823,8 @@ async function loadTournamentMeta(){
 
   }
 
-  joinBtn.href=`./index.html?t=${tournamentId}`;
-  leaderBtn.href=`./leaderboard.html?t=${tournamentId}`;
+joinBtn.href=`./index.html?id=${tournamentId}`;
+leaderBtn.href=`./leaderboard.html?id=${tournamentId}`;
 
   const snap=await getDoc(doc(db,"tournaments",tournamentId));
 
