@@ -837,4 +837,456 @@ async function loadTournamentMeta(){
   }
 
 }
+    /* ---------------------------------------------------- */
+/* MODAL HELPERS */
+/* ---------------------------------------------------- */
+
+function openModal(){
+  teamModal.classList.add("show");
+  document.body.style.overflow="hidden";
+}
+
+function closeModal(){
+  teamModal.classList.remove("show");
+  document.body.style.overflow="";
+}
+
+function resetModal(){
+  editingId=null;
+  modalTitle.textContent="Add Team";
+  teamNameInput.value="";
+  assignedHoleInput.value="";
+  captainNameInput.value="";
+  statusInput.value="registered";
+  playersInput.value="";
+  deleteTeamBtn.style.display="none";
+}
+
+function openAddModal(){
+  resetModal();
+  openModal();
+}
+
+function openEditModal(id){
+
+  const r=registrations.find(x=>x.id===id);
+  if(!r) return;
+
+  editingId=id;
+  modalTitle.textContent="Edit Team";
+  teamNameInput.value=r.teamName || "";
+  assignedHoleInput.value=r.assignedHole || "";
+  captainNameInput.value=r.captainName || "";
+  statusInput.value=normalizeStatus(r.status);
+  playersInput.value=normalizePlayers(r.players).join("\n");
+  deleteTeamBtn.style.display="";
+  openModal();
+}
+
+/* ---------------------------------------------------- */
+/* SAVE / DELETE */
+/* ---------------------------------------------------- */
+
+async function saveTeamFromModal(){
+
+  if(!tournamentId) return;
+
+  const teamName=norm(teamNameInput.value);
+  const captainName=norm(captainNameInput.value);
+  const players=parsePlayersTextarea(playersInput.value);
+  let assignedHole=normalizeHoleLabel(assignedHoleInput.value);
+  let status=normalizeStatus(statusInput.value);
+
+  if(!teamName){
+    alert("Please enter a team / company name.");
+    return;
+  }
+
+  if(players.length<1 && !captainName){
+    alert("Please enter at least one player or captain name.");
+    return;
+  }
+
+  if(!assignedHole && status!=="cancelled"){
+    assignedHole=getNextAvailableHole();
+  }
+
+  if(assignedHole){
+
+    const takenByOther=registrations.some(r =>
+      r.id!==editingId &&
+      normalizeStatus(r.status)!=="cancelled" &&
+      normalizeHoleLabel(r.assignedHole)===assignedHole
+    );
+
+    if(takenByOther){
+      alert(`Hole ${assignedHole} is already assigned.`);
+      return;
+    }
+  }
+
+  if(status==="registered" && assignedHole){
+    status="assigned";
+  }
+
+  const finalPlayers=normalizePlayers([
+    captainName,
+    ...players
+  ]);
+
+  const ref=editingId
+    ? doc(db,"tournaments",tournamentId,"registrations",editingId)
+    : doc(collection(db,"tournaments",tournamentId,"registrations"));
+
+  const payload={
+    teamName,
+    captainName,
+    players: finalPlayers,
+    assignedHole: assignedHole || "",
+    status,
+    updatedAt: serverTimestamp()
+  };
+
+  if(!editingId){
+    payload.createdAt=serverTimestamp();
+  }
+
+  await setDoc(ref,payload,{merge:true});
+  closeModal();
+}
+
+async function deleteEditingTeam(){
+
+  if(!editingId || !tournamentId) return;
+
+  const r=registrations.find(x=>x.id===editingId);
+  if(!r) return;
+
+  const ok=confirm(`Delete ${r.teamName}? This removes the registration record.`);
+  if(!ok) return;
+
+  await deleteDoc(doc(db,"tournaments",tournamentId,"registrations",editingId));
+  closeModal();
+}
+
+/* ---------------------------------------------------- */
+/* QUICK ACTIONS */
+/* ---------------------------------------------------- */
+
+async function quickChangeHole(id){
+
+  const r=registrations.find(x=>x.id===id);
+  if(!r) return;
+
+  if(normalizeStatus(r.status)==="finished"){
+    alert("Finished teams should not be moved.");
+    return;
+  }
+
+  const entered=prompt(
+    `Enter new hole for ${r.teamName}\nExample: 1A, 2B, 10C`,
+    r.assignedHole || ""
+  );
+
+  if(entered===null) return;
+
+  const nextHole=normalizeHoleLabel(entered);
+
+  if(!nextHole){
+    alert("Invalid hole. Use format like 1A, 2B, 10C.");
+    return;
+  }
+
+  const takenByOther=registrations.some(x =>
+    x.id!==id &&
+    normalizeStatus(x.status)!=="cancelled" &&
+    normalizeHoleLabel(x.assignedHole)===nextHole
+  );
+
+  if(takenByOther){
+    alert(`Hole ${nextHole} is already assigned.`);
+    return;
+  }
+
+  await updateDoc(doc(db,"tournaments",tournamentId,"registrations",id),{
+    assignedHole: nextHole,
+    status: normalizeStatus(r.status)==="registered" ? "assigned" : normalizeStatus(r.status),
+    updatedAt: serverTimestamp()
+  });
+}
+
+async function toggleCancel(id){
+
+  const r=registrations.find(x=>x.id===id);
+  if(!r) return;
+
+  const current=normalizeStatus(r.status);
+
+  if(current==="scoring" || current==="finished"){
+    alert("Scoring or finished teams should not be cancelled here.");
+    return;
+  }
+
+  if(current==="cancelled"){
+    const restoreStatus=normalizeHoleLabel(r.assignedHole) ? "assigned" : "registered";
+    await updateDoc(doc(db,"tournaments",tournamentId,"registrations",id),{
+      status: restoreStatus,
+      updatedAt: serverTimestamp()
+    });
+    return;
+  }
+
+  const ok=confirm(`Cancel ${r.teamName}? Their hole will become available again.`);
+  if(!ok) return;
+
+  await updateDoc(doc(db,"tournaments",tournamentId,"registrations",id),{
+    status: "cancelled",
+    updatedAt: serverTimestamp()
+  });
+}
+
+async function autoAssignMissingHoles(){
+
+  if(!tournamentId) return;
+
+  const unassigned=registrations
+    .filter(r => normalizeStatus(r.status)!=="cancelled" && !normalizeHoleLabel(r.assignedHole))
+    .sort((a,b)=>{
+      const ta=a.createdAt?.seconds || 0;
+      const tb=b.createdAt?.seconds || 0;
+      return ta-tb;
+    });
+
+  if(!unassigned.length){
+    alert("No missing holes to assign.");
+    return;
+  }
+
+  const used=getUsedSlots();
+  const freeSlots=buildSlotSequence(12).filter(slot => !used.has(slot));
+
+  if(freeSlots.length<unassigned.length){
+    alert("Not enough open slots to assign all missing teams.");
+    return;
+  }
+
+  const batch=writeBatch(db);
+
+  unassigned.forEach((r,idx)=>{
+    batch.set(
+      doc(db,"tournaments",tournamentId,"registrations",r.id),
+      {
+        assignedHole: freeSlots[idx],
+        status: normalizeStatus(r.status)==="registered" ? "assigned" : normalizeStatus(r.status),
+        updatedAt: serverTimestamp()
+      },
+      {merge:true}
+    );
+  });
+
+  await batch.commit();
+}
+
+/* ---------------------------------------------------- */
+/* FILTER + RENDER */
+/* ---------------------------------------------------- */
+
+function filteredRegistrations(){
+
+  const q=norm(searchInput.value).toLowerCase();
+  const sf=String(statusFilter.value || "all");
+
+  return registrations.filter(r=>{
+
+    const status=normalizeStatus(r.status);
+
+    if(sf!=="all" && status!==sf) return false;
+
+    if(!q) return true;
+
+    const hay=[
+      r.teamName || "",
+      r.captainName || "",
+      r.assignedHole || "",
+      status,
+      ...(Array.isArray(r.players) ? r.players : [])
+    ].join(" ").toLowerCase();
+
+    return hay.includes(q);
+  });
+}
+
+function rowHtml(r){
+
+  const status=normalizeStatus(r.status);
+  const players=normalizePlayers(r.players);
+  const captain=norm(r.captainName || "");
+
+  return `
+    <tr data-id="${r.id}">
+      <td>
+        <div class="teamName">${r.teamName || "—"}</div>
+        ${captain ? `<div class="captainLine">Captain: ${captain}</div>` : ``}
+      </td>
+
+      <td>
+        <div class="playerList">
+          ${
+            players.length
+              ? players.map(p => `<div class="playerItem">${p}</div>`).join("")
+              : `<div class="captainLine">No players listed</div>`
+          }
+        </div>
+      </td>
+
+      <td>
+        <span class="holeBadge">${r.assignedHole || "—"}</span>
+      </td>
+
+      <td>
+        <span class="statusBadge status-${status}">${humanStatus(status)}</span>
+      </td>
+
+      <td>
+        <div class="rowActions">
+          <button class="miniBtn rowEditBtn" data-id="${r.id}">✏️ Edit</button>
+          <button class="miniBtn rowHoleBtn" data-id="${r.id}">⛳ Change Hole</button>
+          <button class="miniBtn rowCancelBtn danger" data-id="${r.id}">
+            ${status==="cancelled" ? "↩ Restore" : "🚫 Cancel"}
+          </button>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function render(){
+
+  const filtered=filteredRegistrations()
+    .slice()
+    .sort((a,b)=>{
+      const sa=normalizeStatus(a.status);
+      const sb=normalizeStatus(b.status);
+
+      if(sa==="cancelled" && sb!=="cancelled") return 1;
+      if(sa!=="cancelled" && sb==="cancelled") return -1;
+
+      return compareHoleLabels(a.assignedHole,b.assignedHole);
+    });
+
+  teamCountEl.textContent=String(registrations.length);
+  assignedCountEl.textContent=String(
+    registrations.filter(r =>
+      normalizeStatus(r.status)!=="cancelled" &&
+      !!normalizeHoleLabel(r.assignedHole)
+    ).length
+  );
+  openSlotHintEl.textContent=getNextAvailableHole() || "Full";
+  uniqueCountEl.textContent=String(uniquePlayerCount());
+
+  tbody.innerHTML=filtered.map(rowHtml).join("");
+  emptyState.style.display=filtered.length ? "none" : "block";
+  textOut.textContent=registrationsToText() || "No teams yet.";
+
+  tbody.querySelectorAll(".rowEditBtn").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      openEditModal(btn.getAttribute("data-id"));
+    });
+  });
+
+  tbody.querySelectorAll(".rowHoleBtn").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      quickChangeHole(btn.getAttribute("data-id"));
+    });
+  });
+
+  tbody.querySelectorAll(".rowCancelBtn").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      toggleCancel(btn.getAttribute("data-id"));
+    });
+  });
+}
+
+/* ---------------------------------------------------- */
+/* EVENTS */
+/* ---------------------------------------------------- */
+
+refreshBtn.addEventListener("click",()=>location.reload());
+
+copyBtn.addEventListener("click", async ()=>{
+  try{
+    await navigator.clipboard.writeText(textOut.textContent || "");
+    copyBtn.textContent="✅ Copied";
+    setTimeout(()=>copyBtn.textContent="📋 Copy Roster",900);
+  }catch(e){
+    alert("Copy blocked. Select the text and copy manually.");
+  }
+});
+
+addTeamBtn.addEventListener("click", openAddModal);
+closeModalBtn.addEventListener("click", closeModal);
+saveTeamBtn.addEventListener("click", saveTeamFromModal);
+deleteTeamBtn.addEventListener("click", deleteEditingTeam);
+autoAssignBtn.addEventListener("click", autoAssignMissingHoles);
+
+teamModal.addEventListener("click",(e)=>{
+  if(e.target===teamModal) closeModal();
+});
+
+searchInput.addEventListener("input", render);
+statusFilter.addEventListener("change", render);
+
+/* ---------------------------------------------------- */
+/* BOOT */
+/* ---------------------------------------------------- */
+
+await loadTournamentMeta();
+
+if(!tournamentId){
+
+  emptyState.style.display="block";
+  emptyState.textContent="Missing tournament id (?t=...).";
+  textOut.textContent="Missing tournament id.";
+
+}else{
+
+  const regCol=collection(db,"tournaments",tournamentId,"registrations");
+  const q=query(regCol);
+
+  onSnapshot(q,(snap)=>{
+
+    registrations=[];
+
+    snap.forEach(d=>{
+
+      const x=d.data() || {};
+
+      registrations.push({
+        id: d.id,
+        teamName: norm(x.teamName || x.group || ""),
+        captainName: norm(x.captainName || ""),
+        players: normalizePlayers(x.players || x.rosterNames || x.names || []),
+        assignedHole: normalizeHoleLabel(x.assignedHole || x.startHole || ""),
+        status: normalizeStatus(x.status || "registered"),
+        createdAt: x.createdAt || null,
+        updatedAt: x.updatedAt || null
+      });
+
+    });
+
+    render();
+
+  },()=>{
+
+    emptyState.style.display="block";
+    emptyState.textContent="Live updates blocked (rules/network).";
+    textOut.textContent="Live updates blocked (rules/network).";
+
+  });
+
+}
+
+</script>
+</body>
+</html>
   
