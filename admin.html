@@ -3,1145 +3,389 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Admin Tournament Setup</title>
+  <title>Tournament Admin</title>
 
-  <meta name="theme-color" content="#7a4a0b" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#0d2a55" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --paper:#e9e2d4;
-      --card:#efe7d7;
-      --border:#7a4a0b;
-      --ink:#111;
-      --muted:rgba(0,0,0,.65);
-      --field:#fff;
-      --soft:#ffffff77;
+      --navy:#0d2a55;
+      --navy2:#0b2246;
+      --gold:#caa24a;
       --green:#2f6b2f;
-      --red:#b6422d;
-      --blue:#0d2a55;
+      --danger:#b6422d;
+      --border: rgba(255,255,255,.18);
+      --ink: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.75);
+      --panel: rgba(255,255,255,.08);
     }
+
     *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
     body{
       margin:0;
-      background: var(--paper);
+      font-family: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       color: var(--ink);
-      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(202,162,74,.18), transparent 55%),
+        linear-gradient(180deg, rgba(13,42,85,.72), rgba(0,0,0,.45)),
+        #0d2a55;
+      min-height:100vh;
     }
+
     .wrap{
-      max-width: 980px;
+      max-width: 1080px;
       margin: 0 auto;
-      padding: 14px 12px 22px;
+      padding: 14px 12px 24px;
     }
-    .card{
-      background: var(--card);
-      border: 3px solid var(--border);
-      border-radius: 14px;
-      overflow:hidden;
-      box-shadow: 0 10px 26px rgba(0,0,0,.18);
-    }
-    .hdr{
-      padding: 14px 14px 10px;
-      border-bottom: 1px solid rgba(0,0,0,.10);
-    }
-    h1{
-      margin:0;
-      font-family: Cinzel, serif;
-      font-weight: 900;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      font-size: 22px;
-      line-height: 1.05;
-    }
-    .sub{
-      margin-top:8px;
-      font-size: 14px;
-      color: var(--muted);
-      font-weight: 700;
-      line-height: 1.35;
-    }
-    .body{
+
+    .panel{
+      border: 2px solid var(--border);
+      background: var(--panel);
+      border-radius: 18px;
       padding: 14px;
-      display:grid;
-      gap: 12px;
-    }
-    .grid2{
-      display:grid;
-      gap: 12px;
-      grid-template-columns: 1fr;
-    }
-    @media (min-width: 820px){
-      .grid2{ grid-template-columns: 1fr 1fr; }
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 18px 44px rgba(0,0,0,.25);
     }
 
-    label{
-      display:block;
-      font-weight: 900;
-      font-size: 13px;
-      margin-bottom: 6px;
-      letter-spacing: .02em;
-    }
-    input, select, textarea{
-      width:100%;
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      background: var(--field);
-      padding: 12px 12px;
-      font-weight: 900;
-      font-size: 16px;
-      font-family: inherit;
-      outline: none;
-    }
-    input:focus, select:focus, textarea:focus{
-      box-shadow: inset 0 0 0 2px rgba(122,74,11,.25);
-    }
-    .row{
-      display:grid;
-      gap:10px;
-    }
-    .note{
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 800;
-      line-height: 1.3;
-      margin-top: 6px;
-    }
+    .panel + .panel{ margin-top: 12px; }
 
-    .btnRow{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 6px;
-    }
-    button{
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 12px;
+    h1,h2{
+      margin:0;
+      font-family: "Cinzel", Georgia, serif;
       font-weight: 900;
-      font-size: 16px;
-      cursor:pointer;
-      background: #e7ddcb;
-    }
-    button:active{ transform: translateY(1px); }
-    .green{ background: var(--green); color:#fff; border-color: rgba(47,107,47,.55); }
-    .blue{ background: var(--blue); color:#fff; border-color: rgba(13,42,85,.55); }
-    .red{ background: var(--red); color:#fff; border-color: rgba(182,66,45,.55); }
-    .soft{
-      background: rgba(255,255,255,.55);
-      border: 2px dashed rgba(0,0,0,.20);
-      border-radius: 14px;
-      padding: 12px;
-    }
-
-    .linksBox{
-      display:grid;
-      gap:10px;
-      margin-top: 4px;
-    }
-    .linkLine{
-      display:grid;
-      grid-template-columns: 1fr auto;
-      gap:10px;
-      align-items:center;
-    }
-    .linkText{
-      border: 2px solid rgba(0,0,0,.18);
-      background: rgba(255,255,255,.65);
-      padding: 10px 10px;
-      border-radius: 12px;
-      font-weight: 900;
-      font-size: 13px;
-      overflow:auto;
-      white-space: nowrap;
-    }
-
-    .qrRow{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .qr{
-      border: 2px solid rgba(0,0,0,.14);
-      border-radius: 14px;
-      background: rgba(255,255,255,.65);
-      padding: 10px;
-      display:grid;
-      gap: 8px;
-      justify-items:center;
-      overflow:hidden;
-    }
-    .qrTitle{
-      font-family: Cinzel, serif;
-      font-weight: 900;
-      font-size: 12px;
       letter-spacing: .08em;
       text-transform: uppercase;
-      opacity:.9;
+      line-height: 1.08;
     }
 
-    .toast{
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 18px;
-      background: rgba(0,0,0,.82);
-      color: #fff;
-      padding: 10px 14px;
-      border-radius: 999px;
+    h1{ font-size: 20px; }
+    h2{ font-size: 15px; }
+
+    .meta{
+      margin-top:6px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing:.02em;
+      line-height: 1.35;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      margin-top: 12px;
+    }
+
+    .grid-1{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+      margin-top: 12px;
+    }
+
+    .field label{
+      display:block;
+      font-size:12px;
+      font-weight:1000;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.86);
+      margin-bottom:6px;
+    }
+
+    input, select, textarea{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:2px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.12);
+      color:#fff;
+      font-size:14px;
+      font-weight:800;
+      outline:none;
+    }
+
+    input::placeholder, textarea::placeholder{
+      color: rgba(255,255,255,.58);
+    }
+
+    textarea{ resize: vertical; }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+      margin-top: 12px;
+    }
+
+    button, a.btn{
+      border: 2px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: 12px 14px;
       font-weight: 900;
       font-size: 14px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .18s ease;
-      z-index: 9999;
+      cursor:pointer;
+      text-decoration:none;
+      color: rgba(255,255,255,.92);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+      letter-spacing:.02em;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
-    .toast.show{ opacity: 1; }
 
-    .sHdr{
-      font-family:Cinzel,serif;
-      font-weight:900;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      font-size:13px;
-      margin-bottom:8px;
+    button:active, a.btn:active{ transform: translateY(1px); }
+
+    .primary{
+      border-color: rgba(180,210,255,.22);
+      background: rgba(13,42,85,.22);
     }
-    .sGrid2{
-      display:grid;
+
+    .green{
+      border-color: rgba(184,255,184,.22);
+      background: rgba(47,107,47,.18);
+    }
+
+    .danger{
+      border-color: rgba(255,180,180,.24);
+      background: rgba(182,66,45,.20);
+    }
+
+    .pillRow{
+      display:flex;
       gap:10px;
-      grid-template-columns: 1fr;
+      flex-wrap:wrap;
+      margin-top: 10px;
     }
-    @media (min-width: 820px){
-      .sGrid2{ grid-template-columns: 1fr 1fr; }
-    }
+
     .pill{
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:2px solid rgba(0,0,0,.14);
-      background: rgba(255,255,255,.55);
-      font-weight:900;
-      font-size:12px;
-      width:max-content;
-    }
-    .sList{
-      margin-top:10px;
-      display:grid;
-      gap:10px;
-    }
-    .sItem{
-      border:2px solid rgba(0,0,0,.14);
-      background: rgba(255,255,255,.55);
-      border-radius:14px;
-      padding:10px;
-      display:grid;
-      gap:8px;
-    }
-    .sTop{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .sName{
-      font-weight:1000;
-      font-size:16px;
-    }
-    .sMeta{
-      color: rgba(0,0,0,.65);
-      font-weight:900;
-      font-size:12px;
-    }
-    .sBtns{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:flex-end;
-    }
-    .sBtns button{
-      padding:10px 10px;
-      font-size:14px;
-    }
-    .previewImg{
-      width:64px;
-      height:64px;
-      border-radius:12px;
-      border:2px solid rgba(0,0,0,.14);
-      object-fit:cover;
-      background: rgba(0,0,0,.05);
-      display:none;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.18);
+      font-weight: 1000;
+      letter-spacing: .02em;
+      font-size: 12px;
+      color: rgba(255,255,255,.90);
+      white-space:nowrap;
     }
 
-    @media (max-width: 520px){
-      .wrap{ padding: 10px 10px 18px; }
-      h1{ font-size: 20px; }
-      .btnRow{ grid-template-columns: 1fr; }
-      .linkLine{ grid-template-columns: 1fr; gap: 8px; }
-      .qrRow{ grid-template-columns: 1fr; }
-      .qr{ width:100%; }
+    .subtle{
+      font-size:12px;
+      color: rgba(255,255,255,.72);
+      font-weight:800;
+      line-height:1.35;
     }
-    .linkText{
-      white-space: normal !important;
-      overflow-wrap: anywhere;
-      word-break: break-word;
+
+    .linkGrid{
+      display:grid;
+      gap:10px;
+      margin-top: 12px;
+    }
+
+    .linkCard{
+      border:2px solid rgba(255,255,255,.14);
+      border-radius:14px;
+      background: rgba(0,0,0,.16);
+      padding:12px;
+      display:grid;
+      gap:8px;
+    }
+
+    .linkTitle{
+      font-size:12px;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      font-weight:1000;
+      color: rgba(255,255,255,.86);
+    }
+
+    .linkValue{
+      word-break: break-all;
+      font-size:13px;
+      font-weight:800;
+      color: rgba(255,255,255,.94);
+    }
+
+    .linkActions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .smallBtn{
+      padding:8px 10px;
+      font-size:12px;
+      border-radius:10px;
+    }
+
+    .statusBox{
+      display:none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 2px solid rgba(184,255,184,.24);
+      background: rgba(47,107,47,.16);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
+    .statusBox.show{ display:block; }
+
+    @media (max-width: 760px){
+      .grid{ grid-template-columns: 1fr; }
     }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <div class="card">
-      <div class="hdr">
-        <h1>Admin Tournament Setup</h1>
-        <div class="sub">
-          Create or load a tournament, then share the Join QR + Live Leaderboard QR (and Organizer Roster QR).
+
+    <div class="panel">
+      <h1>Tournament Admin</h1>
+      <div class="meta">
+        Create a tournament first. After save, this page will generate the links your coordinator needs:
+        registration, roster, scoring, and leaderboard.
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="tournamentName">Tournament Name</label>
+          <input id="tournamentName" placeholder="Cypresswood Charity Scramble" />
+        </div>
+
+        <div class="field">
+          <label for="tournamentDate">Tournament Date</label>
+          <input id="tournamentDate" placeholder="2026-04-18" />
+        </div>
+
+        <div class="field">
+          <label for="tournamentIdInput">Tournament ID</label>
+          <input id="tournamentIdInput" placeholder="charity-scramble-2026" />
+        </div>
+
+        <div class="field">
+          <label for="organizerName">Organizer</label>
+          <input id="organizerName" placeholder="Cypresswood Golf Club" />
+        </div>
+
+        <div class="field">
+          <label for="formatSelect">Format</label>
+          <select id="formatSelect">
+            <option value="stroke">Stroke</option>
+            <option value="scramble">Scramble</option>
+            <option value="bestball">Best Ball</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="courseDefault">Default Course</label>
+          <select id="courseDefault">
+            <option value="tradition">Tradition</option>
+            <option value="cypress">Cypress</option>
+          </select>
         </div>
       </div>
 
-      <div class="body">
-        <div class="grid2">
-          <div class="row">
-            <label for="tName">Tournament Name</label>
-            <input id="tName" placeholder="Cypresswood Saturday Classic" />
-          </div>
+      <div class="grid">
+        <div class="field">
+          <label for="sponsorName">Sponsor Name</label>
+          <input id="sponsorName" placeholder="Chevron Energy" />
+        </div>
 
-          <div class="row">
-            <label for="tCourse">Default Course</label>
-            <select id="tCourse">
-              <option value="tradition">Tradition</option>
-              <option value="cypress">Cypress</option>
-            </select>
-          </div>
+        <div class="field">
+          <label for="sponsorUrl">Sponsor URL</label>
+          <input id="sponsorUrl" placeholder="https://example.com" />
+        </div>
+      </div>
 
-          <div class="row">
-            <label for="tFormat">Format of Play</label>
-            <select id="tFormat">
-              <option value="stroke">Stroke Play</option>
-              <option value="scramble">Scramble</option>
-              <option value="bestball">Best Ball</option>
-            </select>
-          </div>
+      <div class="grid-1">
+        <div class="field">
+          <label for="sponsorLogo">Sponsor Logo URL</label>
+          <input id="sponsorLogo" placeholder="https://example.com/logo.png" />
+        </div>
+      </div>
 
-          <div class="row">
-            <label for="tSideGame">Side Game</label>
-            <select id="tSideGame">
-              <option value="none">None</option>
-              <option value="skins">Skins</option>
-            </select>
-            <div class="note">If enabled, the leaderboard can show a Leaderboard / Skins toggle.</div>
-          </div>
+      <div class="grid">
+        <div class="field">
+          <label for="ctpHoles">CTP Holes</label>
+          <input id="ctpHoles" placeholder="3, 8, 12, 17" />
+        </div>
 
-          <div class="row">
-            <label for="tDate">Date (optional)</label>
-            <input id="tDate" type="date" />
-          </div>
+        <div class="field">
+          <label for="longDriveHoles">Long Drive Holes</label>
+          <input id="longDriveHoles" placeholder="7, 15" />
+        </div>
+      </div>
 
-          <div class="row">
-            <label for="tOrg">Organizer Name (optional)</label>
-            <input id="tOrg" placeholder="Name" />
-          </div>
+      <div class="pillRow">
+        <label class="pill"><input type="checkbox" id="skinsEnabled" style="width:auto; margin:0;"> Skins Enabled</label>
+        <label class="pill"><input type="checkbox" id="ctpEnabled" style="width:auto; margin:0;"> Closest to Pin Enabled</label>
+        <label class="pill"><input type="checkbox" id="longDriveEnabled" style="width:auto; margin:0;"> Long Drive Enabled</label>
+      </div>
 
-          <div class="row">
-            <label for="tStatus">Status</label>
-            <select id="tStatus">
-              <option value="open">Open (Live)</option>
-              <option value="closed">Closed</option>
-              <option value="draft">Draft</option>
-            </select>
-          </div>
+      <div class="actions">
+        <button class="primary" id="loadTournamentBtn">📥 Load Tournament</button>
+        <button class="green" id="saveTournamentBtn">💾 Save Tournament</button>
+      </div>
 
-          <div class="row">
-            <label for="tHandicapMode">Handicap Mode (optional)</label>
-            <select id="tHandicapMode">
-              <option value="off">Off</option>
-              <option value="on">On</option>
-            </select>
-            <div class="note">This is stored for future rules; it won’t break anything if left Off.</div>
-          </div>
+      <div class="statusBox" id="statusBox"></div>
+    </div>
 
-          <div class="row">
-            <label for="tId">Tournament ID (for Load Existing)</label>
-            <input id="tId" placeholder="paste tournament id here" autocapitalize="none" />
-          </div>
+    <div class="panel">
+      <h2>Tournament Links</h2>
+      <div class="meta">
+        After the tournament is saved, copy the registration link and attach it to the back end of the course’s payment or registration process.
+      </div>
 
-          <div class="row">
-            <label for="adminToken">Admin Token (auto)</label>
-            <input id="adminToken" placeholder="auto-generated" autocapitalize="none" />
-            <div class="note">Keep this private. It’s a simple gate for admin edits.</div>
+      <div class="linkGrid">
+        <div class="linkCard">
+          <div class="linkTitle">Registration Link</div>
+          <div class="linkValue" id="registrationLinkValue">Save a tournament first.</div>
+          <div class="linkActions">
+            <button class="smallBtn primary" id="copyRegistrationBtn">📋 Copy</button>
+            <a class="btn smallBtn" id="openRegistrationBtn" href="#" target="_blank">↗ Open</a>
           </div>
         </div>
 
-        <div class="soft">
-          <div style="font-family:Cinzel,serif;font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-size:13px;">
-            Additional Side Games
-          </div>
-
-          <div class="grid2" style="margin-top:10px;">
-            <div class="row">
-              <label for="ctpEnabled">Closest to the Pin</label>
-              <select id="ctpEnabled">
-                <option value="off">Off</option>
-                <option value="on">On</option>
-              </select>
-              <div class="note">Turn Closest to the Pin on or off for this tournament.</div>
-            </div>
-
-            <div class="row">
-              <label for="ctpHoles">Closest to the Pin Holes</label>
-              <input id="ctpHoles" placeholder="5,8,12,17" autocapitalize="none" />
-              <div class="note">Comma-separated hole numbers. Example: 5,8,12,17</div>
-            </div>
-
-            <div class="row">
-              <label for="longDriveEnabled">Long Drive</label>
-              <select id="longDriveEnabled">
-                <option value="off">Off</option>
-                <option value="on">On</option>
-              </select>
-              <div class="note">Turn Long Drive on or off for this tournament.</div>
-            </div>
-
-            <div class="row">
-              <label for="longDriveHoles">Long Drive Holes</label>
-              <input id="longDriveHoles" placeholder="2,9,14" autocapitalize="none" />
-              <div class="note">Comma-separated hole numbers. Example: 2,9,14</div>
-            </div>
+        <div class="linkCard">
+          <div class="linkTitle">Roster Link</div>
+          <div class="linkValue" id="rosterLinkValue">Save a tournament first.</div>
+          <div class="linkActions">
+            <button class="smallBtn primary" id="copyRosterBtn">📋 Copy</button>
+            <a class="btn smallBtn" id="openRosterBtn" href="#" target="_blank">↗ Open</a>
           </div>
         </div>
 
-        <div class="btnRow">
-          <button class="green" id="createBtn">Create Tournament</button>
-          <button class="blue" id="loadBtn">Load Existing (by ID)</button>
-          <button id="saveBtn">Save Changes</button>
-          <button class="red" id="closeBtn">Close Tournament</button>
-        </div>
-
-        <div class="soft">
-          <div style="font-family:Cinzel,serif;font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-size:13px;">
-            Share Links & QR Codes
-          </div>
-
-          <div class="linksBox" style="margin-top:10px;">
-            <div class="linkLine">
-              <div>
-                <div class="note" style="margin:0 0 6px;">Join Link</div>
-                <div class="linkText" id="joinLink">—</div>
-              </div>
-              <button id="copyJoin">Copy Join</button>
-            </div>
-
-            <div class="linkLine">
-              <div>
-                <div class="note" style="margin:0 0 6px;">Leaderboard Link</div>
-                <div class="linkText" id="lbLink">—</div>
-              </div>
-              <button id="copyLb">Copy Leaderboard</button>
-            </div>
-
-            <div class="linkLine">
-              <div>
-                <div class="note" style="margin:0 0 6px;">Organizer Roster Link</div>
-                <div class="linkText" id="rosterLink">—</div>
-              </div>
-              <button id="copyRoster">Copy Roster</button>
-            </div>
-          </div>
-
-          <div class="qrRow">
-            <div class="qr">
-              <div class="qrTitle">Join QR</div>
-              <div id="joinQR"></div>
-            </div>
-            <div class="qr">
-              <div class="qrTitle">Leaderboard QR</div>
-              <div id="lbQR"></div>
-              <div class="note" style="margin:0;text-align:center;">(Live leaderboard link)</div>
-            </div>
-          </div>
-
-          <div class="qrRow" style="margin-top:10px;">
-            <div class="qr" style="grid-column: 1 / -1;">
-              <div class="qrTitle">Organizer Roster QR</div>
-              <div id="rosterQR"></div>
-            </div>
-          </div>
-
-          <div class="note" style="margin-top:10px;">
-            Tip: after you create or load, tap Copy and you’ll see “✅ Copied” + a toast.
+        <div class="linkCard">
+          <div class="linkTitle">Scoring Link</div>
+          <div class="linkValue" id="scoringLinkValue">Save a tournament first.</div>
+          <div class="linkActions">
+            <button class="smallBtn primary" id="copyScoringBtn">📋 Copy</button>
+            <a class="btn smallBtn" id="openScoringBtn" href="#" target="_blank">↗ Open</a>
           </div>
         </div>
 
-        <div class="soft" id="sponsorPanel">
-          <div class="sHdr">Sponsors (Enterprise)</div>
-          <div class="note" style="margin-top:-2px;">
-            Add multiple sponsors. Upload a PNG/JPG (or paste a logo URL). Toggle active. Lower “Order” shows first.
-          </div>
-
-          <div class="sGrid2" style="margin-top:10px;">
-            <div class="row">
-              <label for="spTier">Sponsor Tier</label>
-              <select id="spTier">
-                <option value="presenting">Presenting</option>
-                <option value="partner">Partner</option>
-                <option value="supporter">Supporter</option>
-              </select>
-            </div>
-
-            <div class="row">
-              <label for="spSort">Sponsor Order (lower shows first)</label>
-              <input id="spSort" type="number" inputmode="numeric" placeholder="10" />
-            </div>
-
-            <div class="row">
-              <label for="spName">Sponsor Name</label>
-              <input id="spName" placeholder="Acme Roofing" />
-            </div>
-
-            <div class="row">
-              <label for="spWebsite">Sponsor Website (optional)</label>
-              <input id="spWebsite" placeholder="https://example.com" autocapitalize="none" />
-            </div>
-
-            <div class="row">
-              <label for="spLogoFile">Sponsor Logo (Upload PNG/JPG) (optional)</label>
-              <input id="spLogoFile" type="file" accept="image/png,image/jpeg" />
-              <div class="note">Upload once — you can reuse the URL for future tournaments.</div>
-            </div>
-
-            <div class="row">
-              <label for="spLogoUrl">Sponsor Logo URL (optional — reuse past uploads)</label>
-              <input id="spLogoUrl" placeholder="https://..." autocapitalize="none" />
-              <div class="note">If you paste a URL, upload is optional.</div>
-            </div>
-          </div>
-
-          <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:10px;">
-            <img id="spPreview" class="previewImg" alt="Logo preview" />
-            <div class="pill" id="spState">No sponsors yet</div>
-          </div>
-
-          <div class="btnRow" style="margin-top:10px;">
-            <button class="green" id="addSponsorBtn">Add Sponsor</button>
-            <button id="clearSponsorFormBtn">Clear Sponsor Form</button>
-          </div>
-
-          <div class="sList" id="sponsorList"></div>
-
-          <div class="note" style="margin-top:10px;">
-            Note: This stores to <b>tournaments/{id}.sponsors</b> and also fills legacy <b>sponsorName/sponsorLogo/sponsorUrl</b> from the top active sponsor.
+        <div class="linkCard">
+          <div class="linkTitle">Leaderboard Link</div>
+          <div class="linkValue" id="leaderboardLinkValue">Save a tournament first.</div>
+          <div class="linkActions">
+            <button class="smallBtn primary" id="copyLeaderboardBtn">📋 Copy</button>
+            <a class="btn smallBtn" id="openLeaderboardBtn" href="#" target="_blank">↗ Open</a>
           </div>
         </div>
-
       </div>
     </div>
-  </div>
-
-  <div class="toast" id="toast">Copied ✅</div>
-
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
-      authDomain: "cypresswood-tournaments.firebaseapp.com",
-      projectId: "cypresswood-tournaments",
-      storageBucket: "cypresswood-tournaments.firebasestorage.app",
-      messagingSenderId: "162441374966",
-      appId: "1:162441374966:web:157285a2d5c39db1e810d7",
-      measurementId: "G-HL6Y9CLV8K"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-
-    const auth = getAuth(app);
-    signInAnonymously(auth).catch((e)=>{
-      console.warn("Anonymous auth failed (uploads may fail):", e);
-    });
-
-    const $ = (id)=>document.getElementById(id);
-
-    const tName = $("tName");
-    const tCourse = $("tCourse");
-    const tFormat = $("tFormat");
-    const tSideGame = $("tSideGame");
-    const tDate = $("tDate");
-    const tOrg = $("tOrg");
-    const tStatus = $("tStatus");
-    const tHandicapMode = $("tHandicapMode");
-    const tId = $("tId");
-    const adminToken = $("adminToken");
-
-    const ctpEnabled = $("ctpEnabled");
-    const ctpHoles = $("ctpHoles");
-    const longDriveEnabled = $("longDriveEnabled");
-    const longDriveHoles = $("longDriveHoles");
-
-    const joinLinkEl = $("joinLink");
-    const lbLinkEl = $("lbLink");
-    const rosterLinkEl = $("rosterLink");
-
-    const joinQREl = $("joinQR");
-    const lbQREl = $("lbQR");
-    const rosterQREl = $("rosterQR");
-
-    const createBtn = $("createBtn");
-    const loadBtn = $("loadBtn");
-    const saveBtn = $("saveBtn");
-    const closeBtn = $("closeBtn");
-
-    const copyJoin = $("copyJoin");
-    const copyLb = $("copyLb");
-    const copyRoster = $("copyRoster");
-
-    const toast = $("toast");
-
-    const spTier = $("spTier");
-    const spSort = $("spSort");
-    const spName = $("spName");
-    const spWebsite = $("spWebsite");
-    const spLogoFile = $("spLogoFile");
-    const spLogoUrl = $("spLogoUrl");
-    const spPreview = $("spPreview");
-    const sponsorList = $("sponsorList");
-    const addSponsorBtn = $("addSponsorBtn");
-    const clearSponsorFormBtn = $("clearSponsorFormBtn");
-    const spState = $("spState");
-
-    let sponsors = [];
-
-    function makeId(len=10){
-      const chars="abcdefghijklmnopqrstuvwxyz0123456789";
-      let out="";
-      for(let i=0;i<len;i++) out += chars[Math.floor(Math.random()*chars.length)];
-      return out;
-    }
-
-    function makeToken(len=22){
-      const chars="abcdefghijklmnopqrstuvwxyz0123456789";
-      let out="";
-      for(let i=0;i<len;i++) out += chars[Math.floor(Math.random()*chars.length)];
-      return out;
-    }
-
-    function baseURL(){
-      return location.origin + location.pathname.replace(/[^\/]*$/, "");
-    }
-
-    function clearQR(el){
-      if(!el) return;
-      el.innerHTML = "";
-    }
-
-    function renderQR(el, text){
-      if(!el) return;
-      clearQR(el);
-      if(!text) return;
-      new QRCode(el, { text, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
-    }
-
-    function showToast(msg="Copied ✅"){
-      toast.textContent = msg;
-      toast.classList.add("show");
-      setTimeout(()=>toast.classList.remove("show"), 900);
-    }
-
-    function flashCopied(btn, originalText){
-      if(!btn) return;
-      btn.textContent = "✅ Copied";
-      btn.disabled = true;
-      showToast("Copied ✅");
-      setTimeout(()=>{
-        btn.textContent = originalText;
-        btn.disabled = false;
-      }, 900);
-    }
-
-    async function safeCopy(text){
-      const s = String(text || "").trim();
-      if(!s) return false;
-
-      try{
-        await navigator.clipboard.writeText(s);
-        return true;
-      }catch(e){
-        try{
-          const ta = document.createElement("textarea");
-          ta.value = s;
-          ta.style.position = "fixed";
-          ta.style.left = "-9999px";
-          ta.style.top = "0";
-          document.body.appendChild(ta);
-          ta.focus();
-          ta.select();
-          const ok = document.execCommand("copy");
-          document.body.removeChild(ta);
-          return !!ok;
-        }catch(e2){
-          return false;
-        }
-      }
-    }
-
-    function normalizeUrl(u){
-      const s = String(u||"").trim();
-      if(!s) return "";
-      if(/^https?:\/\//i.test(s)) return s;
-      return "https://" + s;
-    }
-
-    function buildLinks(id){
-      const base = baseURL();
-      const join = `${base}index.html?t=${encodeURIComponent(id)}`;
-      const lb = `${base}leaderboard.html?t=${encodeURIComponent(id)}`;
-      const roster = `${base}roster.html?t=${encodeURIComponent(id)}`;
-
-      joinLinkEl.textContent = join;
-      lbLinkEl.textContent = lb;
-      rosterLinkEl.textContent = roster;
-
-      renderQR(joinQREl, join);
-      renderQR(lbQREl, lb);
-      renderQR(rosterQREl, roster);
-    }
-
-    function parseHoleList(value){
-      return String(value || "")
-        .split(",")
-        .map(s => parseInt(s.trim(), 10))
-        .filter(n => Number.isFinite(n) && n >= 1 && n <= 18)
-        .filter((n, i, arr) => arr.indexOf(n) === i)
-        .sort((a,b) => a - b);
-    }
-
-    function readForm(){
-      const fmt = (tFormat.value || "stroke").toLowerCase().trim();
-      const format = ["stroke","scramble","bestball"].includes(fmt) ? fmt : "stroke";
-
-      const sideGameValue = (tSideGame.value || "none").trim().toLowerCase();
-
-      const sideGames = {
-        skinsEnabled: sideGameValue === "skins",
-        ctpEnabled: (ctpEnabled.value || "off") === "on",
-        ctpHoles: parseHoleList(ctpHoles.value || ""),
-        longDriveEnabled: (longDriveEnabled.value || "off") === "on",
-        longDriveHoles: parseHoleList(longDriveHoles.value || "")
-      };
-
-      return {
-        name: (tName.value || "").trim(),
-        courseDefault: (tCourse.value || "tradition").trim(),
-        format,
-        sideGame: sideGameValue,
-        date: (tDate.value || "").trim(),
-        organizer: (tOrg.value || "").trim(),
-        status: (tStatus.value || "open").trim(),
-        handicapMode: (tHandicapMode.value || "off").trim(),
-        sponsors: Array.isArray(sponsors) ? sponsors : [],
-        sideGames,
-        updatedAt: serverTimestamp()
-      };
-    }
-
-    function requireId(){
-      const id = (tId.value || "").trim();
-      if(!id){
-        alert("Tournament ID is missing.");
-        return null;
-      }
-      return id;
-    }
-
-    function tierRank(t){
-      const s = String(t||"").toLowerCase();
-      if(s==="presenting") return 0;
-      if(s==="partner") return 1;
-      return 2;
-    }
-
-    function sponsorSort(a,b){
-      const Aactive = a.active === false ? 1 : 0;
-      const Bactive = b.active === false ? 1 : 0;
-      if(Aactive !== Bactive) return Aactive - Bactive;
-
-      const Ao = Number(a.order ?? 9999);
-      const Bo = Number(b.order ?? 9999);
-      if(Ao !== Bo) return Ao - Bo;
-
-      const At = tierRank(a.tier);
-      const Bt = tierRank(b.tier);
-      if(At !== Bt) return At - Bt;
-
-      return String(a.name||"").localeCompare(String(b.name||""));
-    }
-
-    function bestActiveSponsor(){
-      const list = (Array.isArray(sponsors) ? sponsors : []).slice().sort(sponsorSort);
-      return list.find(s => s && s.active !== false && (s.name || s.logoUrl)) || null;
-    }
-
-    function setPreview(url){
-      const u = String(url||"").trim();
-      if(!u){
-        spPreview.style.display = "none";
-        spPreview.removeAttribute("src");
-        return;
-      }
-      spPreview.src = u;
-      spPreview.style.display = "block";
-    }
-
-    function updateSponsorStatePill(){
-      const count = Array.isArray(sponsors) ? sponsors.length : 0;
-      const active = (Array.isArray(sponsors) ? sponsors : []).filter(s => s && s.active !== false).length;
-      spState.textContent = count ? `${count} sponsor${count===1?"":"s"} • ${active} active` : "No sponsors yet";
-    }
-
-    function renderSponsorList(){
-      sponsorList.innerHTML = "";
-      const list = (Array.isArray(sponsors) ? sponsors : []).slice().sort(sponsorSort);
-
-      updateSponsorStatePill();
-
-      if(!list.length){
-        sponsorList.innerHTML = `<div class="note">No sponsors added yet.</div>`;
-        return;
-      }
-
-      for(const s of list){
-        const wrap = document.createElement("div");
-        wrap.className = "sItem";
-
-        const name = (s.name || "Sponsor").trim();
-        const tier = (s.tier || "supporter").toString();
-        const order = Number(s.order ?? 9999);
-        const active = s.active !== false;
-        const site = normalizeUrl(s.website || "");
-        const logo = String(s.logoUrl || "").trim();
-
-        wrap.innerHTML = `
-          <div class="sTop">
-            <div>
-              <div class="sName">${name}</div>
-              <div class="sMeta">${tier.toUpperCase()} • Order ${order}${active ? "" : " • INACTIVE"}</div>
-              ${site ? `<div class="sMeta">${site}</div>` : ""}
-            </div>
-            <div class="sBtns">
-              <button class="${active ? "blue" : ""}" data-act>${active ? "Deactivate" : "Activate"}</button>
-              <button class="red" data-del>Remove</button>
-            </div>
-          </div>
-        `;
-
-        if(logo){
-          const img = document.createElement("img");
-          img.className = "previewImg";
-          img.style.display = "block";
-          img.src = logo;
-          img.alt = "Sponsor logo";
-          wrap.appendChild(img);
-        }
-
-        wrap.querySelector("[data-act]").addEventListener("click", ()=>{
-          s.active = !(s.active !== false);
-          renderSponsorList();
-        });
-
-        wrap.querySelector("[data-del]").addEventListener("click", ()=>{
-          if(!confirm(`Remove sponsor "${name}"?`)) return;
-          sponsors = (Array.isArray(sponsors) ? sponsors : []).filter(x => x !== s);
-          renderSponsorList();
-        });
-
-        sponsorList.appendChild(wrap);
-      }
-    }
-
-    function clearSponsorForm(){
-      spTier.value = "presenting";
-      spSort.value = "";
-      spName.value = "";
-      spWebsite.value = "";
-      spLogoFile.value = "";
-      spLogoUrl.value = "";
-      setPreview("");
-    }
-
-    async function uploadLogoIfNeeded(tournamentId){
-      const file = spLogoFile.files && spLogoFile.files[0];
-      if(!file) return "";
-
-      const ext = (file.name || "").toLowerCase().endsWith(".png") ? "png" : "jpg";
-      const path = `tournaments/${tournamentId}/sponsors/${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;
-      const r = sRef(storage, path);
-
-      await uploadBytes(r, file, { contentType: file.type || (ext==="png"?"image/png":"image/jpeg") });
-      return await getDownloadURL(r);
-    }
-
-    async function addSponsor(){
-      const id = requireId();
-      if(!id){
-        alert("Create or load a tournament first.");
-        return;
-      }
-
-      const name = (spName.value || "").trim();
-      if(!name){
-        alert("Sponsor Name is required.");
-        return;
-      }
-
-      const tier = (spTier.value || "supporter").trim().toLowerCase();
-      const order = Number(spSort.value || 9999);
-
-      let logoUrl = String(spLogoUrl.value || "").trim();
-      if(logoUrl) logoUrl = normalizeUrl(logoUrl);
-
-      try{
-        const uploaded = await uploadLogoIfNeeded(id);
-        if(uploaded) logoUrl = uploaded;
-
-        const website = normalizeUrl(spWebsite.value || "");
-        const obj = {
-          id: "sp_" + Date.now().toString(36) + "_" + Math.random().toString(16).slice(2),
-          tier,
-          order: Number.isFinite(order) ? order : 9999,
-          name,
-          website,
-          logoUrl,
-          active: true,
-          createdAt: Date.now()
-        };
-
-        sponsors = Array.isArray(sponsors) ? sponsors : [];
-        sponsors.push(obj);
-
-        renderSponsorList();
-        clearSponsorForm();
-        showToast("Sponsor added ✅");
-      }catch(e){
-        console.error(e);
-        alert("Sponsor upload/add failed: " + (e?.message || e));
-      }
-    }
-
-    spLogoUrl.addEventListener("input", ()=> setPreview(normalizeUrl(spLogoUrl.value || "")));
-
-    async function createTournament(){
-      const name = (tName.value || "").trim();
-      if(!name){
-        alert("Tournament Name is required.");
-        return;
-      }
-
-      const id = makeId(10);
-      const token = makeToken(22);
-      tId.value = id;
-      adminToken.value = token;
-
-      sponsors = Array.isArray(sponsors) ? sponsors : [];
-
-      const data = {
-        ...readForm(),
-        adminToken: token,
-        createdAt: serverTimestamp()
-      };
-
-      const best = bestActiveSponsor();
-      data.sponsorName = best?.name || "";
-      data.sponsorLogo = best?.logoUrl || "";
-      data.sponsorUrl  = best?.website || "";
-
-      try{
-        await setDoc(doc(db, "tournaments", id), data, { merge:false });
-        buildLinks(id);
-        renderSponsorList();
-        showToast("Tournament created ✅");
-      }catch(e){
-        console.error(e);
-        alert("Create failed: " + (e?.message || e));
-      }
-    }
-
-    async function loadTournament(){
-      const id = requireId();
-      if(!id) return;
-
-      try{
-        const snap = await getDoc(doc(db, "tournaments", id));
-        if(!snap.exists()){
-          alert("Tournament not found.");
-          return;
-        }
-
-        const d = snap.data() || {};
-        tName.value = d.name || "";
-        tCourse.value = d.courseDefault || "tradition";
-        tFormat.value = d.format || "stroke";
-        tSideGame.value = d.sideGame || (d?.sideGames?.skinsEnabled ? "skins" : "none");
-        tDate.value = d.date || "";
-        tOrg.value = d.organizer || "";
-        tStatus.value = d.status || "open";
-        tHandicapMode.value = d.handicapMode || "off";
-        adminToken.value = d.adminToken || "";
-
-        const sg = d.sideGames || {};
-        ctpEnabled.value = sg.ctpEnabled ? "on" : "off";
-        ctpHoles.value = Array.isArray(sg.ctpHoles) ? sg.ctpHoles.join(",") : "";
-        longDriveEnabled.value = sg.longDriveEnabled ? "on" : "off";
-        longDriveHoles.value = Array.isArray(sg.longDriveHoles) ? sg.longDriveHoles.join(",") : "";
-
-        if(Array.isArray(d.sponsors)){
-          sponsors = d.sponsors;
-        }else{
-          sponsors = [];
-          const legacyName = d.sponsorName || "";
-          const legacyLogo = d.sponsorLogo || "";
-          const legacyUrl  = d.sponsorUrl || d.sponsorWebsite || d.sponsorLink || "";
-          if(legacyName || legacyLogo || legacyUrl){
-            sponsors.push({
-              id: "legacy",
-              tier: "presenting",
-              order: 10,
-              name: legacyName || "Sponsor",
-              website: legacyUrl || "",
-              logoUrl: legacyLogo || "",
-              active: true,
-              createdAt: Date.now()
-            });
-          }
-        }
-
-        renderSponsorList();
-        buildLinks(id);
-        showToast("Loaded ✅");
-      }catch(e){
-        console.error(e);
-        alert("Load failed: " + (e?.message || e));
-      }
-    }
-
-    async function saveChanges(){
-      const id = requireId();
-      if(!id) return;
-
-      const token = (adminToken.value || "").trim();
-      if(!token){
-        alert("Admin Token missing (load tournament or create first).");
-        return;
-      }
-
-      try{
-        const snap = await getDoc(doc(db, "tournaments", id));
-        if(!snap.exists()){
-          alert("Tournament not found.");
-          return;
-        }
-        const d = snap.data() || {};
-        if((d.adminToken || "") !== token){
-          alert("Admin Token mismatch. Load the tournament again or use the correct token.");
-          return;
-        }
-
-        const payload = { ...readForm() };
-
-        const best = bestActiveSponsor();
-        payload.sponsorName = best?.name || "";
-        payload.sponsorLogo = best?.logoUrl || "";
-        payload.sponsorUrl  = best?.website || "";
-
-        await setDoc(doc(db, "tournaments", id), payload, { merge:true });
-
-        buildLinks(id);
-        showToast("Saved ✅");
-      }catch(e){
-        console.error(e);
-        alert("Save failed: " + (e?.message || e));
-      }
-    }
-
-    async function closeTournament(){
-      const id = requireId();
-      if(!id) return;
-
-      const token = (adminToken.value || "").trim();
-      if(!token){
-        alert("Admin Token missing.");
-        return;
-      }
-
-      if(!confirm("Close this tournament? (Status will be set to Closed)")) return;
-
-      try{
-        const snap = await getDoc(doc(db, "tournaments", id));
-        if(!snap.exists()){
-          alert("Tournament not found.");
-          return;
-        }
-        const d = snap.data() || {};
-        if((d.adminToken || "") !== token){
-          alert("Admin Token mismatch.");
-          return;
-        }
-
-        await setDoc(doc(db, "tournaments", id), {
-          status: "closed",
-          updatedAt: serverTimestamp()
-        }, { merge:true });
-
-        tStatus.value = "closed";
-        showToast("Closed ✅");
-      }catch(e){
-        console.error(e);
-        alert("Close failed: " + (e?.message || e));
-      }
-    }
-
-    createBtn.addEventListener("click", createTournament);
-    loadBtn.addEventListener("click", loadTournament);
-    saveBtn.addEventListener("click", saveChanges);
-    closeBtn.addEventListener("click", closeTournament);
-
-    copyJoin.addEventListener("click", async ()=>{
-      const ok = await safeCopy(joinLinkEl.textContent);
-      if(ok) flashCopied(copyJoin, "Copy Join");
-      else alert("Copy blocked. Tap and hold the link to copy.");
-    });
-
-    copyLb.addEventListener("click", async ()=>{
-      const ok = await safeCopy(lbLinkEl.textContent);
-      if(ok) flashCopied(copyLb, "Copy Leaderboard");
-      else alert("Copy blocked. Tap and hold the link to copy.");
-    });
-
-    copyRoster.addEventListener("click", async ()=>{
-      const ok = await safeCopy(rosterLinkEl.textContent);
-      if(ok) flashCopied(copyRoster, "Copy Roster");
-      else alert("Copy blocked. Tap and hold the link to copy.");
-    });
-
-    addSponsorBtn.addEventListener("click", addSponsor);
-    clearSponsorFormBtn.addEventListener("click", clearSponsorForm);
-
-    const params = new URLSearchParams(location.search);
-    const tFromUrl = (params.get("t") || "").trim();
-    if(tFromUrl){
-      tId.value = tFromUrl;
-      loadTournament();
-    }else{
-      renderSponsorList();
-    }
-  </script>
-</body>
-</html>
