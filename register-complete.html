@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Complete Tournament Registration</title>
+
+  <meta name="theme-color" content="#0d2a55" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --navy:#0d2a55;
+      --gold:#caa24a;
+      --green:#2f6b2f;
+      --border: rgba(255,255,255,.18);
+      --ink: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.75);
+      --panel: rgba(255,255,255,.08);
+    }
+
+    *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+    body{
+      margin:0;
+      font-family: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(202,162,74,.18), transparent 55%),
+        linear-gradient(180deg, rgba(13,42,85,.72), rgba(0,0,0,.45)),
+        #0d2a55;
+      min-height:100vh;
+    }
+
+    .wrap{
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 16px 12px 24px;
+    }
+
+    .card{
+      border: 2px solid var(--border);
+      background: var(--panel);
+      border-radius: 18px;
+      padding: 14px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 18px 44px rgba(0,0,0,.25);
+    }
+
+    h1{
+      margin:0;
+      font-family: "Cinzel", Georgia, serif;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: 20px;
+      line-height: 1.08;
+    }
+
+    .meta{
+      margin-top:6px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing:.02em;
+      line-height: 1.35;
+    }
+
+    .notice{
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 2px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      font-size: 13px;
+      font-weight: 800;
+      color: rgba(255,255,255,.88);
+      line-height: 1.4;
+    }
+
+    .form{
+      margin-top: 14px;
+      display:grid;
+      gap:12px;
+    }
+
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+
+    .field label{
+      display:block;
+      font-size:12px;
+      font-weight:1000;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.86);
+      margin-bottom:6px;
+    }
+
+    input, textarea{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:2px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.12);
+      color:#fff;
+      font-size:14px;
+      font-weight:800;
+      outline:none;
+    }
+
+    input::placeholder, textarea::placeholder{
+      color: rgba(255,255,255,.58);
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+      margin-top: 4px;
+    }
+
+    button, a.btn{
+      border: 2px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: 900;
+      font-size: 14px;
+      cursor:pointer;
+      text-decoration:none;
+      color: rgba(255,255,255,.92);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+      letter-spacing:.02em;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    button:active, a.btn:active{ transform: translateY(1px); }
+
+    .green{
+      border-color: rgba(184,255,184,.22);
+      background: rgba(47,107,47,.18);
+    }
+
+    .primary{
+      border-color: rgba(180,210,255,.22);
+      background: rgba(13,42,85,.22);
+    }
+
+    .result{
+      display:none;
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 2px solid rgba(184,255,184,.24);
+      background: rgba(47,107,47,.16);
+    }
+
+    .result.show{ display:block; }
+
+    .resultTitle{
+      font-family: "Cinzel", Georgia, serif;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .resultMeta{
+      margin-top: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.45;
+      color: rgba(255,255,255,.92);
+    }
+
+    .holeBadge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width: 76px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.12);
+      font-size: 13px;
+      font-weight: 1000;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-left: 6px;
+    }
+
+    .errorBox{
+      display:none;
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 2px solid rgba(255,180,180,.24);
+      background: rgba(182,66,45,.18);
+      font-size: 13px;
+      font-weight: 800;
+      color: rgba(255,255,255,.92);
+      line-height: 1.4;
+    }
+
+    .errorBox.show{ display:block; }
+
+    .small{
+      font-size: 12px;
+      color: rgba(255,255,255,.72);
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 720px){
+      .grid2{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1 id="pageTitle">Complete Tournament Registration</h1>
+      <div class="meta" id="pageMeta">Loading tournament…</div>
+
+      <div class="notice">
+        Payment is handled outside this app. This page only completes your team registration, assigns your tournament starting hole, and prepares your team for scoring on tournament day.
+      </div>
+
+      <div class="errorBox" id="errorBox"></div>
+
+      <div class="form" id="formWrap">
+        <div class="grid2">
+          <div class="field">
+            <label for="teamNameInput">Team / Company Name</label>
+            <input id="teamNameInput" placeholder="Chevron Energy" />
+          </div>
+
+          <div class="field">
+            <label for="captainNameInput">Captain Name</label>
+            <input id="captainNameInput" placeholder="Mike Smith" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="playersInput">Players (one per line)</label>
+          <textarea id="playersInput" rows="8" placeholder="Mike Smith&#10;Tom Brown&#10;David Nguyen&#10;Chris Adams"></textarea>
+        </div>
+
+        <div class="small">
+          Enter up to 6 players. The system will automatically assign the next available starting hole in order:
+          <b>1A → 2A → … → 18A → 1B → 2B → …</b>
+        </div>
+
+        <div class="actions">
+          <button class="green" id="submitBtn">✅ Confirm Team Registration</button>
+        </div>
+      </div>
+
+      <div class="result" id="resultBox">
+        <div class="resultTitle">Registration Complete</div>
+        <div class="resultMeta" id="resultMeta"></div>
+
+        <div class="actions" style="margin-top:12px;">
+          <a class="btn primary" id="rosterBtn" href="./roster.html">📋 View Roster</a>
+          <a class="btn" id="leaderboardBtn" href="./leaderboard.html">🏆 Leaderboard</a>
+          <a class="btn" id="scorecardBtn" href="./index.html">⛳ Tournament Scorecard</a>
+        </div>
+      </div>
+    </div>
+  </div>
