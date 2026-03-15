@@ -1051,1091 +1051,1111 @@
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+ <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, doc, getDoc, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
-      authDomain: "cypresswood-tournaments.firebaseapp.com",
-      projectId: "cypresswood-tournaments",
-      storageBucket: "cypresswood-tournaments.firebasestorage.app",
-      messagingSenderId: "162441374966",
-      appId: "1:162441374966:web:157285a2d5c39db1e810d7",
-      measurementId: "G-HL6Y9CLV8K"
+  const firebaseConfig = {
+    apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
+    authDomain: "cypresswood-tournaments.firebaseapp.com",
+    projectId: "cypresswood-tournaments",
+    storageBucket: "cypresswood-tournaments.firebasestorage.app",
+    messagingSenderId: "162441374966",
+    appId: "1:162441374966:web:157285a2d5c39db1e810d7",
+    measurementId: "G-HL6Y9CLV8K"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const COURSE_TRADITION = {
+    id:"tradition",
+    headerMini:"./assets/cypresswood_header.png",
+    clubName:"Cypresswood Golf Club",
+    par:[4,4,3,4,5,4,5,3,4, 4,3,5,4,3,4,4,4,5],
+    hcp:[7,17,11,1,3,13,9,15,5, 14,8,10,6,18,12,2,16,4]
+  };
+
+  const COURSE_CYPRESS = {
+    id:"cypress",
+    headerMini:"./assets/cypress_header.png",
+    clubName:"Cypresswood Golf Club",
+    par:[5,4,4,4,3,4,3,5,4, 4,4,4,4,3,5,3,5,4],
+    hcp:[3,13,11,7,15,9,17,1,5, 6,10,12,14,18,2,16,4,8]
+  };
+
+  const COURSES = { tradition: COURSE_TRADITION, cypress: COURSE_CYPRESS };
+
+  const listEl = document.getElementById("list");
+  const sideGamesListEl = document.getElementById("sideGamesList");
+  const skinsListEl = document.getElementById("skinsList");
+  const skinsHolesListEl = document.getElementById("skinsHolesList");
+
+  const leaderboardWrap = document.getElementById("leaderboardWrap");
+  const sideGamesWrap = document.getElementById("sideGamesWrap");
+  const skinsWrap = document.getElementById("skinsWrap");
+  const skinsHolesWrap = document.getElementById("skinsHolesWrap");
+
+  const viewToggleBar = document.getElementById("viewToggleBar");
+  const viewLeaderboardBtn = document.getElementById("viewLeaderboardBtn");
+  const viewSideGamesBtn = document.getElementById("viewSideGamesBtn");
+  const viewSkinsBtn = document.getElementById("viewSkinsBtn");
+
+  const pageMeta = document.getElementById("pageMeta");
+  const statusPill = document.getElementById("statusPill");
+  const formatPill = document.getElementById("formatPill");
+  const parPill = document.getElementById("parPill");
+  const refreshBtn = document.getElementById("refreshBtn");
+  const joinBtn = document.getElementById("joinBtn");
+  const copyBtn = document.getElementById("copyBtn");
+  const tvBtn = document.getElementById("tvBtn");
+  const courseHeaderMini = document.getElementById("courseHeaderMini");
+  const clubNameEl = document.getElementById("clubName");
+  const sheetEl = document.querySelector(".sheet");
+
+  const sponsorHero = document.getElementById("sponsorHero");
+  const sponsorHeroLogo = document.getElementById("sponsorHeroLogo");
+  const sponsorHeroName = document.getElementById("sponsorHeroName");
+  const sponsorHeroLink = document.getElementById("sponsorHeroLink");
+  const ticker = document.getElementById("ticker");
+  const tickerTrack = document.getElementById("tickerTrack");
+
+  const modal = document.getElementById("modal");
+  const closeModalBtn = document.getElementById("closeModal");
+  const modalName = document.getElementById("modalName");
+  const modalSub = document.getElementById("modalSub");
+  const modalScore = document.getElementById("modalScore");
+  const modalScoreSub = document.getElementById("modalScoreSub");
+  const frontNine = document.getElementById("frontNine");
+  const backNine = document.getElementById("backNine");
+  const outSum = document.getElementById("outSum");
+  const inSum = document.getElementById("inSum");
+  const totSum = document.getElementById("totSum");
+
+  const params = new URLSearchParams(location.search);
+  const tournamentId = (params.get("id") || params.get("t") || "").trim();
+  const tvMode = params.get("tv") === "1";
+
+  if (tvMode) document.body.classList.add("tv");
+
+  let currentView = "leaderboard";
+  let latestEntries = [];
+  let latestSubmissionDocs = [];
+
+  let tournament = {
+    name: "Tournament",
+    date: "",
+    organizer: "",
+    courseDefault: "tradition",
+    format: "stroke",
+    sideGame: "none",
+    sideGames: {
+      skinsEnabled:false,
+      ctpEnabled:false,
+      ctpHoles:[],
+      longDriveEnabled:false,
+      longDriveHoles:[]
+    },
+    sponsorName: "",
+    sponsorLogo: "",
+    sponsorUrl: "",
+    sponsors: [],
+    status: "open"
+  };
+
+  const lastRankByKey = new Map();
+
+  function normalizeFormatValue(v){
+    const s = String(v || "").trim().toLowerCase();
+    if (s === "scramble") return "scramble";
+    if (s === "best ball" || s === "bestball") return "bestball";
+    if (s === "stroke play" || s === "stroke") return "stroke";
+    return "stroke";
+  }
+
+  function fmtFormat(f){
+    const x = normalizeFormatValue(f);
+    if (x === "scramble") return "Scramble";
+    if (x === "bestball") return "Best Ball";
+    return "Stroke Play";
+  }
+
+  function normalizeUrl(u){
+    const s = (u || "").trim();
+    if(!s) return "";
+    if(/^https?:\/\//i.test(s)) return s;
+    return "https://" + s;
+  }
+
+  function tsToText(ts){
+    try{
+      const d = ts?.toDate ? ts.toDate() : null;
+      if(!d) return "";
+      const hh = d.getHours();
+      const mm = String(d.getMinutes()).padStart(2,"0");
+      const h12 = ((hh + 11) % 12) + 1;
+      const ap = hh >= 12 ? "PM" : "AM";
+      return `${h12}:${mm} ${ap}`;
+    }catch(e){
+      return "";
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s || "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function normalizeSideGames(raw){
+    const sg = raw || {};
+    const out = {
+      skinsEnabled: !!sg.skinsEnabled,
+      ctpEnabled: !!sg.ctpEnabled,
+      ctpHoles: Array.isArray(sg.ctpHoles) ? sg.ctpHoles.map(n => parseInt(n,10)).filter(n => Number.isFinite(n) && n >= 1 && n <= 18) : [],
+      longDriveEnabled: !!sg.longDriveEnabled,
+      longDriveHoles: Array.isArray(sg.longDriveHoles) ? sg.longDriveHoles.map(n => parseInt(n,10)).filter(n => Number.isFinite(n) && n >= 1 && n <= 18) : []
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    out.ctpHoles = out.ctpHoles.filter((n,i,a) => a.indexOf(n) === i).sort((a,b)=>a-b);
+    out.longDriveHoles = out.longDriveHoles.filter((n,i,a) => a.indexOf(n) === i).sort((a,b)=>a-b);
 
-    const COURSE_TRADITION = {
-      id:"tradition",
-      headerMini:"./assets/cypresswood_header.png",
-      clubName:"Cypresswood Golf Club",
-      par:[4,4,3,4,5,4,5,3,4, 4,3,5,4,3,4,4,4,5],
-      hcp:[7,17,11,1,3,13,9,15,5, 14,8,10,6,18,12,2,16,4]
-    };
+    return out;
+  }
 
-    const COURSE_CYPRESS = {
-      id:"cypress",
-      headerMini:"./assets/cypress_header.png",
-      clubName:"Cypresswood Golf Club",
-      par:[5,4,4,4,3,4,3,5,4, 4,4,4,4,3,5,3,5,4],
-      hcp:[3,13,11,7,15,9,17,1,5, 6,10,12,14,18,2,16,4,8]
-    };
+  function setCourseHeaderMini(courseId){
+    const c = COURSES[courseId] || COURSE_TRADITION;
+    courseHeaderMini.src = c.headerMini;
+    courseHeaderMini.alt = courseId === "cypress" ? "Cypress Header" : "Tradition Header";
+    clubNameEl.textContent = c.clubName || "Golf Club";
 
-    const COURSES = { tradition: COURSE_TRADITION, cypress: COURSE_CYPRESS };
+    const totalPar = c.par.reduce((a,b)=>a+(Number(b)||0),0);
+    parPill.textContent = `TOTAL PAR: ${totalPar}`;
+  }
 
-    const listEl = document.getElementById("list");
-    const sideGamesListEl = document.getElementById("sideGamesList");
-    const skinsListEl = document.getElementById("skinsList");
-    const skinsHolesListEl = document.getElementById("skinsHolesList");
+  function getCourseForEntry(entryCourseId){
+    return COURSES[entryCourseId] || COURSES[tournament.courseDefault] || COURSE_TRADITION;
+  }
 
-    const leaderboardWrap = document.getElementById("leaderboardWrap");
-    const sideGamesWrap = document.getElementById("sideGamesWrap");
-    const skinsWrap = document.getElementById("skinsWrap");
-    const skinsHolesWrap = document.getElementById("skinsHolesWrap");
+  function getScore(scoresFlat, pIndex, hole){
+    const key = `p${pIndex}_h${hole}`;
+    const raw = scoresFlat?.[key];
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) ? n : null;
+  }
 
-    const viewToggleBar = document.getElementById("viewToggleBar");
-    const viewLeaderboardBtn = document.getElementById("viewLeaderboardBtn");
-    const viewSideGamesBtn = document.getElementById("viewSideGamesBtn");
-    const viewSkinsBtn = document.getElementById("viewSkinsBtn");
+  function derivePlayerScores(scoresFlat, pIndex){
+    const out = [];
+    for(let h=1; h<=18; h++) out.push(getScore(scoresFlat, pIndex, h));
+    return out;
+  }
 
-    const pageMeta = document.getElementById("pageMeta");
-    const statusPill = document.getElementById("statusPill");
-    const formatPill = document.getElementById("formatPill");
-    const parPill = document.getElementById("parPill");
-    const refreshBtn = document.getElementById("refreshBtn");
-    const joinBtn = document.getElementById("joinBtn");
-    const copyBtn = document.getElementById("copyBtn");
-    const tvBtn = document.getElementById("tvBtn");
-    const courseHeaderMini = document.getElementById("courseHeaderMini");
-    const clubNameEl = document.getElementById("clubName");
-    const sheetEl = document.querySelector(".sheet");
-
-    const sponsorHero = document.getElementById("sponsorHero");
-    const sponsorHeroLogo = document.getElementById("sponsorHeroLogo");
-    const sponsorHeroName = document.getElementById("sponsorHeroName");
-    const sponsorHeroLink = document.getElementById("sponsorHeroLink");
-    const ticker = document.getElementById("ticker");
-    const tickerTrack = document.getElementById("tickerTrack");
-
-    const modal = document.getElementById("modal");
-    const closeModalBtn = document.getElementById("closeModal");
-    const modalName = document.getElementById("modalName");
-    const modalSub = document.getElementById("modalSub");
-    const modalScore = document.getElementById("modalScore");
-    const modalScoreSub = document.getElementById("modalScoreSub");
-    const frontNine = document.getElementById("frontNine");
-    const backNine = document.getElementById("backNine");
-    const outSum = document.getElementById("outSum");
-    const inSum = document.getElementById("inSum");
-    const totSum = document.getElementById("totSum");
-
-    const params = new URLSearchParams(location.search);
-    const tournamentId = (params.get("t") || "").trim();
-    const tvMode = params.get("tv") === "1";
-    if (tvMode) document.body.classList.add("tv");
-
-    let currentView = "leaderboard";
-    let latestEntries = [];
-    let latestSubmissionDocs = [];
-
-    let tournament = {
-      name: "Tournament",
-      date: "",
-      organizer: "",
-      courseDefault: "tradition",
-      format: "stroke",
-      sideGame: "none",
-      sideGames: {
-        skinsEnabled:false,
-        ctpEnabled:false,
-        ctpHoles:[],
-        longDriveEnabled:false,
-        longDriveHoles:[]
-      },
-      sponsorName: "",
-      sponsorLogo: "",
-      sponsorUrl: "",
-      sponsors: [],
-      status: "open"
-    };
-
-    const lastRankByKey = new Map();
-
-    function fmtFormat(f){
-      const x = (f || "stroke").toLowerCase();
-      if (x === "scramble") return "Scramble";
-      if (x === "bestball") return "Best Ball";
-      return "Stroke Play";
-    }
-
-    function normalizeUrl(u){
-      const s = (u || "").trim();
-      if(!s) return "";
-      if(/^https?:\/\//i.test(s)) return s;
-      return "https://" + s;
-    }
-
-    function tsToText(ts){
-      try{
-        const d = ts?.toDate ? ts.toDate() : null;
-        if(!d) return "";
-        const hh = d.getHours();
-        const mm = String(d.getMinutes()).padStart(2,"0");
-        const h12 = ((hh + 11) % 12) + 1;
-        const ap = hh >= 12 ? "PM" : "AM";
-        return `${h12}:${mm} ${ap}`;
-      }catch(e){ return ""; }
-    }
-
-    function escapeHtml(s){
-      return String(s || "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    function normalizeSideGames(raw){
-      const sg = raw || {};
-      const out = {
-        skinsEnabled: !!sg.skinsEnabled,
-        ctpEnabled: !!sg.ctpEnabled,
-        ctpHoles: Array.isArray(sg.ctpHoles) ? sg.ctpHoles.map(n => parseInt(n,10)).filter(n => Number.isFinite(n) && n >= 1 && n <= 18) : [],
-        longDriveEnabled: !!sg.longDriveEnabled,
-        longDriveHoles: Array.isArray(sg.longDriveHoles) ? sg.longDriveHoles.map(n => parseInt(n,10)).filter(n => Number.isFinite(n) && n >= 1 && n <= 18) : []
-      };
-
-      out.ctpHoles = out.ctpHoles.filter((n,i,a) => a.indexOf(n) === i).sort((a,b)=>a-b);
-      out.longDriveHoles = out.longDriveHoles.filter((n,i,a) => a.indexOf(n) === i).sort((a,b)=>a-b);
-
-      return out;
-    }
-
-    function setCourseHeaderMini(courseId){
-      const c = COURSES[courseId] || COURSE_TRADITION;
-      courseHeaderMini.src = c.headerMini;
-      courseHeaderMini.alt = courseId === "cypress" ? "Cypress Header" : "Tradition Header";
-      clubNameEl.textContent = c.clubName || "Golf Club";
-
-      const totalPar = c.par.reduce((a,b)=>a+(Number(b)||0),0);
-      parPill.textContent = `TOTAL PAR: ${totalPar}`;
-    }
-
-    function getCourseForEntry(entryCourseId){
-      return COURSES[entryCourseId] || COURSES[tournament.courseDefault] || COURSE_TRADITION;
-    }
-
-    function getScore(scoresFlat, pIndex, hole){
-      const key = `p${pIndex}_h${hole}`;
-      const raw = scoresFlat?.[key];
-      const n = parseInt(raw, 10);
-      return Number.isFinite(n) ? n : null;
-    }
-
-    function derivePlayerScores(scoresFlat, pIndex){
-      const out = [];
-      for(let h=1; h<=18; h++) out.push(getScore(scoresFlat, pIndex, h));
-      return out;
-    }
-
-    function deriveBestBall(scoresFlat, playerCount=6){
-      const out = [];
-      for(let h=1; h<=18; h++){
-        let best = null;
-        for(let p=0; p<playerCount; p++){
-          const s = getScore(scoresFlat, p, h);
-          if (s === null) continue;
-          if (best === null || s < best) best = s;
-        }
-        out.push(best);
-      }
-      return out;
-    }
-
-    function hasAnyScore(scoresArr18){
-      return scoresArr18.some(v => v !== null);
-    }
-
-    function calcThruFromScores(scoresArr18){
-      let c = 0;
-      for(let i=0;i<18;i++) if (scoresArr18[i] !== null) c++;
-      return c;
-    }
-
-    function sumNine(scoresArr18, startIdx){
-      let s = 0;
-      for(let i=0;i<9;i++) s += (scoresArr18[startIdx+i] || 0);
-      return s;
-    }
-
-    function totalFromScores(scoresArr18){
-      return scoresArr18.reduce((a,v)=> a + (v || 0), 0);
-    }
-
-    function toParFromScores(scoresArr18, course){
-      let rel = 0;
-      for(let i=0;i<18;i++){
-        const s = scoresArr18[i];
+  function deriveBestBall(scoresFlat, playerCount=6){
+    const out = [];
+    for(let h=1; h<=18; h++){
+      let best = null;
+      for(let p=0; p<playerCount; p++){
+        const s = getScore(scoresFlat, p, h);
         if (s === null) continue;
-        rel += (s - (course.par[i] || 0));
+        if (best === null || s < best) best = s;
       }
-      return rel;
+      out.push(best);
     }
+    return out;
+  }
 
-    function scoreClass(rel){
-      if (rel < 0) return "under";
-      if (rel > 0) return "over";
-      return "even";
+  function hasAnyScore(scoresArr18){
+    return scoresArr18.some(v => v !== null);
+  }
+
+  function calcThruFromScores(scoresArr18){
+    let c = 0;
+    for(let i=0;i<18;i++) if (scoresArr18[i] !== null) c++;
+    return c;
+  }
+
+  function sumNine(scoresArr18, startIdx){
+    let s = 0;
+    for(let i=0;i<9;i++) s += (scoresArr18[startIdx+i] || 0);
+    return s;
+  }
+
+  function totalFromScores(scoresArr18){
+    return scoresArr18.reduce((a,v)=> a + (v || 0), 0);
+  }
+
+  function toParFromScores(scoresArr18, course){
+    let rel = 0;
+    for(let i=0;i<18;i++){
+      const s = scoresArr18[i];
+      if (s === null) continue;
+      rel += (s - (course.par[i] || 0));
     }
+    return rel;
+  }
 
-    function formatToParTV(rel){
-      if (rel === 0) return `<span class="evenMark">E</span>`;
-      return rel > 0 ? `+${rel}` : String(rel);
+  function scoreClass(rel){
+    if (rel < 0) return "under";
+    if (rel > 0) return "over";
+    return "even";
+  }
+
+  function formatToParTV(rel){
+    if (rel === 0) return `<span class="evenMark">E</span>`;
+    return rel > 0 ? `+${rel}` : String(rel);
+  }
+
+  function holesByHardestHcp(course){
+    const pairs = course.hcp.map((hcp, idx) => ({ hole: idx+1, hcp }));
+    pairs.sort((a,b) => a.hcp - b.hcp);
+    return pairs.map(p => p.hole);
+  }
+
+  function playoffKey(scoresArr18, course){
+    const order = holesByHardestHcp(course);
+    const key = [];
+    for(const hole of order){
+      const v = scoresArr18[hole-1];
+      key.push(v === null ? 999 : v);
     }
+    return key;
+  }
 
-    function holesByHardestHcp(course){
-      const pairs = course.hcp.map((hcp, idx) => ({ hole: idx+1, hcp }));
-      pairs.sort((a,b) => a.hcp - b.hcp);
-      return pairs.map(p => p.hole);
+  function comparePlayoff(aScores, bScores, course){
+    const aKey = playoffKey(aScores, course);
+    const bKey = playoffKey(bScores, course);
+    for(let i=0;i<aKey.length;i++){
+      if (aKey[i] < bKey[i]) return -1;
+      if (aKey[i] > bKey[i]) return 1;
     }
+    return 0;
+  }
 
-    function playoffKey(scoresArr18, course){
-      const order = holesByHardestHcp(course);
-      const key = [];
-      for(const hole of order){
-        const v = scoresArr18[hole-1];
-        key.push(v === null ? 999 : v);
-      }
-      return key;
-    }
+  function normalizeSponsorObj(s){
+    const name = (s?.name || s?.sponsorName || "").trim();
+    const tier = (s?.tier || "").trim();
+    const sort = Number(s?.sort ?? s?.order ?? 999);
+    const active = (s?.active !== false);
+    const logoUrl = (s?.logoUrl || s?.logo || s?.sponsorLogo || s?.logoURL || "").trim();
+    const website = (s?.website || s?.url || s?.sponsorUrl || s?.sponsorWebsite || "").trim();
+    return { name, tier, sort, active, logoUrl, website };
+  }
 
-    function comparePlayoff(aScores, bScores, course){
-      const aKey = playoffKey(aScores, course);
-      const bKey = playoffKey(bScores, course);
-      for(let i=0;i<aKey.length;i++){
-        if (aKey[i] < bKey[i]) return -1;
-        if (aKey[i] > bKey[i]) return 1;
-      }
-      return 0;
-    }
+  function getActiveSponsors(){
+    const raw = Array.isArray(tournament.sponsors) ? tournament.sponsors : [];
+    const active = raw
+      .map(normalizeSponsorObj)
+      .filter(s => (s.active !== false) && (s.name || s.logoUrl));
+    active.sort((a,b) => (Number(a.sort ?? 999) || 999) - (Number(b.sort ?? 999) || 999));
+    return active;
+  }
 
-    function normalizeSponsorObj(s){
-      const name = (s?.name || s?.sponsorName || "").trim();
-      const tier = (s?.tier || "").trim();
-      const sort = Number(s?.sort ?? s?.order ?? 999);
-      const active = (s?.active !== false);
-      const logoUrl = (s?.logoUrl || s?.logo || s?.sponsorLogo || s?.logoURL || "").trim();
-      const website = (s?.website || s?.url || s?.sponsorUrl || s?.sponsorWebsite || "").trim();
-      return { name, tier, sort, active, logoUrl, website };
-    }
+  function pickHeroSponsor(active){
+    const title = active.find(s => String(s.tier||"").toLowerCase() === "title");
+    return title || active[0] || null;
+  }
 
-    function getActiveSponsors(){
-      const raw = Array.isArray(tournament.sponsors) ? tournament.sponsors : [];
-      const active = raw
-        .map(normalizeSponsorObj)
-        .filter(s => (s.active !== false) && (s.name || s.logoUrl));
-      active.sort((a,b) => (Number(a.sort ?? 999) || 999) - (Number(b.sort ?? 999) || 999));
-      return active;
-    }
+  function hideSponsors(){
+    sponsorHero.style.display = "none";
+    ticker.style.display = "none";
+    tickerTrack.innerHTML = "";
+    sponsorHeroLogo.src = "";
+    sponsorHeroName.textContent = "";
+    sponsorHeroLink.href = "#";
+    sponsorHeroLink.style.display = "none";
+    sponsorHeroLogo.style.display = "none";
+  }
 
-    function pickHeroSponsor(active){
-      const title = active.find(s => String(s.tier||"").toLowerCase() === "title");
-      return title || active[0] || null;
-    }
+  function renderSponsors(){
+    const active = getActiveSponsors();
 
-    function hideSponsors(){
-      sponsorHero.style.display = "none";
-      ticker.style.display = "none";
-      tickerTrack.innerHTML = "";
-      sponsorHeroLogo.src = "";
-      sponsorHeroName.textContent = "";
-      sponsorHeroLink.href = "#";
-      sponsorHeroLink.style.display = "none";
-      sponsorHeroLogo.style.display = "none";
-    }
+    if (!active.length){
+      const name = (tournament.sponsorName || "").trim();
+      const logo = (tournament.sponsorLogo || tournament.sponsorLogoUrl || "").trim();
+      const url  = normalizeUrl(tournament.sponsorUrl || tournament.sponsorWebsite || tournament.sponsorLink || "");
 
-    function renderSponsors(){
-      const active = getActiveSponsors();
-
-      if (!active.length){
-        const name = (tournament.sponsorName || "").trim();
-        const logo = (tournament.sponsorLogo || tournament.sponsorLogoUrl || "").trim();
-        const url  = normalizeUrl(tournament.sponsorUrl || tournament.sponsorWebsite || tournament.sponsorLink || "");
-
-        if (!name && !logo){
-          hideSponsors();
-          return;
-        }
-
-        sponsorHero.style.display = "block";
-        sponsorHeroName.textContent = name || "Tournament Sponsor";
-
-        if (logo){
-          sponsorHeroLogo.src = logo;
-          sponsorHeroLogo.style.display = "block";
-        } else {
-          sponsorHeroLogo.style.display = "none";
-        }
-
-        if (url){
-          sponsorHeroLink.href = url;
-          sponsorHeroLink.style.display = "inline-flex";
-        } else {
-          sponsorHeroLink.style.display = "none";
-        }
-
-        ticker.style.display = "block";
-        const pill = `
-          <a class="sponsorPill" href="${url || "#"}" target="_blank" rel="noopener"
-             style="${url ? "" : "pointer-events:none; opacity:.75;"}">
-            ${logo ? `<img src="${logo}" alt="Sponsor">` : `<img src="./assets/icon-192.png" alt="Sponsor">`}
-            <span>${escapeHtml(name || "Tournament Sponsor")}</span>
-          </a>`;
-        tickerTrack.innerHTML = pill + pill + pill + pill;
-        return;
-      }
-
-      const hero = pickHeroSponsor(active);
-      const heroName = (hero?.name || "").trim();
-      const heroLogo = (hero?.logoUrl || "").trim();
-      const heroUrl  = normalizeUrl(hero?.website || "");
-
-      if (!heroName && !heroLogo){
+      if (!name && !logo){
         hideSponsors();
         return;
       }
 
       sponsorHero.style.display = "block";
-      sponsorHeroName.textContent = heroName || "Tournament Sponsor";
+      sponsorHeroName.textContent = name || "Tournament Sponsor";
 
-      if (heroLogo){
-        sponsorHeroLogo.src = heroLogo;
+      if (logo){
+        sponsorHeroLogo.src = logo;
         sponsorHeroLogo.style.display = "block";
       } else {
         sponsorHeroLogo.style.display = "none";
       }
 
-      if (heroUrl){
-        sponsorHeroLink.href = heroUrl;
+      if (url){
+        sponsorHeroLink.href = url;
         sponsorHeroLink.style.display = "inline-flex";
       } else {
         sponsorHeroLink.style.display = "none";
       }
 
       ticker.style.display = "block";
-      const pills = active.map(s => {
-        const n = (s.name || "").trim() || "Sponsor";
-        const l = (s.logoUrl || "").trim();
-        const u = normalizeUrl(s.website || "");
-        return `
-          <a class="sponsorPill" href="${u || "#"}" target="_blank" rel="noopener"
-             style="${u ? "" : "pointer-events:none; opacity:.75;"}">
-            ${l ? `<img src="${l}" alt="Sponsor">` : `<img src="./assets/icon-192.png" alt="Sponsor">`}
-            <span>${escapeHtml(n)}</span>
-          </a>`;
-      }).join("");
-
-      tickerTrack.innerHTML = pills + pills;
+      const pill = `
+        <a class="sponsorPill" href="${url || "#"}" target="_blank" rel="noopener"
+           style="${url ? "" : "pointer-events:none; opacity:.75;"}">
+          ${logo ? `<img src="${logo}" alt="Sponsor">` : `<img src="./assets/icon-192.png" alt="Sponsor">`}
+          <span>${escapeHtml(name || "Tournament Sponsor")}</span>
+        </a>`;
+      tickerTrack.innerHTML = pill + pill + pill + pill;
+      return;
     }
 
-    function nameLineFromNames(names){
-      const clean = (names || []).map(s => String(s||"").trim()).filter(Boolean);
-      if (!clean.length) return "";
-      return clean.join(" • ");
+    const hero = pickHeroSponsor(active);
+    const heroName = (hero?.name || "").trim();
+    const heroLogo = (hero?.logoUrl || "").trim();
+    const heroUrl  = normalizeUrl(hero?.website || "");
+
+    if (!heroName && !heroLogo){
+      hideSponsors();
+      return;
     }
 
-    function thruFromScoresFlat(scoresFlat){
-      if (!scoresFlat) return 0;
-      let max = 0;
-      for (let h = 1; h <= 18; h++){
-        const anyForHole = Object.keys(scoresFlat).some(k => k.endsWith(`_h${h}`) && String(scoresFlat[k] || "").trim() !== "");
-        if (anyForHole) max = h;
-      }
-      return max;
+    sponsorHero.style.display = "block";
+    sponsorHeroName.textContent = heroName || "Tournament Sponsor";
+
+    if (heroLogo){
+      sponsorHeroLogo.src = heroLogo;
+      sponsorHeroLogo.style.display = "block";
+    } else {
+      sponsorHeroLogo.style.display = "none";
     }
 
-    function buildStatusLine(docData, scoresFlat, scorerName){
-      const chips = [];
-      const sh = String(docData?.startHole ?? "").trim();
-      if (sh) chips.push(`H${sh}`);
-
-      const thru = thruFromScoresFlat(scoresFlat);
-      const finished = (String(docData?.roundStatus || "").toLowerCase() === "finished") || (thru >= 18);
-      if (finished) chips.push("F");
-      else if (thru > 0) chips.push(`Thru ${thru}`);
-
-      if (scorerName) chips.push(`Scorer: ${scorerName}`);
-      return chips.join(" • ");
+    if (heroUrl){
+      sponsorHeroLink.href = heroUrl;
+      sponsorHeroLink.style.display = "inline-flex";
+    } else {
+      sponsorHeroLink.style.display = "none";
     }
 
-    function buildEntriesFromSubmissionDoc(docData, docId){
-      const deviceId = docId;
-      const companyOrTeam = (docData.companyName || docData.group || "").trim();
-      const playerName = (docData.playerName || "").trim();
-      const names = Array.isArray(docData.names) ? docData.names : [];
-      const scoresFlat = docData.scoresFlat || {};
-      const totals = Array.isArray(docData.totals) ? docData.totals : [];
-      const updatedAt = docData.updatedAt;
+    ticker.style.display = "block";
+    const pills = active.map(s => {
+      const n = (s.name || "").trim() || "Sponsor";
+      const l = (s.logoUrl || "").trim();
+      const u = normalizeUrl(s.website || "");
+      return `
+        <a class="sponsorPill" href="${u || "#"}" target="_blank" rel="noopener"
+           style="${u ? "" : "pointer-events:none; opacity:.75;"}">
+          ${l ? `<img src="${l}" alt="Sponsor">` : `<img src="./assets/icon-192.png" alt="Sponsor">`}
+          <span>${escapeHtml(n)}</span>
+        </a>`;
+    }).join("");
 
-      const courseId = docData.courseId || tournament.courseDefault || "tradition";
-      const course = getCourseForEntry(courseId);
-      const scorerName = playerName || names[0] || "";
-      const fmt = (tournament.format || "stroke").toLowerCase();
+    tickerTrack.innerHTML = pills + pills;
+  }
 
-      const base = {
-        deviceId,
-        companyOrTeam,
-        playerName: scorerName,
-        names,
-        scoresFlat,
-        totals,
-        updatedAt,
-        courseId,
-        course,
-        startHole: docData.startHole || "",
-        sideGames: docData.sideGames || {}
-      };
+  function nameLineFromNames(names){
+    const clean = (names || []).map(s => String(s||"").trim()).filter(Boolean);
+    if (!clean.length) return "";
+    return clean.join(" • ");
+  }
 
-      if (fmt === "scramble"){
-        const scores = derivePlayerScores(scoresFlat, 0);
-        if (!hasAnyScore(scores)) return [];
+  function thruFromScoresFlat(scoresFlat){
+    if (!scoresFlat) return 0;
+    let max = 0;
+    for (let h = 1; h <= 18; h++){
+      const anyForHole = Object.keys(scoresFlat).some(k => k.endsWith(`_h${h}`) && String(scoresFlat[k] || "").trim() !== "");
+      if (anyForHole) max = h;
+    }
+    return max;
+  }
 
-        const total = Number.isFinite(Number(totals?.[0]?.tot)) ? Number(totals[0].tot) : totalFromScores(scores);
-        const thru = calcThruFromScores(scores);
-        const toPar = toParFromScores(scores, course);
+  function buildStatusLine(docData, scoresFlat, scorerName){
+    const chips = [];
+    const sh = String(docData?.startHole ?? "").trim();
+    if (sh) chips.push(`H${sh}`);
 
-        const displayName = companyOrTeam || "Team";
-        const line2 = nameLineFromNames(names);
-        const line3 = buildStatusLine(docData, scoresFlat, scorerName);
+    const thru = thruFromScoresFlat(scoresFlat);
+    const finished = (String(docData?.roundStatus || "").toLowerCase() === "finished") || (thru >= 18);
+    if (finished) chips.push("F");
+    else if (thru > 0) chips.push(`Thru ${thru}`);
 
-        return [{
-          ...base,
-          key: `scr_${deviceId}`,
-          displayName,
-          subLine: [line2, line3].filter(Boolean).join(" • "),
-          kind: "team",
-          scores,
-          total,
-          toPar,
-          thru,
-          skins: 0
-        }];
-      }
+    if (scorerName) chips.push(`Scorer: ${scorerName}`);
+    return chips.join(" • ");
+  }
 
-      if (fmt === "bestball"){
-        const scores = deriveBestBall(scoresFlat, 6);
-        if (!hasAnyScore(scores)) return [];
+  function buildEntriesFromSubmissionDoc(docData, docId){
+    const deviceId = docId;
+    const companyOrTeam = (docData.companyName || docData.group || "").trim();
+    const playerName = (docData.playerName || "").trim();
+    const names = Array.isArray(docData.names) ? docData.names : [];
+    const scoresFlat = docData.scoresFlat || {};
+    const totals = Array.isArray(docData.totals) ? docData.totals : [];
+    const updatedAt = docData.updatedAt;
 
-        const total = totalFromScores(scores);
-        const thru = calcThruFromScores(scores);
-        const toPar = toParFromScores(scores, course);
+    const courseId = String(docData.courseId || tournament.courseDefault || "tradition").trim().toLowerCase();
+    const course = getCourseForEntry(courseId);
+    const scorerName = playerName || names[0] || "";
+    const fmt = normalizeFormatValue(tournament.format || "stroke");
 
-        const displayName = companyOrTeam || "Team";
-        const line2 = nameLineFromNames(names);
-        const line3 = buildStatusLine(docData, scoresFlat, scorerName);
+    const base = {
+      deviceId,
+      companyOrTeam,
+      playerName: scorerName,
+      names,
+      scoresFlat,
+      totals,
+      updatedAt,
+      courseId,
+      course,
+      startHole: docData.startHole || "",
+      sideGames: docData.sideGames || {}
+    };
 
-        return [{
-          ...base,
-          key: `bb_${deviceId}`,
-          displayName,
-          subLine: [line2, line3].filter(Boolean).join(" • "),
-          kind: "team",
-          scores,
-          total,
-          toPar,
-          thru,
-          skins: 0
-        }];
-      }
+    if (fmt === "scramble"){
+      const scores = derivePlayerScores(scoresFlat, 0);
+      if (!hasAnyScore(scores)) return [];
 
-      const items = [];
-      for(let i=0;i<6;i++){
-        const scores = derivePlayerScores(scoresFlat, i);
-        if (!hasAnyScore(scores)) continue;
+      const total = Number.isFinite(Number(totals?.[0]?.tot)) ? Number(totals[0].tot) : totalFromScores(scores);
+      const thru = calcThruFromScores(scores);
+      const toPar = toParFromScores(scores, course);
 
-        const nm = (names[i] || "").trim();
-        const display = nm || (i === 0 ? (playerName || companyOrTeam || "Player") : `Player ${i+1}`);
-        const total = Number.isFinite(Number(totals?.[i]?.tot)) ? Number(totals[i].tot) : totalFromScores(scores);
-        const thru = calcThruFromScores(scores);
-        const toPar = toParFromScores(scores, course);
+      const displayName = companyOrTeam || "Team";
+      const line2 = nameLineFromNames(names);
+      const line3 = buildStatusLine(docData, scoresFlat, scorerName);
 
-        const line2 = companyOrTeam ? companyOrTeam : "";
-        const line3 = buildStatusLine(docData, scoresFlat, scorerName);
-
-        items.push({
-          ...base,
-          key: `st_${deviceId}_p${i}`,
-          displayName: display,
-          subLine: [line2, line3].filter(Boolean).join(" • "),
-          kind: "player",
-          playerIndex: i,
-          scores,
-          total,
-          toPar,
-          thru,
-          skins: 0
-        });
-      }
-      return items;
+      return [{
+        ...base,
+        key: `scr_${deviceId}`,
+        displayName,
+        subLine: [line2, line3].filter(Boolean).join(" • "),
+        kind: "team",
+        scores,
+        total,
+        toPar,
+        thru,
+        skins: 0
+      }];
     }
 
-    function sortEntries(entries){
-      entries.sort((a,b) => {
-        if (a.toPar !== b.toPar) return a.toPar - b.toPar;
-        if (a.total !== b.total) return a.total - b.total;
-        return comparePlayoff(a.scores, b.scores, a.course);
+    if (fmt === "bestball"){
+      const scores = deriveBestBall(scoresFlat, 6);
+      if (!hasAnyScore(scores)) return [];
+
+      const total = totalFromScores(scores);
+      const thru = calcThruFromScores(scores);
+      const toPar = toParFromScores(scores, course);
+
+      const displayName = companyOrTeam || "Team";
+      const line2 = nameLineFromNames(names);
+      const line3 = buildStatusLine(docData, scoresFlat, scorerName);
+
+      return [{
+        ...base,
+        key: `bb_${deviceId}`,
+        displayName,
+        subLine: [line2, line3].filter(Boolean).join(" • "),
+        kind: "team",
+        scores,
+        total,
+        toPar,
+        thru,
+        skins: 0
+      }];
+    }
+
+    const items = [];
+    for(let i=0;i<6;i++){
+      const scores = derivePlayerScores(scoresFlat, i);
+      if (!hasAnyScore(scores)) continue;
+
+      const nm = (names[i] || "").trim();
+      const display = nm || (i === 0 ? (playerName || companyOrTeam || "Player") : `Player ${i+1}`);
+      const total = Number.isFinite(Number(totals?.[i]?.tot)) ? Number(totals[i].tot) : totalFromScores(scores);
+      const thru = calcThruFromScores(scores);
+      const toPar = toParFromScores(scores, course);
+
+      const line2 = companyOrTeam ? companyOrTeam : "";
+      const line3 = buildStatusLine(docData, scoresFlat, scorerName);
+
+      items.push({
+        ...base,
+        key: `st_${deviceId}_p${i}`,
+        displayName: display,
+        subLine: [line2, line3].filter(Boolean).join(" • "),
+        kind: "player",
+        playerIndex: i,
+        scores,
+        total,
+        toPar,
+        thru,
+        skins: 0
       });
     }
+    return items;
+  }
 
-    function computeDisplayRanks(entries){
-      const out = [];
-      let lastKey = null;
-      let lastRank = 0;
+  function sortEntries(entries){
+    entries.sort((a,b) => {
+      if (a.toPar !== b.toPar) return a.toPar - b.toPar;
+      if (a.total !== b.total) return a.total - b.total;
+      return comparePlayoff(a.scores, b.scores, a.course);
+    });
+  }
 
-      for(let i=0;i<entries.length;i++){
-        const e = entries[i];
-        const tieKey = `${e.toPar}|${e.total}|${playoffKey(e.scores, e.course).join(",")}`;
-        if (i === 0){
-          lastKey = tieKey;
-          lastRank = 1;
-          out.push("1");
-        } else {
-          const isTie = (tieKey === lastKey);
-          if (isTie) out.push(`T${lastRank}`);
-          else{
-            lastRank = i + 1;
-            lastKey = tieKey;
-            out.push(String(lastRank));
-          }
-        }
-      }
+  function computeDisplayRanks(entries){
+    const out = [];
+    let lastKey = null;
+    let lastRank = 0;
 
-      if (out.length >= 2 && out[1] === "T1") out[0] = "T1";
-      return out;
-    }
-
-    function render(entries){
-      if (!entries.length){
-        listEl.innerHTML = `<div class="emptyBox">No active players yet (no scores submitted).</div>`;
-        return;
-      }
-
-      const displayRanks = computeDisplayRanks(entries);
-      const currentRankByKey = new Map();
-      entries.forEach((e, idx) => currentRankByKey.set(e.key, idx+1));
-
-      const html = entries.map((e, idx) => {
-        const prev = lastRankByKey.get(e.key);
-        const rankNum = idx + 1;
-
-        const movedUp = (prev && rankNum < prev);
-        const movedDown = (prev && rankNum > prev);
-
-        const moveBadge = prev
-          ? (movedUp ? `<span class="lb-move up">▲</span>` : (movedDown ? `<span class="lb-move down">▼</span>` : ``))
-          : ``;
-
-        const leaderClass = rankNum === 1 ? "leader" : "";
-        const updatedText = tsToText(e.updatedAt);
-
-        const rel = Number(e.toPar || 0);
-        const sCls = scoreClass(rel);
-        const scoreHtml = formatToParTV(rel);
-
-        return `
-          <div class="lb-row ${leaderClass}" data-key="${escapeHtml(e.key)}">
-            <div class="lb-rank">${escapeHtml(displayRanks[idx])} ${moveBadge}</div>
-
-            <div class="lb-nameWrap">
-              <div class="lb-name" title="${escapeHtml(e.displayName)}">${escapeHtml(e.displayName)}</div>
-              ${e.subLine ? `<div class="lb-sub">${escapeHtml(e.subLine)}</div>` : ``}
-            </div>
-
-            <div class="lb-score ${sCls}">${scoreHtml}</div>
-
-            <div class="lb-thin colThru">${e.thru || 0}</div>
-            <div class="lb-thin colUpdated">${escapeHtml(updatedText || "")}</div>
-          </div>
-        `;
-      }).join("");
-
-      listEl.innerHTML = html;
-      currentRankByKey.forEach((r,k) => lastRankByKey.set(k,r));
-
-      listEl.querySelectorAll(".lb-row").forEach(el => {
-        el.addEventListener("click", () => {
-          const key = el.getAttribute("data-key");
-          const e = entries.find(x => x.key === key);
-          if (e) openModal(e);
-        });
-      });
-    }
-
-    function computeSkinsData(entries){
-      const cloned = entries.map(e => ({ ...e, skins: 0 }));
-      const holeResults = [];
-
-      for(let h=1; h<=18; h++){
-        let low = null;
-        let lowEntry = null;
-        let tie = false;
-        let anyScore = false;
-
-        for(const e of cloned){
-          const s = e.scores[h-1];
-          if (s === null) continue;
-          anyScore = true;
-
-          if (low === null || s < low){
-            low = s;
-            lowEntry = e;
-            tie = false;
-          } else if (s === low){
-            tie = true;
-          }
-        }
-
-        if (!anyScore){
-          holeResults.push({ hole:h, status:"Pending", winnerName:"Pending" });
-          continue;
-        }
-
-        if (tie || !lowEntry){
-          holeResults.push({ hole:h, status:"Push", winnerName:"Push" });
-          continue;
-        }
-
-        lowEntry.skins = Number(lowEntry.skins || 0) + 1;
-        holeResults.push({
-          hole:h,
-          status:"Won",
-          winnerName: lowEntry.displayName
-        });
-      }
-
-      cloned.sort((a,b) => {
-        if ((b.skins || 0) !== (a.skins || 0)) return (b.skins || 0) - (a.skins || 0);
-        if (a.toPar !== b.toPar) return a.toPar - b.toPar;
-        if (a.total !== b.total) return a.total - b.total;
-        return comparePlayoff(a.scores, b.scores, a.course);
-      });
-
-      return { leaders: cloned, holes: holeResults };
-    }
-
-    function computeSkinsRanks(leaders){
-      const out = [];
-      let lastSkins = null;
-      let lastRank = 0;
-
-      for(let i=0;i<leaders.length;i++){
-        const s = Number(leaders[i].skins || 0);
-        if (i === 0){
-          lastSkins = s;
-          lastRank = 1;
-          out.push("1");
-        } else if (s === lastSkins){
-          out.push(`T${lastRank}`);
-        } else {
+    for(let i=0;i<entries.length;i++){
+      const e = entries[i];
+      const tieKey = `${e.toPar}|${e.total}|${playoffKey(e.scores, e.course).join(",")}`;
+      if (i === 0){
+        lastKey = tieKey;
+        lastRank = 1;
+        out.push("1");
+      } else {
+        const isTie = (tieKey === lastKey);
+        if (isTie) out.push(`T${lastRank}`);
+        else{
           lastRank = i + 1;
-          lastSkins = s;
+          lastKey = tieKey;
           out.push(String(lastRank));
         }
       }
-
-      if (out.length >= 2 && out[1] === "T1") out[0] = "T1";
-      return out;
     }
 
-    function renderSkins(entries){
-      const { leaders, holes } = computeSkinsData(entries);
+    if (out.length >= 2 && out[1] === "T1") out[0] = "T1";
+    return out;
+  }
 
-      if (!leaders.length){
-        skinsListEl.innerHTML = `<div class="emptyBox">No skins data yet.</div>`;
-        skinsHolesListEl.innerHTML = `<div class="emptyBox">No hole results yet.</div>`;
-        return;
-      }
+  function render(entries){
+    if (!entries.length){
+      listEl.innerHTML = `<div class="emptyBox">No active players yet (no scores submitted).</div>`;
+      return;
+    }
 
-      const ranks = computeSkinsRanks(leaders);
+    const displayRanks = computeDisplayRanks(entries);
+    const currentRankByKey = new Map();
+    entries.forEach((e, idx) => currentRankByKey.set(e.key, idx+1));
 
-      skinsListEl.innerHTML = leaders.map((e, idx) => `
-        <div class="lb-row" style="grid-template-columns: 74px 1fr 118px;">
-          <div class="lb-rank">${escapeHtml(ranks[idx])}</div>
+    const html = entries.map((e, idx) => {
+      const prev = lastRankByKey.get(e.key);
+      const rankNum = idx + 1;
+
+      const movedUp = (prev && rankNum < prev);
+      const movedDown = (prev && rankNum > prev);
+
+      const moveBadge = prev
+        ? (movedUp ? `<span class="lb-move up">▲</span>` : (movedDown ? `<span class="lb-move down">▼</span>` : ``))
+        : ``;
+
+      const leaderClass = rankNum === 1 ? "leader" : "";
+      const updatedText = tsToText(e.updatedAt);
+
+      const rel = Number(e.toPar || 0);
+      const sCls = scoreClass(rel);
+      const scoreHtml = formatToParTV(rel);
+
+      return `
+        <div class="lb-row ${leaderClass}" data-key="${escapeHtml(e.key)}">
+          <div class="lb-rank">${escapeHtml(displayRanks[idx])} ${moveBadge}</div>
+
           <div class="lb-nameWrap">
             <div class="lb-name" title="${escapeHtml(e.displayName)}">${escapeHtml(e.displayName)}</div>
             ${e.subLine ? `<div class="lb-sub">${escapeHtml(e.subLine)}</div>` : ``}
           </div>
-          <div class="lb-score even">${Number(e.skins || 0)}</div>
+
+          <div class="lb-score ${sCls}">${scoreHtml}</div>
+
+          <div class="lb-thin colThru">${e.thru || 0}</div>
+          <div class="lb-thin colUpdated">${escapeHtml(updatedText || "")}</div>
         </div>
-      `).join("");
+      `;
+    }).join("");
 
-      skinsHolesListEl.innerHTML = holes.map(h => `
-        <div class="lb-row" style="grid-template-columns: 100px 1fr;">
-          <div class="lb-rank">${h.hole}</div>
-          <div class="lb-nameWrap">
-            <div class="lb-name">${escapeHtml(h.winnerName || h.status)}</div>
-          </div>
-        </div>
-      `).join("");
-    }
+    listEl.innerHTML = html;
+    currentRankByKey.forEach((r,k) => lastRankByKey.set(k,r));
 
-    function getLatestWinnerFor(kind, hole){
-      let winner = "";
-      let latest = -1;
+    listEl.querySelectorAll(".lb-row").forEach(el => {
+      el.addEventListener("click", () => {
+        const key = el.getAttribute("data-key");
+        const e = entries.find(x => x.key === key);
+        if (e) openModal(e);
+      });
+    });
+  }
 
-      for(const d of latestSubmissionDocs){
-        const sideGames = d.sideGames || {};
-        const group = sideGames[kind] || {};
-        const value = String(group[String(hole)] || "").trim();
-        if (!value) continue;
+  function computeSkinsData(entries){
+    const cloned = entries.map(e => ({ ...e, skins: 0 }));
+    const holeResults = [];
 
-        const ms = d.updatedAt?.toDate ? d.updatedAt.toDate().getTime() : 0;
-        if (ms >= latest){
-          latest = ms;
-          winner = value;
+    for(let h=1; h<=18; h++){
+      let low = null;
+      let lowEntry = null;
+      let tie = false;
+      let anyScore = false;
+
+      for(const e of cloned){
+        const s = e.scores[h-1];
+        if (s === null) continue;
+        anyScore = true;
+
+        if (low === null || s < low){
+          low = s;
+          lowEntry = e;
+          tie = false;
+        } else if (s === low){
+          tie = true;
         }
       }
 
-      return winner;
-    }
-
-    function getLatestWinnerTimeFor(kind, hole){
-      let latest = null;
-
-      for(const d of latestSubmissionDocs){
-        const sideGames = d.sideGames || {};
-        const group = sideGames[kind] || {};
-        const value = String(group[String(hole)] || "").trim();
-        if (!value) continue;
-
-        const ms = d.updatedAt?.toDate ? d.updatedAt.toDate().getTime() : 0;
-        if (!latest || ms >= latest.ms){
-          latest = { ms, ts: d.updatedAt };
-        }
+      if (!anyScore){
+        holeResults.push({ hole:h, status:"Pending", winnerName:"Pending" });
+        continue;
       }
 
-      return latest?.ts || null;
-    }
-        function renderSideGames(){
-      const sg = normalizeSideGames(tournament.sideGames || {});
-      const rows = [];
-
-      if (sg.ctpEnabled && sg.ctpHoles.length){
-        for(const hole of sg.ctpHoles){
-          const winner = getLatestWinnerFor("ctp", hole);
-          const ts = getLatestWinnerTimeFor("ctp", hole);
-          rows.push({
-            game: `CTP ${hole}`,
-            result: winner || "Open",
-            updated: tsToText(ts)
-          });
-        }
+      if (tie || !lowEntry){
+        holeResults.push({ hole:h, status:"Push", winnerName:"Push" });
+        continue;
       }
 
-      if (sg.longDriveEnabled && sg.longDriveHoles.length){
-        for(const hole of sg.longDriveHoles){
-          const winner = getLatestWinnerFor("longDrive", hole);
-          const ts = getLatestWinnerTimeFor("longDrive", hole);
-          rows.push({
-            game: `LD ${hole}`,
-            result: winner || "Open",
-            updated: tsToText(ts)
-          });
-        }
-      }
-
-      if (!rows.length){
-        sideGamesListEl.innerHTML = `<div class="emptyBox">No side games enabled for this tournament.</div>`;
-        return;
-      }
-
-      sideGamesListEl.innerHTML = rows.map(r => `
-        <div class="lb-row" style="grid-template-columns: 110px 1fr;">
-          <div class="lb-rank" style="font-size:18px;">${escapeHtml(r.game)}</div>
-          <div class="lb-nameWrap">
-            <div class="lb-name">${escapeHtml(r.result)}</div>
-            ${r.updated ? `<div class="lb-sub">Updated ${escapeHtml(r.updated)}</div>` : ``}
-          </div>
-        </div>
-      `).join("");
+      lowEntry.skins = Number(lowEntry.skins || 0) + 1;
+      holeResults.push({
+        hole:h,
+        status:"Won",
+        winnerName: lowEntry.displayName
+      });
     }
 
-    function hasSideGamesEnabled(){
-      const sg = normalizeSideGames(tournament.sideGames || {});
-      return !!(
-        sg.skinsEnabled ||
-        (sg.ctpEnabled && sg.ctpHoles.length) ||
-        (sg.longDriveEnabled && sg.longDriveHoles.length)
-      );
-    }
-
-    function skinsEnabled(){
-      const sg = normalizeSideGames(tournament.sideGames || {});
-      return !!sg.skinsEnabled || String(tournament.sideGame || "none").toLowerCase() === "skins";
-    }
-
-    function nonSkinsSideGamesEnabled(){
-      const sg = normalizeSideGames(tournament.sideGames || {});
-      return !!(
-        (sg.ctpEnabled && sg.ctpHoles.length) ||
-        (sg.longDriveEnabled && sg.longDriveHoles.length)
-      );
-    }
-
-    function updateViewButtons(){
-      const showBar = hasSideGamesEnabled();
-      const showSkinsBtn = skinsEnabled();
-      const showSideBtn = nonSkinsSideGamesEnabled();
-
-      viewToggleBar.style.display = showBar ? "block" : "none";
-      viewSkinsBtn.style.display = showSkinsBtn ? "inline-flex" : "none";
-      viewSideGamesBtn.style.display = showSideBtn ? "inline-flex" : "none";
-
-      if (!showBar){
-        currentView = "leaderboard";
-      } else {
-        if (currentView === "skins" && !showSkinsBtn) currentView = "leaderboard";
-        if (currentView === "sidegames" && !showSideBtn) currentView = "leaderboard";
-      }
-
-      leaderboardWrap.style.display = currentView === "leaderboard" ? "" : "none";
-      sideGamesWrap.style.display = currentView === "sidegames" ? "" : "none";
-      skinsWrap.style.display = currentView === "skins" ? "" : "none";
-      skinsHolesWrap.style.display = currentView === "skins" ? "" : "none";
-
-      viewLeaderboardBtn.className = currentView === "leaderboard" ? "primary" : "";
-      viewSideGamesBtn.className = currentView === "sidegames" ? "primary" : "";
-      viewSkinsBtn.className = currentView === "skins" ? "primary" : "";
-    }
-
-    function renderCurrentView(){
-      const entries = latestEntries.slice();
-
-      if (currentView === "skins" && skinsEnabled()){
-        renderSkins(entries);
-      } else if (currentView === "sidegames"){
-        renderSideGames();
-      } else {
-        sortEntries(entries);
-        render(entries);
-      }
-
-      updateViewButtons();
-    }
-
-    function resultClass(score, par){
-      if (score === null) return "blank";
-      const d = score - par;
-      if (d <= -2) return "eagle";
-      if (d === -1) return "birdie";
-      if (d === 0) return "par";
-      if (d === 1) return "bogey";
-      if (d >= 2) return "double";
-      return "par";
-    }
-
-    function openModal(e){
-      modalName.textContent = e.displayName || "Scorecard";
-      const fmt = fmtFormat(tournament.format);
-      const updatedText = tsToText(e.updatedAt);
-
-      const tags = [];
-      if (tournament.name) tags.push(`🏆 ${tournament.name}`);
-      tags.push(`⛳ ${fmt}`);
-      if (e.companyOrTeam) tags.push(`🏢 ${e.companyOrTeam}`);
-      const sh2 = String(e?.startHole || "").trim();
-      if (sh2) tags.push(`🟦 Start H${sh2}`);
-      if (e.playerName) tags.push(`✍️ ${e.playerName}`);
-      if (updatedText) tags.push(`🕒 ${updatedText}`);
-      if (e.thru) tags.push(`✅ Thru ${e.thru}`);
-
-      modalSub.innerHTML = tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("");
-
-      modalScore.innerHTML = formatToParTV(Number(e.toPar || 0));
-      modalScoreSub.textContent =
-        (tournament.format || "").toLowerCase() === "bestball" ? "Best Ball" :
-        ((tournament.format || "").toLowerCase() === "scramble" ? "Team" : "Gross");
-
-      frontNine.innerHTML = "";
-      backNine.innerHTML = "";
-
-      for(let h=1; h<=18; h++){
-        const score = e.scores[h-1];
-        const par = e.course.par[h-1];
-        const hcp = e.course.hcp[h-1];
-
-        const cell = document.createElement("div");
-        cell.className = `holeCell ${resultClass(score, par)}`;
-
-        const top = document.createElement("div");
-        top.className = "holeTop";
-
-        const badge = document.createElement("div");
-        badge.className = "holeBadge";
-        badge.textContent = String(h);
-
-        top.appendChild(badge);
-
-        const holeScore = document.createElement("div");
-        holeScore.className = "holeScore";
-        holeScore.textContent = (score === null) ? "—" : String(score);
-
-        const holeMeta = document.createElement("div");
-        holeMeta.className = "holeMeta";
-        holeMeta.innerHTML = `<span>Par ${par}</span><span>HCP ${hcp}</span>`;
-
-        cell.appendChild(top);
-        cell.appendChild(holeScore);
-        cell.appendChild(holeMeta);
-
-        if (h <= 9) frontNine.appendChild(cell);
-        else backNine.appendChild(cell);
-      }
-
-      outSum.textContent = String(sumNine(e.scores, 0));
-      inSum.textContent = String(sumNine(e.scores, 9));
-      totSum.innerHTML = formatToParTV(Number(e.toPar || 0));
-
-      if (sheetEl) sheetEl.scrollTop = 0;
-      document.body.style.overflow = "hidden";
-      modal.classList.add("show");
-    }
-
-    function closeModal(){
-      modal.classList.remove("show");
-      document.body.style.overflow = "";
-    }
-
-    closeModalBtn.addEventListener("click", closeModal);
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) closeModal();
+    cloned.sort((a,b) => {
+      if ((b.skins || 0) !== (a.skins || 0)) return (b.skins || 0) - (a.skins || 0);
+      if (a.toPar !== b.toPar) return a.toPar - b.toPar;
+      if (a.total !== b.total) return a.total - b.total;
+      return comparePlayoff(a.scores, b.scores, a.course);
     });
 
-    if (!tournamentId){
-      pageMeta.textContent = "Missing tournament id (?t=...)";
-      statusPill.textContent = "⚠️ MISSING TOURNAMENT";
-      statusPill.classList.remove("live");
-      formatPill.textContent = "FORMAT: —";
-      parPill.textContent = "TOTAL PAR: —";
-      joinBtn.href = "./index.html";
-      hideSponsors();
+    return { leaders: cloned, holes: holeResults };
+  }
+
+  function computeSkinsRanks(leaders){
+    const out = [];
+    let lastSkins = null;
+    let lastRank = 0;
+
+    for(let i=0;i<leaders.length;i++){
+      const s = Number(leaders[i].skins || 0);
+      if (i === 0){
+        lastSkins = s;
+        lastRank = 1;
+        out.push("1");
+      } else if (s === lastSkins){
+        out.push(`T${lastRank}`);
+      } else {
+        lastRank = i + 1;
+        lastSkins = s;
+        out.push(String(lastRank));
+      }
+    }
+
+    if (out.length >= 2 && out[1] === "T1") out[0] = "T1";
+    return out;
+  }
+
+  function renderSkins(entries){
+    const { leaders, holes } = computeSkinsData(entries);
+
+    if (!leaders.length){
+      skinsListEl.innerHTML = `<div class="emptyBox">No skins data yet.</div>`;
+      skinsHolesListEl.innerHTML = `<div class="emptyBox">No hole results yet.</div>`;
+      return;
+    }
+
+    const ranks = computeSkinsRanks(leaders);
+
+    skinsListEl.innerHTML = leaders.map((e, idx) => `
+      <div class="lb-row" style="grid-template-columns: 74px 1fr 118px;">
+        <div class="lb-rank">${escapeHtml(ranks[idx])}</div>
+        <div class="lb-nameWrap">
+          <div class="lb-name" title="${escapeHtml(e.displayName)}">${escapeHtml(e.displayName)}</div>
+          ${e.subLine ? `<div class="lb-sub">${escapeHtml(e.subLine)}</div>` : ``}
+        </div>
+        <div class="lb-score even">${Number(e.skins || 0)}</div>
+      </div>
+    `).join("");
+
+    skinsHolesListEl.innerHTML = holes.map(h => `
+      <div class="lb-row" style="grid-template-columns: 100px 1fr;">
+        <div class="lb-rank">${h.hole}</div>
+        <div class="lb-nameWrap">
+          <div class="lb-name">${escapeHtml(h.winnerName || h.status)}</div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function getLatestWinnerFor(kind, hole){
+    let winner = "";
+    let latest = -1;
+
+    for(const d of latestSubmissionDocs){
+      const sideGames = d.sideGames || {};
+      const group = sideGames[kind] || {};
+      const value = String(group[String(hole)] || "").trim();
+      if (!value) continue;
+
+      const ms = d.updatedAt?.toDate ? d.updatedAt.toDate().getTime() : 0;
+      if (ms >= latest){
+        latest = ms;
+        winner = value;
+      }
+    }
+
+    return winner;
+  }
+
+  function getLatestWinnerTimeFor(kind, hole){
+    let latest = null;
+
+    for(const d of latestSubmissionDocs){
+      const sideGames = d.sideGames || {};
+      const group = sideGames[kind] || {};
+      const value = String(group[String(hole)] || "").trim();
+      if (!value) continue;
+
+      const ms = d.updatedAt?.toDate ? d.updatedAt.toDate().getTime() : 0;
+      if (!latest || ms >= latest.ms){
+        latest = { ms, ts: d.updatedAt };
+      }
+    }
+
+    return latest?.ts || null;
+  }
+
+  function renderSideGames(){
+    const sg = normalizeSideGames(tournament.sideGames || {});
+    const rows = [];
+
+    if (sg.ctpEnabled && sg.ctpHoles.length){
+      for(const hole of sg.ctpHoles){
+        const winner = getLatestWinnerFor("ctp", hole);
+        const ts = getLatestWinnerTimeFor("ctp", hole);
+        rows.push({
+          game: `CTP ${hole}`,
+          result: winner || "Open",
+          updated: tsToText(ts)
+        });
+      }
+    }
+
+    if (sg.longDriveEnabled && sg.longDriveHoles.length){
+      for(const hole of sg.longDriveHoles){
+        const winner = getLatestWinnerFor("longDrive", hole);
+        const ts = getLatestWinnerTimeFor("longDrive", hole);
+        rows.push({
+          game: `LD ${hole}`,
+          result: winner || "Open",
+          updated: tsToText(ts)
+        });
+      }
+    }
+
+    if (!rows.length){
+      sideGamesListEl.innerHTML = `<div class="emptyBox">No side games enabled for this tournament.</div>`;
+      return;
+    }
+
+    sideGamesListEl.innerHTML = rows.map(r => `
+      <div class="lb-row" style="grid-template-columns: 110px 1fr;">
+        <div class="lb-rank" style="font-size:18px;">${escapeHtml(r.game)}</div>
+        <div class="lb-nameWrap">
+          <div class="lb-name">${escapeHtml(r.result)}</div>
+          ${r.updated ? `<div class="lb-sub">Updated ${escapeHtml(r.updated)}</div>` : ``}
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function hasSideGamesEnabled(){
+    const sg = normalizeSideGames(tournament.sideGames || {});
+    return !!(
+      sg.skinsEnabled ||
+      (sg.ctpEnabled && sg.ctpHoles.length) ||
+      (sg.longDriveEnabled && sg.longDriveHoles.length)
+    );
+  }
+
+  function skinsEnabled(){
+    const sg = normalizeSideGames(tournament.sideGames || {});
+    return !!sg.skinsEnabled || String(tournament.sideGame || "none").toLowerCase() === "skins";
+  }
+
+  function nonSkinsSideGamesEnabled(){
+    const sg = normalizeSideGames(tournament.sideGames || {});
+    return !!(
+      (sg.ctpEnabled && sg.ctpHoles.length) ||
+      (sg.longDriveEnabled && sg.longDriveHoles.length)
+    );
+  }
+
+  function updateViewButtons(){
+    const showBar = hasSideGamesEnabled();
+    const showSkinsBtn = skinsEnabled();
+    const showSideBtn = nonSkinsSideGamesEnabled();
+
+    viewToggleBar.style.display = showBar ? "block" : "none";
+    viewSkinsBtn.style.display = showSkinsBtn ? "inline-flex" : "none";
+    viewSideGamesBtn.style.display = showSideBtn ? "inline-flex" : "none";
+
+    if (!showBar){
+      currentView = "leaderboard";
     } else {
-      joinBtn.href = `./index.html?t=${encodeURIComponent(tournamentId)}`;
-      tvBtn.href = `${location.pathname}?t=${encodeURIComponent(tournamentId)}&tv=1`;
+      if (currentView === "skins" && !showSkinsBtn) currentView = "leaderboard";
+      if (currentView === "sidegames" && !showSideBtn) currentView = "leaderboard";
+    }
 
-      copyBtn.addEventListener("click", async () => {
-        try{
-          await navigator.clipboard.writeText(location.href);
-          copyBtn.textContent = "✅ Copied";
-          setTimeout(() => copyBtn.textContent = "📋 Copy Link", 900);
-        }catch(e){
-          alert("Copy blocked. Tap the address bar and copy the URL.");
-        }
-      });
+    leaderboardWrap.style.display = currentView === "leaderboard" ? "" : "none";
+    sideGamesWrap.style.display = currentView === "sidegames" ? "" : "none";
+    skinsWrap.style.display = currentView === "skins" ? "" : "none";
+    skinsHolesWrap.style.display = currentView === "skins" ? "" : "none";
 
-      refreshBtn.addEventListener("click", () => location.reload());
+    viewLeaderboardBtn.className = currentView === "leaderboard" ? "primary" : "";
+    viewSideGamesBtn.className = currentView === "sidegames" ? "primary" : "";
+    viewSkinsBtn.className = currentView === "skins" ? "primary" : "";
+  }
 
-      viewLeaderboardBtn?.addEventListener("click", () => {
-        currentView = "leaderboard";
-        renderCurrentView();
-      });
+  function renderCurrentView(){
+    const entries = latestEntries.slice();
 
-      viewSideGamesBtn?.addEventListener("click", () => {
-        currentView = "sidegames";
-        renderCurrentView();
-      });
+    if (currentView === "skins" && skinsEnabled()){
+      renderSkins(entries);
+    } else if (currentView === "sidegames"){
+      renderSideGames();
+    } else {
+      sortEntries(entries);
+      render(entries);
+    }
 
-      viewSkinsBtn?.addEventListener("click", () => {
-        currentView = "skins";
-        renderCurrentView();
-      });
+    updateViewButtons();
+  }
 
+  function resultClass(score, par){
+    if (score === null) return "blank";
+    const d = score - par;
+    if (d <= -2) return "eagle";
+    if (d === -1) return "birdie";
+    if (d === 0) return "par";
+    if (d === 1) return "bogey";
+    if (d >= 2) return "double";
+    return "par";
+  }
+
+  function openModal(e){
+    modalName.textContent = e.displayName || "Scorecard";
+    const fmt = fmtFormat(tournament.format);
+    const updatedText = tsToText(e.updatedAt);
+
+    const tags = [];
+    if (tournament.name) tags.push(`🏆 ${tournament.name}`);
+    tags.push(`⛳ ${fmt}`);
+    if (e.companyOrTeam) tags.push(`🏢 ${e.companyOrTeam}`);
+    const sh2 = String(e?.startHole || "").trim();
+    if (sh2) tags.push(`🟦 Start H${sh2}`);
+    if (e.playerName) tags.push(`✍️ ${e.playerName}`);
+    if (updatedText) tags.push(`🕒 ${updatedText}`);
+    if (e.thru) tags.push(`✅ Thru ${e.thru}`);
+
+    modalSub.innerHTML = tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("");
+
+    modalScore.innerHTML = formatToParTV(Number(e.toPar || 0));
+    modalScoreSub.textContent =
+      normalizeFormatValue(tournament.format) === "bestball" ? "Best Ball" :
+      (normalizeFormatValue(tournament.format) === "scramble" ? "Team" : "Gross");
+
+    frontNine.innerHTML = "";
+    backNine.innerHTML = "";
+
+    for(let h=1; h<=18; h++){
+      const score = e.scores[h-1];
+      const par = e.course.par[h-1];
+      const hcp = e.course.hcp[h-1];
+
+      const cell = document.createElement("div");
+      cell.className = `holeCell ${resultClass(score, par)}`;
+
+      const top = document.createElement("div");
+      top.className = "holeTop";
+
+      const badge = document.createElement("div");
+      badge.className = "holeBadge";
+      badge.textContent = String(h);
+
+      top.appendChild(badge);
+
+      const holeScore = document.createElement("div");
+      holeScore.className = "holeScore";
+      holeScore.textContent = (score === null) ? "—" : String(score);
+
+      const holeMeta = document.createElement("div");
+      holeMeta.className = "holeMeta";
+      holeMeta.innerHTML = `<span>Par ${par}</span><span>HCP ${hcp}</span>`;
+
+      cell.appendChild(top);
+      cell.appendChild(holeScore);
+      cell.appendChild(holeMeta);
+
+      if (h <= 9) frontNine.appendChild(cell);
+      else backNine.appendChild(cell);
+    }
+
+    outSum.textContent = String(sumNine(e.scores, 0));
+    inSum.textContent = String(sumNine(e.scores, 9));
+    totSum.innerHTML = formatToParTV(Number(e.toPar || 0));
+
+    if (sheetEl) sheetEl.scrollTop = 0;
+    document.body.style.overflow = "hidden";
+    modal.classList.add("show");
+  }
+
+  function closeModal(){
+    modal.classList.remove("show");
+    document.body.style.overflow = "";
+  }
+
+  closeModalBtn.addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  if (!tournamentId){
+    pageMeta.textContent = "Missing tournament id.";
+    statusPill.textContent = "⚠️ MISSING TOURNAMENT";
+    statusPill.classList.remove("live");
+    formatPill.textContent = "FORMAT: —";
+    parPill.textContent = "TOTAL PAR: —";
+    joinBtn.href = "./index.html";
+    hideSponsors();
+  } else {
+    joinBtn.href = `./index.html?id=${encodeURIComponent(tournamentId)}`;
+    tvBtn.href = `${location.pathname}?id=${encodeURIComponent(tournamentId)}&tv=1`;
+
+    copyBtn.addEventListener("click", async () => {
       try{
-        const tSnap = await getDoc(doc(db, "tournaments", tournamentId));
-        if (tSnap.exists()){
-          const t = tSnap.data() || {};
-          tournament = {
-            ...tournament,
-            ...t,
-            sideGames: normalizeSideGames(t.sideGames || {}),
-            sponsorUrl: t.sponsorUrl || t.sponsorWebsite || t.sponsorLink || "",
-            sponsors: Array.isArray(t.sponsors) ? t.sponsors : []
-          };
+        await navigator.clipboard.writeText(location.href);
+        copyBtn.textContent = "✅ Copied";
+        setTimeout(() => copyBtn.textContent = "📋 Copy Link", 900);
+      }catch(e){
+        alert("Copy blocked. Tap the address bar and copy the URL.");
+      }
+    });
 
-          const skinsOn = skinsEnabled();
-          const sideOn = nonSkinsSideGamesEnabled();
+    refreshBtn.addEventListener("click", () => location.reload());
 
-          pageMeta.textContent = `${tournament.name || "Tournament"}${tournament.date ? " • " + tournament.date : ""}`;
+    viewLeaderboardBtn?.addEventListener("click", () => {
+      currentView = "leaderboard";
+      renderCurrentView();
+    });
 
-          let fmtText = `FORMAT: ${fmtFormat(tournament.format)}`;
-          if (skinsOn && sideOn) fmtText += ` • SIDE GAMES`;
-          else if (skinsOn) fmtText += ` • SKINS`;
-          else if (sideOn) fmtText += ` • SIDE GAMES`;
-          formatPill.textContent = fmtText;
+    viewSideGamesBtn?.addEventListener("click", () => {
+      currentView = "sidegames";
+      renderCurrentView();
+    });
 
-          setCourseHeaderMini(tournament.courseDefault || "tradition");
-          renderSponsors();
-          updateViewButtons();
+    viewSkinsBtn?.addEventListener("click", () => {
+      currentView = "skins";
+      renderCurrentView();
+    });
 
-          if ((tournament.status || "open") === "closed"){
-            statusPill.textContent = "⛔ CLOSED";
-            statusPill.classList.remove("live");
-          } else {
-            statusPill.textContent = "⛳ LIVE";
-            statusPill.classList.add("live");
-          }
-        } else {
-          pageMeta.textContent = "Tournament not found.";
-          statusPill.textContent = "⚠️ NOT FOUND";
+    try{
+      const tSnap = await getDoc(doc(db, "tournaments", tournamentId));
+      if (tSnap.exists()){
+        const t = tSnap.data() || {};
+
+        tournament = {
+          ...tournament,
+          ...t,
+          name: t.tournamentName || t.name || tournament.name,
+          date: t.eventDate || t.date || tournament.date,
+          courseDefault: String(t.defaultCourse || t.courseDefault || "tradition").trim().toLowerCase(),
+          format: normalizeFormatValue(t.formatOfPlay || t.format),
+          sideGame: t.sideGame || tournament.sideGame,
+          sideGames: normalizeSideGames(t.sideGames || {}),
+          sponsorName: t.sponsorName || tournament.sponsorName,
+          sponsorLogo: t.sponsorLogo || tournament.sponsorLogo,
+          sponsorUrl: t.sponsorUrl || t.sponsorWebsite || t.sponsorLink || "",
+          sponsors: Array.isArray(t.sponsors) ? t.sponsors : []
+        };
+
+        const skinsOn = skinsEnabled();
+        const sideOn = nonSkinsSideGamesEnabled();
+
+        pageMeta.textContent = `${tournament.name || "Tournament"}${tournament.date ? " • " + tournament.date : ""}`;
+
+        let fmtText = `FORMAT: ${fmtFormat(tournament.format)}`;
+        if (skinsOn && sideOn) fmtText += ` • SIDE GAMES`;
+        else if (skinsOn) fmtText += ` • SKINS`;
+        else if (sideOn) fmtText += ` • SIDE GAMES`;
+        formatPill.textContent = fmtText;
+
+        setCourseHeaderMini(tournament.courseDefault || "tradition");
+        renderSponsors();
+        updateViewButtons();
+
+        if ((tournament.status || "open") === "closed"){
+          statusPill.textContent = "⛔ CLOSED";
           statusPill.classList.remove("live");
-          hideSponsors();
+        } else {
+          statusPill.textContent = "⛳ LIVE";
+          statusPill.classList.add("live");
         }
-      } catch(e){
-        pageMeta.textContent = "Tournament load error.";
-        statusPill.textContent = "⚠️ ERROR";
+      } else {
+        pageMeta.textContent = "Tournament not found.";
+        statusPill.textContent = "⚠️ NOT FOUND";
         statusPill.classList.remove("live");
         hideSponsors();
       }
+    } catch(e){
+      pageMeta.textContent = "Tournament load error.";
+      statusPill.textContent = "⚠️ ERROR";
+      statusPill.classList.remove("live");
+      hideSponsors();
+    }
 
-      const subCol = collection(db, "tournaments", tournamentId, "submissions");
-      const q = query(subCol);
+    const subCol = collection(db, "tournaments", tournamentId, "submissions");
+    const q = query(subCol);
 
-      onSnapshot(q, (snap) => {
-        const entries = [];
-        const docs = [];
+    onSnapshot(q, (snap) => {
+      const entries = [];
+      const docs = [];
 
-        snap.forEach(d => {
-          const data = d.data() || {};
-          docs.push(data);
+      snap.forEach(d => {
+        const data = d.data() || {};
+        docs.push(data);
 
-          const built = buildEntriesFromSubmissionDoc(data, d.id);
-          for (const b of built) entries.push(b);
-        });
-
-        latestEntries = entries;
-        latestSubmissionDocs = docs;
-        renderCurrentView();
-      }, () => {
-        pageMeta.textContent = "Live updates blocked (rules/network).";
+        const built = buildEntriesFromSubmissionDoc(data, d.id);
+        for (const b of built) entries.push(b);
       });
 
-      if (tvMode){
-        let dir = 1;
-        setInterval(() => {
-          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-          if (maxScroll <= 0) return;
-          const y = window.scrollY;
-          const step = 2.2;
-          if (y >= maxScroll - 4) dir = -1;
-          if (y <= 4) dir = 1;
-          window.scrollTo({ top: y + (step * dir), behavior: "auto" });
-        }, 30);
-      }
+      latestEntries = entries;
+      latestSubmissionDocs = docs;
+      renderCurrentView();
+    }, () => {
+      pageMeta.textContent = "Live updates blocked (rules/network).";
+    });
+
+    if (tvMode){
+      let dir = 1;
+      setInterval(() => {
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        if (maxScroll <= 0) return;
+        const y = window.scrollY;
+        const step = 2.2;
+        if (y >= maxScroll - 4) dir = -1;
+        if (y <= 4) dir = 1;
+        window.scrollTo({ top: y + (step * dir), behavior: "auto" });
+      }, 30);
     }
-  </script>
+  }
+</script> 
 </body>
 </html>
