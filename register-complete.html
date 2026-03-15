@@ -310,3 +310,242 @@
       </div>
     </div>
   </div>
+  <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  getDocs,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
+  authDomain: "cypresswood-tournaments.firebaseapp.com",
+  projectId: "cypresswood-tournaments",
+  storageBucket: "cypresswood-tournaments.firebasestorage.app",
+  messagingSenderId: "162441374966",
+  appId: "1:162441374966:web:157285a2d5c39db1e810d7",
+  measurementId: "G-HL6Y9CLV8K"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const params = new URLSearchParams(location.search);
+const tournamentId = (params.get("t") || "").trim();
+
+const pageTitle = document.getElementById("pageTitle");
+const pageMeta = document.getElementById("pageMeta");
+
+const teamNameInput = document.getElementById("teamNameInput");
+const captainNameInput = document.getElementById("captainNameInput");
+const player2Input = document.getElementById("player2Input");
+const player3Input = document.getElementById("player3Input");
+const player4Input = document.getElementById("player4Input");
+const player5Input = document.getElementById("player5Input");
+const player6Input = document.getElementById("player6Input");
+
+const submitBtn = document.getElementById("submitBtn");
+
+const resultBox = document.getElementById("resultBox");
+const resultMeta = document.getElementById("resultMeta");
+
+const rosterBtn = document.getElementById("rosterBtn");
+const leaderboardBtn = document.getElementById("leaderboardBtn");
+const scorecardBtn = document.getElementById("scorecardBtn");
+
+const errorBox = document.getElementById("errorBox");
+
+function norm(v){
+  return String(v || "").trim().replace(/\s+/g, " ");
+}
+
+function normalizePlayers(arr){
+  const out = [];
+  const seen = new Set();
+
+  (arr || []).forEach(p => {
+    const n = norm(p);
+    if(!n) return;
+    const k = n.toLowerCase();
+    if(seen.has(k)) return;
+    seen.add(k);
+    out.push(n);
+  });
+
+  return out.slice(0, 6);
+}
+
+function buildSlotSequence(maxWaves = 12){
+  const slots = [];
+  for(let wave = 0; wave < maxWaves; wave++){
+    const letter = String.fromCharCode(65 + wave);
+    for(let hole = 1; hole <= 18; hole++){
+      slots.push(`${hole}${letter}`);
+    }
+  }
+  return slots;
+}
+
+function normalizeHoleLabel(raw){
+  const s = String(raw || "").trim().toUpperCase();
+  const m = s.match(/^([1-9]|1[0-8])([A-Z])$/);
+  if(!m) return "";
+  return `${parseInt(m[1], 10)}${m[2]}`;
+}
+
+async function getNextAvailableHole(){
+  const snap = await getDocs(collection(db, "tournaments", tournamentId, "registrations"));
+  const used = new Set();
+
+  snap.forEach(d => {
+    const x = d.data() || {};
+    const status = String(x.status || "").toLowerCase();
+    if(status === "cancelled") return;
+    const hole = normalizeHoleLabel(x.assignedHole || x.startHole || "");
+    if(hole) used.add(hole);
+  });
+
+  const slots = buildSlotSequence(12);
+  for(const slot of slots){
+    if(!used.has(slot)) return slot;
+  }
+  return "";
+}
+
+function showError(msg){
+  errorBox.textContent = msg;
+  errorBox.classList.add("show");
+}
+
+function clearError(){
+  errorBox.textContent = "";
+  errorBox.classList.remove("show");
+}
+
+function showSuccess(teamName, hole, players){
+  resultMeta.innerHTML = `
+    Team <b>${escapeHtml(teamName)}</b> has been registered.<br><br>
+    Starting Hole <span class="holeBadge">${escapeHtml(hole)}</span><br><br>
+    Players:<br>
+    ${players.map(p => `• ${escapeHtml(p)}`).join("<br>")}<br><br>
+    On tournament day, scan the tournament scoring QR code, select your team, and start scoring.
+  `;
+
+  rosterBtn.href = `./roster.html?t=${encodeURIComponent(tournamentId)}`;
+  leaderboardBtn.href = `./leaderboard.html?t=${encodeURIComponent(tournamentId)}`;
+  scorecardBtn.href = `./index.html?t=${encodeURIComponent(tournamentId)}`;
+
+  resultBox.classList.add("show");
+}
+
+function escapeHtml(s){
+  return String(s || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+async function loadTournament(){
+  if(!tournamentId){
+    pageMeta.textContent = "Missing tournament id (?t=...)";
+    return false;
+  }
+
+  try{
+    const snap = await getDoc(doc(db, "tournaments", tournamentId));
+    if(snap.exists()){
+      const t = snap.data() || {};
+      pageTitle.textContent = "Complete Team Registration";
+      pageMeta.textContent = `${t.name || "Tournament"}${t.date ? " • " + t.date : ""}`;
+      rosterBtn.href = `./roster.html?t=${encodeURIComponent(tournamentId)}`;
+      leaderboardBtn.href = `./leaderboard.html?t=${encodeURIComponent(tournamentId)}`;
+      scorecardBtn.href = `./index.html?t=${encodeURIComponent(tournamentId)}`;
+      return true;
+    }
+    pageMeta.textContent = `Tournament not found • ID: ${tournamentId}`;
+    return false;
+  }catch(e){
+    console.error(e);
+    pageMeta.textContent = `Tournament load error • ID: ${tournamentId}`;
+    return false;
+  }
+}
+
+submitBtn.addEventListener("click", async () => {
+  clearError();
+
+  if(!tournamentId){
+    showError("Missing tournament id.");
+    return;
+  }
+
+  const teamName = norm(teamNameInput.value);
+  const captain = norm(captainNameInput.value);
+  const players = normalizePlayers([
+    captain,
+    player2Input.value,
+    player3Input.value,
+    player4Input.value,
+    player5Input.value,
+    player6Input.value
+  ]);
+
+  if(!teamName){
+    showError("Please enter a team / company name.");
+    return;
+  }
+
+  if(!captain){
+    showError("Please enter the captain name.");
+    return;
+  }
+
+  if(players.length < 4){
+    showError("Please enter at least 4 players for a standard team registration.");
+    return;
+  }
+
+  submitBtn.disabled = true;
+
+  try{
+    const assignedHole = await getNextAvailableHole();
+
+    if(!assignedHole){
+      showError("No hole assignments are available.");
+      submitBtn.disabled = false;
+      return;
+    }
+
+    const ref = doc(collection(db, "tournaments", tournamentId, "registrations"));
+
+    await setDoc(ref, {
+      teamName,
+      captainName: captain,
+      players,
+      assignedHole,
+      status: "assigned",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+
+    showSuccess(teamName, assignedHole, players);
+  }catch(e){
+    console.error(e);
+    showError("Could not complete registration. Please try again.");
+  }finally{
+    submitBtn.disabled = false;
+  }
+});
+
+await loadTournament();
+</script>
+
+</body>
+</html>
