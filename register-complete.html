@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Tournament Registration</title>
+
+  <meta name="theme-color" content="#d9d1c2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#d9d1c2;
+      --panel:#ece7dc;
+      --panel-2:#e8e2d6;
+      --ink:#2f2a26;
+      --muted:#6c645c;
+      --line:#9a6217;
+      --line-soft:#d2cbc0;
+      --white:#ffffff;
+      --green:#2f7a31;
+      --blue:#12356f;
+      --shadow:0 8px 24px rgba(0,0,0,.06);
+      --radius:26px;
+      --radius-sm:18px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; }
+    body{
+      background:var(--bg);
+      color:var(--ink);
+      font-family:"Barlow", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+
+    .page{
+      width:min(920px, calc(100vw - 22px));
+      margin:18px auto 30px;
+      background:rgba(255,255,255,.18);
+      border:6px solid rgba(154,98,23,.45);
+      border-radius:32px;
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .main-card{
+      background:rgba(255,255,255,.18);
+      border:3px solid rgba(154,98,23,.75);
+      border-radius:28px;
+      overflow:hidden;
+    }
+
+    .hero{
+      padding:22px 20px 20px;
+      border-bottom:2px solid rgba(0,0,0,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
+      text-align:center;
+    }
+
+    .course-brand{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      margin-bottom:16px;
+    }
+
+    .course-logo-wrap{
+      width:min(220px, 60vw);
+      min-height:86px;
+      border-radius:22px;
+      border:3px solid rgba(154,98,23,.45);
+      background:rgba(255,255,255,.32);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:14px;
+      overflow:hidden;
+    }
+
+    .course-logo-wrap img{
+      max-width:100%;
+      max-height:76px;
+      object-fit:contain;
+      display:block;
+    }
+
+    .course-brand-name{
+      font-family:"Cinzel", serif;
+      font-size:clamp(18px, 3vw, 30px);
+      font-weight:800;
+      color:#2e2a28;
+      line-height:1.02;
+    }
+
+    .event-title{
+      margin:0;
+      font-family:"Cinzel", serif;
+      letter-spacing:.02em;
+      color:#2e2a28;
+      font-size:clamp(30px, 6vw, 58px);
+      line-height:.98;
+      font-weight:900;
+    }
+
+    .event-meta{
+      margin:14px auto 0;
+      max-width:760px;
+      font-size:clamp(17px, 2.8vw, 28px);
+      line-height:1.08;
+      color:#4b4641;
+      font-weight:700;
+    }
+
+    .hero-divider{
+      width:100%;
+      height:2px;
+      margin:18px 0 16px;
+      background:linear-gradient(90deg, transparent, rgba(154,98,23,.55), transparent);
+    }
+
+    .sponsor-hero{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+    }
+
+    .sponsor-kicker{
+      font-family:"Cinzel", serif;
+      font-size:clamp(14px, 2.2vw, 20px);
+      font-weight:800;
+      letter-spacing:.05em;
+      color:#6d5730;
+    }
+
+    .sponsor-logo-wrap{
+      width:min(240px, 64vw);
+      min-height:84px;
+      border-radius:22px;
+      border:3px solid rgba(154,98,23,.45);
+      background:rgba(255,255,255,.34);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:14px;
+      overflow:hidden;
+    }
+
+    .sponsor-logo-wrap img{
+      max-width:100%;
+      max-height:74px;
+      object-fit:contain;
+      display:block;
+    }
+
+    .sponsor-name{
+      font-size:clamp(20px, 3.4vw, 34px);
+      font-weight:900;
+      color:#2d2824;
+      line-height:1.04;
+    }
+
+    .sponsor-link{
+      color:#1b5fc8;
+      font-size:clamp(15px, 2.3vw, 18px);
+      font-weight:800;
+      text-decoration:none;
+      word-break:break-word;
+    }
+
+    .content{
+      padding:20px;
+    }
+
+    .notice{
+      margin:0 0 18px;
+      padding:16px 18px;
+      border-radius:20px;
+      border:3px solid rgba(154,98,23,.3);
+      background:rgba(255,255,255,.26);
+      font-size:clamp(17px, 2.4vw, 22px);
+      font-weight:800;
+      color:#4d463f;
+      text-align:center;
+    }
+
+    .dash-box{
+      margin:18px 0 0;
+      padding:18px;
+      border:4px dashed var(--line-soft);
+      border-radius:28px;
+      background:rgba(255,255,255,.22);
+    }
+
+    .dash-title{
+      margin:0 0 14px;
+      font-family:"Cinzel", serif;
+      font-size:clamp(24px, 3.6vw, 42px);
+      font-weight:900;
+      letter-spacing:.02em;
+      color:#2e2a28;
+    }
+
+    .field{
+      margin:0 0 18px;
+    }
+
+    .label{
+      display:block;
+      margin:0 0 10px;
+      font-family:"Cinzel", serif;
+      font-weight:800;
+      font-size:clamp(18px, 2.6vw, 28px);
+      color:#1f1b18;
+      letter-spacing:.01em;
+    }
+
+    .hint{
+      margin:10px 0 0;
+      color:#5f5851;
+      font-size:clamp(14px, 2vw, 18px);
+      line-height:1.15;
+      font-weight:700;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    textarea{
+      width:100%;
+      min-height:72px;
+      padding:18px 24px;
+      border-radius:24px;
+      border:4px solid var(--line);
+      background:#f4f4f4;
+      color:#1f1b18;
+      font-size:clamp(20px, 3.1vw, 34px);
+      font-weight:800;
+      font-family:"Barlow", sans-serif;
+      outline:none;
+      box-shadow:none;
+      appearance:none;
+      -webkit-appearance:none;
+    }
+
+    textarea{
+      min-height:110px;
+      resize:vertical;
+    }
+
+    input::placeholder,
+    textarea::placeholder{
+      color:transparent;
+      opacity:0;
+    }
+
+    .btn{
+      width:100%;
+      min-height:88px;
+      border:none;
+      border-radius:24px;
+      font-family:"Barlow", sans-serif;
+      font-size:clamp(24px, 4vw, 40px);
+      font-weight:900;
+      letter-spacing:.01em;
+      cursor:pointer;
+      padding:16px 18px;
+      text-align:center;
+      box-shadow:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .btn-green{ background:var(--green); color:#fff; }
+
+    .fine-print{
+      margin-top:16px;
+      text-align:center;
+      color:#635b53;
+      font-size:clamp(14px, 2vw, 17px);
+      line-height:1.15;
+      font-weight:700;
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:22px;
+      transform:translateX(-50%);
+      background:#1f1f1f;
+      color:#fff;
+      padding:12px 18px;
+      border-radius:999px;
+      font-weight:800;
+      font-size:16px;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease, transform .2s ease;
+      z-index:9999;
+    }
+
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(-4px);
+    }
+
+    .hidden{ display:none !important; }
+
+    #regSponsorTicker{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      z-index:40;
+      border-top:3px solid rgba(154,98,23,.35);
+      background:linear-gradient(180deg, rgba(255,252,245,.97), rgba(245,236,220,.98));
+      box-shadow:0 -8px 24px rgba(0,0,0,.12);
+      display:none;
+      color:#2d2824;
+    }
+
+    .reg-tickerTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:8px 14px;
+      border-bottom:1px solid rgba(154,98,23,.22);
+      font-family:"Cinzel",serif;
+      font-weight:800;
+      font-size:11px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:#6d5730;
+    }
+
+    .reg-tickerHint{ font-size:11px; font-weight:700; color:#8a7348; letter-spacing:.02em; }
+
+    .reg-tickerTrackWrap{
+      overflow:hidden;
+      white-space:nowrap;
+    }
+
+    .reg-tickerTrack{
+      display:inline-flex;
+      align-items:center;
+      gap:12px;
+      padding:10px 14px;
+      animation: regMarquee 26s linear infinite;
+      will-change:transform;
+    }
+
+    @keyframes regMarquee{
+      0%{ transform: translateX(0); }
+      100%{ transform: translateX(-50%); }
+    }
+
+    .sponsorPillReg{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:9px 14px;
+      border-radius:999px;
+      border:2px solid rgba(154,98,23,.4);
+      background:rgba(255,255,255,.75);
+      text-decoration:none;
+      color:#2d2824;
+      font-weight:900;
+      font-size:13px;
+      cursor:pointer;
+    }
+
+    .sponsorPillReg img{
+      width:26px;
+      height:26px;
+      object-fit:contain;
+      border-radius:6px;
+    }
+
+    body.has-reg-sponsor-ticker .page{
+      padding-bottom:96px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="main-card">
+      <section class="hero">
+        <div class="course-brand" id="courseBrandWrap">
+          <div class="course-logo-wrap hidden" id="courseLogoWrap">
+            <img id="courseLogoImg" alt="Course logo">
+          </div>
+          <div class="course-brand-name" id="courseBrandName">Golf Tournament</div>
+        </div>
+
+        <h1 class="event-title" id="eventTitle">TOURNAMENT REGISTRATION</h1>
+        <div class="event-meta" id="eventMeta">Team and player registration</div>
+
+        <div class="hero-divider"></div>
+
+        <div class="sponsor-hero" id="sponsorHeroWrap">
+          <div class="sponsor-kicker">SPONSORED BY</div>
+          <div class="sponsor-logo-wrap hidden" id="sponsorLogoWrap">
+            <img id="sponsorLogoImg" alt="Sponsor logo">
+          </div>
+          <div class="sponsor-name" id="sponsorHeroName"></div>
+          <a id="sponsorHeroLink" class="sponsor-link hidden" target="_blank" rel="noopener">Visit Sponsor</a>
+        </div>
+      </section>
+
+      <section class="content">
+        <div class="notice hidden" id="topNotice"></div>
+
+        <div class="dash-box">
+          <h2 class="dash-title">TEAM REGISTRATION</h2>
+
+          <div class="field">
+            <label class="label" for="teamName">Team / Company Name</label>
+            <input id="teamName" type="text" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="captainName">Captain Name</label>
+            <input id="captainName" type="text" />
+          </div>
+
+          <div class="field handicap-field">
+            <label class="label" for="captainHandicap">Captain Handicap</label>
+            <input id="captainHandicap" type="number" min="0" max="54" />
+            <div class="hint">Enter handicap or index (e.g., 12)</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="player2">Player 2</label>
+            <input id="player2" type="text" />
+          </div>
+
+          <div class="field handicap-field">
+            <label class="label" for="player2Handicap">Player 2 Handicap</label>
+            <input id="player2Handicap" type="number" min="0" max="54" />
+            <div class="hint">Enter handicap or index (e.g., 12)</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="player3">Player 3</label>
+            <input id="player3" type="text" />
+          </div>
+
+          <div class="field handicap-field">
+            <label class="label" for="player3Handicap">Player 3 Handicap</label>
+            <input id="player3Handicap" type="number" min="0" max="54" />
+            <div class="hint">Enter handicap or index (e.g., 12)</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="player4">Player 4</label>
+            <input id="player4" type="text" />
+          </div>
+
+          <div class="field handicap-field">
+            <label class="label" for="player4Handicap">Player 4 Handicap</label>
+            <input id="player4Handicap" type="number" min="0" max="54" />
+            <div class="hint">Enter handicap or index (e.g., 12)</div>
+          </div>
+                    <div class="field">
+            <label class="label" for="player5">Player 5</label>
+            <input id="player5" type="text" />
+          </div>
+
+          <div class="field handicap-field">
+            <label class="label" for="player5Handicap">Player 5 Handicap</label>
+            <input id="player5Handicap" type="number" min="0" max="54" />
+            <div class="hint">Enter handicap or index (e.g., 12)</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="player6">Player 6</label>
+            <input id="player6" type="text" />
+          </div>
+
+          <div class="field handicap-field">
+            <label class="label" for="player6Handicap">Player 6 Handicap</label>
+            <input id="player6Handicap" type="number" min="0" max="54" />
+            <div class="hint">Enter handicap or index (e.g., 12)</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="captainEmail">Captain Email</label>
+            <input id="captainEmail" type="email" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="captainPhone">Captain Phone</label>
+            <input id="captainPhone" type="tel" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="notes">Notes</label>
+            <textarea id="notes"></textarea>
+          </div>
+
+          <button class="btn btn-green" id="submitRegistrationBtn" type="button">Submit Registration</button>
+
+          <div class="fine-print" id="submitMessage">
+            Your registration will be saved for this tournament.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Saved</div>
+
+  <div id="regSponsorTicker" aria-hidden="true">
+    <div class="reg-tickerTop">
+      <span>Sponsored by</span>
+      <span class="reg-tickerHint">(tap to open)</span>
+    </div>
+    <div class="reg-tickerTrackWrap">
+      <div class="reg-tickerTrack" id="regTickerTrack"></div>
+    </div>
+  </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
+      authDomain: "cypresswood-tournaments.firebaseapp.com",
+      projectId: "cypresswood-tournaments",
+      storageBucket: "cypresswood-tournaments.firebasestorage.app",
+      messagingSenderId: "162441374966",
+      appId: "1:162441374966:web:157285a2d5c39db1e810d7",
+      measurementId: "G-HL6Y9CLV8K"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    await signInAnonymously(auth);
+    const db = getFirestore(app);
+    const functions = getFunctions(app, "us-central1");
+    const registerTeamCallable = httpsCallable(functions, "registerTeam");
+
+    const $ = (id) => document.getElementById(id);
+
+    const params = new URLSearchParams(location.search);
+    const tournamentId = (params.get("id") || params.get("t") || "").trim();
+
+    const state = {
+      tournamentId,
+      tournament: null
+    };
+
+    function showToast(msg){
+      const el = $("toast");
+      if(!el) return;
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => el.classList.remove("show"), 1700);
+    }
+
+    function safeText(value, fallback=""){
+      return String(value || fallback || "").trim();
+    }
+
+    function normalizeUrl(url){
+      const raw = String(url || "").trim();
+      if(!raw) return "";
+      if(/^https?:\/\//i.test(raw)) return raw;
+      if(raw.startsWith("//")) return location.protocol + raw;
+      return raw;
+    }
+
+    function escapeHtml(str){
+      return String(str || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function hideRegSponsorTicker(){
+      const el = $("regSponsorTicker");
+      const track = $("regTickerTrack");
+      if(track) track.innerHTML = "";
+      if(el) el.style.display = "none";
+      document.body.classList.remove("has-reg-sponsor-ticker");
+    }
+
+    function getActiveSponsorsForTicker(tournament){
+      const raw = Array.isArray(tournament?.sponsors) ? tournament.sponsors : [];
+      const active = raw
+        .filter(s => s && s.active !== false)
+        .map(s => ({
+          name: safeText(s?.name, ""),
+          logoUrl: safeText(s?.logoUrl || s?.logo, ""),
+          website: normalizeUrl(safeText(s?.website || s?.url, "")),
+          order: Number(s?.order ?? 999)
+        }))
+        .filter(s => s.name || s.logoUrl)
+        .sort((a,b) => a.order - b.order);
+      return active;
+    }
+
+    function regTickerPillHtml(name, logoUrl, website){
+      const n = (name || "").trim() || "Sponsor";
+      const l = (logoUrl || "").trim();
+      const u = (website || "").trim();
+      const href = u || "#";
+      const noNav = !u ? "pointer-events:none; opacity:.75;" : "";
+      const img = l
+        ? `<img src="${escapeHtml(l)}" alt="">`
+        : `<img src="./assets/icon-192.png" alt="">`;
+      return `<a class="sponsorPillReg" href="${escapeHtml(href)}" target="_blank" rel="noopener" style="${noNav}">${img}<span>${escapeHtml(n)}</span></a>`;
+    }
+
+    function renderRegSponsorTicker(tournament){
+      const ticker = $("regSponsorTicker");
+      const track = $("regTickerTrack");
+      if(!ticker || !track) return;
+
+      if(tournament && tournament.sponsorMarketingEnabled === false){
+        hideRegSponsorTicker();
+        return;
+      }
+
+      const active = getActiveSponsorsForTicker(tournament);
+
+      if(!active.length){
+        const legacyName = safeText(tournament?.sponsorName);
+        const legacyLogo = safeText(tournament?.sponsorLogo);
+        const legacyUrl  = normalizeUrl(safeText(tournament?.sponsorUrl));
+        if(!legacyName && !legacyLogo){
+          hideRegSponsorTicker();
+          return;
+        }
+        const pill = regTickerPillHtml(legacyName || "Tournament Sponsor", legacyLogo, legacyUrl);
+        track.innerHTML = pill + pill + pill + pill;
+        ticker.style.display = "block";
+        ticker.setAttribute("aria-hidden", "false");
+        document.body.classList.add("has-reg-sponsor-ticker");
+        return;
+      }
+
+      const pills = active.map(s => regTickerPillHtml(s.name, s.logoUrl, s.website)).join("");
+      track.innerHTML = pills + pills;
+      ticker.style.display = "block";
+      ticker.setAttribute("aria-hidden", "false");
+      document.body.classList.add("has-reg-sponsor-ticker");
+    }
+
+    function isHandicapEnabled(){
+      return String(state.tournament?.handicapEnabled || "off").toLowerCase() === "on";
+    }
+
+    function setHandicapVisibility(enabled){
+      document.querySelectorAll(".handicap-field").forEach(el => {
+        el.classList.toggle("hidden", !enabled);
+      });
+    }
+
+    function getTopSponsor(tournament){
+      const sponsors = Array.isArray(tournament?.sponsors) ? tournament.sponsors : [];
+      const active = sponsors
+        .filter(s => s && s.active !== false)
+        .sort((a,b)=>(Number(a.order ?? 999) - Number(b.order ?? 999)));
+
+      if(active.length) return active[0];
+
+      const legacyName = safeText(tournament?.sponsorName);
+      const legacyLogo = safeText(tournament?.sponsorLogo);
+      const legacyUrl  = safeText(tournament?.sponsorUrl);
+
+      if(legacyName || legacyLogo || legacyUrl){
+        return {
+          name: legacyName,
+          logoUrl: legacyLogo,
+          website: legacyUrl
+        };
+      }
+
+      return null;
+    }
+
+    function getCourseBranding(courseName){
+      const name = safeText(courseName).toLowerCase();
+
+      const map = {
+        tradition: {
+          brandName: "Tradition Course",
+          logoUrl: ""
+        },
+        cypress: {
+          brandName: "Cypress Course",
+          logoUrl: ""
+        }
+      };
+
+      return map[name] || {
+        brandName: safeText(courseName, "Golf Course"),
+        logoUrl: ""
+      };
+    }
+
+    function setVisible(el, show){
+      if(!el) return;
+      el.classList.toggle("hidden", !show);
+    }
+
+    function renderCourseBrand(tournament){
+      const courseName = safeText(tournament?.defaultCourse, "Golf Tournament");
+      const customLogo = safeText(
+        tournament?.courseLogoUrl ||
+        tournament?.courseBrandLogoUrl ||
+        tournament?.golfCourseLogoUrl
+      );
+
+      const branding = getCourseBranding(courseName);
+      const logoUrl = normalizeUrl(customLogo || branding.logoUrl || "");
+
+      $("courseBrandName").textContent = branding.brandName || courseName || "Golf Tournament";
+
+      if(logoUrl){
+        $("courseLogoImg").src = logoUrl;
+        $("courseLogoImg").alt = `${courseName || "Course"} logo`;
+        setVisible($("courseLogoWrap"), true);
+      }else{
+        $("courseLogoImg").removeAttribute("src");
+        setVisible($("courseLogoWrap"), false);
+      }
+    }
+
+    function renderSponsorHero(tournament){
+      if(tournament && tournament.sponsorMarketingEnabled === false){
+        $("sponsorHeroName").textContent = "";
+        $("sponsorHeroLink").removeAttribute("href");
+        $("sponsorHeroLink").textContent = "";
+        $("sponsorLogoImg").removeAttribute("src");
+        setVisible($("sponsorLogoWrap"), false);
+        setVisible($("sponsorHeroLink"), false);
+        setVisible($("sponsorHeroWrap"), false);
+        return;
+      }
+
+      const sponsor = getTopSponsor(tournament);
+
+      if(!sponsor){
+        $("sponsorHeroName").textContent = "";
+        $("sponsorHeroLink").removeAttribute("href");
+        $("sponsorHeroLink").textContent = "";
+        $("sponsorLogoImg").removeAttribute("src");
+        setVisible($("sponsorLogoWrap"), false);
+        setVisible($("sponsorHeroLink"), false);
+        setVisible($("sponsorHeroWrap"), false);
+        return;
+      }
+
+      const sponsorName = safeText(sponsor.name, "");
+      const sponsorLogo = normalizeUrl(safeText(sponsor.logoUrl, ""));
+      const sponsorUrl  = normalizeUrl(safeText(sponsor.website, ""));
+
+      setVisible($("sponsorHeroWrap"), true);
+      $("sponsorHeroName").textContent = sponsorName || "";
+
+      if(sponsorLogo){
+        $("sponsorLogoImg").src = sponsorLogo;
+        $("sponsorLogoImg").alt = sponsorName ? `${sponsorName} logo` : "Sponsor logo";
+        setVisible($("sponsorLogoWrap"), true);
+      }else{
+        $("sponsorLogoImg").removeAttribute("src");
+        setVisible($("sponsorLogoWrap"), false);
+      }
+
+      if(sponsorUrl){
+        $("sponsorHeroLink").href = sponsorUrl;
+        $("sponsorHeroLink").textContent = sponsorUrl.replace(/^https?:\/\//i, "");
+        setVisible($("sponsorHeroLink"), true);
+      }else{
+        $("sponsorHeroLink").removeAttribute("href");
+        $("sponsorHeroLink").textContent = "";
+        setVisible($("sponsorHeroLink"), false);
+      }
+    }
+
+    function renderEventHeader(tournament){
+      const title = safeText(tournament?.tournamentName || tournament?.name, "TOURNAMENT REGISTRATION");
+      const date  = safeText(tournament?.eventDate || tournament?.date, "");
+      const course = safeText(tournament?.defaultCourse, "");
+      const format = safeText(tournament?.formatOfPlay, "");
+
+      $("eventTitle").textContent = title;
+
+      const parts = [date, course, format].filter(Boolean);
+      $("eventMeta").textContent = parts.length ? parts.join(" • ") : "Team and player registration";
+
+      renderCourseBrand(tournament);
+      renderSponsorHero(tournament);
+      renderRegSponsorTicker(tournament);
+    }
+
+    function renderMissingTournamentState(message){
+      $("eventTitle").textContent = "TOURNAMENT REGISTRATION";
+      $("eventMeta").textContent = "Team and player registration";
+      $("courseBrandName").textContent = "Golf Tournament";
+      setVisible($("courseLogoWrap"), false);
+      setVisible($("sponsorHeroWrap"), false);
+      hideRegSponsorTicker();
+
+      const topNotice = $("topNotice");
+      if(topNotice){
+        topNotice.textContent = message || "";
+        topNotice.classList.toggle("hidden", !message);
+      }
+    }
+
+    async function loadTournament(){
+      if(!state.tournamentId){
+        state.tournament = null;
+        setHandicapVisibility(false);
+        renderMissingTournamentState("This registration link is missing a tournament id.");
+        return;
+      }
+
+      try{
+        const snap = await getDoc(doc(db, "tournaments", state.tournamentId));
+
+        if(!snap.exists()){
+          state.tournament = null;
+          setHandicapVisibility(false);
+          renderMissingTournamentState("This registration page is ready. Tournament details will appear when available.");
+          return;
+        }
+
+        state.tournament = snap.data() || {};
+        setHandicapVisibility(isHandicapEnabled());
+        renderEventHeader(state.tournament);
+
+        const topNotice = $("topNotice");
+        if(topNotice){
+          topNotice.textContent = "";
+          topNotice.classList.add("hidden");
+        }
+      }catch(err){
+        console.error(err);
+        state.tournament = null;
+        setHandicapVisibility(false);
+        renderMissingTournamentState("Unable to load tournament details right now.");
+      }
+    }
+
+    function getVal(id){
+      const el = $(id);
+      return el ? el.value.trim() : "";
+    }
+
+    function getNumberVal(id){
+      const el = $(id);
+      if(!el) return null;
+
+      const raw = String(el.value || "").trim();
+      if(raw === "") return null;
+
+      const n = Number(raw);
+      if(!Number.isFinite(n) || n < 0) return null;
+
+      return Math.round(n);
+    }
+
+    function buildPlayerObjects(){
+      const handicapOn = isHandicapEnabled();
+
+      const rawPlayers = [
+        { name: getVal("captainName"), handicap: handicapOn ? getNumberVal("captainHandicap") : null, isCaptain: true },
+        { name: getVal("player2"), handicap: handicapOn ? getNumberVal("player2Handicap") : null, isCaptain: false },
+        { name: getVal("player3"), handicap: handicapOn ? getNumberVal("player3Handicap") : null, isCaptain: false },
+        { name: getVal("player4"), handicap: handicapOn ? getNumberVal("player4Handicap") : null, isCaptain: false },
+        { name: getVal("player5"), handicap: handicapOn ? getNumberVal("player5Handicap") : null, isCaptain: false },
+        { name: getVal("player6"), handicap: handicapOn ? getNumberVal("player6Handicap") : null, isCaptain: false }
+      ];
+
+      const out = [];
+      const seen = new Set();
+
+      rawPlayers.forEach(player => {
+        const name = safeText(player.name);
+        if(!name) return;
+
+        const key = name.toLowerCase();
+        if(seen.has(key)) return;
+        seen.add(key);
+
+        const item = {
+          name,
+          isCaptain: !!player.isCaptain
+        };
+
+        if(handicapOn){
+          item.handicap = player.handicap ?? 0;
+        }
+
+        out.push(item);
+      });
+
+      return out.slice(0, 6);
+    }
+
+    function buildScorecardUrl(registrationId){
+      const url = new URL("./index.html", window.location.href);
+
+      if(state.tournamentId){
+        url.searchParams.set("id", state.tournamentId);
+        url.searchParams.set("t", state.tournamentId);
+      }
+
+      if(registrationId){
+        url.searchParams.set("registration", registrationId);
+      }
+
+      return url.toString();
+    }
+
+    function buildShareText(payload, assignedHole, scorecardUrl){
+      const tournamentName = safeText(payload?.tournamentName || state.tournament?.tournamentName || state.tournament?.name, "Tournament Registration");
+      const courseName = safeText(payload?.defaultCourse || state.tournament?.defaultCourse);
+      const formatName = safeText(payload?.formatOfPlay || state.tournament?.formatOfPlay);
+      const eventDate = safeText(state.tournament?.eventDate || state.tournament?.date);
+      const teamName = safeText(payload?.teamName);
+      const captainName = safeText(payload?.captainName);
+
+      const playerNames = Array.isArray(payload?.players)
+        ? payload.players.map(x => safeText(x)).filter(Boolean)
+        : [];
+
+      const lines = [];
+
+      if(tournamentName) lines.push(tournamentName);
+
+      const metaLine = [eventDate, courseName, formatName].filter(Boolean).join(" • ");
+      if(metaLine) lines.push(metaLine);
+
+      lines.push("");
+      lines.push("Registration confirmed.");
+
+      if(assignedHole){
+        lines.push(`Starting hole: ${assignedHole}`);
+      }
+
+      if(teamName){
+        lines.push(`Team: ${teamName}`);
+      }
+
+      if(captainName){
+        lines.push(`Captain: ${captainName}`);
+      }
+
+      if(playerNames.length){
+        lines.push("");
+        lines.push("Players:");
+        playerNames.forEach(name => lines.push(`- ${name}`));
+      }
+
+      lines.push("");
+      lines.push("Please arrive at your starting hole before the shotgun start. The organizer can still adjust assignments if needed.");
+
+      if(scorecardUrl){
+        lines.push("");
+        lines.push("Scorecard:");
+        lines.push(scorecardUrl);
+      }
+
+      return lines.join("\n");
+    }
+
+    async function copyText(text){
+      try{
+        await navigator.clipboard.writeText(text);
+        return true;
+      }catch(err){
+        return false;
+      }
+    }
+
+    function renderRegistrationComplete(payload, assignedHole, registrationId){
+      const box = document.querySelector(".dash-box");
+      if(!box) return;
+
+      const scorecardUrl = buildScorecardUrl(registrationId);
+
+      box.innerHTML = `
+        <h2 class="dash-title">THANK YOU FOR REGISTERING</h2>
+        <div class="notice" style="margin-top:12px;">
+          Your registration has been received successfully.
+        </div>
+        <div class="fine-print" style="margin-top:14px; font-size:clamp(18px,2.6vw,24px); font-weight:900;">
+          ${assignedHole ? `Your starting hole is <b>${assignedHole}</b>.` : `Your team has been added to the roster.`}
+        </div>
+        <div class="fine-print" style="margin-top:10px;">
+          Please arrive at your starting hole before the shotgun start. The organizer can still adjust assignments if needed.
+        </div>
+
+        <div style="margin-top:18px; padding:18px 16px; border:3px solid rgba(154,98,23,.34); border-radius:24px; background:rgba(255,255,255,.26); text-align:center;">
+          <div style="margin:0 0 10px; font-family:'Cinzel', serif; font-size:clamp(24px, 3.3vw, 36px); font-weight:900; color:#2e2a28; line-height:1.05;">
+            Before You Continue
+          </div>
+
+          <div style="margin:0 auto 14px; max-width:640px; color:#4d463f; font-size:clamp(17px, 2.3vw, 22px); font-weight:800; line-height:1.2;">
+            Please save or share your starting hole and registration details.
+            You’ll need this information to access your scorecard and avoid delays at the event.
+          </div>
+
+          <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:12px; margin-top:10px;">
+            <button type="button" id="shareRegistrationBtn" style="min-width:240px; min-height:64px; padding:14px 18px; border-radius:20px; border:4px solid #9a6217; font-family:'Barlow', sans-serif; font-size:clamp(20px, 2.8vw, 28px); font-weight:900; line-height:1; cursor:pointer; background:#2f7a31; color:#fff;">
+              Save / Share Now
+            </button>
+
+            <a id="continueToScorecardBtn" href="${scorecardUrl}" style="min-width:240px; min-height:64px; padding:14px 18px; border-radius:20px; border:4px solid #9a6217; font-family:'Barlow', sans-serif; font-size:clamp(20px, 2.8vw, 28px); font-weight:900; line-height:1; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; background:#ece7dc; color:#2f2a26;">
+              Continue to Scorecard
+            </a>
+          </div>
+
+          <div id="completePanelStatus" style="margin-top:12px; min-height:22px; color:#2f7a31; font-size:clamp(14px, 2vw, 17px); font-weight:800; text-align:center;"></div>
+        </div>
+      `;
+
+      const shareBtn = $("shareRegistrationBtn");
+      const statusEl = $("completePanelStatus");
+
+      if(shareBtn){
+        shareBtn.addEventListener("click", async () => {
+          const text = buildShareText(payload, assignedHole, scorecardUrl);
+
+          try{
+            if(navigator.share){
+              await navigator.share({
+                title: "Tournament Registration Confirmation",
+                text,
+                url: scorecardUrl
+              });
+              if(statusEl) statusEl.textContent = "Saved. You’re ready to continue.";
+              return;
+            }
+
+            const copied = await copyText(text);
+            if(statusEl){
+              statusEl.textContent = copied
+                ? "Confirmation copied. You can now paste and send it."
+                : "Share is not available on this device.";
+            }
+          }catch(err){
+            if(String(err?.name) === "AbortError"){
+              if(statusEl) statusEl.textContent = "";
+              return;
+            }
+            console.error(err);
+            if(statusEl) statusEl.textContent = "Unable to share right now. Please try again.";
+          }
+        });
+      }
+    }
+
+    async function handleSubmit(){
+      if(!state.tournamentId){
+        $("submitMessage").textContent = "This registration link is missing a tournament id.";
+        showToast("Missing tournament id");
+        return;
+      }
+
+      const hasAnyValue = [
+        getVal("teamName"),
+        getVal("captainName"),
+        getVal("player2"),
+        getVal("player3"),
+        getVal("player4"),
+        getVal("player5"),
+        getVal("player6"),
+        getVal("captainEmail"),
+        getVal("captainPhone"),
+        getVal("notes")
+      ].some(Boolean);
+
+      if(!hasAnyValue){
+        $("submitMessage").textContent = "Please enter at least one name, team, or contact detail before submitting.";
+        showToast("Add some info first");
+        return;
+      }
+
+      const btn = $("submitRegistrationBtn");
+      btn.disabled = true;
+      btn.textContent = "Submitting...";
+
+      try{
+        const playerDetails = buildPlayerObjects();
+        const handicapOn = isHandicapEnabled();
+
+        const result = await registerTeamCallable({
+          tournamentId: state.tournamentId,
+          teamName: getVal("teamName"),
+          captainName: getVal("captainName"),
+          captainEmail: getVal("captainEmail"),
+          captainPhone: getVal("captainPhone"),
+          playerDetails,
+          notes: getVal("notes"),
+          handicapEnabled: handicapOn,
+          handicapPercent: handicapOn ? Number(state.tournament?.handicapPercent || 100) : 0
+        });
+
+        const res = result.data || {};
+        const registrationId = res.registrationId || "";
+        const assignedHole = res.assignedHole || "";
+        const payload = res.registration;
+
+        if(!registrationId || !payload){
+          throw new Error("Invalid response from registration service.");
+        }
+
+        renderRegistrationComplete(payload, assignedHole, registrationId);
+        showToast("Registration submitted");
+      }catch(err){
+        console.error(err);
+        let userMsg = "There was a problem submitting your registration. Please try again.";
+        const code = err?.code || "";
+        const msg = String(err?.message || err || "");
+
+        if(code === "functions/resource-exhausted" || msg.includes("No open starting holes")){
+          userMsg = "No open starting holes are available for this tournament. Please contact the organizer.";
+        }else if(code === "functions/not-found"){
+          userMsg = "This tournament could not be found. Check your link and try again.";
+        }else if(code === "functions/unauthenticated" || code === "unauthenticated"){
+          userMsg = "Please wait for the page to finish loading, then try again.";
+        }else if(msg && msg.length < 220){
+          userMsg = msg;
+        }
+
+        $("submitMessage").textContent = userMsg;
+        showToast("Submission failed");
+        alert("Submission failed: " + userMsg);
+        btn.disabled = false;
+        btn.textContent = "Submit Registration";
+      }
+    }
+
+    const submitBtn = $("submitRegistrationBtn");
+    if(submitBtn){
+      submitBtn.addEventListener("click", handleSubmit);
+    }
+
+    const sponsorLink = $("sponsorHeroLink");
+    if(sponsorLink){
+      sponsorLink.addEventListener("click", (e) => {
+        const href = sponsorLink.getAttribute("href");
+        if(!href) e.preventDefault();
+      });
+    }
+
+    (async function init(){
+      setHandicapVisibility(false);
+      await loadTournament();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,3159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Cypresswood Scorecard</title>
+
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#7a4a0b">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Scorecard">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --paper:#e9e2d4;
+      --ink:#111;
+      --grid:#2b2b2b;
+      --headerRow:#d8d1c3;
+      --parRow:#a85a13;
+      --parRowText:#fff;
+      --hcpRow:#f2e6b9;
+      --cellBg:#f8f4ea;
+      --border:#7a4a0b;
+      --card:#efe7d7;
+      --chip:#ffffff55;
+      --navy:#0d2a55;
+      --navy2:#0b2246;
+      --green:#2f6b2f;
+      --danger:#b6422d;
+    }
+
+    *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
+
+    body{
+      margin:0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 10px 10px 24px;
+    }
+
+    .card{
+      background: var(--card);
+      border: 3px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 22px rgba(0,0,0,.18);
+    }
+
+    .header-img{
+      width: 100%;
+      height: auto !important;
+      max-height: 210px;
+      display: block;
+      object-fit: contain !important;
+      object-position: center !important;
+      background: var(--card);
+    }
+
+    #teamPickerScreen{
+      display:none;
+      padding:12px 10px;
+      background: var(--card);
+      border-bottom:1px solid rgba(0,0,0,.08);
+    }
+
+    .team-picker-top{
+      display:grid;
+      gap:8px;
+    }
+
+    .team-picker-title{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:16px;
+    }
+
+    .team-picker-meta{
+      font-size:13px;
+      opacity:.85;
+      line-height:1.35;
+    }
+
+    .team-picker-search{
+      margin-top:10px;
+      display:grid;
+      gap:10px;
+    }
+
+    .team-picker-search input{
+      width:100%;
+      padding:12px 10px;
+      border:2px solid #7a4a0b;
+      border-radius:10px;
+      background:#fff;
+      font-size:16px;
+      font-weight:800;
+      color:#111;
+    }
+
+    .team-list{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .team-card{
+      border:2px solid rgba(122,74,11,.18);
+      border-radius:12px;
+      background: rgba(255,255,255,.55);
+      padding:12px;
+      display:grid;
+      gap:8px;
+      cursor:pointer;
+    }
+
+    .team-card:active{
+      transform: translateY(1px);
+    }
+
+    .team-card-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .team-card-name{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:14px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+
+    .team-card-hole{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:6px 10px;
+      border-radius:999px;
+      border:2px solid rgba(122,74,11,.18);
+      background:#fff;
+      font-weight:900;
+      font-size:12px;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    .team-card-players{
+      font-size:13px;
+      line-height:1.35;
+      font-weight:800;
+      color:rgba(0,0,0,.82);
+    }
+
+    .team-picker-empty{
+      margin-top:10px;
+      padding:12px;
+      border-radius:12px;
+      border:2px dashed rgba(0,0,0,.16);
+      background: rgba(255,255,255,.40);
+      font-weight:900;
+      font-size:13px;
+      display:none;
+    }
+
+    #joinScreen{
+      display:none;
+      padding:12px 10px;
+      background: var(--card);
+      border-bottom:1px solid rgba(0,0,0,.08);
+    }
+
+    .team-mates-block{
+      display:grid;
+      gap:8px;
+      margin-top:10px;
+      padding:10px;
+      border:2px dashed rgba(0,0,0,.18);
+      border-radius:12px;
+      background: rgba(255,255,255,.35);
+    }
+
+    .team-mates-block label{
+      font-weight:900;
+      font-size:13px;
+      display:block;
+    }
+
+    .team-mates-block input{
+      width:100%;
+      padding:12px 10px;
+      border:2px solid #7a4a0b;
+      border-radius:10px;
+      background:#fff;
+      margin-top:6px;
+      font-size:16px;
+      font-weight:800;
+    }
+
+    #scoreSponsor{
+      display:none;
+      margin: 10px 10px 0;
+      border:2px solid rgba(0,0,0,.14);
+      border-radius:12px;
+      background:rgba(255,255,255,.55);
+      padding:10px 12px;
+      cursor:pointer;
+    }
+
+    #scoreSponsor:active{ transform: translateY(1px); }
+
+    #scoreSponsorTitle{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:13px;
+      opacity:.9;
+    }
+
+    #scoreSponsorRow{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-top:8px;
+    }
+
+    #scoreSponsorLogo{
+      width:44px;
+      height:44px;
+      border-radius:10px;
+      object-fit:cover;
+      border:2px solid rgba(0,0,0,.12);
+      background:rgba(0,0,0,.06);
+      display:none;
+    }
+
+    #scoreSponsorName{
+      font-weight:900;
+      font-size:16px;
+    }
+
+    #scoreSponsorTicker{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      z-index:50;
+      border-top:2px solid rgba(122,74,11,.35);
+      background:linear-gradient(180deg, rgba(239,231,215,.98), rgba(233,226,212,.99));
+      box-shadow:0 -6px 20px rgba(0,0,0,.1);
+      display:none;
+    }
+
+    .scoreTickerTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      padding:6px 12px;
+      border-bottom:1px solid rgba(122,74,11,.2);
+      font-family:Cinzel,serif;
+      font-weight:800;
+      font-size:10px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      color:#5c4010;
+    }
+
+    .scoreTickerHint{ font-size:10px; font-weight:800; color:#7a6a4a; }
+
+    .scoreTickerTrackWrap{ overflow:hidden; white-space:nowrap; }
+
+    .scoreTickerTrack{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 12px;
+      animation: scoreMarquee 24s linear infinite;
+      will-change:transform;
+    }
+
+    @keyframes scoreMarquee{
+      0%{ transform: translateX(0); }
+      100%{ transform: translateX(-50%); }
+    }
+
+    .scoreTickerPill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:2px solid rgba(122,74,11,.28);
+      background:rgba(255,255,255,.72);
+      text-decoration:none;
+      color:#111;
+      font-weight:900;
+      font-size:12px;
+      cursor:pointer;
+    }
+
+    .scoreTickerPill img{
+      width:24px;
+      height:24px;
+      object-fit:contain;
+      border-radius:6px;
+    }
+
+    body.has-score-sponsor-ticker .wrap{
+      padding-bottom:88px;
+    }
+
+    .coursebar{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap:10px;
+      padding: 8px 10px;
+      background: var(--card);
+      border-top: 1px solid rgba(0,0,0,.08);
+      border-bottom: 1px solid rgba(0,0,0,.08);
+    }
+
+    .course-title{
+      font-family:'Cinzel', serif;
+      font-weight: 900;
+      letter-spacing: .5px;
+      font-size: 14px;
+      line-height: 1.1;
+    }
+
+    .course-hint{
+      font-size: 12px;
+      opacity:.8;
+    }
+
+    .course-select{
+      border: 2px solid var(--border);
+      background: #e7ddcb;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .table-shell{ padding: 0px; background: var(--card); }
+
+    .hint{
+      padding: 8px 12px 0;
+      font-size: 13px;
+      opacity:.85;
+    }
+
+    .lockBanner{
+      display:none;
+      margin: 10px 10px 0;
+      padding: 10px 12px;
+      border:2px solid rgba(122,74,11,.20);
+      border-radius:12px;
+      background: rgba(255,255,255,.62);
+      font-weight: 900;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .lockBanner.show{ display:block; }
+
+    .lockedStage{
+      opacity:.68;
+      filter: saturate(.88);
+    }
+
+    .scroll-x{
+      overflow-x: auto;
+      overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: rgba(255,255,255,.12);
+      margin: 10px 10px 0;
+      width: calc(100% - 20px);
+      box-sizing: border-box;
+    }
+
+    table{
+      border-collapse: collapse;
+      min-width: 1120px;
+      width: 100%;
+    }
+
+    th, td{
+      border: 2px solid var(--grid);
+      padding: 0;
+      height: 36px;
+      background: var(--cellBg);
+    }
+
+    .label,
+    thead th{
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .label{
+      width: 140px;
+      font-weight: 900;
+      padding: 0 10px;
+      text-align: left;
+      background: #e1d8c8;
+      white-space: nowrap;
+    }
+
+    thead th{
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--headerRow);
+      font-weight: 900;
+      height: 44px;
+      text-align:center;
+      box-shadow: inset 0 -2px 0 rgba(0,0,0,.18);
+    }
+
+    .hole{ width: 44px; text-align:center; font-weight: 900; }
+    .sum{ width: 60px; text-align:center; font-weight: 900; }
+
+    .yard{
+      text-align:center;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-weight: 900;
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .row-black td{ background:#0d2a55; color:#fff; }
+    .row-blue  td{ background:#1f5ea8; color:#fff; }
+    .row-white td{ background:#f7f7f7; color:#111; }
+    .row-silver td{ background:#cfcfcf; color:#111; }
+    .row-forest td{ background:#1f4f3a; color:#fff; }
+    .row-copper td{ background:#a85a13; color:#fff; }
+
+    .row-black .label{ background:#0b2246; color:#fff; }
+    .row-blue  .label{ background:#174c89; color:#fff; }
+    .row-white .label{ background:#f0f0f0; color:#111; }
+    .row-silver .label{ background:#bdbdbd; color:#111; }
+    .row-forest .label{ background:#163a2b; color:#fff; }
+    .row-copper .label{ background:#8f4b10; color:#fff; }
+
+    .row-par td{ background: var(--parRow); color: var(--parRowText); }
+    .row-par .label{ background: #8f4b10; color:#fff; }
+
+    .row-hcp td{ background: var(--hcpRow); color:#111; }
+    .row-hcp .label{ background: #e9dcaa; }
+
+    .score-input{
+      width: 100%;
+      height: 100%;
+      border: 0;
+      outline: none;
+      background: rgba(255,255,255,.35) !important;
+      text-align: center;
+      font-weight: 950;
+      font-size: 18px;
+      color: #111;
+      -webkit-appearance: none;
+      appearance: none;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-variant-numeric: tabular-nums;
+    }
+
+    td:has(.score-input){
+      background: linear-gradient(to bottom, rgba(255,255,255,.45), rgba(255,255,255,.15));
+    }
+
+    .score-input:focus{
+      box-shadow: inset 0 0 0 2px rgba(122,74,11,.55);
+      background: rgba(255,255,255,.55) !important;
+    }
+
+    .player-name{
+      width: 100%;
+      height: 100%;
+      border: 0;
+      outline: none;
+      background: transparent !important;
+      font-weight: 950;
+      padding: 0 10px;
+      font-size: 16px;
+      font-family: Georgia, 'Times New Roman', serif;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    
+    .team-hole-badge{
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  background:#2f7a3f;
+  color:white;
+  font-weight:800;
+  font-size:26px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+    .team-card{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+    .player-name:focus{
+      box-shadow: inset 0 0 0 2px rgba(122,74,11,.35);
+      border-radius: 8px;
+      background: rgba(255,255,255,.35) !important;
+    }
+
+    .total{
+      text-align:center;
+      font-weight: 1000;
+      font-size: 18px;
+      background:#f1eadb;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sidegames{
+      display:none;
+      margin: 12px 10px 0;
+      padding: 12px;
+      border: 2px dashed rgba(0,0,0,.18);
+      border-radius: 12px;
+      background: rgba(255,255,255,.38);
+    }
+
+    .sidegames.show{ display:block; }
+
+    .sidegames-title{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:15px;
+      letter-spacing:.04em;
+    }
+
+    .sidegames-note{
+      margin-top:6px;
+      font-size:12px;
+      opacity:.82;
+      font-weight:800;
+      line-height:1.35;
+    }
+
+    .sidegames-grid{
+      display:grid;
+      gap:12px;
+      margin-top:12px;
+    }
+
+    .sidegame-block{
+      border:2px solid rgba(122,74,11,.14);
+      border-radius:12px;
+      background: rgba(255,255,255,.58);
+      padding:10px;
+      display:grid;
+      gap:10px;
+    }
+
+    .sidegame-block-title{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      font-size:13px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+
+    .sidegame-row{
+      display:grid;
+      grid-template-columns: 120px 1fr;
+      gap:10px;
+      align-items:center;
+    }
+
+    .sidegame-hole{
+      font-weight:900;
+      font-size:13px;
+    }
+
+    .sidegame-select{
+      width:100%;
+      border:2px solid var(--border);
+      border-radius:10px;
+      background:#fff;
+      padding:10px;
+      font-weight:900;
+      font-size:15px;
+    }
+
+    .actions{
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      padding: 12px 10px 14px;
+      background: var(--card);
+    }
+
+    button{
+      border: 2px solid var(--border);
+      background: #e7ddcb;
+      border-radius: 10px;
+      padding: 12px 10px;
+      font-weight: 900;
+      font-size: 16px;
+      cursor:pointer;
+    }
+
+    button:active{ transform: translateY(1px); }
+
+    .book-btn{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border: 2px solid var(--border);
+      background: #2f6b2f;
+      color:#fff;
+      border-radius: 10px;
+      padding: 12px 10px;
+      font-weight: 900;
+      font-size: 16px;
+      text-decoration:none;
+      text-align:center;
+    }
+
+    .book-btn:active{ transform: translateY(1px); }
+
+    .book-btn.book-btn--spotlight{
+      box-shadow: 0 0 0 3px rgba(202,162,74,.45), 0 6px 18px rgba(47,107,47,.28);
+      transform: scale(1.02);
+      animation: bookSpotlightPulse 2.4s ease-in-out 2;
+    }
+
+    @keyframes bookSpotlightPulse{
+      0%, 100%{ box-shadow: 0 0 0 3px rgba(202,162,74,.45), 0 6px 18px rgba(47,107,47,.28); }
+      50%{ box-shadow: 0 0 0 4px rgba(202,162,74,.55), 0 8px 22px rgba(47,107,47,.35); }
+    }
+
+    .round-complete-panel{
+      display: none;
+      margin: 12px 10px 10px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: linear-gradient(180deg, rgba(47,107,47,.12), rgba(255,255,255,.4));
+      box-shadow: 0 4px 14px rgba(0,0,0,.08);
+    }
+
+    .round-complete-panel.round-complete-panel--show{
+      display: block;
+    }
+
+    .round-complete-kicker{
+      font-family: Cinzel, serif;
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--navy);
+      font-weight: 900;
+    }
+
+    .round-complete-title{
+      margin: 6px 0 8px;
+      font-family: Cinzel, serif;
+      font-size: 21px;
+      color: var(--ink);
+      line-height: 1.25;
+    }
+
+    .round-complete-warm{
+      margin: 0 0 12px;
+      font-size: 15px;
+      line-height: 1.45;
+      color: rgba(61,42,9,.92);
+    }
+
+    .round-complete-summary{
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .round-complete-line{
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.55);
+      border: 1px solid rgba(0,0,0,.08);
+    }
+
+    .round-complete-next{
+      margin: 0;
+      font-size: 13px;
+      font-weight: 800;
+      color: rgba(61,42,9,.92);
+    }
+
+    .danger{
+      background:#b6422d;
+      color:#fff;
+      border-color:#7a2b20;
+      grid-column: 1 / -1;
+    }
+
+    .mini{
+      font-size: 14px;
+      padding: 10px 10px;
+      opacity: .95;
+    }
+
+    .legal{
+      padding: 10px 12px 14px;
+      border-top: 1px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.18);
+      font-size: 12px;
+      opacity: .9;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content: space-between;
+    }
+
+    .legal a{
+      color: #3d2a09;
+      font-weight: 900;
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(61,42,9,.4);
+    }
+
+    .legal a:active{ transform: translateY(1px); }
+
+    .legal .left{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .legal .right{ opacity:.9; }
+
+    #finishRound{
+      border:2px solid rgba(47,107,47,.35);
+      background:rgba(47,107,47,.14);
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    button:disabled,
+    select:disabled,
+    input:disabled,
+    textarea:disabled{
+      cursor:not-allowed;
+      opacity:.72;
+    }
+
+    @media (max-width: 620px){
+      .sidegame-row{
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .liveAlertBanner{
+      display:none;
+      border-bottom: 2px solid rgba(122,74,11,.25);
+      background: rgba(255,255,255,.45);
+    }
+
+    .liveAlertInner{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding: 10px 12px;
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 1.35;
+      color: var(--ink);
+    }
+
+    .liveAlertLabel{
+      flex-shrink:0;
+      font-family: Cinzel, serif;
+      font-weight: 900;
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 2px solid rgba(122,74,11,.35);
+      background: rgba(255,255,255,.7);
+    }
+
+    .liveAlertTickerViewport{
+      flex:1;
+      min-width:0;
+      overflow:hidden;
+      position:relative;
+      mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
+      -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
+    }
+
+    .liveAlertTickerTrack{
+      display:inline-flex;
+      white-space:nowrap;
+      will-change:transform;
+      animation: liveAlertTickerScroll linear infinite;
+      animation-duration: var(--live-alert-dur, 24s);
+    }
+
+    @keyframes liveAlertTickerScroll{
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .liveAlertTickerTrack{
+        animation:none !important;
+        white-space:normal;
+        transform:none !important;
+        display:block;
+      }
+      .liveAlertTickerViewport{
+        overflow:visible;
+        mask-image:none;
+        -webkit-mask-image:none;
+      }
+      .liveAlertTickerSeg[aria-hidden="true"]{ display:none; }
+      .liveAlertTickerSep{ display:none; }
+    }
+
+    .liveAlertBanner--info{
+      background: linear-gradient(90deg, rgba(13,42,85,.10), rgba(231,221,203,.55));
+      border-bottom-color: rgba(13,42,85,.22);
+    }
+
+    .liveAlertBanner--warning{
+      background: linear-gradient(90deg, rgba(202,162,74,.22), rgba(231,221,203,.5));
+      border-bottom-color: rgba(168,90,19,.35);
+    }
+
+    .liveAlertBanner--warning .liveAlertLabel{
+      border-color: rgba(168,90,19,.45);
+      background: rgba(255,248,230,.85);
+    }
+
+    .liveAlertBanner--urgent{
+      background: linear-gradient(90deg, rgba(182,66,45,.18), rgba(231,221,203,.45));
+      border-bottom-color: rgba(182,66,45,.4);
+    }
+
+    .liveAlertBanner--urgent .liveAlertLabel{
+      border-color: rgba(182,66,45,.5);
+      background: rgba(255,235,232,.9);
+      color: #4a1810;
+    }
+  </style>
+</head>
+  <body>
+  <div class="wrap">
+    <div class="card" id="card">
+
+      <img id="courseHeader" class="header-img" src="./assets/cypresswood_header.png" alt="Scorecard Header" />
+
+      <div id="liveAlertBanner" class="liveAlertBanner liveAlertBanner--info" style="display:none;" role="alert">
+        <div class="liveAlertInner">
+          <span class="liveAlertLabel" id="liveAlertLabel">Alert</span>
+          <div class="liveAlertTickerViewport">
+            <div class="liveAlertTickerTrack" id="liveAlertTickerTrack">
+              <span class="liveAlertTickerSeg"><span id="liveAlertMessageA"></span><span class="liveAlertTickerSep" aria-hidden="true"> • </span></span><span class="liveAlertTickerSeg" aria-hidden="true"><span id="liveAlertMessageB"></span><span class="liveAlertTickerSep" aria-hidden="true"> • </span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="teamPickerScreen">
+        <div class="team-picker-top">
+          <div class="team-picker-title">Select Your Team</div>
+          <div class="team-picker-meta" id="teamPickerMeta">
+            Scan the tournament QR code, then tap your team below to start scoring.
+          </div>
+        </div>
+
+        <div class="team-picker-search">
+          <input id="teamSearchInput" placeholder="Search by team, captain, player, or hole…" />
+        </div>
+
+        <div id="teamList" class="team-list"></div>
+        <div id="teamPickerEmpty" class="team-picker-empty">
+          No matching teams found.
+        </div>
+      </div>
+
+      <div id="joinScreen">
+        <div style="font-family:Cinzel,serif; font-weight:900; font-size:16px;">Join Tournament</div>
+        <div id="joinMeta" style="margin-top:6px; font-size:13px; opacity:.85;"></div>
+
+        <div style="display:grid; gap:10px; margin-top:12px;">
+
+          <label style="font-weight:900; font-size:13px;">
+            Your Name (Scorer)
+            <input id="joinName" autocomplete="name"
+              style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
+          </label>
+
+          <div class="team-mates-block">
+            <div style="font-family:Cinzel,serif; font-weight:900; font-size:13px; opacity:.9;">Team Players</div>
+            <label>Teammate 1 <input id="joinMate1" placeholder="Teammate name"></label>
+            <label>Teammate 2 <input id="joinMate2" placeholder="Teammate name"></label>
+            <label>Teammate 3 <input id="joinMate3" placeholder="Teammate name"></label>
+            <label>Teammate 4 <input id="joinMate4" placeholder="Teammate name"></label>
+            <label>Teammate 5 <input id="joinMate5" placeholder="Teammate name"></label>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <label style="font-weight:900; font-size:13px;">
+              Company Name
+              <input id="joinGroup"
+                style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
+            </label>
+
+            <label style="font-weight:900; font-size:13px;">
+              Start Hole
+              <input id="joinStartHole" placeholder="2A" inputmode="text" autocapitalize="characters"
+                style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
+              <div style="margin-top:6px; font-size:12px; opacity:.8;">
+                Examples: <b>2A</b>, <b>10B</b>
+              </div>
+            </label>
+          </div>
+
+          <button id="joinBtn" style="border:2px solid #7a4a0b; background:#2f6b2f; color:#fff; border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
+            Join & Start Scoring
+          </button>
+
+          <button id="joinCancel" style="border:2px solid #7a4a0b; background:#e7ddcb; border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
+            Back to Team List
+          </button>
+
+          <div style="font-size:12px; opacity:.85; line-height:1.3;">
+            By joining, you agree to our <a href="./terms.html">Terms</a> and <a href="./privacy.html">Privacy Policy</a>.
+          </div>
+        </div>
+      </div>
+
+      <div id="scoreSponsor" role="button" aria-label="Tournament Sponsor">
+        <div id="scoreSponsorTitle">Tournament Sponsor</div>
+        <div id="scoreSponsorRow">
+          <img id="scoreSponsorLogo" alt="Sponsor Logo" />
+          <div id="scoreSponsorName"></div>
+        </div>
+      </div>
+
+      <div class="coursebar" id="courseSwipeZone">
+        <div>
+          <div class="course-title" id="courseTitle">Tradition Course</div>
+          <div class="course-hint" id="courseHint">Swipe left/right here to switch courses</div>
+        </div>
+
+        <select class="course-select" id="courseSelect" aria-label="Select course">
+          <option value="tradition">Tradition</option>
+          <option value="cypress">Cypress</option>
+        </select>
+      </div>
+
+      <div id="lockBanner" class="lockBanner">
+        Select your team above to unlock player names, score entry, side games, and tournament actions.
+      </div>
+
+      <div id="scorecardStage">
+        <div class="table-shell">
+          <div class="hint" id="hintLine">Swipe left/right inside the table to scroll. Tap a box to type. Out/In/Tot auto-calc.</div>
+
+          <div class="scroll-x" id="scrollX">
+            <table id="scoreTable">
+              <thead><tr id="hdrRow"></tr></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="sideGamesPanel" class="sidegames">
+          <div class="sidegames-title">Side Games</div>
+          <div class="sidegames-note" id="sideGamesNote">
+            Select winners for enabled side games. These choices will update the live tournament data.
+          </div>
+          <div class="sidegames-grid" id="sideGamesGrid"></div>
+        </div>
+
+        <div id="roundCompletePanel" class="round-complete-panel" hidden aria-live="polite">
+          <div class="round-complete-kicker">Round submitted</div>
+          <h3 class="round-complete-title" id="roundCompleteTitle">Round complete</h3>
+          <p class="round-complete-warm" id="roundCompleteWarm">Hope you enjoyed your day at the course.</p>
+          <div class="round-complete-summary" id="roundCompleteSummary"></div>
+          <p class="round-complete-next" id="roundCompleteNextHint">When you’re ready, book your next tee time below.</p>
+        </div>
+
+        <div class="actions">
+          <button id="saveImg">Save as Image</button>
+
+          <a
+            id="bookBtn"
+            href="https://foresightcypress.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225"
+            target="_blank"
+            class="book-btn"
+          >
+            Book Your Next Tee Time Here!
+          </a>
+
+          <button id="share">Share</button>
+          <button id="finishRound">✅ Finish Round</button>
+          <button class="danger" id="clear">Clear Card</button>
+          <button class="mini" id="refreshApp">Refresh App (update)</button>
+        </div>
+      </div>
+
+      <div class="legal">
+        <div class="left">
+          <a href="./privacy.html">Privacy</a>
+          <a href="./terms.html">Terms</a>
+        </div>
+        <div class="right">
+          © <span id="yr"></span> Electronic Scorecard Solutions (DBA) • Elb Solutions LLC
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="scoreSponsorTicker" aria-hidden="true">
+    <div class="scoreTickerTop">
+      <span>Sponsored by</span>
+      <span class="scoreTickerHint">(tap to open)</span>
+    </div>
+    <div class="scoreTickerTrackWrap">
+      <div class="scoreTickerTrack" id="scoreSponsorTickerTrack"></div>
+    </div>
+  </div>
+
+    
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { firebaseConfig } from "./js/firebase-config.js";
+import {
+  parseOrgTournamentFromSearch,
+  tournamentDocRef,
+  tournamentRegistrationsCollection,
+  tournamentRegistrationDoc,
+  tournamentSubmissionsDoc,
+  tournamentAlertsLiveRef,
+  publicLinkDocRef,
+  courseDocRef,
+  casualRoundDocRef
+} from "./js/org-paths.js";
+
+let db = null;
+let auth = null;
+let authReady = false;
+
+try {
+  const app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  await signInAnonymously(auth);
+  db = getFirestore(app);
+  authReady = true;
+  console.log("Firebase ready ✅");
+} catch (e) {
+  console.error("Firebase init/auth failed ❌", e);
+  alert("Firebase init/auth failed: " + (e?.message || e));
+}
+
+const COURSE_TRADITION = {
+  id: "tradition",
+  title: "Tradition Course",
+  headerImg: "./assets/cypresswood_header.png",
+  teeRows: [
+    { css:"row-black", label:"Black Tees", front:[465,384,203,448,606,376,528,196,453], out:3657, back:[405,256,545,464,185,394,472,318,546], inn:3563, tot:7220 },
+    { css:"row-blue", label:"Blue Tees", front:[373,356,195,422,565,343,508,169,409], out:3340, back:[370,211,518,423,169,357,439,291,520], inn:3298, tot:6638 },
+    { css:"row-white", label:"White Tees", front:[348,328,169,398,547,311,482,169,394], out:3146, back:[348,187,468,395,151,328,378,265,496], inn:3016, tot:6162 },
+    { css:"row-silver", label:"Silver Tees", front:[348,328,129,528,461,277,482,107,305], out:2765, back:[315,153,413,348,151,328,318,215,435], inn:2676, tot:5441 }
+  ],
+  parFront:[4,4,3,4,5,4,5,3,4],
+  parBack:[4,3,5,4,3,4,4,4,5],
+  hcpFront:[7,17,11,1,3,13,9,15,5],
+  hcpBack:[14,8,10,6,18,12,2,16,4],
+  bottomRow:{ css:"row-copper", label:"Copper Tees", front:[296,287,117,242,411,277,388,107,284], out:2409, back:[315,131,400,318,75,245,291,215,386], inn:2376, tot:4785 }
+};
+
+const COURSE_CYPRESS = {
+  id: "cypress",
+  title: "Cypress Course",
+  headerImg: "./assets/cypress_header.png",
+  teeRows: [
+    { css:"row-blue", label:"Blue", front:[514,396,387,426,182,417,160,563,427], out:3472, back:[416,409,388,349,149,586,193,531,413], inn:3434, tot:6906 },
+    { css:"row-forest", label:"Forest", front:[485,335,326,375,155,361,137,527,352], out:3053, back:[381,368,354,320,117,546,160,490,379], inn:3115, tot:6168 }
+  ],
+  parFront:[5,4,4,4,3,4,3,5,4],
+  parBack:[4,4,4,4,3,5,3,5,4],
+  hcpFront:[3,13,11,7,15,9,17,1,5],
+  hcpBack:[6,10,12,14,18,2,16,4,8],
+  extraRow:{ css:"row-silver", label:"Silver", front:[456,328,297,337,119,337,137,499,321], out:2831, back:[277,315,319,320,117,515,127,461,342], inn:2793, tot:5624 },
+  bottomRow:{ css:"row-copper", label:"Copper - Ladies", front:[401,268,257,265,79,302,83,419,284], out:2358, back:[257,296,249,295,92,445,93,375,284], inn:2386, tot:4744 }
+};
+
+const COURSES = {
+  tradition: COURSE_TRADITION,
+  cypress: COURSE_CYPRESS
+};
+
+let currentCourseId = "tradition";
+let organizationId = "";
+let tournamentId = null;
+/** Casual scorecard (?q= publicLinks token) — extension path; tournament logic unchanged when false. */
+let isCasualMode = false;
+let casualCourseId = "";
+let casualRoundId = "";
+let liveAlertListenerStarted = false;
+let isTournamentMode = false;
+let startHoleSelected = "";
+let rosterNames = [];
+let joinCompleted = false;
+let roundFinished = false;
+let finishedHolesCount = null;
+
+const teamPickerScreen = document.getElementById("teamPickerScreen");
+const teamList = document.getElementById("teamList");
+const teamSearchInput = document.getElementById("teamSearchInput");
+const teamPickerEmpty = document.getElementById("teamPickerEmpty");
+
+const joinScreen = document.getElementById("joinScreen");
+
+const courseSelect = document.getElementById("courseSelect");
+const courseTitle = document.getElementById("courseTitle");
+const courseHeaderImg = document.getElementById("courseHeader");
+const liveAlertBanner = document.getElementById("liveAlertBanner");
+const liveAlertLabel = document.getElementById("liveAlertLabel");
+const liveAlertMessageA = document.getElementById("liveAlertMessageA");
+const liveAlertMessageB = document.getElementById("liveAlertMessageB");
+const liveAlertTickerTrack = document.getElementById("liveAlertTickerTrack");
+
+const tbody = document.getElementById("tbody");
+const hdrRow = document.getElementById("hdrRow");
+
+document.getElementById("yr").textContent = new Date().getFullYear();
+const holesFront = [1,2,3,4,5,6,7,8,9];
+const holesBack  = [10,11,12,13,14,15,16,17,18];
+
+let playersCount = 6;
+let sponsorUrl = "";
+let tournamentFormat = "stroke";
+let tournamentEntryMode = "team_rep";
+let tournamentSideGames = {
+  skinsEnabled:false,
+  ctpEnabled:false,
+  ctpHoles:[],
+  longDriveEnabled:false,
+  longDriveHoles:[]
+};
+let loadedRegistrations = [];
+let selectedRegistrationId = "";
+let incomingRegistrationId = "";
+let pendingRegistration = null;
+let selectedPlayerDetails = [];
+let selectedHandicapEnabled = false;
+let selectedHandicapPercent = 100;
+
+const swipeZone = document.getElementById("courseSwipeZone");
+const hintLine = document.getElementById("hintLine");
+const scrollX = document.getElementById("scrollX");
+
+const joinMeta = document.getElementById("joinMeta");
+const joinBtn = document.getElementById("joinBtn");
+const joinCancel = document.getElementById("joinCancel");
+const joinName = document.getElementById("joinName");
+const joinGroup = document.getElementById("joinGroup");
+const joinStartHole = document.getElementById("joinStartHole");
+const joinMate1 = document.getElementById("joinMate1");
+const joinMate2 = document.getElementById("joinMate2");
+const joinMate3 = document.getElementById("joinMate3");
+const joinMate4 = document.getElementById("joinMate4");
+const joinMate5 = document.getElementById("joinMate5");
+const refreshBtn = document.getElementById("refreshApp");
+
+const scoreSponsor = document.getElementById("scoreSponsor");
+const scoreSponsorLogo = document.getElementById("scoreSponsorLogo");
+const scoreSponsorName = document.getElementById("scoreSponsorName");
+
+const lockBanner = document.getElementById("lockBanner");
+const scorecardStage = document.getElementById("scorecardStage");
+
+const sideGamesPanel = document.getElementById("sideGamesPanel");
+const sideGamesGrid = document.getElementById("sideGamesGrid");
+const sideGamesNote = document.getElementById("sideGamesNote");
+
+function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
+
+function normalizeFormatValue(v){
+  const s = String(v || "").trim().toLowerCase();
+  if (s === "scramble") return "scramble";
+  if (s === "best ball" || s === "bestball") return "bestball";
+  if (s === "stroke play" || s === "stroke") return "stroke";
+  return "stroke";
+}
+  function isOnsiteEntryMode(mode){
+  const v = String(mode || "").trim().toLowerCase();
+  return (
+    v === "onsite" ||
+    v === "onsite_entry" ||
+    v === "onsite entry" ||
+    v === "onsite_player_entry" ||
+    v === "player_onsite"
+  );
+}
+
+function yardCell(v){
+  if (v === -1) return `<td class="yard"></td>`;
+  return `<td class="yard">${v ?? ""}</td>`;
+}
+
+function setCourseHeader(courseKey){
+  const course = COURSES[courseKey];
+  if(!courseHeaderImg || !course) return;
+  courseHeaderImg.src = course.headerImg;
+  courseHeaderImg.alt = courseKey === "cypress" ? "Cypress Header" : "Tradition Header";
+}
+
+function normalizeUrl(u){
+  const s = String(u || "").trim();
+  if(!s) return "";
+  if(/^https?:\/\//i.test(s)) return s;
+  return "https://" + s;
+}
+
+function escapeHtml(s){
+  return String(s || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function escapeHtmlAttr(s){
+  return escapeHtml(s);
+}
+
+function getPrimarySponsor(t){
+  const sponsors = Array.isArray(t?.sponsors) ? t.sponsors : [];
+  const active = sponsors
+    .filter(s => s && s.active !== false)
+    .sort((a,b) => Number(a?.order ?? 999) - Number(b?.order ?? 999));
+
+  if(active.length){
+    return {
+      name: String(active[0]?.name || "").trim(),
+      logo: String(active[0]?.logoUrl || "").trim(),
+      url: String(active[0]?.website || "").trim()
+    };
+  }
+
+  return {
+    name: String(t?.sponsorName || "").trim(),
+    logo: String(t?.sponsorLogo || "").trim(),
+    url: String(t?.sponsorUrl || t?.sponsorWebsite || t?.sponsorLink || "").trim()
+  };
+}
+
+function applySponsorUI(name, logo, url){
+  const n = String(name || "").trim();
+  const l = String(logo || "").trim();
+  sponsorUrl = normalizeUrl(url);
+
+  if(!n && !l){
+    scoreSponsor.style.display = "none";
+    scoreSponsor.onclick = null;
+    return;
+  }
+
+  scoreSponsor.style.display = "block";
+  scoreSponsorName.textContent = n || "Tournament Sponsor";
+
+  if(l){
+    scoreSponsorLogo.src = l;
+    scoreSponsorLogo.style.display = "block";
+  }else{
+    scoreSponsorLogo.style.display = "none";
+  }
+
+  scoreSponsor.style.cursor = sponsorUrl ? "pointer" : "default";
+  scoreSponsor.onclick = () => {
+    if(sponsorUrl) window.open(sponsorUrl, "_blank");
+  };
+}
+
+function hideScorecardSponsorTicker(){
+  const ticker = document.getElementById("scoreSponsorTicker");
+  const track = document.getElementById("scoreSponsorTickerTrack");
+  if(track) track.innerHTML = "";
+  if(ticker){
+    ticker.style.display = "none";
+    ticker.setAttribute("aria-hidden", "true");
+  }
+  document.body.classList.remove("has-score-sponsor-ticker");
+}
+
+function getActiveSponsorsForScoreTicker(t){
+  const raw = Array.isArray(t?.sponsors) ? t.sponsors : [];
+  return raw
+    .filter(s => s && s.active !== false)
+    .map(s => ({
+      name: String(s?.name || "").trim(),
+      logoUrl: String(s?.logoUrl || "").trim(),
+      website: normalizeUrl(String(s?.website || "")),
+      order: Number(s?.order ?? 999)
+    }))
+    .filter(s => s.name || s.logoUrl)
+    .sort((a,b) => a.order - b.order);
+}
+
+function scoreTickerPillHtml(name, logoUrl, website){
+  const n = (name || "").trim() || "Sponsor";
+  const l = (logoUrl || "").trim();
+  const u = (website || "").trim();
+  const href = u || "#";
+  const noNav = !u ? "pointer-events:none; opacity:.75;" : "";
+  const img = l
+    ? `<img src="${escapeHtmlAttr(l)}" alt="">`
+    : `<img src="./assets/icon-192.png" alt="">`;
+  return `<a class="scoreTickerPill" href="${escapeHtmlAttr(href)}" target="_blank" rel="noopener" style="${noNav}">${img}<span>${escapeHtml(n)}</span></a>`;
+}
+
+function renderScorecardSponsorTicker(t){
+  const ticker = document.getElementById("scoreSponsorTicker");
+  const track = document.getElementById("scoreSponsorTickerTrack");
+  if(!ticker || !track) return;
+
+  const active = getActiveSponsorsForScoreTicker(t);
+
+  if(!active.length){
+    const name = String(t?.sponsorName || "").trim();
+    const logo = String(t?.sponsorLogo || "").trim();
+    const url = normalizeUrl(String(t?.sponsorUrl || t?.sponsorWebsite || t?.sponsorLink || ""));
+    if(!name && !logo){
+      hideScorecardSponsorTicker();
+      return;
+    }
+    const pill = scoreTickerPillHtml(name || "Tournament Sponsor", logo, url);
+    track.innerHTML = pill + pill + pill + pill;
+    ticker.style.display = "block";
+    ticker.setAttribute("aria-hidden", "false");
+    document.body.classList.add("has-score-sponsor-ticker");
+    return;
+  }
+
+  const pills = active.map(s => scoreTickerPillHtml(s.name, s.logoUrl, s.website)).join("");
+  track.innerHTML = pills + pills;
+  ticker.style.display = "block";
+  ticker.setAttribute("aria-hidden", "false");
+  document.body.classList.add("has-score-sponsor-ticker");
+}
+
+function normalizeTournamentSideGames(raw){
+  const sg = raw || {};
+  const clean = {
+    skinsEnabled: !!sg.skinsEnabled,
+    ctpEnabled: !!sg.ctpEnabled,
+    ctpHoles: Array.isArray(sg.ctpHoles)
+      ? sg.ctpHoles.map(n => parseInt(n,10)).filter(n => Number.isFinite(n) && n >= 1 && n <= 18)
+      : [],
+    longDriveEnabled: !!sg.longDriveEnabled,
+    longDriveHoles: Array.isArray(sg.longDriveHoles)
+      ? sg.longDriveHoles.map(n => parseInt(n,10)).filter(n => Number.isFinite(n) && n >= 1 && n <= 18)
+      : []
+  };
+
+  clean.ctpHoles = clean.ctpHoles.filter((n,i,a) => a.indexOf(n) === i).sort((a,b)=>a-b);
+  clean.longDriveHoles = clean.longDriveHoles.filter((n,i,a) => a.indexOf(n) === i).sort((a,b)=>a-b);
+  return clean;
+}
+
+function formatToPlayersCount(fmt){
+  if(fmt === "scramble") return 1;
+  if(fmt === "bestball") return 2;
+  return 6;
+}
+
+function playerRowLabel(i){
+  if(tournamentFormat === "scramble") return "Team Score";
+  return `Player ${i+1}`;
+}
+
+function normalizeStartHole(raw){
+  const s = String(raw || "").trim().toUpperCase();
+  if(!s) return null;
+  const m = s.match(/^([1-9]|1[0-8])([A-Z])?$/);
+  if(!m) return null;
+  const holeNum = parseInt(m[1], 10);
+  const suffix = m[2] || "";
+  return { label: `${holeNum}${suffix}`, holeNum };
+}
+
+function orgPart(){
+  return organizationId ? `_o_${organizationId}` : "";
+}
+
+function storageKeyFor(courseId){
+  if (isCasualMode && organizationId && courseId) {
+    return `scorecard_casual_${organizationId}_${courseId}_v1`;
+  }
+  const tPart = (isTournamentMode && tournamentId) ? `${orgPart()}_t_${tournamentId}` : "";
+  const fPart = tournamentFormat ? `_f_${tournamentFormat}` : "";
+  const teamPart = selectedRegistrationId ? `_r_${selectedRegistrationId}` : "";
+  return `scorecard_state_${courseId}${tPart}${fPart}${teamPart}_v10`;
+}
+
+function selectionKey(){
+  const tPart = (isTournamentMode && tournamentId) ? `${orgPart()}_t_${tournamentId}` : "";
+  return `scorecard_selected_team${tPart}_v1`;
+}
+
+function saveSelectedRegistrationId(id){
+  if(!isTournamentMode || !tournamentId) return;
+  localStorage.setItem(selectionKey(), String(id || ""));
+}
+
+function loadSelectedRegistrationId(){
+  if(!isTournamentMode || !tournamentId) return "";
+  return localStorage.getItem(selectionKey()) || "";
+}
+
+function clearSelectedRegistrationId(){
+  if(!isTournamentMode || !tournamentId) return;
+  localStorage.removeItem(selectionKey());
+}
+
+function makeDeviceId(){
+  const existing = localStorage.getItem("t_device_id");
+  if (existing) return existing;
+
+  let id = "";
+  try{
+    id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : "";
+  }catch(e){}
+
+  if(!id){
+    id = "dev_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+  }
+  localStorage.setItem("t_device_id", id);
+  return id;
+}
+
+function getRosterOptionNames(){
+  const fromRoster = Array.isArray(rosterNames) ? rosterNames.map(s => String(s||"").trim()).filter(Boolean) : [];
+  const fromInputs = Array.from(document.querySelectorAll(".player-name")).map(el => String(el.value || "").trim()).filter(Boolean);
+  const merged = [...fromRoster, ...fromInputs];
+  const seen = new Set();
+  return merged.filter(name => {
+    const k = name.toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+function setPlayerRowNames(names){
+  const list = Array.isArray(names) ? names : [];
+  const inputs = Array.from(document.querySelectorAll(".player-name"));
+  for(let i=0;i<inputs.length;i++){
+    inputs[i].value = list[i] || "";
+  }
+}
+
+function getAllScoreInputs(){
+  return Array.from(document.querySelectorAll(".score-input"));
+}
+
+function sanitizeScoreValue(raw, isScramble){
+  let v = String(raw || "");
+  if(isScramble){
+    v = v.replace(/\D/g,"").slice(0,1);
+  }else{
+    v = v.replace(/\D/g,"").slice(0,2);
+  }
+  return v;
+}
+
+function scrollToStartHole(hole){
+  const h = Number(hole);
+  if(!h || h < 1 || h > 18) return;
+
+  const target = document.getElementById(`p0_h${h}`);
+  if(target && typeof target.scrollIntoView === "function"){
+    target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    return;
+  }
+
+  const ths = Array.from(document.querySelectorAll("#hdrRow th.hole"));
+  const th = ths.find(x => String(x.textContent).trim() === String(h));
+  if(th && scrollX){
+    const left = th.offsetLeft - 180;
+    scrollX.scrollTo({ left: Math.max(0,left), behavior:"smooth" });
+  }
+}
+
+function sideGameSelectHtml(kind, hole, selectedValue, disabled){
+  const names = getRosterOptionNames();
+  const opts = [
+    `<option value="">Select winner</option>`,
+    ...names.map(name => `<option value="${escapeHtmlAttr(name)}"${selectedValue === name ? " selected" : ""}>${escapeHtml(name)}</option>`)
+  ].join("");
+
+  return `
+    <div class="sidegame-row">
+      <div class="sidegame-hole">Hole ${hole}</div>
+      <select class="sidegame-select" data-sidegame="${kind}" data-hole="${hole}" ${disabled ? "disabled" : ""}>
+        ${opts}
+      </select>
+    </div>
+  `;
+}
+
+function renderSideGamesPanel(savedSideGames = null){
+  sideGamesGrid.innerHTML = "";
+
+  const hasCtp = tournamentSideGames.ctpEnabled && tournamentSideGames.ctpHoles.length;
+  const hasLong = tournamentSideGames.longDriveEnabled && tournamentSideGames.longDriveHoles.length;
+
+  if(!isTournamentMode || (!hasCtp && !hasLong)){
+    sideGamesPanel.classList.remove("show");
+    return;
+  }
+
+  const saved = savedSideGames || { ctp:{}, longDrive:{} };
+  const disabled = !joinCompleted || roundFinished;
+
+  if(disabled){
+    sideGamesNote.textContent = roundFinished
+      ? "This round has been finalized. Side games are locked."
+      : "Enter your team names and starting hole first, then side games will unlock.";
+  }else{
+    sideGamesNote.textContent = "Select winners for enabled side games. These choices will update the live tournament data.";
+  }
+
+  if(hasCtp){
+    const block = document.createElement("div");
+    block.className = "sidegame-block";
+    block.innerHTML = `
+      <div class="sidegame-block-title">Closest to the Pin</div>
+      ${tournamentSideGames.ctpHoles.map(h => sideGameSelectHtml("ctp", h, saved?.ctp?.[String(h)] || "", disabled)).join("")}
+    `;
+    sideGamesGrid.appendChild(block);
+  }
+
+  if(hasLong){
+    const block = document.createElement("div");
+    block.className = "sidegame-block";
+    block.innerHTML = `
+      <div class="sidegame-block-title">Long Drive</div>
+      ${tournamentSideGames.longDriveHoles.map(h => sideGameSelectHtml("longDrive", h, saved?.longDrive?.[String(h)] || "", disabled)).join("")}
+    `;
+    sideGamesGrid.appendChild(block);
+  }
+
+  sideGamesPanel.classList.add("show");
+
+  sideGamesGrid.querySelectorAll(".sidegame-select").forEach(sel => {
+    sel.addEventListener("change", () => saveState());
+  });
+}
+
+function readSideGamesFromDOM(){
+  const out = { ctp:{}, longDrive:{} };
+  document.querySelectorAll(".sidegame-select").forEach(sel => {
+    const kind = sel.getAttribute("data-sidegame");
+    const hole = String(sel.getAttribute("data-hole") || "").trim();
+    const val = String(sel.value || "").trim();
+    if(!hole || !val) return;
+    if(kind === "ctp") out.ctp[hole] = val;
+    if(kind === "longDrive") out.longDrive[hole] = val;
+  });
+  return out;
+}
+
+function getScoreLockTargets(){
+  return {
+    playerNames: Array.from(document.querySelectorAll(".player-name")),
+    scoreInputs: Array.from(document.querySelectorAll(".score-input")),
+    sideGameInputs: Array.from(document.querySelectorAll(".sidegame-select")),
+    saveBtn: document.getElementById("saveImg"),
+    shareBtn: document.getElementById("share"),
+    finishBtn: document.getElementById("finishRound"),
+    clearBtn: document.getElementById("clear"),
+    courseSel: document.getElementById("courseSelect")
+  };
+}
+
+function setPreJoinLock(locked){
+  const { playerNames, scoreInputs, sideGameInputs, saveBtn, shareBtn, finishBtn, clearBtn, courseSel } = getScoreLockTargets();
+
+  playerNames.forEach(el => el.disabled = !!locked || roundFinished);
+  scoreInputs.forEach(el => el.disabled = !!locked || roundFinished);
+  sideGameInputs.forEach(el => el.disabled = !!locked || roundFinished);
+
+  if(saveBtn) saveBtn.disabled = !!locked;
+  if(shareBtn) shareBtn.disabled = !!locked;
+  if(finishBtn) finishBtn.disabled = !!locked || roundFinished;
+  if(clearBtn) clearBtn.disabled = !!locked || roundFinished;
+  if(courseSel) courseSel.disabled = !!locked || roundFinished;
+
+  if(lockBanner){
+    if(roundFinished){
+      lockBanner.textContent = "This round has been finalized and is now locked.";
+      lockBanner.classList.add("show");
+    }else{
+      lockBanner.textContent = "Enter player names and your starting hole to unlock score entry, side games, and tournament actions.";
+      lockBanner.classList.toggle("show", !!locked);
+    }
+  }
+
+  if(scorecardStage){
+    scorecardStage.classList.toggle("lockedStage", !!locked);
+  }
+}
+
+function buildHeader(){
+  hdrRow.innerHTML = `
+    <th class="label">Hole</th>
+    ${holesFront.map(h=>`<th class="hole">${h}</th>`).join("")}
+    <th class="sum">Out</th>
+    <th class="sum">I<br>N<br>I<br>T</th>
+    ${holesBack.map(h=>`<th class="hole">${h}</th>`).join("")}
+    <th class="sum">In</th>
+    <th class="sum">Tot</th>
+    <th class="sum">Hcp</th>
+    <th class="sum">Net</th>
+  `;
+}
+
+function buildYardageRow(row){
+  const tr = document.createElement("tr");
+  tr.className = row.css;
+  tr.innerHTML = `
+    <td class="label">${row.label}</td>
+    ${row.front.map(n=>yardCell(n)).join("")}
+    ${yardCell(row.out)}
+    ${yardCell("")}
+    ${row.back.map(n=>yardCell(n)).join("")}
+    ${yardCell(row.inn)}
+    ${yardCell(row.tot)}
+    ${yardCell("")}
+    ${yardCell("")}
+  `;
+  return tr;
+}
+
+function buildParRow(course){
+  const out = sum(course.parFront), inn = sum(course.parBack), tot = out + inn;
+  const tr = document.createElement("tr");
+  tr.className = "row-par";
+  tr.innerHTML = `
+    <td class="label">Par:</td>
+    ${course.parFront.map(n=>yardCell(n)).join("")}
+    ${yardCell(out)}
+    ${yardCell("")}
+    ${course.parBack.map(n=>yardCell(n)).join("")}
+    ${yardCell(inn)}
+    ${yardCell(tot)}
+    ${yardCell("")}
+    ${yardCell("")}
+  `;
+  return tr;
+}
+
+function buildHcpRow(course){
+  const tr = document.createElement("tr");
+  tr.className = "row-hcp";
+  tr.innerHTML = `
+    <td class="label">Handicap</td>
+    ${course.hcpFront.map(n=>yardCell(n)).join("")}
+    ${yardCell("")}
+    ${yardCell("")}
+    ${course.hcpBack.map(n=>yardCell(n)).join("")}
+    ${yardCell("")}
+    ${yardCell("")}
+    ${yardCell("")}
+    ${yardCell("")}
+  `;
+  return tr;
+}
+
+function cellInput(playerIdx, holeNum){
+  const id = `p${playerIdx}_h${holeNum}`;
+  const maxlength = tournamentFormat === "scramble" ? "1" : "2";
+  return `
+    <td>
+      <input
+        id="${id}"
+        class="score-input"
+        inputmode="numeric"
+        maxlength="${maxlength}"
+        autocomplete="off"
+      />
+    </td>
+  `;
+}
+
+function buildPlayerRow(i){
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td class="label"><input class="player-name" placeholder="${playerRowLabel(i)}" /></td>
+    ${holesFront.map(h=>cellInput(i,h)).join("")}
+    <td class="total" data-out="${i}">0</td>
+    <td></td>
+    ${holesBack.map(h=>cellInput(i,h)).join("")}
+    <td class="total" data-in="${i}">0</td>
+    <td class="total" data-tot="${i}">0</td>
+    <td class="total" data-hcp="${i}">0</td>
+    <td class="total" data-net="${i}">0</td>
+  `;
+  return tr;
+}
+
+function getCourseHandicapRank(courseId, holeNum){
+  const course = COURSES[courseId];
+  if(!course || holeNum < 1 || holeNum > 18) return 99;
+
+  if(holeNum <= 9){
+    return Number(course.hcpFront[holeNum - 1] || 99);
+  }
+  return Number(course.hcpBack[holeNum - 10] || 99);
+}
+
+function getPlayerRawHandicap(rowIndex){
+  if(!Array.isArray(selectedPlayerDetails) || !selectedPlayerDetails.length) return 0;
+  const player = selectedPlayerDetails[rowIndex];
+  return Number(player?.handicap || 0) || 0;
+}
+
+function getPlayingHandicap(rowIndex){
+  if(!selectedHandicapEnabled) return 0;
+  const raw = getPlayerRawHandicap(rowIndex);
+  return Math.round(raw * (selectedHandicapPercent / 100));
+}
+
+function getStrokesForHole(playingHandicap, holeNum){
+  if(!playingHandicap || playingHandicap <= 0) return 0;
+
+  const rank = getCourseHandicapRank(currentCourseId, holeNum);
+  const base = Math.floor(playingHandicap / 18);
+  const extra = playingHandicap % 18;
+
+  return base + (rank <= extra ? 1 : 0);
+}
+
+function getNetTotalForRow(rowIndex){
+  let net = 0;
+  const playingHandicap = getPlayingHandicap(rowIndex);
+
+  for(let holeNum = 1; holeNum <= 18; holeNum++){
+    const el = document.getElementById(`p${rowIndex}_h${holeNum}`);
+    const gross = parseInt(el?.value || "", 10);
+
+    if(!Number.isFinite(gross)) continue;
+
+    const strokes = getStrokesForHole(playingHandicap, holeNum);
+    net += gross - strokes;
+  }
+
+  return net;
+}
+
+function recalcPlayer(i){
+  let out = 0;
+  let inn = 0;
+
+  for (const h of holesFront){
+    const v = document.getElementById(`p${i}_h${h}`)?.value || "";
+    out += parseInt(v, 10) || 0;
+  }
+
+  for (const h of holesBack){
+    const v = document.getElementById(`p${i}_h${h}`)?.value || "";
+    inn += parseInt(v, 10) || 0;
+  }
+
+  const tot = out + inn;
+  const playingHandicap = getPlayingHandicap(i);
+  const net = getNetTotalForRow(i);
+
+  const outEl = document.querySelector(`[data-out="${i}"]`);
+  const inEl  = document.querySelector(`[data-in="${i}"]`);
+  const totEl = document.querySelector(`[data-tot="${i}"]`);
+  const hcpEl = document.querySelector(`[data-hcp="${i}"]`);
+  const netEl = document.querySelector(`[data-net="${i}"]`);
+
+  if(outEl) outEl.textContent = out;
+  if(inEl)  inEl.textContent = inn;
+  if(totEl) totEl.textContent = tot;
+  if(hcpEl) hcpEl.textContent = playingHandicap;
+  if(netEl) netEl.textContent = net;
+}
+
+function saveState(){
+  const key = storageKeyFor(currentCourseId);
+  const state = {
+    names: Array.from(document.querySelectorAll(".player-name")).map(i => i.value || ""),
+    scores: Array.from({length: playersCount}, (_,p) =>
+      Array.from({length: 18}, (_,h) => {
+        const el = document.getElementById(`p${p}_h${h+1}`);
+        return el ? (el.value || "") : "";
+      })
+    ),
+    sideGames: readSideGamesFromDOM(),
+    roundFinished: !!roundFinished,
+    selectedRegistrationId,
+    startHoleSelected,
+    rosterNames,
+    joinCompleted,
+    finishedHolesCount: roundFinished ? finishedHolesCount : null
+  };
+  localStorage.setItem(key, JSON.stringify(state));
+}
+
+function loadState(){
+  const key = storageKeyFor(currentCourseId);
+  const raw = localStorage.getItem(key);
+  if(!raw){
+    renderSideGamesPanel();
+    return;
+  }
+
+  try{
+    const state = JSON.parse(raw);
+
+    const nameInputs = document.querySelectorAll(".player-name");
+    (state.names || []).forEach((v, idx) => {
+      if(nameInputs[idx]) nameInputs[idx].value = v;
+    });
+
+    (state.scores || []).forEach((row, p) => {
+      (row || []).forEach((v, hIdx) => {
+        const el = document.getElementById(`p${p}_h${hIdx+1}`);
+        if(el) el.value = v || "";
+      });
+    });
+
+    roundFinished = !!state.roundFinished;
+    const n = Number(state.finishedHolesCount);
+    finishedHolesCount = (n === 9 || n === 18) ? n : null;
+    for(let i=0;i<playersCount;i++) recalcPlayer(i);
+    renderSideGamesPanel(state.sideGames || null);
+  }catch(e){
+    renderSideGamesPanel();
+  }
+}
+
+function clearState(){
+  localStorage.removeItem(storageKeyFor(currentCourseId));
+}
+
+function getCompletedHoleCount(startHoleNum){
+  const seq = [];
+  for(let i=0;i<18;i++){
+    const h=((startHoleNum-1+i)%18)+1;
+    seq.push(h);
+  }
+
+  let completed=0;
+  for(const h of seq){
+    const v=document.getElementById(`p0_h${h}`)?.value || "";
+    const n=parseInt(v,10);
+    if(Number.isFinite(n)) completed++;
+  }
+  return completed;
+}
+
+function fillRoundCompleteSummary(container){
+  if(!container) return;
+  container.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  const nameInputs = document.querySelectorAll(".player-name");
+  for(let i=0;i<playersCount;i++){
+    if(tournamentFormat === "scramble" && i > 0) continue;
+    if(tournamentFormat === "bestball" && i > 1) continue;
+    const nameEl = nameInputs[i];
+    const name = (nameEl?.value || "").trim() || playerRowLabel(i);
+    const gross = document.querySelector(`[data-tot="${i}"]`)?.textContent?.trim() || "—";
+    const net = document.querySelector(`[data-net="${i}"]`)?.textContent?.trim() || "—";
+    const row = document.createElement("div");
+    row.className = "round-complete-line";
+    if(selectedHandicapEnabled){
+      row.textContent = `${name} — Gross ${gross} · Net ${net}`;
+    }else{
+      row.textContent = `${name} — ${gross} strokes`;
+    }
+    frag.appendChild(row);
+  }
+  container.appendChild(frag);
+}
+
+function updateRoundCompletePanel(opts){
+  const scroll = !!(opts && opts.scroll);
+  const panel = document.getElementById("roundCompletePanel");
+  const bookBtn = document.getElementById("bookBtn");
+  if(!panel) return;
+
+  if(!roundFinished){
+    panel.classList.remove("round-complete-panel--show");
+    panel.setAttribute("hidden", "");
+    if(bookBtn) bookBtn.classList.remove("book-btn--spotlight");
+    return;
+  }
+
+  panel.classList.add("round-complete-panel--show");
+  panel.removeAttribute("hidden");
+
+  const titleEl = document.getElementById("roundCompleteTitle");
+  const summaryEl = document.getElementById("roundCompleteSummary");
+  if(titleEl){
+    const holePart =
+      finishedHolesCount === 9 || finishedHolesCount === 18
+        ? `${finishedHolesCount} holes`
+        : "your round";
+    titleEl.textContent = `Round complete · ${holePart}`;
+  }
+  fillRoundCompleteSummary(summaryEl);
+
+  if(bookBtn) bookBtn.classList.add("book-btn--spotlight");
+
+  if(scroll){
+    requestAnimationFrame(() => {
+      try{
+        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }catch(_e){ /* ignore */ }
+    });
+  }
+}
+
+function lockScorecard(){
+  roundFinished = true;
+  document.querySelectorAll(".score-input").forEach(el => el.disabled = true);
+  document.querySelectorAll(".player-name").forEach(el => el.disabled = true);
+  document.querySelectorAll(".sidegame-select").forEach(el => el.disabled = true);
+  setPreJoinLock(false);
+  saveState();
+  updateRoundCompletePanel({ scroll: true });
+}
+
+/* --- Casual scorecard (?q=token via publicLinks) — extension; tournament flow unchanged --- */
+
+function courseFromFirestoreData(d, courseKey) {
+  const base = COURSES[courseKey];
+  if (!d || typeof d !== "object") return base || null;
+  const parFront = d.parFront;
+  const parBack = d.parBack;
+  if (!Array.isArray(parFront) || parFront.length !== 9 || !Array.isArray(parBack) || parBack.length !== 9) {
+    return base || null;
+  }
+  const teeRows = Array.isArray(d.teeRows) && d.teeRows.length ? d.teeRows : base?.teeRows;
+  if (!teeRows || !teeRows.length) return base || null;
+  return {
+    id: String(d.id || courseKey),
+    title: String(d.title || base?.title || "Course"),
+    headerImg: String(d.headerImg || base?.headerImg || "./assets/cypresswood_header.png"),
+    teeRows,
+    parFront,
+    parBack,
+    hcpFront: Array.isArray(d.hcpFront) && d.hcpFront.length === 9 ? d.hcpFront : (base?.hcpFront || parFront.map(() => 1)),
+    hcpBack: Array.isArray(d.hcpBack) && d.hcpBack.length === 9 ? d.hcpBack : (base?.hcpBack || parBack.map(() => 1)),
+    bottomRow: d.bottomRow || base?.bottomRow,
+    extraRow: d.extraRow || base?.extraRow
+  };
+}
+
+async function loadCourseFromFirestoreOrBuiltIn(orgId, courseKey) {
+  if (!db) return null;
+  try {
+    const snap = await getDoc(courseDocRef(db, orgId, courseKey));
+    if (snap.exists()) {
+      const c = courseFromFirestoreData(snap.data(), courseKey);
+      if (c) return c;
+    }
+  } catch (e) {
+    console.warn("Course doc:", e);
+  }
+  return COURSES[courseKey] || null;
+}
+
+function casualRoundLocalKey(orgId, cid) {
+  return `casual_round_id_${orgId}_${cid}`;
+}
+
+function getOrCreateCasualRoundId(orgId, cid) {
+  const k = casualRoundLocalKey(orgId, cid);
+  let id = localStorage.getItem(k);
+  if (!id) {
+    id = crypto && crypto.randomUUID ? crypto.randomUUID() : "cas_" + Math.random().toString(16).slice(2) + "_" + Date.now();
+    localStorage.setItem(k, id);
+  }
+  return id;
+}
+
+function resetCasualRoundIdForNewSession(orgId, cid) {
+  localStorage.removeItem(casualRoundLocalKey(orgId, cid));
+}
+
+async function applyCasualRoundDocToApp(d) {
+  const names = Array.isArray(d.names) ? d.names : [];
+  const sf = d.scoresFlat && typeof d.scoresFlat === "object" ? d.scoresFlat : {};
+  const nameInputs = document.querySelectorAll(".player-name");
+  names.forEach((v, idx) => {
+    if (nameInputs[idx]) nameInputs[idx].value = String(v || "");
+  });
+  for (let p = 0; p < playersCount; p++) {
+    for (let h = 1; h <= 18; h++) {
+      const key = `p${p}_h${h}`;
+      const el = document.getElementById(`p${p}_h${h}`);
+      const raw = sf[key];
+      if (el && raw !== undefined) el.value = String(raw || "");
+    }
+  }
+  roundFinished = String(d.roundStatus || "") === "finished";
+  const n = Number(d.finishedHolesCount);
+  finishedHolesCount = n === 9 || n === 18 ? n : null;
+  for (let i = 0; i < playersCount; i++) recalcPlayer(i);
+  if (roundFinished) {
+    lockScorecard();
+  }
+}
+
+async function hydrateCasualRoundFromFirestore() {
+  if (!db || !organizationId || !casualRoundId || !auth?.currentUser) return;
+  const rref = casualRoundDocRef(db, organizationId, casualRoundId);
+  const snap = await getDoc(rref);
+  if (!snap.exists()) return;
+  const d = snap.data() || {};
+  if (d.ownerUid && auth.currentUser && d.ownerUid !== auth.currentUser.uid) {
+    resetCasualRoundIdForNewSession(organizationId, casualCourseId);
+    casualRoundId = getOrCreateCasualRoundId(organizationId, casualCourseId);
+    return;
+  }
+  await applyCasualRoundDocToApp(d);
+}
+
+async function tryStartCasualMode(token) {
+  if (!db || !auth || !authReady) return false;
+  const t = String(token || "").trim();
+  if (!t) return false;
+  try {
+    const linkSnap = await getDoc(publicLinkDocRef(db, t));
+    if (!linkSnap.exists()) return false;
+    const ld = linkSnap.data() || {};
+    if (String(ld.kind || "").toLowerCase() !== "casual") return false;
+    const orgId = String(ld.orgId || "").trim();
+    const cid = String(ld.courseId || "").trim();
+    if (!orgId || !cid) return false;
+
+    const courseObj = await loadCourseFromFirestoreOrBuiltIn(orgId, cid);
+    if (!courseObj) {
+      alert("Course is not available for casual play. Add organizations/{orgId}/courses/{courseId} in Firestore or use courseId tradition/cypress with matching built-in data.");
+      return false;
+    }
+
+    COURSES[cid] = courseObj;
+    organizationId = orgId;
+    casualCourseId = cid;
+    currentCourseId = cid;
+    isCasualMode = true;
+    isTournamentMode = false;
+    tournamentId = null;
+    joinCompleted = true;
+    roundFinished = false;
+    finishedHolesCount = null;
+    tournamentFormat = "stroke";
+    playersCount = 6;
+    rosterNames = [];
+    incomingRegistrationId = "";
+
+    casualRoundId = getOrCreateCasualRoundId(orgId, cid);
+
+    teamPickerScreen.style.display = "none";
+    joinScreen.style.display = "none";
+    if (courseSelect) courseSelect.style.display = "none";
+    hideScorecardSponsorTicker();
+    document.title = `${courseObj.title} · Casual`;
+
+    build();
+    await hydrateCasualRoundFromFirestore();
+    return true;
+  } catch (e) {
+    console.error("Casual mode failed", e);
+    return false;
+  }
+}
+
+async function pushCasualNow() {
+  if (!db || !auth?.currentUser || !isCasualMode || !organizationId || !casualRoundId) return;
+  const payload = readScoresFromDOM();
+  const netTotals = Array.from({ length: playersCount }, (_, i) => getNetTotalForRow(i));
+  await setDoc(
+    casualRoundDocRef(db, organizationId, casualRoundId),
+    {
+      ownerUid: auth.currentUser.uid,
+      orgId: organizationId,
+      courseId: casualCourseId,
+      kind: "casual",
+      format: tournamentFormat,
+      names: payload.names,
+      scoresFlat: payload.scoresFlat,
+      totals: payload.totals,
+      netTotals,
+      roundStatus: roundFinished ? "finished" : "active",
+      finishedHolesCount: roundFinished ? finishedHolesCount : null,
+      updatedAt: serverTimestamp()
+    },
+    { merge: true }
+  );
+}
+
+let casualPushTimer = null;
+function scheduleCasualPush() {
+  if (!db || !isCasualMode || !authReady || roundFinished) return;
+  if (casualPushTimer) clearTimeout(casualPushTimer);
+  casualPushTimer = setTimeout(async () => {
+    try {
+      await pushCasualNow();
+    } catch (e) {
+      console.error("Casual sync failed", e);
+    }
+  }, 250);
+}
+
+function enforceStartHoleLock(){
+  if(!isTournamentMode || !joinCompleted || roundFinished) return;
+
+  const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
+  if(!norm) return;
+
+  const scoreInputs = getAllScoreInputs();
+  const anyFilled = scoreInputs.some(inp => String(inp.value || "").trim() !== "");
+
+  if(anyFilled){
+    scoreInputs.forEach(inp => {
+      const isScoreRowAllowed = (tournamentFormat !== "scramble") || inp.id.startsWith("p0_");
+      inp.disabled = !isScoreRowAllowed || roundFinished;
+    });
+    return;
+  }
+
+  scoreInputs.forEach(inp => {
+    const holeNum = parseInt(inp.id.split("_h")[1], 10);
+    const isStartHole = holeNum === norm.holeNum;
+    const isScoreRowAllowed = (tournamentFormat !== "scramble") || inp.id.startsWith("p0_");
+    inp.disabled = !(isStartHole && isScoreRowAllowed) || roundFinished;
+  });
+}
+
+function wireInputs(){
+  for (let i=0;i<playersCount;i++){
+    for (let h=1;h<=18;h++){
+      const el = document.getElementById(`p${i}_h${h}`);
+      if(!el) continue;
+
+      el.addEventListener("input", () => {
+        if(roundFinished){
+          el.value = sanitizeScoreValue(el.value, tournamentFormat === "scramble");
+          return;
+        }
+
+        const isScoreRowAllowed = (tournamentFormat !== "scramble") || i === 0;
+        if(!isScoreRowAllowed){
+          el.value = "";
+          return;
+        }
+
+        el.value = sanitizeScoreValue(el.value, tournamentFormat === "scramble");
+        recalcPlayer(i);
+        saveState();
+        enforceStartHoleLock();
+        scheduleTournamentPush();
+      });
+
+      el.addEventListener("focus", () => {
+        if(roundFinished){
+          el.blur();
+          return;
+        }
+        if(isTournamentMode && joinCompleted){
+          enforceStartHoleLock();
+        }
+      });
+    }
+    recalcPlayer(i);
+  }
+
+  document.querySelectorAll(".player-name").forEach(inp => {
+    inp.addEventListener("input", () => {
+      if(roundFinished){
+        inp.blur();
+        return;
+      }
+      renderSideGamesPanel(readSideGamesFromDOM());
+      saveState();
+      scheduleTournamentPush();
+    });
+  });
+
+  enforceStartHoleLock();
+}
+  function build(){
+  const course = COURSES[currentCourseId];
+  courseTitle.textContent = course.title;
+  courseSelect.value = currentCourseId;
+  setCourseHeader(currentCourseId);
+
+  hintLine.textContent = isCasualMode
+    ? "Casual round — swipe to scroll, tap to enter scores. Out/In/Tot auto-calc. Your progress syncs to this device."
+    : tournamentFormat === "scramble"
+      ? "Scramble: enter ONE team score row. First score must start on your assigned hole. One digit per hole. Out/In/Tot auto-calc."
+      : tournamentFormat === "bestball"
+      ? "Best Ball: use the first two rows for scoring. Assigned hole locks the first score location."
+      : "Assigned hole locks the first score location. Swipe to scroll. Tap a box to type. Out/In/Tot auto-calc.";
+
+  tbody.innerHTML = "";
+  buildHeader();
+
+  course.teeRows.forEach(r => tbody.appendChild(buildYardageRow(r)));
+  tbody.appendChild(buildParRow(course));
+  tbody.appendChild(buildHcpRow(course));
+
+  for (let i=0;i<playersCount;i++) tbody.appendChild(buildPlayerRow(i));
+
+  if (course.extraRow) tbody.appendChild(buildYardageRow(course.extraRow));
+  tbody.appendChild(buildYardageRow(course.bottomRow));
+
+  wireInputs();
+  loadState();
+
+  if(Array.isArray(rosterNames) && rosterNames.length){
+    setPlayerRowNames(rosterNames);
+  }
+
+  if(isTournamentMode && joinCompleted){
+    const norm = normalizeStartHole(startHoleSelected);
+    if(norm){
+      setTimeout(() => scrollToStartHole(norm.holeNum), 250);
+    }
+  }
+
+  if(isTournamentMode && !joinCompleted){
+    setPreJoinLock(true);
+  }else{
+    setPreJoinLock(false);
+  }
+
+  updateRoundCompletePanel();
+}
+
+function setCourse(courseId){
+  if (isCasualMode) return;
+  if (!COURSES[courseId]) return;
+  if (isTournamentMode && !joinCompleted && courseId !== currentCourseId) return;
+  if (roundFinished && courseId !== currentCourseId) return;
+  currentCourseId = courseId;
+  build();
+}
+
+courseSelect.addEventListener("change", () => setCourse(courseSelect.value));
+
+let touchStartX = null;
+swipeZone.addEventListener("touchstart", (e) => {
+  touchStartX = e.changedTouches[0].clientX;
+}, { passive:true });
+
+swipeZone.addEventListener("touchend", (e) => {
+  if (isCasualMode) {
+    touchStartX = null;
+    return;
+  }
+  if (touchStartX === null) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  touchStartX = null;
+  if (Math.abs(dx) < 50) return;
+
+  if (isTournamentMode && !joinCompleted) return;
+  if (roundFinished) return;
+
+  if (dx < 0) setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
+  else        setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
+}, { passive:true });
+
+async function captureFullCardCanvas(){
+  const card = document.getElementById("card");
+  const scroll = document.querySelector(".scroll-x");
+  const table = document.getElementById("scoreTable");
+
+  const oldOverflowX = scroll.style.overflowX;
+  const oldOverflowY = scroll.style.overflowY;
+  const oldWidth = scroll.style.width;
+  const oldCardWidth = card.style.width;
+
+  scroll.style.overflowX = "visible";
+  scroll.style.overflowY = "visible";
+  scroll.style.width = table.scrollWidth + "px";
+  card.style.width = (table.scrollWidth + 40) + "px";
+
+  try{
+    return await html2canvas(card, {
+      scale: 2,
+      backgroundColor: null,
+      windowWidth: card.scrollWidth,
+      windowHeight: card.scrollHeight
+    });
+  } finally {
+    scroll.style.overflowX = oldOverflowX;
+    scroll.style.overflowY = oldOverflowY;
+    scroll.style.width = oldWidth;
+    card.style.width = oldCardWidth;
+  }
+}
+
+function readScoresFromDOM(){
+  const names = Array.from(document.querySelectorAll(".player-name")).map(i => i.value || "");
+
+  const scoresFlat = {};
+  for(let p=0; p<playersCount; p++){
+    for(let h=1; h<=18; h++){
+      const el = document.getElementById(`p${p}_h${h}`);
+      const key = `p${p}_h${h}`;
+      scoresFlat[key] = el && typeof el.value !== "undefined" ? String(el.value || "") : "";
+    }
+  }
+
+  const totals = Array.from({length: playersCount}, (_,i) => ({
+    out: Number(document.querySelector(`[data-out="${i}"]`)?.textContent || 0) || 0,
+    inn: Number(document.querySelector(`[data-in="${i}"]`)?.textContent || 0) || 0,
+    tot: Number(document.querySelector(`[data-tot="${i}"]`)?.textContent || 0) || 0
+  }));
+
+  return { names, scoresFlat, totals };
+}
+
+function normalizeRegistration(r){
+  const players = Array.isArray(r.players) ? r.players : (Array.isArray(r.rosterNames) ? r.rosterNames : []);
+  const playerDetails = Array.isArray(r.playerDetails) ? r.playerDetails : [];
+
+  return {
+    id: r.id || "",
+    teamName: String(r.teamName || r.group || "").trim(),
+    captainName: String(r.captainName || "").trim(),
+    players: players.map(x => String(x || "").trim()).filter(Boolean).slice(0,6),
+    playerDetails: playerDetails
+      .map(p => ({
+        name: String(p?.name || "").trim(),
+        handicap: Number(p?.handicap || 0) || 0,
+        isCaptain: !!p?.isCaptain
+      }))
+      .filter(p => p.name)
+      .slice(0,6),
+    handicapEnabled: !!r.handicapEnabled,
+    handicapPercent: Number(r.handicapPercent || 100) || 100,
+    assignedHole: String(r.assignedHole || r.startHole || "").trim().toUpperCase(),
+    status: String(r.status || "assigned").trim().toLowerCase(),
+    courseId: String(r.courseId || "").trim().toLowerCase()
+  };
+}
+
+async function fetchRegistrationById(registrationId){
+  if(!db || !tournamentId || !registrationId) return null;
+
+  try{
+    const snap = await getDoc(
+      tournamentRegistrationDoc(db, organizationId, tournamentId, registrationId)
+    );
+
+    if(!snap.exists()) return null;
+
+    return normalizeRegistration({
+      id: snap.id,
+      ...(snap.data() || {})
+    });
+  }catch(err){
+    console.error("Failed to load registration by id", err);
+    return null;
+  }
+}
+
+async function autoStartFromRegistration(reg){
+  if(!reg) return false;
+
+  pendingRegistration = reg;
+  selectedRegistrationId = reg.id || "";
+  saveSelectedRegistrationId(selectedRegistrationId);
+
+  selectedPlayerDetails = Array.isArray(reg.playerDetails) ? reg.playerDetails.slice(0,6) : [];
+  selectedHandicapEnabled = !!reg.handicapEnabled;
+  selectedHandicapPercent = Number(reg.handicapPercent || 100) || 100;
+
+  rosterNames = Array.isArray(reg.players) ? reg.players.slice(0,6) : [];
+  startHoleSelected = reg.assignedHole || "";
+
+  joinGroup.value = reg.teamName || "";
+  joinName.value = reg.captainName || rosterNames[0] || "";
+  joinMate1.value = rosterNames[1] || "";
+  joinMate2.value = rosterNames[2] || "";
+  joinMate3.value = rosterNames[3] || "";
+  joinMate4.value = rosterNames[4] || "";
+  joinMate5.value = rosterNames[5] || "";
+  joinStartHole.value = reg.assignedHole || "";
+
+  if (COURSES[reg.courseId]) {
+    currentCourseId = reg.courseId;
+  }
+
+  joinCompleted = true;
+  roundFinished = false;
+  finishedHolesCount = null;
+
+  teamPickerScreen.style.display = "none";
+  joinScreen.style.display = "none";
+
+  build();
+  setPlayerRowNames(rosterNames);
+  renderSideGamesPanel(readSideGamesFromDOM());
+  setPreJoinLock(false);
+  enforceStartHoleLock();
+  saveState();
+
+  try{
+    await pushTournamentNow();
+  }catch(e){
+    console.error("Auto-start push failed", e);
+  }
+
+  const norm = normalizeStartHole(startHoleSelected);
+  if(norm){
+    setTimeout(() => scrollToStartHole(norm.holeNum), 250);
+  }
+
+  return true;
+}
+
+function teamMatchesSearch(team, q){
+  if(!q) return true;
+  const hay = [
+    team.teamName,
+    team.captainName,
+    team.assignedHole,
+    ...(team.players || [])
+  ].join(" ").toLowerCase();
+  return hay.includes(q);
+}
+
+function renderTeamPicker(){
+  const q = String(teamSearchInput.value || "").trim().toLowerCase();
+  const visible = loadedRegistrations
+    .filter(t => t.status !== "cancelled")
+    .filter(t => teamMatchesSearch(t, q))
+    .sort((a,b) => {
+      const A = normalizeStartHole(a.assignedHole) || { holeNum:999, label:"999Z" };
+      const B = normalizeStartHole(b.assignedHole) || { holeNum:999, label:"999Z" };
+      if(A.label.endsWith("A") && !B.label.endsWith("A")) return -1;
+      if(!A.label.endsWith("A") && B.label.endsWith("A")) return 1;
+      if(A.holeNum !== B.holeNum) return A.holeNum - B.holeNum;
+      return a.teamName.localeCompare(b.teamName);
+    });
+
+  teamList.innerHTML = visible.map(team => `
+  <div class="team-card" data-team-id="${escapeHtmlAttr(team.id)}">
+
+    <div class="team-hole-badge">
+      ${escapeHtml(team.assignedHole || "—")}
+    </div>
+
+    <div class="team-card-body">
+      <div class="team-card-name">
+        ${escapeHtml(team.teamName || "Team")}
+      </div>
+
+      <div class="team-card-players">
+        ${escapeHtml((team.players || []).join(" • "))}
+      </div>
+    </div>
+
+  </div>
+`).join("");
+
+  teamPickerEmpty.style.display = visible.length ? "none" : "block";
+
+  teamList.querySelectorAll(".team-card").forEach(card => {
+    card.addEventListener("click", () => {
+      const id = card.getAttribute("data-team-id");
+      const reg = loadedRegistrations.find(x => x.id === id);
+      if(reg) applyRegistrationSelection(reg);
+    });
+  });
+}
+
+async function loadRegistrations(){
+  if(!db || !tournamentId) return;
+  const snap = await getDocs(tournamentRegistrationsCollection(db, organizationId, tournamentId));
+  loadedRegistrations = [];
+  snap.forEach(d => {
+    loadedRegistrations.push(normalizeRegistration({ id: d.id, ...(d.data() || {}) }));
+  });
+  renderTeamPicker();
+}
+
+function applyRegistrationSelection(reg){
+  pendingRegistration = reg;
+  selectedPlayerDetails = Array.isArray(reg.playerDetails) ? reg.playerDetails.slice(0,6) : [];
+  selectedHandicapEnabled = !!reg.handicapEnabled;
+  selectedHandicapPercent = Number(reg.handicapPercent || 100) || 100;
+
+  rosterNames = Array.isArray(reg.players) ? reg.players.slice(0,6) : [];
+  joinGroup.value = reg.teamName || "";
+  joinName.value = reg.captainName || rosterNames[0] || "";
+  joinMate1.value = rosterNames[1] || "";
+  joinMate2.value = rosterNames[2] || "";
+  joinMate3.value = rosterNames[3] || "";
+  joinMate4.value = rosterNames[4] || "";
+  joinMate5.value = rosterNames[5] || "";
+  joinStartHole.value = reg.assignedHole || "";
+  startHoleSelected = reg.assignedHole || "";
+  currentCourseId = COURSES[reg.courseId] ? reg.courseId : currentCourseId;
+
+  setPlayerRowNames(rosterNames);
+  build();
+
+  teamPickerScreen.style.display = "none";
+  joinScreen.style.display = "block";
+  joinMeta.textContent = `Confirm Team: ${reg.teamName || "Team"} • Start Hole ${reg.assignedHole || "—"}`;
+  updateJoinScreenForEntryMode();
+}
+
+function backToTeamPicker(){
+  pendingRegistration = null;
+  joinScreen.style.display = "none";
+  teamPickerScreen.style.display = "block";
+  joinCompleted = false;
+  setPreJoinLock(true);
+}
+
+function updateJoinScreenForEntryMode(){
+  const mode = String(tournamentEntryMode || "").trim().toLowerCase();
+  const isTeamRep = mode === "team_rep";
+  const isOnsite = isOnsiteEntryMode(mode);
+
+  const joinTitle = joinScreen.querySelector("div[style*='font-family:Cinzel']");
+  const scorerLabel = joinName?.closest("label");
+  const groupLabel = joinGroup?.closest("label");
+  const startHoleLabel = joinStartHole?.closest("label");
+
+  if (isOnsite) {
+    if(joinTitle) joinTitle.textContent = "Enter Team Information";
+
+    if(scorerLabel) scorerLabel.style.display = "none";
+    if(groupLabel) groupLabel.style.display = "";
+    if(startHoleLabel) startHoleLabel.style.display = "";
+
+    if(joinGroup) joinGroup.placeholder = "Team Name";
+
+    if(joinMate1) joinMate1.placeholder = "Player 1";
+    if(joinMate2) joinMate2.placeholder = "Player 2";
+    if(joinMate3) joinMate3.placeholder = "Player 3";
+    if(joinMate4) joinMate4.placeholder = "Player 4";
+    if(joinMate5) joinMate5.placeholder = "Player 5";
+
+    if(joinBtn) joinBtn.textContent = "Start Scoring";
+    if(joinCancel) joinCancel.style.display = "none";
+    return;
+  }
+
+  if (isTeamRep){
+    if(joinTitle) joinTitle.textContent = "Enter Team Names";
+
+    if(scorerLabel) scorerLabel.style.display = "none";
+    if(groupLabel) groupLabel.style.display = "none";
+    if(startHoleLabel) startHoleLabel.style.display = "";
+
+    if(joinMate1) joinMate1.placeholder = "Player 1";
+    if(joinMate2) joinMate2.placeholder = "Player 2";
+    if(joinMate3) joinMate3.placeholder = "Player 3";
+    if(joinMate4) joinMate4.placeholder = "Player 4";
+    if(joinMate5) joinMate5.placeholder = "Player 5";
+
+    if(joinBtn) joinBtn.textContent = "Save Team & Start Scoring";
+    if(joinCancel) joinCancel.style.display = "none";
+  } else {
+    if(joinTitle) joinTitle.textContent = "Join Tournament";
+
+    if(scorerLabel) scorerLabel.style.display = "";
+    if(groupLabel) groupLabel.style.display = "";
+    if(startHoleLabel) startHoleLabel.style.display = "";
+
+    if(joinMate1) joinMate1.placeholder = "Teammate name";
+    if(joinMate2) joinMate2.placeholder = "Teammate name";
+    if(joinMate3) joinMate3.placeholder = "Teammate name";
+    if(joinMate4) joinMate4.placeholder = "Teammate name";
+    if(joinMate5) joinMate5.placeholder = "Teammate name";
+
+    if(joinBtn) joinBtn.textContent = "Join & Start Scoring";
+    if(joinCancel) joinCancel.style.display = "";
+  }
+}
+
+async function pushTournamentNow(){
+  if (isCasualMode) return;
+  if (!db || !tournamentId || !joinCompleted) return;
+
+  const deviceId = makeDeviceId();
+  const payload = readScoresFromDOM();
+  const netTotals = Array.from({length: playersCount}, (_,i) => getNetTotalForRow(i));
+  const onsiteMode = isOnsiteEntryMode(tournamentEntryMode);
+
+const playerName =
+  onsiteMode
+    ? String(payload.names[0] || "Player").trim()
+    : tournamentEntryMode === "team_rep"
+      ? String(payload.names[0] || "Team").trim()
+      : String(joinName.value || payload.names[0] || "Player").trim();
+
+const group =
+  onsiteMode
+    ? String(joinGroup.value || "").trim()
+    : tournamentEntryMode === "team_rep"
+      ? ""
+      : String(joinGroup.value || "").trim();
+
+  const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
+  const startHoleLabel = norm ? norm.label : "";
+
+  const subRef = tournamentSubmissionsDoc(db, organizationId, tournamentId, deviceId);
+  const rosterSafe = (Array.isArray(rosterNames) && rosterNames.length)
+    ? rosterNames
+    : (payload.names || []).filter(Boolean).slice(0, 6);
+
+  const sideGames = readSideGamesFromDOM();
+
+  await setDoc(subRef, {
+    deviceId,
+    registrationId: selectedRegistrationId || "",
+    courseId: currentCourseId,
+    format: tournamentFormat,
+    entryMode: tournamentEntryMode,
+    playerName,
+    group,
+    companyName: group,
+    startHole: startHoleLabel,
+    names: payload.names,
+    rosterNames: rosterSafe,
+    scoresFlat: payload.scoresFlat,
+    totals: payload.totals,
+    netTotals,
+    sideGames,
+    roundStatus: roundFinished ? "finished" : "active",
+    updatedAt: serverTimestamp()
+  }, { merge:true });
+}
+
+let pushTimer = null;
+function scheduleTournamentPush(){
+  if (isCasualMode) {
+    scheduleCasualPush();
+    return;
+  }
+  if (!db || !tournamentId || !authReady || !joinCompleted || roundFinished) return;
+  if (pushTimer) clearTimeout(pushTimer);
+  pushTimer = setTimeout(async () => {
+    try{
+      await pushTournamentNow();
+    }catch(e){
+      console.error("WRITE FAILED ❌", e);
+    }
+  }, 250);
+}
+  function wireButtons(){
+  const saveBtn = document.getElementById("saveImg");
+  const shareBtn = document.getElementById("share");
+  const clearBtn = document.getElementById("clear");
+  const finishBtn = document.getElementById("finishRound");
+
+  saveBtn.addEventListener("click", async () => {
+    if (isTournamentMode && !joinCompleted) return;
+    try{
+      const canvas = await captureFullCardCanvas();
+      canvas.toBlob(async (blob) => {
+        const file = new File([blob], "scorecard.png", { type: "image/png" });
+
+        if (navigator.canShare && navigator.canShare({ files:[file] })) {
+          await navigator.share({ files:[file], title:"Scorecard" });
+          return;
+        }
+
+        const dataUrl = canvas.toDataURL("image/png");
+        const w = window.open();
+        if (w) w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
+        else alert("Pop-up blocked. Try Share instead.");
+      }, "image/png");
+    }catch(e){
+      alert("Save failed. Try again.");
+    }
+  });
+
+  shareBtn.addEventListener("click", async () => {
+    if (isTournamentMode && !joinCompleted) return;
+    try{
+      const canvas = await captureFullCardCanvas();
+      const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+      const file = new File([blob], "scorecard.png", { type:"image/png" });
+
+      if (navigator.canShare && navigator.canShare({ files:[file] })){
+        await navigator.share({ files:[file], title:"Scorecard" });
+      } else {
+        alert("Sharing not supported here. Use Save as Image.");
+      }
+    }catch(e){
+      alert("Share failed. Use Save as Image.");
+    }
+  });
+
+  clearBtn.addEventListener("click", () => {
+    if (isTournamentMode && !joinCompleted) return;
+    if (roundFinished) return;
+    if(!confirm("Clear all scores and side game selections for this course?")) return;
+    document.querySelectorAll(".score-input").forEach(i => i.value = "");
+    document.querySelectorAll(".player-name").forEach(i => i.value = "");
+    document.querySelectorAll(".sidegame-select").forEach(i => i.value = "");
+    clearState();
+    for (let i=0;i<playersCount;i++) recalcPlayer(i);
+    if(Array.isArray(rosterNames) && rosterNames.length){
+      setPlayerRowNames(rosterNames);
+    }
+    renderSideGamesPanel();
+    scheduleTournamentPush();
+  });
+
+  finishBtn.addEventListener("click", async () => {
+    if (isCasualMode) {
+      if (roundFinished) {
+        alert("This round is already finalized.");
+        return;
+      }
+      const norm = normalizeStartHole(joinStartHole?.value || "1");
+      const holeNum = norm ? norm.holeNum : 1;
+      const completed = getCompletedHoleCount(holeNum);
+      if (completed < 9) {
+        alert(`You must complete at least 9 holes.\nCurrent: ${completed}`);
+        return;
+      }
+      let finishHoles = 9;
+      if (completed >= 18) {
+        const finish18 = confirm("18 holes detected.\n\nPress OK for Finish 18.\nPress Cancel for Finish 9.");
+        finishHoles = finish18 ? 18 : 9;
+      } else {
+        const ok = confirm(`Finish 9 holes?\nCompleted: ${completed}`);
+        if (!ok) return;
+      }
+      try {
+        await pushCasualNow();
+        finishedHolesCount = finishHoles;
+        lockScorecard();
+      } catch (e) {
+        console.error(e);
+        alert("Could not finish round.");
+      }
+      return;
+    }
+
+    if(!isTournamentMode || !tournamentId || !joinCompleted){
+      alert("Finish Round only works after you unlock the scorecard.");
+      return;
+    }
+
+    if(roundFinished){
+      alert("This round is already finalized.");
+      return;
+    }
+
+    const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
+    if(!norm){
+      alert("Start hole missing/invalid.");
+      return;
+    }
+
+    const completed = getCompletedHoleCount(norm.holeNum);
+    if(completed < 9){
+      alert(`You must complete at least 9 holes.\nCurrent: ${completed}`);
+      return;
+    }
+
+    let finishHoles = 9;
+    if(completed >= 18){
+      const finish18 = confirm("18 holes detected.\n\nPress OK for Finish 18.\nPress Cancel for Finish 9.");
+      finishHoles = finish18 ? 18 : 9;
+    }else{
+      const ok = confirm(`Finish 9 holes?\nCompleted: ${completed}`);
+      if(!ok) return;
+    }
+
+    try{
+      await pushTournamentNow();
+      const deviceId = makeDeviceId();
+      const subRef = tournamentSubmissionsDoc(db, organizationId, tournamentId, deviceId);
+      await setDoc(subRef,{
+        roundStatus:"finished",
+        finishedHoles:finishHoles,
+        updatedAt:serverTimestamp(),
+        finishedAt:serverTimestamp()
+      },{merge:true});
+
+      finishedHolesCount = finishHoles;
+      lockScorecard();
+    }catch(e){
+      console.error(e);
+      alert("Could not finish round.");
+    }
+  });
+}
+
+function applyLiveAlertTicker(msg){
+  if (!liveAlertMessageA || !liveAlertMessageB || !liveAlertTickerTrack) return;
+  liveAlertMessageA.textContent = msg;
+  liveAlertMessageB.textContent = msg;
+  const track = liveAlertTickerTrack;
+  track.style.animation = "none";
+  void track.offsetWidth;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const half = track.scrollWidth / 2;
+      const pxPerSec = 48;
+      const sec = Math.max(12, Math.min(120, half / pxPerSec));
+      track.style.setProperty("--live-alert-dur", sec + "s");
+      track.style.animation = "";
+    });
+  });
+}
+
+function startLiveAlertListener(){
+  if (!db || !tournamentId || liveAlertListenerStarted) return;
+  liveAlertListenerStarted = true;
+
+  const liveAlertRef = tournamentAlertsLiveRef(db, organizationId, tournamentId);
+  onSnapshot(liveAlertRef, (snap) => {
+    if (!liveAlertBanner || !liveAlertMessageA) return;
+
+    if (!snap.exists()){
+      liveAlertBanner.style.display = "none";
+      return;
+    }
+
+    const d = snap.data() || {};
+    const active = d.active === true;
+    const msg = String(d.message || "").trim();
+
+    if (!active || !msg){
+      liveAlertBanner.style.display = "none";
+      return;
+    }
+
+    const level = String(d.level || "info").trim().toLowerCase();
+    liveAlertBanner.classList.remove("liveAlertBanner--info", "liveAlertBanner--warning", "liveAlertBanner--urgent");
+
+    if (level === "warning"){
+      liveAlertBanner.classList.add("liveAlertBanner--warning");
+      if (liveAlertLabel) liveAlertLabel.textContent = "Warning";
+    } else if (level === "urgent"){
+      liveAlertBanner.classList.add("liveAlertBanner--urgent");
+      if (liveAlertLabel) liveAlertLabel.textContent = "Urgent";
+    } else {
+      liveAlertBanner.classList.add("liveAlertBanner--info");
+      if (liveAlertLabel) liveAlertLabel.textContent = "Info";
+    }
+
+    liveAlertBanner.style.display = "block";
+    applyLiveAlertTicker(msg);
+  }, () => {
+    if (liveAlertBanner) liveAlertBanner.style.display = "none";
+  });
+}
+
+async function checkTournamentFromURL(){
+  const params = new URLSearchParams(location.search);
+  const { orgId, tournamentId: tId } = parseOrgTournamentFromSearch(params);
+  const regId = (params.get("registration") || params.get("r") || "").trim();
+
+  if (!tId) return;
+
+  organizationId = orgId;
+  tournamentId = tId;
+  incomingRegistrationId = regId;
+  isTournamentMode = true;
+  joinCompleted = false;
+  roundFinished = false;
+  finishedHolesCount = null;
+
+  if(db){
+    startLiveAlertListener();
+    try{
+      const snap = await getDoc(tournamentDocRef(db, organizationId, tournamentId));
+      if(snap.exists()){
+        const t = snap.data() || {};
+
+        tournamentFormat = normalizeFormatValue(t.formatOfPlay || t.format);
+        playersCount = formatToPlayersCount(tournamentFormat);
+        tournamentEntryMode = String(t.entryMode || "team_rep").trim().toLowerCase();
+
+        const courseDefault = String(t.defaultCourse || t.courseDefault || "tradition").trim().toLowerCase();
+        currentCourseId = COURSES[courseDefault] ? courseDefault : "tradition";
+
+        tournamentSideGames = normalizeTournamentSideGames(t.sideGames || {});
+
+        if (t.sponsorMarketingEnabled === false){
+          applySponsorUI("", "", "");
+          hideScorecardSponsorTicker();
+        } else {
+          const sponsor = getPrimarySponsor(t);
+          applySponsorUI(sponsor.name, sponsor.logo, sponsor.url);
+          renderScorecardSponsorTicker(t);
+        }
+
+        build();
+
+        const tournamentMetaText = `${t.tournamentName || t.name || "Tournament"}${(t.eventDate || t.date) ? " • " + (t.eventDate || t.date) : ""}`;
+
+        if(incomingRegistrationId){
+          const reg = await fetchRegistrationById(incomingRegistrationId);
+          if(reg){
+            await autoStartFromRegistration(reg);
+            return;
+          }
+        }
+
+        const onsiteMode = isOnsiteEntryMode(tournamentEntryMode);
+
+if (onsiteMode || tournamentEntryMode === "team_rep") {
+  teamPickerScreen.style.display = "none";
+  joinScreen.style.display = "block";
+  joinMeta.textContent = tournamentMetaText;
+  setPreJoinLock(true);
+  updateJoinScreenForEntryMode();
+} else {
+  teamPickerScreen.style.display = "block";
+  joinScreen.style.display = "none";
+  joinMeta.textContent = tournamentMetaText;
+  setPreJoinLock(true);
+  updateJoinScreenForEntryMode();
+
+  await loadRegistrations();
+
+  const savedRegId = loadSelectedRegistrationId();
+  if(savedRegId){
+    const found = loadedRegistrations.find(x => x.id === savedRegId);
+    if(found){
+      applyRegistrationSelection(found);
+    }
+  }
+        }
+      } else {
+        hideScorecardSponsorTicker();
+      }
+      
+    }catch(e){
+      console.warn("Tournament settings load failed", e);
+      hideScorecardSponsorTicker();
+    }
+  }
+}
+
+joinBtn.addEventListener("click", async () => {
+  if (!tournamentId) return;
+  if(roundFinished){
+    alert("This round is already finalized and cannot be reopened.");
+    return;
+  }
+
+  const norm = normalizeStartHole(joinStartHole.value);
+  if (!norm) {
+    alert("Missing starting hole.");
+    return;
+  }
+
+  const onsiteMode = isOnsiteEntryMode(tournamentEntryMode);
+  let all = [];
+
+  if (onsiteMode) {
+    const teamName = (joinGroup?.value || "").trim();
+
+    all = [
+      joinMate1?.value || "",
+      joinMate2?.value || "",
+      joinMate3?.value || "",
+      joinMate4?.value || "",
+      joinMate5?.value || ""
+    ].map(s => s.trim()).filter(Boolean).slice(0, 6);
+
+    if (!teamName) {
+      alert("Please enter a team name.");
+      return;
+    }
+
+    if (!all.length) {
+      alert("Please enter at least one player name.");
+      return;
+    }
+
+    selectedRegistrationId = "";
+    clearSelectedRegistrationId();
+  }
+  else if (tournamentEntryMode === "team_rep") {
+    all = [
+      joinMate1?.value || "",
+      joinMate2?.value || "",
+      joinMate3?.value || "",
+      joinMate4?.value || "",
+      joinMate5?.value || ""
+    ].map(s => s.trim()).filter(Boolean).slice(0, 6);
+
+    if (!all.length) {
+      alert("Please enter at least one player name.");
+      return;
+    }
+
+    selectedRegistrationId = "";
+    clearSelectedRegistrationId();
+  }
+  else {
+    const scorerName = (joinName.value || "").trim();
+    if (!scorerName) {
+      alert("Please enter your name (Scorer).");
+      return;
+    }
+
+    if (pendingRegistration) {
+      selectedRegistrationId = pendingRegistration.id || "";
+      saveSelectedRegistrationId(selectedRegistrationId);
+    }
+
+    const matesRaw = [
+      joinMate1?.value || "",
+      joinMate2?.value || "",
+      joinMate3?.value || "",
+      joinMate4?.value || "",
+      joinMate5?.value || ""
+    ].map(s => s.trim()).filter(Boolean);
+
+    all = [scorerName, ...matesRaw].slice(0, 6);
+  }
+
+  const seen = new Set();
+  all = all.filter(n => {
+    const k = n.toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+
+  if(tournamentFormat === "scramble"){
+    rosterNames = all.slice(0, 6);
+  }else if(tournamentFormat === "bestball"){
+    rosterNames = all.slice(0, 2);
+  }else{
+    rosterNames = all;
+  }
+
+  setPlayerRowNames(rosterNames);
+
+  startHoleSelected = norm.label;
+  joinCompleted = true;
+  roundFinished = false;
+  finishedHolesCount = null;
+  joinScreen.style.display = "none";
+  teamPickerScreen.style.display = "none";
+
+  renderSideGamesPanel(readSideGamesFromDOM());
+  setPreJoinLock(false);
+  enforceStartHoleLock();
+  saveState();
+
+  try{
+    await pushTournamentNow();
+  }catch(e){
+    console.error(e);
+  }
+
+  setTimeout(() => scrollToStartHole(norm.holeNum), 250);
+});
+
+joinCancel.addEventListener("click", () => {
+  backToTeamPicker();
+});
+
+teamSearchInput.addEventListener("input", renderTeamPicker);
+
+async function hardRefreshApp(){
+  try{
+    if ('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+  }catch(e){}
+
+  try{
+    if (window.caches){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  }catch(e){}
+
+  location.reload();
+}
+
+refreshBtn.addEventListener("click", () => {
+  if(!confirm("Refresh app and pull latest update?")) return;
+  hardRefreshApp();
+});
+
+wireButtons();
+
+(async function boot() {
+  const params = new URLSearchParams(location.search);
+  const qToken = (params.get("q") || "").trim();
+  if (qToken && db && authReady) {
+    const casualStarted = await tryStartCasualMode(qToken);
+    if (casualStarted) return;
+  }
+  build();
+  await checkTournamentFromURL().catch((err) => {
+    console.error("Tournament load failed:", err);
+  });
+})();
+</script>
+</html>

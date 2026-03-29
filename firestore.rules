@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function userOrgId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId;
+    }
+
+    function isOrgMember(orgId) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && userOrgId() == orgId;
+    }
+
+    // Profiles written only by Cloud Functions (setupOrganization).
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /organizations/{orgId} {
+      allow read: if isOrgMember(orgId);
+      allow create, delete: if false;
+      allow update: if isOrgMember(orgId);
+    }
+
+    // Short QR tokens → org + course for casual scorecard (?q=TOKEN)
+    match /publicLinks/{token} {
+      allow get: if request.auth != null;
+      allow list: if false;
+      allow write: if false;
+    }
+
+    // Course layout for casual play (read by any signed-in user including anonymous)
+    match /organizations/{orgId}/courses/{courseId} {
+      allow get: if request.auth != null;
+      allow list: if isOrgMember(orgId);
+      allow create, update, delete: if isOrgMember(orgId);
+    }
+
+    // Casual rounds: only the anonymous/email user who created the doc
+    match /organizations/{orgId}/casualRounds/{roundId} {
+      allow create: if request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow read, update: if request.auth != null
+        && resource.data.ownerUid == request.auth.uid;
+      allow delete: if false;
+    }
+
+    match /organizations/{orgId}/tournaments/{tournamentId} {
+      // Single-doc reads for players (incl. anonymous); listing only for org staff.
+      allow get: if request.auth != null;
+      allow list: if isOrgMember(orgId);
+      allow create, update, delete: if isOrgMember(orgId);
+
+      match /{subcollection}/{docId} {
+        allow read: if request.auth != null;
+        allow create, update, delete: if request.auth != null;
+      }
+    }
+
+    // Legacy single-tenant paths (existing bookmarks without ?org=).
+    match /tournaments/{tournamentId} {
+      allow get: if request.auth != null;
+      allow list: if request.auth != null;
+      allow create, update, delete: if request.auth != null;
+
+      match /{subcollection}/{docId} {
+        allow read: if request.auth != null;
+        allow create, update, delete: if request.auth != null;
+      }
+    }
+  }
+}

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sign in — Tournament platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Barlow:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#d9d1c2; --ink:#2f2a26; --line:#9a6217; --green:#2f7a31; --blue:#12356f; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Barlow, system-ui, sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .card { width: min(440px, 100%); background: rgba(255,255,255,.2); border: 4px solid rgba(154,98,23,.45); border-radius: 24px; padding: 28px; }
+    h1 { font-family: Cinzel, serif; font-size: 1.5rem; margin: 0 0 8px; }
+    p { margin: 0 0 18px; color: #4b4641; }
+    label { display: block; font-weight: 800; margin-bottom: 6px; }
+    input { width: 100%; padding: 14px 16px; border-radius: 16px; border: 3px solid var(--line); font-size: 1.1rem; margin-bottom: 14px; font-family: inherit; }
+    .btn { width: 100%; padding: 16px; border: none; border-radius: 16px; font-size: 1.15rem; font-weight: 900; cursor: pointer; font-family: inherit; background: var(--green); color: #fff; }
+    .btn:disabled { opacity: 0.6; }
+    .btn-secondary { background: var(--blue); margin-top: 12px; text-decoration: none; display: block; text-align: center; line-height: 1.3; padding: 16px; border-radius: 16px; color: #fff; font-weight: 800; }
+    .err { color: #a32; font-weight: 700; margin-top: 8px; min-height: 1.4em; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Organizer sign in</h1>
+    <p>Use the email and password you registered with.</p>
+    <form id="form">
+      <label for="email">Email</label>
+      <input id="email" type="email" required autocomplete="email" />
+
+      <label for="password">Password</label>
+      <input id="password" type="password" required autocomplete="current-password" />
+
+      <button type="submit" class="btn" id="submitBtn">Sign in</button>
+      <div class="err" id="err"></div>
+    </form>
+    <a class="btn-secondary" href="./signup.html">Create a course account</a>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const params = new URLSearchParams(location.search);
+    const nextUrl = params.get("next") || "./dashboard.html";
+
+    const $ = (id) => document.getElementById(id);
+
+    $("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const err = $("err");
+      const btn = $("submitBtn");
+      err.textContent = "";
+      btn.disabled = true;
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value);
+        window.location.href = nextUrl;
+      } catch (e2) {
+        console.error(e2);
+        err.textContent = e2?.message || String(e2);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

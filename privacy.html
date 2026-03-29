@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Privacy Policy | Cypresswood Scorecard</title>
+  <meta name="theme-color" content="#7a4a0b">
+
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    body{
+      margin:0;
+      background:#e9e2d4;
+      color:#111;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:20px 16px 40px;
+    }
+    .card{
+      background:#efe7d7;
+      border:3px solid #7a4a0b;
+      border-radius:14px;
+      padding:24px 20px;
+      box-shadow:0 10px 28px rgba(0,0,0,.18);
+    }
+    h1{
+      font-family:Cinzel,serif;
+      font-weight:900;
+      margin-top:0;
+    }
+    h2{
+      font-family:Cinzel,serif;
+      margin-top:28px;
+    }
+    p{ line-height:1.6; }
+    .small{ opacity:.75; font-size:13px; }
+    a{ color:#2f6b2f; font-weight:700; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Privacy Policy</h1>
+      <p class="small">Last updated: <span id="today"></span></p>
+
+      <p>
+        Cypresswood Scorecard ("we", "our", or "the app") respects your privacy.
+        This Privacy Policy explains what information is collected and how it is used.
+      </p>
+
+      <h2>Information We Collect</h2>
+      <p>
+        The scorecard may store golf scores, player names, group names, and tournament data
+        entered by users. This information is used solely to provide score tracking and
+        leaderboard functionality.
+      </p>
+
+      <h2>Local Storage</h2>
+      <p>
+        The app stores scorecard data locally on your device to preserve your progress.
+        You may clear this data at any time using the Clear Card button or your browser settings.
+      </p>
+
+      <h2>Firebase / Cloud Data</h2>
+      <p>
+        For tournament play, score data may be transmitted to secure cloud services
+        (Google Firebase) to enable live leaderboard updates. No sensitive personal
+        information is required to use the scorecard.
+      </p>
+
+      <h2>Advertising & Sponsors</h2>
+      <p>
+        Tournament sponsors may be displayed within the app. Clicking a sponsor may
+        open the sponsor’s external website. We are not responsible for the privacy
+        practices of third-party sites.
+      </p>
+
+      <h2>Data Sharing</h2>
+      <p>
+        We do not sell or rent personal information. Data is used only to operate
+        the scorecard and leaderboard features.
+      </p>
+
+      <h2>Children’s Privacy</h2>
+      <p>
+        This app is not directed to children under 13. We do not knowingly collect
+        personal information from children.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        For questions about this Privacy Policy, please contact the course operator.
+      </p>
+
+      <p class="small">
+        This policy may be updated periodically to reflect improvements to the app.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("today").textContent =
+      new Date().toLocaleDateString();
+  </script>
+</body>
+</html>

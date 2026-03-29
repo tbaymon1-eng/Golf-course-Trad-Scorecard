@@ -1,0 +1,1567 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Tournament Admin</title>
+
+  <meta name="theme-color" content="#d9d1c2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#d9d1c2;
+      --panel:#ece7dc;
+      --panel-2:#e8e2d6;
+      --ink:#2f2a26;
+      --muted:#6c645c;
+      --line:#9a6217;
+      --line-soft:#d2cbc0;
+      --white:#ffffff;
+      --green:#2f7a31;
+      --blue:#12356f;
+      --red:#c4462f;
+      --link:#2180ff;
+      --shadow:0 8px 24px rgba(0,0,0,.06);
+      --radius:26px;
+      --radius-sm:18px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; }
+    body{
+      background:var(--bg);
+      color:var(--ink);
+      font-family:"Barlow", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+
+    .page{
+      width:min(920px, calc(100vw - 22px));
+      margin:18px auto 30px;
+      background:rgba(255,255,255,.18);
+      border:6px solid rgba(154,98,23,.45);
+      border-radius:32px;
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .main-card{
+      background:rgba(255,255,255,.18);
+      border:3px solid rgba(154,98,23,.75);
+      border-radius:28px;
+      overflow:hidden;
+    }
+
+    .hero{
+      padding:26px 24px 20px;
+      border-bottom:2px solid rgba(0,0,0,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
+    }
+
+    .hero h1,
+    .section-title,
+    .dash-title{
+      margin:0;
+      font-family:"Cinzel", serif;
+      letter-spacing:.02em;
+      color:#2e2a28;
+    }
+
+    .hero h1{
+      font-size:clamp(28px, 5.6vw, 56px);
+      line-height:.98;
+      font-weight:800;
+    }
+
+    .hero p{
+      margin:18px 0 0;
+      max-width:760px;
+      font-size:clamp(18px, 3vw, 30px);
+      line-height:1.08;
+      color:#4b4641;
+      font-weight:700;
+    }
+
+    .content{
+      padding:20px;
+    }
+
+    .field{
+      margin:0 0 18px;
+    }
+
+    .label{
+      display:block;
+      margin:0 0 10px;
+      font-family:"Cinzel", serif;
+      font-weight:800;
+      font-size:clamp(18px, 2.6vw, 28px);
+      color:#1f1b18;
+      letter-spacing:.01em;
+    }
+
+    .hint{
+      margin:10px 0 0;
+      color:#5f5851;
+      font-size:clamp(14px, 2vw, 18px);
+      line-height:1.15;
+      font-weight:700;
+    }
+
+    input[type="text"],
+    input[type="url"],
+    input[type="date"],
+    input[type="number"],
+    input[type="email"],
+    select,
+    textarea{
+      width:100%;
+      min-height:72px;
+      padding:18px 24px;
+      border-radius:24px;
+      border:4px solid var(--line);
+      background:#f4f4f4;
+      color:#1f1b18;
+      font-size:clamp(20px, 3.1vw, 34px);
+      font-weight:800;
+      font-family:"Barlow", sans-serif;
+      outline:none;
+      box-shadow:none;
+      appearance:none;
+      -webkit-appearance:none;
+    }
+
+    textarea{
+      min-height:110px;
+      resize:vertical;
+    }
+
+    input::placeholder,
+    textarea::placeholder{
+      color:#a7a5a8;
+      opacity:1;
+      font-weight:700;
+    }
+
+    select{
+      background-image:
+        linear-gradient(45deg, transparent 50%, #111 50%),
+        linear-gradient(135deg, #111 50%, transparent 50%);
+      background-position:
+        calc(100% - 28px) calc(50% - 5px),
+        calc(100% - 18px) calc(50% - 5px);
+      background-size:10px 10px, 10px 10px;
+      background-repeat:no-repeat;
+      padding-right:56px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:0 18px;
+    }
+
+    .dash-box{
+      margin:18px 0 0;
+      padding:18px;
+      border:4px dashed var(--line-soft);
+      border-radius:28px;
+      background:rgba(255,255,255,.22);
+    }
+
+    .dash-title{
+      font-size:clamp(24px, 3.6vw, 42px);
+      margin-bottom:14px;
+      font-weight:900;
+    }
+
+    .btn{
+      width:100%;
+      min-height:88px;
+      border:none;
+      border-radius:24px;
+      font-family:"Barlow", sans-serif;
+      font-size:clamp(24px, 4vw, 40px);
+      font-weight:900;
+      letter-spacing:.01em;
+      cursor:pointer;
+      padding:16px 18px;
+      text-align:center;
+      box-shadow:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .btn + .btn{ margin-top:18px; }
+    .btn-green{ background:var(--green); color:#fff; }
+    .btn-blue{ background:var(--blue); color:#fff; }
+    .btn-red{ background:var(--red); color:#fff; }
+    .btn-ghost{
+      background:transparent;
+      color:var(--link);
+      border:4px solid var(--line);
+    }
+
+    .readonly-box{
+      width:100%;
+      min-height:72px;
+      padding:18px 24px;
+      border-radius:24px;
+      border:4px solid #c9c9c9;
+      background:#f6f6f6;
+      color:#333;
+      font-size:clamp(18px, 2.8vw, 30px);
+      font-weight:800;
+      display:flex;
+      align-items:center;
+      overflow:auto;
+    }
+
+    .qr-box{
+      min-height:148px;
+      border-radius:24px;
+      border:4px solid #d5d5d5;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:14px;
+      overflow:hidden;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:56px;
+      padding:8px 22px;
+      border-radius:999px;
+      border:4px solid #d0d0d0;
+      background:#f8f8f8;
+      font-size:clamp(18px, 2.5vw, 26px);
+      font-weight:800;
+      color:#2b2724;
+    }
+
+    .muted-block{
+      color:#5d5650;
+      font-size:clamp(16px, 2.2vw, 19px);
+      line-height:1.12;
+      font-weight:700;
+    }
+
+    .sponsor-list{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .sponsor-item{
+      border:3px solid rgba(154,98,23,.45);
+      border-radius:18px;
+      padding:12px 14px;
+      background:rgba(255,255,255,.3);
+    }
+
+    .sponsor-item strong{
+      display:block;
+      font-size:20px;
+      margin-bottom:4px;
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:22px;
+      transform:translateX(-50%);
+      background:#1f1f1f;
+      color:#fff;
+      padding:12px 18px;
+      border-radius:999px;
+      font-weight:800;
+      font-size:16px;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease, transform .2s ease;
+      z-index:9999;
+    }
+
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(-4px);
+    }
+
+    .hidden{ display:none !important; }
+
+    .row-2{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:18px;
+    }
+
+    @media (min-width:760px){
+      .content{ padding:26px; }
+      .row-2{ grid-template-columns:1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="main-card">
+      <section class="hero">
+        <h1>ADMIN TOURNAMENT<br>SETUP</h1>
+        <p>Create or load a tournament, then share the Join QR + Live Leaderboard QR (and Organizer Roster QR).</p>
+      </section>
+
+      <section class="content">
+        <div class="field">
+          <label class="label" for="tournamentName">Tournament Name</label>
+          <input id="tournamentName" type="text" placeholder="Cypresswood Saturday Classic" />
+        </div>
+
+        <div class="field">
+          <label class="label" for="defaultCourse">Default Course</label>
+          <select id="defaultCourse">
+            <option value="Tradition">Tradition</option>
+            <option value="Cypress">Cypress</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="formatOfPlay">Format of Play</label>
+          <select id="formatOfPlay">
+            <option value="Stroke Play">Stroke Play</option>
+            <option value="Scramble">Scramble</option>
+            <option value="Best Ball">Best Ball</option>
+            <option value="Modified Stableford">Modified Stableford</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="roundHoles">Holes to Play</label>
+          <select id="roundHoles">
+            <option value="18">18 holes</option>
+            <option value="9">9 holes</option>
+          </select>
+        </div>
+
+        <div class="field" id="nineSideField">
+          <label class="label" for="nineSide">Which 9 holes</label>
+          <select id="nineSide">
+            <option value="front">Front nine (holes 1–9)</option>
+            <option value="back">Back nine (holes 10–18)</option>
+          </select>
+          <div class="hint">Used when “9 holes” is selected above.</div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="entryMode">Team Setup</label>
+          <select id="entryMode">
+            <option value="onsite">On-Site Player Entry</option>
+            <option value="pre_event">Pre-Event Registration</option>
+          </select>
+          <div class="hint">
+            Choose how players will enter the tournament.
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="sideGame">Side Game</label>
+          <select id="sideGame">
+            <option value="None">None</option>
+            <option value="Skins">Skins</option>
+            <option value="Skins + Team">Skins + Team</option>
+          </select>
+          <div class="hint">If enabled, the leaderboard can show a Leaderboard / Skins toggle.</div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="eventDate">Date (optional)</label>
+          <input id="eventDate" type="date" />
+        </div>
+
+        <div class="field">
+          <label class="label" for="organizerName">Organizer Name</label>
+          <input id="organizerName" type="text" placeholder="Organizer name">
+        </div>
+
+        <div class="field">
+          <label class="label" for="organizerEmail">Organizer Email</label>
+          <input id="organizerEmail" type="email" placeholder="organizer@email.com">
+        </div>
+
+        <div class="field">
+          <label class="label">
+            <input id="confirmationEnabled" type="checkbox" checked>
+            Send registration confirmation emails
+          </label>
+        </div>
+
+        <div class="field">
+          <label class="label" for="status">Status</label>
+          <select id="status">
+            <option value="open">Open (Live)</option>
+            <option value="draft">Draft</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="handicapEnabled">Enable Handicap Scoring</label>
+          <select id="handicapEnabled">
+            <option value="off">Off</option>
+            <option value="on">On</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="handicapPercent">Handicap %</label>
+          <input id="handicapPercent" type="number" placeholder="100" min="0" max="100" />
+          <div class="hint">Example: 100 = full handicap, 80 = 80%, 60 = 60%</div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="tournamentId">Tournament ID (for Load Existing)</label>
+          <input id="tournamentId" type="text" placeholder="paste tournament id here" />
+        </div>
+
+        <div class="field">
+          <label class="label" for="adminToken">Admin Token (auto)</label>
+          <input id="adminToken" type="text" placeholder="auto-generated" readonly />
+          <div class="hint">Keep this private. It’s a simple gate for admin edits.</div>
+        </div>
+
+        <div class="dash-box">
+          <h2 class="dash-title">ADDITIONAL SIDE GAMES</h2>
+
+          <div class="field">
+            <label class="label" for="closestToPinEnabled">Closest to the Pin</label>
+            <select id="closestToPinEnabled">
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>
+            <div class="hint">Turn Closest to the Pin on or off for this tournament.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="closestToPinHoles">Closest to the Pin Holes</label>
+            <input id="closestToPinHoles" type="text" placeholder="5,8,12,17" />
+            <div class="hint">Comma-separated hole numbers. Example: 5,8,12,17</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="longDriveEnabled">Long Drive</label>
+            <select id="longDriveEnabled">
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>
+            <div class="hint">Turn Long Drive on or off for this tournament.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="longDriveHoles">Long Drive Holes</label>
+            <input id="longDriveHoles" type="text" placeholder="2,9,14" />
+            <div class="hint">Comma-separated hole numbers. Example: 2,9,14</div>
+          </div>
+        </div>
+
+        <div class="dash-box" style="margin-top:22px;">
+          <h2 class="dash-title">HOLE ASSIGNMENT</h2>
+
+          <div class="field">
+            <label class="label" for="autoAssignEnabled">Auto Assign On Registration</label>
+            <select id="autoAssignEnabled">
+              <option value="on">On</option>
+              <option value="off">Off</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="holeAssignmentMode">Hole Assignment Mode</label>
+            <select id="holeAssignmentMode">
+              <option value="default">Default Flow</option>
+              <option value="custom">Custom Flow</option>
+            </select>
+            <div class="hint">
+              Default uses 1A → 2A → 3A ... 18A → 1B → 2B ... Custom lets you define your own order.
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="customHoleFlow">Custom Hole Flow</label>
+            <textarea id="customHoleFlow" rows="5" placeholder="1A,2A,3A,4A,5A,6A"></textarea>
+            <div class="hint">
+              Enter comma-separated hole order. Example: 1A,3A,5A,7A,9A,11A
+            </div>
+          </div>
+        </div>
+
+        <div style="height:18px"></div>
+
+        <button class="btn btn-green" id="createTournamentBtn" type="button">Create Tournament</button>
+        <button class="btn btn-blue" id="loadTournamentBtn" type="button">Load Existing (by ID)</button>
+        <button class="btn btn-ghost" id="saveChangesBtn" type="button">Save Changes</button>
+        <button class="btn btn-red" id="closeTournamentBtn" type="button">Close Tournament</button>
+
+        <div class="dash-box">
+          <h2 class="dash-title">SHARE LINKS & QR CODES</h2>
+
+          <div class="field">
+            <label class="label">Join Link</label>
+            <div id="joinLinkBox" class="readonly-box">—</div>
+          </div>
+
+          <button class="btn btn-ghost" id="copyJoinBtn" type="button">Copy Join</button>
+
+          <div class="field">
+            <label class="label">Leaderboard Link</label>
+            <div id="leaderboardLinkBox" class="readonly-box">—</div>
+          </div>
+
+          <button class="btn btn-ghost" id="copyLeaderboardBtn" type="button">Copy Leaderboard</button>
+
+          <div class="field">
+            <label class="label">Organizer Roster Link</label>
+            <div id="rosterLinkBox" class="readonly-box">—</div>
+          </div>
+
+          <button class="btn btn-ghost" id="copyRosterBtn" type="button">Copy Roster</button>
+
+          <div style="height:10px"></div>
+
+          <div class="field">
+            <label class="label">Registration Link</label>
+            <div id="registrationLinkBox" class="readonly-box">—</div>
+            <div class="hint">Use this link for player or team registration.</div>
+          </div>
+
+          <button class="btn btn-ghost" id="copyRegistrationBtn" type="button">Copy Registration</button>
+
+          <div style="height:16px"></div>
+
+          <div class="row-2">
+            <div>
+              <div class="label">Join QR</div>
+              <div id="joinQr" class="qr-box"></div>
+            </div>
+
+            <div>
+              <div class="label">Leaderboard QR</div>
+              <div id="leaderboardQr" class="qr-box"></div>
+            </div>
+
+            <div>
+              <div class="label">Roster QR</div>
+              <div id="rosterQr" class="qr-box"></div>
+            </div>
+
+            <div>
+              <div class="label">Registration QR</div>
+              <div id="registrationQr" class="qr-box"></div>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <div class="muted-block">
+            Tip: after you create or load, tap Copy and you’ll see “✔ Copied” + a toast.
+          </div>
+        </div>
+
+        <div class="dash-box" style="margin-top:22px;">
+          <h2 class="dash-title">SPONSORS (ENTERPRISE)</h2>
+
+          <div class="field">
+            <label class="label" for="sponsorMarketingEnabled" style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+              <input type="checkbox" id="sponsorMarketingEnabled" style="width:22px; height:22px; margin-top:2px; flex-shrink:0;" />
+              <span>Show sponsors on scorecard, leaderboard &amp; registration (hero + ticker when sponsors are added)</span>
+            </label>
+            <div class="hint">Leave off to hide all sponsor branding on player-facing pages.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorTier">Sponsor Tier</label>
+            <select id="sponsorTier">
+              <option value="presenting">Presenting</option>
+              <option value="title">Title</option>
+              <option value="gold">Gold</option>
+              <option value="silver">Silver</option>
+              <option value="bronze">Bronze</option>
+              <option value="supporting">Supporting</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorOrder">Sponsor Order (lower shows first)</label>
+            <input id="sponsorOrder" type="number" placeholder="1" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorName">Sponsor Name</label>
+            <input id="sponsorName" type="text" placeholder="Acme Roofing" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorWebsite">Sponsor Website (optional)</label>
+            <input id="sponsorWebsite" type="url" placeholder="https://example.com" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorLogoFile">Sponsor Logo (Upload PNG/JPG) (optional)</label>
+            <input
+              id="sponsorLogoFile"
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              style="min-height:auto;padding:18px;background:#f4f4f4;"
+            />
+            <div class="hint">Photos are resized and compressed automatically so they fit Firestore storage limits. You can also paste a hosted logo URL below instead.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorLogoUrl">Sponsor Logo URL (optional)</label>
+            <input id="sponsorLogoUrl" type="url" placeholder="https://..." />
+          </div>
+
+          <div class="field">
+            <span class="pill" id="sponsorEmptyPill">No sponsors yet</span>
+          </div>
+
+          <button class="btn btn-green" id="addSponsorBtn" type="button">Add Sponsor</button>
+          <button class="btn btn-ghost" id="clearSponsorFormBtn" type="button">Clear Sponsor Form</button>
+
+          <div id="sponsorList" class="sponsor-list">
+            <div class="muted-block" id="sponsorListEmpty">No sponsors added yet.</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied</div>
+    <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore,
+    initializeFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { firebaseConfig } from "./js/firebase-config.js";
+  import { tournamentDocRef } from "./js/org-paths.js";
+
+  if (location.protocol === "file:") {
+    alert(
+      "Open this admin page from a website (GitHub Pages, etc.), not as a file on your computer. Firebase needs https:// or http:// localhost."
+    );
+  }
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  let db;
+  try {
+    db = initializeFirestore(app, { ignoreUndefinedProperties: true });
+  } catch (e) {
+    console.warn("initializeFirestore failed, using getFirestore:", e);
+    db = getFirestore(app);
+  }
+
+  async function ensureOrgUser(){
+    await auth.authStateReady();
+    const u = auth.currentUser;
+    if (!u || !u.email) {
+      throw new Error("Sign in with your organizer email.");
+    }
+    const uSnap = await getDoc(doc(db, "users", u.uid));
+    if (!uSnap.exists()) {
+      throw new Error("No organization profile. Use signup.html first.");
+    }
+    const oid = String(uSnap.data()?.orgId || "").trim();
+    if (!oid) throw new Error("Missing organization ID on your profile.");
+    return oid;
+  }
+
+  function deepOmitUndefined(value){
+    if (value === undefined) return undefined;
+    if (value === null || typeof value !== "object") return value;
+    if (Array.isArray(value)){
+      return value.map(deepOmitUndefined).filter(v => v !== undefined);
+    }
+    const out = {};
+    for (const [k, v] of Object.entries(value)){
+      if (v === undefined) continue;
+      const next = deepOmitUndefined(v);
+      if (next !== undefined) out[k] = next;
+    }
+    return out;
+  }
+
+  const $ = (id) => document.getElementById(id);
+
+  const state = {
+    orgId: "",
+    tournamentId: "",
+    adminToken: "",
+    sponsors: []
+  };
+
+  function randomId(prefix = "tournament"){
+    const part = Math.random().toString(36).slice(2, 8);
+    const stamp = Date.now().toString(36).slice(-6);
+    return `${prefix}_${stamp}${part}`;
+  }
+
+  function randomToken(){
+    return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  }
+
+  function showToast(msg){
+    const el = $("toast");
+    if(!el) return;
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => el.classList.remove("show"), 1500);
+  }
+
+  function storageKey(id){
+    return state.orgId ? `tournament_admin_${state.orgId}_${id}` : `tournament_admin_${id}`;
+  }
+
+  function getBaseShareRoot(){
+    const url = new URL(location.href);
+    const path = url.pathname;
+    const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
+    return `${url.origin}${dir}`;
+  }
+
+  function buildLinks(orgId, id, token){
+    const root = getBaseShareRoot();
+    const q = (path, extra) => {
+      const url = new URL(path, root);
+      url.searchParams.set("id", id);
+      url.searchParams.set("t", id);
+      if (orgId) url.searchParams.set("org", orgId);
+      if (extra) {
+        for (const [k, v] of Object.entries(extra)) {
+          url.searchParams.set(k, v);
+        }
+      }
+      return url.toString();
+    };
+    return {
+      join: q("index.html"),
+      leaderboard: q("leaderboard.html"),
+      roster: q("roster.html", { admin: token }),
+      registration: q("register-complete.html")
+    };
+  }
+
+  function setBox(id, value){
+    const el = $(id);
+    if(el) el.textContent = value || "—";
+  }
+
+  async function copyText(text, successMessage){
+    if(!text || text === "—"){
+      showToast("Nothing to copy yet");
+      return;
+    }
+
+    try{
+      await navigator.clipboard.writeText(text);
+      showToast(successMessage || "✔ Copied");
+    }catch(err){
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+      showToast(successMessage || "✔ Copied");
+    }
+  }
+
+  function drawFakeQr(elId, text){
+    const box = $(elId);
+    if(!box) return;
+
+    box.innerHTML = "";
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 220;
+    canvas.height = 220;
+    box.appendChild(canvas);
+
+    const ctx = canvas.getContext("2d");
+    const size = canvas.width;
+
+    ctx.clearRect(0, 0, size, size);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, size, size);
+
+    if(!text || text === "—"){
+      ctx.strokeStyle = "#ddd";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(10, 10, size - 20, size - 20);
+      ctx.fillStyle = "#666";
+      ctx.font = "700 16px Barlow";
+      ctx.textAlign = "center";
+      ctx.fillText("QR pending", size / 2, size / 2);
+      return;
+    }
+
+    const seed = Array.from(text).reduce((a, c) => a + c.charCodeAt(0), 0);
+    const cells = 25;
+    const pad = 12;
+    const cell = (size - pad * 2) / cells;
+
+    function finder(x, y){
+      ctx.fillStyle = "#111";
+      ctx.fillRect(x, y, cell * 7, cell * 7);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(x + cell, y + cell, cell * 5, cell * 5);
+      ctx.fillStyle = "#111";
+      ctx.fillRect(x + cell * 2, y + cell * 2, cell * 3, cell * 3);
+    }
+
+    finder(pad, pad);
+    finder(size - pad - cell * 7, pad);
+    finder(pad, size - pad - cell * 7);
+
+    for(let r = 0; r < cells; r++){
+      for(let c = 0; c < cells; c++){
+        const inTopLeft = r < 7 && c < 7;
+        const inTopRight = r < 7 && c >= cells - 7;
+        const inBottomLeft = r >= cells - 7 && c < 7;
+        if(inTopLeft || inTopRight || inBottomLeft) continue;
+
+        const n = (r * cells + c + seed * 13) % 7;
+        if(n === 0 || n === 2 || ((r + c + seed) % 11 === 0)){
+          ctx.fillStyle = "#111";
+          ctx.fillRect(pad + c * cell, pad + r * cell, cell * 0.92, cell * 0.92);
+        }
+      }
+    }
+  }
+
+  function renderAllQrs(){
+    drawFakeQr("joinQr", $("joinLinkBox")?.textContent || "");
+    drawFakeQr("leaderboardQr", $("leaderboardLinkBox")?.textContent || "");
+    drawFakeQr("rosterQr", $("rosterLinkBox")?.textContent || "");
+    drawFakeQr("registrationQr", $("registrationLinkBox")?.textContent || "");
+  }
+
+  function syncHandicapAdminUI(){
+    const scoringEl = $("handicapEnabled");
+    const percentEl = $("handicapPercent");
+    if(!scoringEl || !percentEl) return;
+
+    const handicapOn = String(scoringEl.value || "off").toLowerCase() === "on";
+    percentEl.disabled = !handicapOn;
+    percentEl.style.opacity = handicapOn ? "1" : ".55";
+
+    if(!handicapOn && !String(percentEl.value || "").trim()){
+      percentEl.value = "100";
+    }
+  }
+
+  function syncRoundHolesAdminUI(){
+    const roundEl = $("roundHoles");
+    const wrap = $("nineSideField");
+    if(!roundEl || !wrap) return;
+    const is9 = String(roundEl.value || "18") === "9";
+    wrap.classList.toggle("hidden", !is9);
+  }
+
+  function collectForm(){
+    const handicapScoringValue = String($("handicapEnabled").value || "off").toLowerCase();
+    const handicapOn = handicapScoringValue === "on";
+
+    return {
+      tournamentName: $("tournamentName").value.trim(),
+      defaultCourse: $("defaultCourse").value,
+      formatOfPlay: $("formatOfPlay").value,
+      roundHoles: $("roundHoles") ? $("roundHoles").value : "18",
+      nineSide: $("nineSide") ? $("nineSide").value : "front",
+      entryMode: $("entryMode").value,
+      sideGame: $("sideGame").value,
+      eventDate: $("eventDate").value,
+      organizerName: $("organizerName").value.trim(),
+      organizerEmail: $("organizerEmail") ? $("organizerEmail").value.trim() : "",
+      confirmationEnabled: $("confirmationEnabled") ? $("confirmationEnabled").checked : false,
+      status: $("status").value,
+      enableHandicapScoring: handicapScoringValue,
+      handicapEnabled: handicapScoringValue,
+      handicapPercent: (() => {
+        const n = handicapOn ? Number($("handicapPercent").value || 100) : 100;
+        return Number.isFinite(n) ? n : 100;
+      })(),
+      tournamentId: state.tournamentId,
+      adminToken: $("adminToken").value.trim(),
+      closestToPinEnabled: $("closestToPinEnabled").value,
+      closestToPinHoles: $("closestToPinHoles").value.trim(),
+      longDriveEnabled: $("longDriveEnabled").value,
+      longDriveHoles: $("longDriveHoles").value.trim(),
+      autoAssignEnabled: $("autoAssignEnabled")?.value || "on",
+      holeAssignmentMode: $("holeAssignmentMode")?.value || "default",
+      customHoleFlow: $("customHoleFlow")?.value.trim() || "",
+      sponsorMarketingEnabled: $("sponsorMarketingEnabled") ? $("sponsorMarketingEnabled").checked : true,
+      sponsors: state.sponsors
+    };
+  }
+
+  function fillForm(data){
+    $("tournamentName").value = data.tournamentName || data.name || "";
+    $("defaultCourse").value = data.defaultCourse || "Tradition";
+    $("formatOfPlay").value = data.formatOfPlay || data.format || "Stroke Play";
+    if($("roundHoles")){
+      const rh = data.roundHoles;
+      $("roundHoles").value = (rh === 9 || rh === "9") ? "9" : "18";
+    }
+    if($("nineSide")){
+      const ns = String(data.nineSide || "front").toLowerCase();
+      $("nineSide").value = (ns === "back" || ns === "back9") ? "back" : "front";
+    }
+    syncRoundHolesAdminUI();
+    {
+      const em = String(data.entryMode || "pre_event").trim().toLowerCase();
+      if (em === "onsite" || em === "individual") $("entryMode").value = "onsite";
+      else if (em === "pre_event") $("entryMode").value = "pre_event";
+      else if (em === "team_rep") $("entryMode").value = "onsite";
+      else $("entryMode").value = "pre_event";
+    }
+    $("sideGame").value = data.sideGame || "None";
+    $("eventDate").value = data.eventDate || data.date || "";
+    $("organizerName").value = data.organizerName || "";
+    $("organizerEmail").value = data.organizerEmail || "";
+    if($("confirmationEnabled")) $("confirmationEnabled").checked = data.confirmationEnabled !== false;
+    $("status").value = data.status || "open";
+
+    const handicapValue =
+      String(data.enableHandicapScoring || data.handicapEnabled || "off").toLowerCase() === "on"
+        ? "on"
+        : "off";
+
+    $("handicapEnabled").value = handicapValue;
+    $("handicapPercent").value = data.handicapPercent ?? 100;
+
+    $("adminToken").value = data.adminToken || "";
+    $("closestToPinEnabled").value = data.closestToPinEnabled || "off";
+    $("closestToPinHoles").value = data.closestToPinHoles || "";
+    $("longDriveEnabled").value = data.longDriveEnabled || "off";
+    $("longDriveHoles").value = data.longDriveHoles || "";
+    if($("autoAssignEnabled")) $("autoAssignEnabled").value = data.autoAssignEnabled || "on";
+    if($("holeAssignmentMode")) $("holeAssignmentMode").value = data.holeAssignmentMode || "default";
+    if($("customHoleFlow")) $("customHoleFlow").value = data.customHoleFlow || "";
+    if($("sponsorMarketingEnabled")) $("sponsorMarketingEnabled").checked = data.sponsorMarketingEnabled !== false;
+    state.sponsors = Array.isArray(data.sponsors) ? data.sponsors : [];
+    renderSponsorList();
+    syncHandicapAdminUI();
+  }
+
+  function saveTournamentToLocal(){
+    if(!state.tournamentId){
+      showToast("Create or load a tournament first");
+      return;
+    }
+    const data = collectForm();
+    localStorage.setItem(storageKey(state.tournamentId), JSON.stringify(data));
+  }
+
+  function loadTournamentFromLocal(id){
+    const raw = localStorage.getItem(storageKey(id));
+    if(!raw) return null;
+    try{
+      return JSON.parse(raw);
+    }catch{
+      return null;
+    }
+  }
+
+  async function saveTournamentToFirebase(){
+    if(!state.tournamentId){
+      showToast("Create or load a tournament first");
+      return;
+    }
+
+    try{
+      await ensureSignedIn();
+    }catch(e){
+      console.error(e);
+      throw new Error("Not signed in: " + (e?.message || e));
+    }
+    const oid = await ensureOrgUser();
+    if (oid !== state.orgId) {
+      state.orgId = oid;
+    }
+
+    const data = collectForm();
+
+    const sponsorList = Array.isArray(data.sponsors) ? data.sponsors : [];
+    const primarySponsor = sponsorList
+      .slice()
+      .sort((a, b) => Number(a?.order ?? 999) - Number(b?.order ?? 999))[0] || null;
+
+    const payload = {
+        tournamentId: state.tournamentId,
+        tournamentName: data.tournamentName,
+        name: data.tournamentName,
+
+        defaultCourse: data.defaultCourse,
+        courseDefault: String(data.defaultCourse || "").trim().toLowerCase(),
+
+        formatOfPlay: data.formatOfPlay,
+        format: data.formatOfPlay,
+        roundHoles: Number(data.roundHoles) === 9 ? 9 : 18,
+        nineSide: Number(data.roundHoles) === 9
+          ? (data.nineSide === "back" ? "back" : "front")
+          : "",
+
+        entryMode: data.entryMode,
+
+        sideGame: data.sideGame,
+        eventDate: data.eventDate,
+        date: data.eventDate,
+        organizerName: data.organizerName,
+        organizer: data.organizerName,
+        organizerEmail: data.organizerEmail,
+        confirmationEnabled: data.confirmationEnabled,
+        status: data.status,
+
+        enableHandicapScoring: data.enableHandicapScoring,
+        handicapEnabled: data.handicapEnabled,
+        handicapPercent: data.handicapPercent,
+
+        adminToken: data.adminToken,
+
+        autoAssignEnabled: data.autoAssignEnabled,
+        holeAssignmentMode: data.holeAssignmentMode,
+        customHoleFlow: data.customHoleFlow,
+
+        closestToPinEnabled: data.closestToPinEnabled,
+        closestToPinHoles: data.closestToPinHoles,
+        longDriveEnabled: data.longDriveEnabled,
+        longDriveHoles: data.longDriveHoles,
+
+        sponsorMarketingEnabled: !!data.sponsorMarketingEnabled,
+
+        sideGames: {
+          skinsEnabled: String(data.sideGame || "").toLowerCase().includes("skins"),
+          ctpEnabled: String(data.closestToPinEnabled) === "on",
+          ctpHoles: String(data.closestToPinHoles || "")
+            .split(",")
+            .map(x => parseInt(x.trim(), 10))
+            .filter(n => Number.isFinite(n) && n >= 1 && n <= 18),
+          longDriveEnabled: String(data.longDriveEnabled) === "on",
+          longDriveHoles: String(data.longDriveHoles || "")
+            .split(",")
+            .map(x => parseInt(x.trim(), 10))
+            .filter(n => Number.isFinite(n) && n >= 1 && n <= 18)
+        },
+
+        sponsors: sponsorList,
+        sponsorName: primarySponsor?.name || "",
+        sponsorLogo: primarySponsor?.logoUrl || "",
+        sponsorUrl: primarySponsor?.website || ""
+    };
+
+    const cleaned = deepOmitUndefined(payload);
+    cleaned.updatedAt = serverTimestamp();
+
+    await setDoc(
+      tournamentDocRef(db, state.orgId, state.tournamentId),
+      cleaned,
+      { merge: true }
+    );
+  }
+        async function loadTournamentFromFirebase(id){
+    if(!id) return null;
+    try{
+      await ensureOrgUser();
+    }catch(e){
+      console.error(e);
+      return null;
+    }
+    try{
+      const snap = await getDoc(tournamentDocRef(db, state.orgId, id));
+      return snap.exists() ? snap.data() : null;
+    }catch(err){
+      console.error(err);
+      return null;
+    }
+  }
+
+  function applyLinks(){
+    const token = $("adminToken").value.trim();
+
+    if(!state.tournamentId || !token){
+      setBox("joinLinkBox", "—");
+      setBox("leaderboardLinkBox", "—");
+      setBox("rosterLinkBox", "—");
+      setBox("registrationLinkBox", "—");
+      renderAllQrs();
+      return;
+    }
+
+    const links = buildLinks(state.orgId, state.tournamentId, token);
+    setBox("joinLinkBox", links.join);
+    setBox("leaderboardLinkBox", links.leaderboard);
+    setBox("rosterLinkBox", links.roster);
+    setBox("registrationLinkBox", links.registration);
+    renderAllQrs();
+  }
+
+  function clearSponsorForm(){
+    $("sponsorTier").value = "presenting";
+    $("sponsorOrder").value = "";
+    $("sponsorName").value = "";
+    $("sponsorWebsite").value = "";
+    $("sponsorLogoFile").value = "";
+    $("sponsorLogoUrl").value = "";
+  }
+
+  function sponsorFormData(){
+    return {
+      tier: $("sponsorTier").value,
+      order: Number($("sponsorOrder").value || 999),
+      name: $("sponsorName").value.trim(),
+      website: $("sponsorWebsite").value.trim(),
+      logoUrl: $("sponsorLogoUrl").value.trim(),
+      active: true
+    };
+  }
+
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  /** Firestore documents max ~1MB; logos are stored as data URLs inside the tournament doc. */
+  const MAX_SPONSOR_DATA_URL_CHARS = 280000;
+
+  function loadImageFromFile(file){
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.decoding = "async";
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve(img);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error("Could not read this image file."));
+      };
+      img.src = url;
+    });
+  }
+
+  async function imageFileToCompressedDataUrl(file){
+    const img = await loadImageFromFile(file);
+    const srcW = img.naturalWidth || img.width;
+    const srcH = img.naturalHeight || img.height;
+    if(!srcW || !srcH){
+      throw new Error("Invalid image dimensions.");
+    }
+
+    let maxSide = 1024;
+    for(let round = 0; round < 10; round++){
+      let tw = srcW;
+      let th = srcH;
+      if(srcW > maxSide || srcH > maxSide){
+        const scale = maxSide / Math.max(srcW, srcH);
+        tw = Math.max(1, Math.round(srcW * scale));
+        th = Math.max(1, Math.round(srcH * scale));
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = tw;
+      canvas.height = th;
+      const ctx = canvas.getContext("2d");
+      if(!ctx){
+        throw new Error("Could not process image in this browser.");
+      }
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, tw, th);
+      ctx.drawImage(img, 0, 0, tw, th);
+
+      for(let q = 0.92; q >= 0.42; q -= 0.05){
+        const dataUrl = canvas.toDataURL("image/jpeg", q);
+        if(dataUrl.length <= MAX_SPONSOR_DATA_URL_CHARS){
+          return dataUrl;
+        }
+      }
+
+      maxSide = Math.round(maxSide * 0.7);
+      if(maxSide < 96){
+        break;
+      }
+    }
+
+    throw new Error(
+      "Image is still too large after compression. Use a smaller file, or put the logo online and use Sponsor Logo URL."
+    );
+  }
+
+  function formatLogoPreviewForDisplay(logoUrl){
+    const s = String(logoUrl || "");
+    if(!s) return "—";
+    if(/^data:image\//i.test(s)) return "Embedded image (saved)";
+    if(s.length > 96) return escapeHtml(s.slice(0, 92)) + "…";
+    return escapeHtml(s);
+  }
+
+  function renderSponsorList(){
+    const wrap = $("sponsorList");
+    const empty = $("sponsorListEmpty");
+
+    [...wrap.querySelectorAll(".sponsor-item")].forEach(el => el.remove());
+
+    if(!state.sponsors.length){
+      empty.style.display = "";
+      $("sponsorEmptyPill").textContent = "No sponsors yet";
+      return;
+    }
+
+    empty.style.display = "none";
+    $("sponsorEmptyPill").textContent = `${state.sponsors.length} sponsor${state.sponsors.length === 1 ? "" : "s"}`;
+
+    const sorted = [...state.sponsors].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+
+    sorted.forEach((s, index) => {
+      const div = document.createElement("div");
+      div.className = "sponsor-item";
+      div.innerHTML = `
+        <strong>${escapeHtml(s.name || "Untitled Sponsor")}</strong>
+        <div><b>Tier:</b> ${escapeHtml(s.tier || "supporting")}</div>
+        <div><b>Order:</b> ${escapeHtml(String(s.order ?? 999))}</div>
+        <div><b>Website:</b> ${escapeHtml(s.website || "—")}</div>
+        <div><b>Logo:</b> ${formatLogoPreviewForDisplay(s.logoUrl)}</div>
+        <div style="margin-top:10px;">
+          <button type="button" class="btn btn-red remove-sponsor-btn" data-remove-index="${index}" style="min-height:56px;font-size:22px;">
+            Remove Sponsor
+          </button>
+        </div>
+      `;
+      wrap.appendChild(div);
+    });
+
+    wrap.querySelectorAll(".remove-sponsor-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const idx = Number(btn.dataset.removeIndex);
+        const sortedNow = [...state.sponsors].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+        const target = sortedNow[idx];
+        state.sponsors = state.sponsors.filter(s => s !== target);
+        renderSponsorList();
+        if(state.tournamentId){
+          saveTournamentToLocal();
+          await saveTournamentToFirebase();
+          applyLinks();
+        }
+        showToast("Sponsor removed");
+      });
+    });
+  }
+
+  function formatFirestoreErr(err){
+    const code = err?.code ? String(err.code) : "";
+    const msg = err?.message || String(err);
+    if (code === "permission-denied" || code === "auth/unauthenticated") {
+      return (
+        msg +
+        "\n\n• Sign in at login.html with your organizer email.\n" +
+        "• Enable Email/Password under Authentication → Sign-in method.\n" +
+        "• Google Cloud → APIs & Services → Credentials: if the API key is restricted by HTTP referrer, add your site URL."
+      );
+    }
+    if (
+      code === "failed-precondition" ||
+      /app check/i.test(msg) ||
+      /firestore.*app check/i.test(msg)
+    ) {
+      return (
+        msg +
+        "\n\nApp Check may be blocking requests. Firebase Console → App Check: disable enforcement for Firestore while testing, or register this web app."
+      );
+    }
+    if (
+      code === "invalid-argument" ||
+      /exceeds the maximum size|document.*too large|size of .* is larger than maximum/i.test(msg)
+    ) {
+      return (
+        msg +
+        "\n\nThis usually means the tournament record is too large for Firestore (about 1MB max). Large sponsor images are the usual cause. Remove or replace sponsor logos, use hosted logo URLs instead of uploads, or re-add logos so they can be compressed (new uploads are resized automatically)."
+      );
+    }
+    return code ? `${code}: ${msg}` : msg;
+  }
+
+  async function createTournament(){
+    try{
+      showToast("Preparing…");
+      state.orgId = await ensureOrgUser();
+
+      state.tournamentId = randomId("tournament");
+      state.adminToken = randomToken();
+
+      $("tournamentId").value = state.tournamentId;
+      $("adminToken").value = state.adminToken;
+
+      saveTournamentToLocal();
+      await saveTournamentToFirebase();
+
+      applyLinks();
+      showToast("Tournament created");
+    }catch(err){
+      console.error("Create tournament failed:", err);
+      alert("Create tournament failed:\n\n" + formatFirestoreErr(err));
+    }
+  }
+
+  async function loadTournament(){
+    const id = $("tournamentId").value.trim();
+    if(!id){
+      showToast("Enter a tournament ID");
+      return;
+    }
+
+    let data = loadTournamentFromLocal(id);
+
+    if(!data){
+      data = await loadTournamentFromFirebase(id);
+    }
+
+    if(!data){
+      showToast("No tournament found for that ID");
+      return;
+    }
+
+    state.tournamentId = id;
+    state.adminToken = data.adminToken || "";
+    fillForm(data);
+    applyLinks();
+    showToast("Tournament loaded");
+  }
+
+  async function saveChanges(){
+    if(!state.tournamentId){
+      showToast("Create or load a tournament first");
+      return;
+    }
+
+    saveTournamentToLocal();
+    await saveTournamentToFirebase();
+    applyLinks();
+    showToast("Changes saved");
+  }
+
+  async function closeTournament(){
+    $("status").value = "closed";
+
+    if(state.tournamentId){
+      saveTournamentToLocal();
+      await saveTournamentToFirebase();
+      applyLinks();
+      showToast("Tournament closed");
+    }else{
+      showToast("Tournament marked closed");
+    }
+  }
+
+  async function addSponsor(){
+    const file = $("sponsorLogoFile").files?.[0];
+    const data = sponsorFormData();
+
+    if(!data.name){
+      showToast("Enter sponsor name");
+      return;
+    }
+
+    if(file && !data.logoUrl){
+      try{
+        showToast("Compressing logo…");
+        data.logoUrl = await imageFileToCompressedDataUrl(file);
+      }catch(err){
+        console.error(err);
+        showToast(err?.message || "Could not process image");
+        return;
+      }
+      state.sponsors.push(data);
+      renderSponsorList();
+      clearSponsorForm();
+      if(state.tournamentId){
+        saveTournamentToLocal();
+        try{
+          await saveTournamentToFirebase();
+          applyLinks();
+        }catch(err){
+          console.error(err);
+          alert("Could not save sponsor:\n\n" + formatFirestoreErr(err));
+          return;
+        }
+      }
+      showToast("Sponsor added");
+      return;
+    }
+
+    state.sponsors.push(data);
+    renderSponsorList();
+    clearSponsorForm();
+    if(state.tournamentId){
+      saveTournamentToLocal();
+      try{
+        await saveTournamentToFirebase();
+        applyLinks();
+      }catch(err){
+        console.error(err);
+        alert("Could not save sponsor:\n\n" + formatFirestoreErr(err));
+        return;
+      }
+    }
+    showToast("Sponsor added");
+  }
+
+  const createTournamentBtn = $("createTournamentBtn");
+  const loadTournamentBtn = $("loadTournamentBtn");
+  const saveChangesBtn = $("saveChangesBtn");
+  const closeTournamentBtn = $("closeTournamentBtn");
+
+  const copyJoinBtn = $("copyJoinBtn");
+  const copyLeaderboardBtn = $("copyLeaderboardBtn");
+  const copyRosterBtn = $("copyRosterBtn");
+  const copyRegistrationBtn = $("copyRegistrationBtn");
+
+  const addSponsorBtn = $("addSponsorBtn");
+  const clearSponsorFormBtn = $("clearSponsorFormBtn");
+  const handicapEnabledEl = $("handicapEnabled");
+
+  if (createTournamentBtn) createTournamentBtn.addEventListener("click", createTournament);
+  if (loadTournamentBtn) loadTournamentBtn.addEventListener("click", loadTournament);
+  if (saveChangesBtn) saveChangesBtn.addEventListener("click", saveChanges);
+  if (closeTournamentBtn) closeTournamentBtn.addEventListener("click", closeTournament);
+
+  if (copyJoinBtn) {
+    copyJoinBtn.addEventListener("click", () =>
+      copyText($("joinLinkBox").textContent, "✔ Join copied")
+    );
+  }
+
+  if (copyLeaderboardBtn) {
+    copyLeaderboardBtn.addEventListener("click", () =>
+      copyText($("leaderboardLinkBox").textContent, "✔ Leaderboard copied")
+    );
+  }
+
+  if (copyRosterBtn) {
+    copyRosterBtn.addEventListener("click", () =>
+      copyText($("rosterLinkBox").textContent, "✔ Roster copied")
+    );
+  }
+
+  if (copyRegistrationBtn) {
+    copyRegistrationBtn.addEventListener("click", () =>
+      copyText($("registrationLinkBox").textContent, "✔ Registration copied")
+    );
+  }
+
+  if (addSponsorBtn) addSponsorBtn.addEventListener("click", addSponsor);
+  if (clearSponsorFormBtn) clearSponsorFormBtn.addEventListener("click", clearSponsorForm);
+  if (handicapEnabledEl) handicapEnabledEl.addEventListener("change", syncHandicapAdminUI);
+
+  const roundHolesEl = $("roundHoles");
+  if (roundHolesEl) roundHolesEl.addEventListener("change", syncRoundHolesAdminUI);
+
+  [
+    "tournamentName",
+    "defaultCourse",
+    "formatOfPlay",
+    "roundHoles",
+    "nineSide",
+    "entryMode",
+    "sideGame",
+    "eventDate",
+    "organizerName",
+    "organizerEmail",
+    "status",
+    "handicapEnabled",
+    "handicapPercent",
+    "adminToken",
+    "closestToPinEnabled",
+    "closestToPinHoles",
+    "longDriveEnabled",
+    "longDriveHoles",
+    "autoAssignEnabled",
+    "holeAssignmentMode",
+    "customHoleFlow",
+    "sponsorMarketingEnabled"
+  ].forEach(id => {
+    const el = $(id);
+    if(el){
+      el.addEventListener("input", applyLinks);
+      el.addEventListener("change", applyLinks);
+    }
+  });
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user || !user.email) {
+      window.location.href = "./login.html?next=" + encodeURIComponent("./admin.html");
+      return;
+    }
+    try {
+      const uSnap = await getDoc(doc(db, "users", user.uid));
+      if (!uSnap.exists()) {
+        alert("Create your organization first at signup.html");
+        window.location.href = "./signup.html";
+        return;
+      }
+      state.orgId = String(uSnap.data()?.orgId || "").trim();
+      if (!state.orgId) {
+        alert("Missing organization on your profile.");
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+      alert(e?.message || "Could not load your profile.");
+      return;
+    }
+
+    const params = new URLSearchParams(location.search);
+    const urlId = params.get("id");
+
+    if (urlId) {
+      $("tournamentId").value = urlId;
+      let data = loadTournamentFromLocal(urlId);
+
+      if (!data) {
+        data = await loadTournamentFromFirebase(urlId);
+      }
+
+      if (data) {
+        state.tournamentId = urlId;
+        state.adminToken = data.adminToken || "";
+        fillForm(data);
+      }
+    }
+
+    renderSponsorList();
+    syncHandicapAdminUI();
+    syncRoundHolesAdminUI();
+    applyLinks();
+  });
+</script>
+</body>
+</html>
+      

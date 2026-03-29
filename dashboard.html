@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tournament dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Barlow:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#d9d1c2; --ink:#2f2a26; --line:#9a6217; --green:#2f7a31; --blue:#12356f; --red:#c4462f; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Barlow, system-ui, sans-serif; background: var(--bg); color: var(--ink); padding: 20px; }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    h1 { font-family: Cinzel, serif; font-size: clamp(1.4rem, 4vw, 2rem); }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 16px 0 24px; }
+    .btn { padding: 12px 20px; border: none; border-radius: 14px; font-weight: 900; cursor: pointer; font-family: inherit; font-size: 1rem; text-decoration: none; display: inline-block; color: #fff; background: var(--green); }
+    .btn-blue { background: var(--blue); }
+    .btn-ghost { background: transparent; color: var(--ink); border: 3px solid var(--line); }
+    .meta { color: #5f5851; font-size: 0.95rem; margin-bottom: 8px; word-break: break-all; }
+    .list { display: flex; flex-direction: column; gap: 12px; }
+    .item { background: rgba(255,255,255,.22); border: 3px solid rgba(154,98,23,.35); border-radius: 18px; padding: 16px 18px; }
+    .item h2 { margin: 0 0 6px; font-size: 1.15rem; }
+    .item .sub { color: #5f5851; font-size: 0.9rem; margin-bottom: 10px; }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; }
+    .links a { font-size: 0.88rem; font-weight: 800; color: var(--blue); }
+    .empty { padding: 24px; text-align: center; color: #6c645c; border: 2px dashed var(--line); border-radius: 16px; }
+    .err { color: var(--red); font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 id="titleHeading">Your tournaments</h1>
+    <p class="meta" id="orgLine"></p>
+    <div class="toolbar">
+      <a class="btn" href="./admin.html" id="adminBtn">Tournament admin</a>
+      <button type="button" class="btn btn-ghost" id="logoutBtn">Sign out</button>
+    </div>
+    <div id="err" class="err"></div>
+    <div id="listHost" class="list"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+    import { applyOrgTournamentParams } from "./js/org-paths.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const $ = (id) => document.getElementById(id);
+
+    function baseDir() {
+      const url = new URL(location.href);
+      const path = url.pathname;
+      const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
+      return `${url.origin}${dir}`;
+    }
+
+    function tournamentLinks(orgId, tId) {
+      const root = baseDir();
+      const u = (page) => {
+        const url = new URL(page, root);
+        applyOrgTournamentParams(url, orgId, tId);
+        return url.toString();
+      };
+      return {
+        scorecard: u("index.html"),
+        leaderboard: u("leaderboard.html"),
+        roster: u("roster.html"),
+        register: u("register-complete.html"),
+      };
+    }
+
+    async function renderList(orgId) {
+      const host = $("listHost");
+      host.innerHTML = "";
+      const col = collection(db, "organizations", orgId, "tournaments");
+      const snap = await getDocs(col);
+      if (snap.empty) {
+        host.innerHTML = `<div class="empty">No tournaments yet. Open <b>Tournament admin</b> and click <b>Create New Tournament</b>.</div>`;
+        return;
+      }
+
+      const rows = [];
+      snap.forEach((d) => {
+        const t = d.data() || {};
+        const name = t.tournamentName || t.name || d.id;
+        const date = t.eventDate || t.date || "";
+        const links = tournamentLinks(orgId, d.id);
+        rows.push({ id: d.id, name, date, links });
+      });
+      rows.sort((a, b) => String(b.id).localeCompare(String(a.id)));
+
+      for (const r of rows) {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <h2>${escapeHtml(r.name)}</h2>
+          <div class="sub">ID: <code>${escapeHtml(r.id)}</code>${r.date ? ` · ${escapeHtml(r.date)}` : ""}</div>
+          <div class="links">
+            <a href="${r.links.scorecard}">Scorecard</a>
+            <a href="${r.links.leaderboard}">Leaderboard</a>
+            <a href="${r.links.roster}">Roster</a>
+            <a href="${r.links.register}">Registration</a>
+          </div>
+        `;
+        host.appendChild(div);
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    $("logoutBtn").addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "./login.html";
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      $("err").textContent = "";
+      if (!user) {
+        window.location.href = "./login.html?next=" + encodeURIComponent("./dashboard.html");
+        return;
+      }
+
+      const uSnap = await getDoc(doc(db, "users", user.uid));
+      if (!uSnap.exists()) {
+        $("err").textContent = "Your profile is missing. Complete signup first.";
+        return;
+      }
+      const orgId = String(uSnap.data()?.orgId || "").trim();
+      if (!orgId) {
+        $("err").textContent = "No organization linked to this account.";
+        return;
+      }
+
+      sessionStorage.setItem("orgId", orgId);
+
+      const oSnap = await getDoc(doc(db, "organizations", orgId));
+      const orgName = oSnap.exists() ? String(oSnap.data()?.name || "") : "";
+      $("orgLine").textContent = orgName
+        ? `${orgName} · Organization ID: ${orgId}`
+        : `Organization ID: ${orgId}`;
+
+      $("adminBtn").href = "./admin.html";
+
+      try {
+        await renderList(orgId);
+      } catch (e) {
+        console.error(e);
+        $("err").textContent = e?.message || "Could not load tournaments.";
+      }
+    });
+  </script>
+</body>
+</html>

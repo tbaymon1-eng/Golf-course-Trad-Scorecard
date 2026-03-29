@@ -1,0 +1,17 @@
+{
+  "name": "cypresswood-tournament-functions",
+  "description": "Cloud Functions for Cypresswood tournament registration",
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^5.1.1"
+  },
+  "private": true
+}
