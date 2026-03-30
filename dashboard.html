@@ -17,13 +17,23 @@
     .btn { padding: 12px 20px; border: none; border-radius: 14px; font-weight: 900; cursor: pointer; font-family: inherit; font-size: 1rem; text-decoration: none; display: inline-block; color: #fff; background: var(--green); }
     .btn-blue { background: var(--blue); }
     .btn-ghost { background: transparent; color: var(--ink); border: 3px solid var(--line); }
+    .btn-sm { padding: 8px 14px; font-size: 0.88rem; border-radius: 12px; }
+    .btn-archive { background: #6c645c; color: #fff; }
+    .btn-danger { background: var(--red); color: #fff; border: none; }
+    .btn-danger:hover { filter: brightness(0.95); }
+    .show-archived { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; user-select: none; }
+    .show-archived input { width: 18px; height: 18px; cursor: pointer; }
     .meta { color: #5f5851; font-size: 0.95rem; margin-bottom: 8px; word-break: break-all; }
     .list { display: flex; flex-direction: column; gap: 12px; }
     .item { background: rgba(255,255,255,.22); border: 3px solid rgba(154,98,23,.35); border-radius: 18px; padding: 16px 18px; }
-    .item h2 { margin: 0 0 6px; font-size: 1.15rem; }
+    .item--archived { border-color: rgba(108,100,92,.55); background: rgba(255,255,255,.12); }
+    .item-title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .item h2 { margin: 0; font-size: 1.15rem; }
+    .archived-badge { font-size: 0.72rem; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; background: rgba(108,100,92,.25); color: #4a433c; padding: 4px 10px; border-radius: 999px; border: 2px solid rgba(108,100,92,.4); }
     .item .sub { color: #5f5851; font-size: 0.9rem; margin-bottom: 10px; }
-    .links { display: flex; flex-wrap: wrap; gap: 8px; }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
     .links a { font-size: 0.88rem; font-weight: 800; color: var(--blue); }
+    .card-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     .empty { padding: 24px; text-align: center; color: #6c645c; border: 2px dashed var(--line); border-radius: 16px; }
     .err { color: var(--red); font-weight: 700; }
   </style>
@@ -35,6 +45,10 @@
     <div class="toolbar">
       <a class="btn" href="./admin.html" id="adminBtn">Tournament admin</a>
       <button type="button" class="btn btn-ghost" id="logoutBtn">Sign out</button>
+      <label class="show-archived">
+        <input type="checkbox" id="showArchivedToggle" />
+        Show archived
+      </label>
     </div>
     <div id="err" class="err"></div>
     <div id="listHost" class="list"></div>
@@ -42,16 +56,27 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      getDocs,
+      updateDoc,
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
     import { firebaseConfig } from "./js/firebase-config.js";
-    import { applyOrgTournamentParams } from "./js/org-paths.js";
+    import { applyOrgTournamentParams, orgTournamentsCollection, tournamentDocRef } from "./js/org-paths.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const deleteTournamentCallable = httpsCallable(getFunctions(app, "us-central1"), "deleteTournament");
 
     const $ = (id) => document.getElementById(id);
+
+    let cachedOrgId = "";
+    let showArchived = false;
 
     function baseDir() {
       const url = new URL(location.href);
@@ -75,10 +100,115 @@
       };
     }
 
+    function escapeHtml(s) {
+      return String(s || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    async function archiveTournament(orgId, tournamentId, name) {
+      const label = name || tournamentId;
+      if (!confirm(`Archive "${label}"?\n\nIt will be hidden from the default list. You can still open it from Show archived.`)) {
+        return;
+      }
+      try {
+        await updateDoc(tournamentDocRef(db, orgId, tournamentId), { archived: true });
+        await renderList(orgId);
+      } catch (e) {
+        console.error(e);
+        $("err").textContent = e?.message || "Could not archive tournament.";
+      }
+    }
+
+    async function deleteTournament(orgId, tournamentId, name) {
+      const label = name || tournamentId;
+      const msg =
+        `PERMANENT DELETE: "${label}"\n\n` +
+        `This will remove the tournament and all registrations, score submissions, and alerts. This cannot be undone.\n\n` +
+        `Type DELETE to confirm.`;
+      const typed = prompt(msg, "");
+      if (typed !== "DELETE") {
+        if (typed !== null) alert('Cancelled. You must type DELETE in all caps to confirm.');
+        return;
+      }
+      $("err").textContent = "";
+      try {
+        await deleteTournamentCallable({ orgId, tournamentId });
+        await renderList(orgId);
+      } catch (e) {
+        console.error(e);
+        const code = e?.code || "";
+        const m = e?.message || String(e);
+        $("err").textContent = code ? `${code}: ${m}` : m;
+      }
+    }
+
+    function renderCard(orgId, r) {
+      const div = document.createElement("div");
+      div.className = "item" + (r.archived ? " item--archived" : "");
+
+      const titleRow = document.createElement("div");
+      titleRow.className = "item-title-row";
+      const h2 = document.createElement("h2");
+      h2.textContent = r.name;
+      titleRow.appendChild(h2);
+      if (r.archived) {
+        const badge = document.createElement("span");
+        badge.className = "archived-badge";
+        badge.textContent = "Archived";
+        titleRow.appendChild(badge);
+      }
+      div.appendChild(titleRow);
+
+      const sub = document.createElement("div");
+      sub.className = "sub";
+      sub.innerHTML = `ID: <code>${escapeHtml(r.id)}</code>${r.date ? ` · ${escapeHtml(r.date)}` : ""}`;
+      div.appendChild(sub);
+
+      const links = document.createElement("div");
+      links.className = "links";
+      const a = (href, text) => {
+        const el = document.createElement("a");
+        el.href = href;
+        el.textContent = text;
+        return el;
+      };
+      links.appendChild(a(r.links.scorecard, "Scorecard"));
+      links.appendChild(a(r.links.leaderboard, "Leaderboard"));
+      links.appendChild(a(r.links.roster, "Roster"));
+      links.appendChild(a(r.links.register, "Registration"));
+      div.appendChild(links);
+
+      const actions = document.createElement("div");
+      actions.className = "card-actions";
+
+      if (!r.archived) {
+        const ar = document.createElement("button");
+        ar.type = "button";
+        ar.className = "btn btn-sm btn-archive";
+        ar.textContent = "Archive";
+        ar.addEventListener("click", () => archiveTournament(orgId, r.id, r.name));
+        actions.appendChild(ar);
+      }
+
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "btn btn-sm btn-danger";
+      del.textContent = "Delete permanently";
+      del.addEventListener("click", () => deleteTournament(orgId, r.id, r.name));
+      actions.appendChild(del);
+
+      div.appendChild(actions);
+      return div;
+    }
+
     async function renderList(orgId) {
+      cachedOrgId = orgId;
       const host = $("listHost");
       host.innerHTML = "";
-      const col = collection(db, "organizations", orgId, "tournaments");
+      const col = orgTournamentsCollection(db, orgId);
       const snap = await getDocs(col);
       if (snap.empty) {
         host.innerHTML = `<div class="empty">No tournaments yet. Open <b>Tournament admin</b> and click <b>Create New Tournament</b>.</div>`;
@@ -88,41 +218,45 @@
       const rows = [];
       snap.forEach((d) => {
         const t = d.data() || {};
+        const archived = t.archived === true;
         const name = t.tournamentName || t.name || d.id;
         const date = t.eventDate || t.date || "";
         const links = tournamentLinks(orgId, d.id);
-        rows.push({ id: d.id, name, date, links });
+        rows.push({ id: d.id, name, date, links, archived });
       });
       rows.sort((a, b) => String(b.id).localeCompare(String(a.id)));
 
-      for (const r of rows) {
-        const div = document.createElement("div");
-        div.className = "item";
-        div.innerHTML = `
-          <h2>${escapeHtml(r.name)}</h2>
-          <div class="sub">ID: <code>${escapeHtml(r.id)}</code>${r.date ? ` · ${escapeHtml(r.date)}` : ""}</div>
-          <div class="links">
-            <a href="${r.links.scorecard}">Scorecard</a>
-            <a href="${r.links.leaderboard}">Leaderboard</a>
-            <a href="${r.links.roster}">Roster</a>
-            <a href="${r.links.register}">Registration</a>
-          </div>
-        `;
-        host.appendChild(div);
-      }
-    }
+      const visible = showArchived ? rows : rows.filter((r) => !r.archived);
 
-    function escapeHtml(s) {
-      return String(s || "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;");
+      if (!visible.length) {
+        const hasArchived = rows.some((r) => r.archived);
+        host.innerHTML = hasArchived
+          ? `<div class="empty">No active tournaments. Turn on <b>Show archived</b> to see archived tournaments.</div>`
+          : `<div class="empty">No tournaments yet. Open <b>Tournament admin</b> and click <b>Create New Tournament</b>.</div>`;
+        return;
+      }
+
+      for (const r of visible) {
+        host.appendChild(renderCard(orgId, r));
+      }
     }
 
     $("logoutBtn").addEventListener("click", async () => {
       await signOut(auth);
       window.location.href = "./login.html";
+    });
+
+    const showArchivedToggle = $("showArchivedToggle");
+    showArchivedToggle.addEventListener("change", async () => {
+      showArchived = showArchivedToggle.checked;
+      if (cachedOrgId) {
+        try {
+          await renderList(cachedOrgId);
+        } catch (e) {
+          console.error(e);
+          $("err").textContent = e?.message || "Could not refresh list.";
+        }
+      }
     });
 
     onAuthStateChanged(auth, async (user) => {
@@ -134,20 +268,20 @@
 
       let uSnap = await getDoc(doc(db, "users", user.uid));
 
-if (!uSnap.exists() && user.email) {
-  const fallbackUid = "7ayud6ZgMaYL5HZTPITz";
-  const fallbackSnap = await getDoc(doc(db, "users", fallbackUid));
-  if (fallbackSnap.exists()) {
-    uSnap = fallbackSnap;
-  }
-}
+      if (!uSnap.exists() && user.email) {
+        const fallbackUid = "7ayud6ZgMaYL5HZTPITz";
+        const fallbackSnap = await getDoc(doc(db, "users", fallbackUid));
+        if (fallbackSnap.exists()) {
+          uSnap = fallbackSnap;
+        }
+      }
 
-if (!uSnap.exists()) {
-  $("err").textContent = "Your profile is missing. Complete signup first.";
-  return;
-}
+      if (!uSnap.exists()) {
+        $("err").textContent = "Your profile is missing. Complete signup first.";
+        return;
+      }
 
-const orgId = String(uSnap.data()?.orgId || "").trim();
+      const orgId = String(uSnap.data()?.orgId || "").trim();
       if (!orgId) {
         $("err").textContent = "No organization linked to this account.";
         return;

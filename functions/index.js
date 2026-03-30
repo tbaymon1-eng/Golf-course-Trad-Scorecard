@@ -354,3 +354,65 @@ exports.registerTeam = onCall(
     return result;
   }
 );
+
+/**
+ * Deletes all documents in a collection (batched). Used for tournament subcollections.
+ */
+async function deleteCollectionInBatches(collectionRef) {
+  let more = true;
+  while (more) {
+    const snap = await collectionRef.limit(500).get();
+    if (snap.empty) return;
+    const batch = db.batch();
+    snap.docs.forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+    more = snap.size === 500;
+  }
+}
+
+/**
+ * Callable: permanently delete an org tournament and its registrations, submissions, and alerts.
+ * Must be invoked by a signed-in user whose users/{uid}.orgId matches the tournament org.
+ */
+exports.deleteTournament = onCall(
+  {
+    region: "us-central1",
+    cors: true,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in to delete a tournament.");
+    }
+
+    const orgId = safeText(request.data?.orgId);
+    const tournamentId = safeText(request.data?.tournamentId);
+    if (!orgId || !tournamentId) {
+      throw new HttpsError("invalid-argument", "orgId and tournamentId are required.");
+    }
+
+    const userSnap = await db.collection("users").doc(request.auth.uid).get();
+    const userOrgId = safeText(userSnap.data()?.orgId);
+    if (!userOrgId || userOrgId !== orgId) {
+      throw new HttpsError("permission-denied", "You can only delete tournaments in your organization.");
+    }
+
+    const tournamentRef = db
+      .collection("organizations")
+      .doc(orgId)
+      .collection("tournaments")
+      .doc(tournamentId);
+
+    const tSnap = await tournamentRef.get();
+    if (!tSnap.exists) {
+      throw new HttpsError("not-found", "Tournament not found.");
+    }
+
+    await deleteCollectionInBatches(tournamentRef.collection("registrations"));
+    await deleteCollectionInBatches(tournamentRef.collection("submissions"));
+    await deleteCollectionInBatches(tournamentRef.collection("alerts"));
+
+    await tournamentRef.delete();
+
+    return { ok: true };
+  }
+);
