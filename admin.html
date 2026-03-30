@@ -681,6 +681,14 @@
     throw new Error("Sign in with your organizer email.");
   }
 
+  // Match dashboard: use org already resolved at auth time (onAuthStateChanged) or from
+  // dashboard/signup (sessionStorage), instead of always re-querying users/{uid}.
+  const cached = String(state.orgId || sessionStorage.getItem("orgId") || "").trim();
+  if (cached) {
+    state.orgId = cached;
+    return cached;
+  }
+
   await u.getIdToken(true);
 
   let uSnap = await getDoc(doc(db, "users", u.uid));
@@ -1555,6 +1563,8 @@ onAuthStateChanged(auth, async (user) => {
       alert("Missing organization on your profile.");
       return;
     }
+
+    sessionStorage.setItem("orgId", state.orgId);
   } catch (e) {
     console.error(e);
     alert(e?.message || "Could not load your profile.");
