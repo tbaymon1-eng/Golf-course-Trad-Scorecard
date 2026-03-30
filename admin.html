@@ -684,16 +684,7 @@
 
   await u.getIdToken(true);
 
-  let oid = await readOrganizerOrgIdFromUserDoc(db, u.uid);
-  let result = { ok: false, message: "Could not load your organization." };
-  if (!oid) {
-    result = await resolveOrganizerOrgId(app, auth, db);
-  oid = (result && (result.orgId || result.organizationId)) || "";
-  }
-  if (!oid) {
-    throw new Error(result.message || "Could not load your organization.");
-  }
-
+ let oid = u.uid;
   state.orgId = oid;
   try {
     sessionStorage.setItem("orgId", oid);
