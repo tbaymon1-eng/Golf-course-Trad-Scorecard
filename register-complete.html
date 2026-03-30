@@ -1115,6 +1115,7 @@ const params = new URLSearchParams(location.search);
 
         const result = await registerTeamCallable({
           tournamentId: state.tournamentId,
+          organizationId: state.orgId,
           teamName: getVal("teamName"),
           captainName: getVal("captainName"),
           captainEmail: getVal("captainEmail"),

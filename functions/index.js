@@ -258,8 +258,8 @@ function buildPlainRegistrationForClient(tournament, tournamentId, clientData, a
 /**
  * Callable: atomically assign hole + create registration.
  *
- * Input: { organizationId?, tournamentId, teamName, ... }
- * organizationId: when set, tournament lives under organizations/{organizationId}/tournaments/{tournamentId}
+ * Input: { organizationId?, orgId?, tournamentId, teamName, ... }
+ * organizationId / orgId: when set, tournament lives under organizations/{id}/tournaments/{tournamentId}
  * Output: { registrationId, assignedHole, registration }
  */
 exports.registerTeam = onCall(
@@ -273,7 +273,7 @@ exports.registerTeam = onCall(
     }
 
     const data = request.data || {};
-    const organizationId = safeText(data.organizationId);
+    const organizationId = safeText(data.organizationId || data.orgId);
     const tournamentId = safeText(data.tournamentId);
     if (!tournamentId) {
       throw new HttpsError("invalid-argument", "tournamentId is required.");
