@@ -1009,12 +1009,6 @@
       return;
     }
 
-    try{
-      await ensureSignedIn();
-    }catch(e){
-      console.error(e);
-      throw new Error("Not signed in: " + (e?.message || e));
-    }
     const oid = await ensureOrgUser();
     if (oid !== state.orgId) {
       state.orgId = oid;
