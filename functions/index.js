@@ -9,13 +9,66 @@
  */
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const { initializeApp } = require("firebase-admin/app");
-const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const admin = require("firebase-admin");
 
-initializeApp();
-const db = getFirestore();
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+const db = admin.firestore();
+const FieldValue = admin.firestore.FieldValue;
 
 // --- setupOrganization: creates organizations/{orgId} + users/{uid} (Admin SDK; bypasses rules) ---
+
+function safeText(value, fallback = "") {
+  return String(value || fallback || "").trim();
+}
+
+/**
+ * Logs JSON lines for Cloud Logging / emulator console. Avoid logging full PII in production if needed.
+ */
+function logSetup(step, payload) {
+  try {
+    console.log(
+      JSON.stringify({
+        fn: "setupOrganization",
+        step,
+        t: new Date().toISOString(),
+        ...payload,
+      })
+    );
+  } catch (_e) {
+    console.log("[setupOrganization]", step, payload);
+  }
+}
+
+function mapFirestoreOrUnknownError(err) {
+  const code = err && err.code ? String(err.code) : "";
+  const msg = err && err.message ? String(err.message) : String(err || "unknown");
+
+  if (code === "permission-denied") {
+    return new HttpsError(
+      "permission-denied",
+      "Firestore write was denied. Check service account permissions and Firestore rules for the Admin SDK."
+    );
+  }
+  if (code === "failed-precondition" || code === "aborted") {
+    return new HttpsError(
+      "failed-precondition",
+      "Could not complete the database transaction. Try again in a moment."
+    );
+  }
+  if (code === "resource-exhausted") {
+    return new HttpsError(
+      "resource-exhausted",
+      "Database temporarily busy. Try again shortly."
+    );
+  }
+
+  return new HttpsError(
+    "internal",
+    "Organization setup failed. See function logs for details."
+  );
+}
 
 exports.setupOrganization = onCall(
   {
@@ -23,52 +76,112 @@ exports.setupOrganization = onCall(
     cors: true,
   },
   async (request) => {
-    if (!request.auth) {
-      throw new HttpsError("unauthenticated", "Sign in before creating an organization.");
-    }
+    const runId = `so_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
 
-    const uid = request.auth.uid;
-    const email = safeText(request.auth.token?.email || "");
-    const courseName = safeText(request.data?.courseName);
-    if (!courseName) {
-      throw new HttpsError("invalid-argument", "courseName is required.");
-    }
+    try {
+      logSetup("start", {
+        runId,
+        hasAuth: !!request.auth,
+        authUid: request.auth?.uid || null,
+        tokenEmailPresent: !!(request.auth?.token && request.auth.token.email),
+      });
 
-    const userRef = db.collection("users").doc(uid);
-    const existing = await userRef.get();
-    if (existing.exists) {
-      const orgId = safeText(existing.data()?.orgId);
-      if (orgId) {
-        return { orgId, alreadySetup: true };
+      if (!request.auth) {
+        logSetup("reject_no_auth", { runId });
+        throw new HttpsError("unauthenticated", "User must be signed in.");
       }
+
+      const uid = request.auth.uid;
+      const email = safeText(request.auth.token?.email || "");
+      const { courseName: rawCourseName } = request.data || {};
+      const courseName = safeText(rawCourseName);
+
+      logSetup("incoming_data", {
+        runId,
+        uid,
+        courseName,
+        courseNameLength: courseName.length,
+        emailFromToken: email || "(empty)",
+      });
+
+      if (!courseName) {
+        logSetup("reject_no_courseName", { runId, uid });
+        throw new HttpsError("invalid-argument", "Course name required.");
+      }
+
+      const userRef = db.doc(`users/${uid}`);
+
+      logSetup("before_transaction", { runId, userPath: userRef.path });
+
+      let out;
+      try {
+        out = await db.runTransaction(async (tx) => {
+          const userSnap = await tx.get(userRef);
+
+          if (userSnap.exists) {
+            const existingOrgId = safeText(userSnap.data()?.orgId);
+            if (existingOrgId) {
+              return { orgId: existingOrgId, alreadySetup: true };
+            }
+          }
+
+          const orgRef = db.collection("organizations").doc();
+          const orgId = orgRef.id;
+
+          tx.set(orgRef, {
+            name: courseName,
+            ownerUid: uid,
+            createdAt: FieldValue.serverTimestamp(),
+          });
+
+          tx.set(
+            userRef,
+            {
+              orgId,
+              email,
+              role: "admin",
+              createdAt: FieldValue.serverTimestamp(),
+              updatedAt: FieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          );
+
+          return { orgId, alreadySetup: false };
+        });
+
+        logSetup("after_transaction", {
+          runId,
+          orgId: out.orgId,
+          alreadySetup: !!out.alreadySetup,
+        });
+      } catch (e) {
+        logSetup("transaction_error", {
+          runId,
+          message: String(e?.message || e),
+          code: e?.code || "",
+        });
+        throw mapFirestoreOrUnknownError(e);
+      }
+
+      logSetup("return_ok", { runId, orgId: out.orgId, alreadySetup: out.alreadySetup });
+      return out;
+    } catch (e) {
+      if (e instanceof HttpsError) {
+        logSetup("rethrow_https", { runId, code: e.code, message: e.message });
+        throw e;
+      }
+      logSetup("unexpected_throw", {
+        runId,
+        message: String(e?.message || e),
+        stack: e?.stack ? String(e.stack).slice(0, 800) : "",
+      });
+      throw mapFirestoreOrUnknownError(e);
     }
-
-    const orgRef = db.collection("organizations").doc();
-    const orgId = orgRef.id;
-
-    await db.runTransaction(async (transaction) => {
-      transaction.set(orgRef, {
-        name: courseName,
-        ownerUid: uid,
-        createdAt: FieldValue.serverTimestamp(),
-      });
-      transaction.set(userRef, {
-        orgId,
-        email,
-        role: "admin",
-        createdAt: FieldValue.serverTimestamp(),
-      });
-    });
-
-    return { orgId, alreadySetup: false };
   }
 );
 
 // --- String helpers (aligned with register-complete.html) ---
-
-function safeText(value, fallback = "") {
-  return String(value || fallback || "").trim();
-}
+// safeText is defined above (used by setupOrganization).
 
 /**
  * Normalize hole labels like "1a", "10B" → "1A", "10B".
