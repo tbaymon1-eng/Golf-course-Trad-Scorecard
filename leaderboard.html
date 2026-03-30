@@ -1706,7 +1706,7 @@
     const courseId = String(docData.courseId || tournament.courseDefault || "tradition").trim().toLowerCase();
     const course = getCourseForEntry(courseId);
     const scorerName = playerName || names[0] || "";
-    const fmt = normalizeFormatValue(tournament.format || "stroke");
+    const fmt = normalizeFormatValue(docData.format || tournament.format || "stroke");
     const useNet = !!tournament.handicapEnabled;
 
     const base = {

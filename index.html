@@ -2905,12 +2905,13 @@ function startLiveAlertListener(){
   });
 }
 
+/** Load tournament from URL; returns true if the scorecard was built from Firestore (format/rows correct). */
 async function checkTournamentFromURL(){
   const params = new URLSearchParams(location.search);
   const { orgId, tournamentId: tId } = parseOrgTournamentFromSearch(params);
   const regId = (params.get("registration") || params.get("r") || "").trim();
 
-  if (!tId) return;
+  if (!tId) return false;
 
   organizationId = orgId;
   tournamentId = tId;
@@ -2920,77 +2921,79 @@ async function checkTournamentFromURL(){
   roundFinished = false;
   finishedHolesCount = null;
 
-  if(db){
-    startLiveAlertListener();
-    try{
-      const snap = await getDoc(tournamentDocRef(db, organizationId, tournamentId));
-      if(snap.exists()){
-        const t = snap.data() || {};
+  if (!db) return false;
 
-        tournamentFormat = normalizeFormatValue(t.formatOfPlay || t.format);
-        playersCount = formatToPlayersCount(tournamentFormat);
-        tournamentEntryMode = String(t.entryMode || "team_rep").trim().toLowerCase();
+  startLiveAlertListener();
+  try{
+    const snap = await getDoc(tournamentDocRef(db, organizationId, tournamentId));
+    if(snap.exists()){
+      const t = snap.data() || {};
 
-        const courseDefault = String(t.defaultCourse || t.courseDefault || "tradition").trim().toLowerCase();
-        currentCourseId = COURSES[courseDefault] ? courseDefault : "tradition";
+      tournamentFormat = normalizeFormatValue(t.formatOfPlay || t.format);
+      playersCount = formatToPlayersCount(tournamentFormat);
+      tournamentEntryMode = String(t.entryMode || "team_rep").trim().toLowerCase();
 
-        tournamentSideGames = normalizeTournamentSideGames(t.sideGames || {});
+      const courseDefault = String(t.defaultCourse || t.courseDefault || "tradition").trim().toLowerCase();
+      currentCourseId = COURSES[courseDefault] ? courseDefault : "tradition";
 
-        if (t.sponsorMarketingEnabled === false){
-          applySponsorUI("", "", "");
-          hideScorecardSponsorTicker();
-        } else {
-          const sponsor = getPrimarySponsor(t);
-          applySponsorUI(sponsor.name, sponsor.logo, sponsor.url);
-          renderScorecardSponsorTicker(t);
+      tournamentSideGames = normalizeTournamentSideGames(t.sideGames || {});
+
+      if (t.sponsorMarketingEnabled === false){
+        applySponsorUI("", "", "");
+        hideScorecardSponsorTicker();
+      } else {
+        const sponsor = getPrimarySponsor(t);
+        applySponsorUI(sponsor.name, sponsor.logo, sponsor.url);
+        renderScorecardSponsorTicker(t);
+      }
+
+      build();
+
+      const tournamentMetaText = `${t.tournamentName || t.name || "Tournament"}${(t.eventDate || t.date) ? " • " + (t.eventDate || t.date) : ""}`;
+
+      if(incomingRegistrationId){
+        const reg = await fetchRegistrationById(incomingRegistrationId);
+        if(reg){
+          await autoStartFromRegistration(reg);
+          return true;
         }
+      }
 
-        build();
+      const onsiteMode = isOnsiteEntryMode(tournamentEntryMode);
 
-        const tournamentMetaText = `${t.tournamentName || t.name || "Tournament"}${(t.eventDate || t.date) ? " • " + (t.eventDate || t.date) : ""}`;
+      if (onsiteMode || tournamentEntryMode === "team_rep") {
+        teamPickerScreen.style.display = "none";
+        joinScreen.style.display = "block";
+        joinMeta.textContent = tournamentMetaText;
+        setPreJoinLock(true);
+        updateJoinScreenForEntryMode();
+      } else {
+        teamPickerScreen.style.display = "block";
+        joinScreen.style.display = "none";
+        joinMeta.textContent = tournamentMetaText;
+        setPreJoinLock(true);
+        updateJoinScreenForEntryMode();
 
-        if(incomingRegistrationId){
-          const reg = await fetchRegistrationById(incomingRegistrationId);
-          if(reg){
-            await autoStartFromRegistration(reg);
-            return;
+        await loadRegistrations();
+
+        const savedRegId = loadSelectedRegistrationId();
+        if(savedRegId){
+          const found = loadedRegistrations.find(x => x.id === savedRegId);
+          if(found){
+            applyRegistrationSelection(found);
           }
         }
-
-        const onsiteMode = isOnsiteEntryMode(tournamentEntryMode);
-
-if (onsiteMode || tournamentEntryMode === "team_rep") {
-  teamPickerScreen.style.display = "none";
-  joinScreen.style.display = "block";
-  joinMeta.textContent = tournamentMetaText;
-  setPreJoinLock(true);
-  updateJoinScreenForEntryMode();
-} else {
-  teamPickerScreen.style.display = "block";
-  joinScreen.style.display = "none";
-  joinMeta.textContent = tournamentMetaText;
-  setPreJoinLock(true);
-  updateJoinScreenForEntryMode();
-
-  await loadRegistrations();
-
-  const savedRegId = loadSelectedRegistrationId();
-  if(savedRegId){
-    const found = loadedRegistrations.find(x => x.id === savedRegId);
-    if(found){
-      applyRegistrationSelection(found);
-    }
-  }
-        }
-      } else {
-        hideScorecardSponsorTicker();
       }
-      
-    }catch(e){
-      console.warn("Tournament settings load failed", e);
+      return true;
+    } else {
       hideScorecardSponsorTicker();
     }
+
+  }catch(e){
+    console.warn("Tournament settings load failed", e);
+    hideScorecardSponsorTicker();
   }
+  return false;
 }
 
 joinBtn.addEventListener("click", async () => {
@@ -3150,10 +3153,16 @@ wireButtons();
     const casualStarted = await tryStartCasualMode(qToken);
     if (casualStarted) return;
   }
-  build();
-  await checkTournamentFromURL().catch((err) => {
+  let tournamentScorecardBuilt = false;
+  try {
+    tournamentScorecardBuilt = await checkTournamentFromURL();
+  } catch (err) {
     console.error("Tournament load failed:", err);
-  });
+  }
+  const { tournamentId: tId } = parseOrgTournamentFromSearch(params);
+  if (!tId || !tournamentScorecardBuilt) {
+    build();
+  }
 })();
 </script>
 </html>
