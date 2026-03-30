@@ -61,6 +61,29 @@ async function getUserDocSnapshot(db, uid, source) {
 }
 
 /**
+ * Reads users/{uid} from Firestore (cache-first, then server) and returns org id from orgId or organizationId.
+ * Use when resolveOrganizerOrgId fails but the profile document is readable.
+ */
+export async function readOrganizerOrgIdFromUserDoc(db, uid) {
+  const uRef = doc(db, "users", uid);
+  const trySnap = (snap) => {
+    const exists = typeof snap.exists === "function" ? snap.exists() : !!snap.exists;
+    if (!exists) return "";
+    return orgIdFromUserSnap(snap.data());
+  };
+
+  let oid = trySnap(await getDoc(uRef));
+  if (oid) return oid;
+
+  try {
+    oid = trySnap(await getDocFromServer(uRef));
+  } catch (e) {
+    console.warn("[readOrganizerOrgIdFromUserDoc] getDocFromServer failed", e);
+  }
+  return oid || "";
+}
+
+/**
  * @returns {Promise<{ ok: true, orgId: string } | { ok: false, message: string }>}
  */
 export async function resolveOrganizerOrgId(app, auth, db) {

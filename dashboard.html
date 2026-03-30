@@ -68,7 +68,7 @@
     import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
     import { firebaseConfig } from "./js/firebase-config.js";
     import { applyOrgTournamentParams, orgTournamentsCollection, tournamentDocRef } from "./js/org-paths.js";
-    import { resolveOrganizerOrgId } from "./js/resolve-organizer-org.js";
+    import { resolveOrganizerOrgId, readOrganizerOrgIdFromUserDoc } from "./js/resolve-organizer-org.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -277,26 +277,24 @@
       try {
         await auth.authStateReady();
 
-        const resolved = await resolveOrganizerOrgId(app, auth, db);
-        console.info("[dashboard] resolveOrganizerOrgId:", resolved);
+        let orgId = await readOrganizerOrgIdFromUserDoc(db, user.uid);
+        let resolved = { ok: false, message: "No organization is linked to this account." };
+        if (!orgId) {
+          resolved = await resolveOrganizerOrgId(app, auth, db);
+          orgId = resolved.ok && resolved.orgId ? resolved.orgId : "";
+        }
+        console.info("[dashboard] orgId:", orgId || "(empty)");
 
-        if (!resolved || resolved.ok !== true) {
-          console.info(
-            "[dashboard] show no-org error banner: true | orgId:",
-            resolved && resolved.orgId
-          );
+        if (!orgId) {
           errEl.textContent =
             (resolved && resolved.message) ||
             "No organization is linked to this account.";
           return;
         }
 
-        console.info(
-          "[dashboard] show no-org error banner: false | orgId:",
-          resolved.orgId
-        );
-
-        const orgId = resolved.orgId;
+        try {
+          sessionStorage.setItem("orgId", orgId);
+        } catch (_e) {}
 
         const oSnap = await getDoc(doc(db, "organizations", orgId));
         const orgName = oSnap.exists() ? String(oSnap.data()?.name || "") : "";

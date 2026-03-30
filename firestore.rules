@@ -2,8 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Match client js/resolve-organizer-org.js: prefer orgId, else organizationId.
     function userOrgId() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId;
+      let d = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return d.orgId != null ? d.orgId : d.organizationId;
     }
 
     function isOrgMember(orgId) {

@@ -655,7 +655,7 @@
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { firebaseConfig } from "./js/firebase-config.js";
   import { tournamentDocRef } from "./js/org-paths.js";
-  import { resolveOrganizerOrgId } from "./js/resolve-organizer-org.js";
+  import { resolveOrganizerOrgId, readOrganizerOrgIdFromUserDoc } from "./js/resolve-organizer-org.js";
 
   if (location.protocol === "file:") {
     alert(
@@ -684,13 +684,21 @@
 
   await u.getIdToken(true);
 
-  const result = await resolveOrganizerOrgId(app, auth, db);
-  if (!result.ok) {
+  let oid = await readOrganizerOrgIdFromUserDoc(db, u.uid);
+  let result = { ok: false, message: "Could not load your organization." };
+  if (!oid) {
+    result = await resolveOrganizerOrgId(app, auth, db);
+    oid = result.ok && result.orgId ? result.orgId : "";
+  }
+  if (!oid) {
     throw new Error(result.message || "Could not load your organization.");
   }
 
-  state.orgId = result.orgId;
-  return result.orgId;
+  state.orgId = oid;
+  try {
+    sessionStorage.setItem("orgId", oid);
+  } catch (_e) {}
+  return oid;
 }
 
   function deepOmitUndefined(value){
@@ -1521,8 +1529,17 @@ onAuthStateChanged(auth, async (user) => {
   try {
     await user.getIdToken(true);
 
-    const resolved = await resolveOrganizerOrgId(app, auth, db);
-    if (!resolved.ok) {
+    let orgId = await readOrganizerOrgIdFromUserDoc(db, user.uid);
+    let resolved = {
+      ok: false,
+      message:
+        "Your organizer profile could not be loaded. Sign in again from the same hosted URL you used to register, or complete first-time signup.",
+    };
+    if (!orgId) {
+      resolved = await resolveOrganizerOrgId(app, auth, db);
+      orgId = resolved.ok && resolved.orgId ? resolved.orgId : "";
+    }
+    if (!orgId) {
       alert(
         resolved.message ||
           "Your organizer profile could not be loaded. Sign in again from the same hosted URL you used to register, or complete first-time signup."
@@ -1530,7 +1547,7 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
 
-    state.orgId = resolved.orgId;
+    state.orgId = orgId;
     try {
       sessionStorage.setItem("orgId", state.orgId);
     } catch (_e) {}
