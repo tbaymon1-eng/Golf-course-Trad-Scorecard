@@ -559,7 +559,7 @@ import {
     const registerTeamCallable = httpsCallable(functions, "registerTeam");
 
     const $ = (id) => document.getElementById(id);
-
+const params = new URLSearchParams(location.search);
     const { orgId, tournamentId } = parseOrgTournamentFromSearch();
 
     const state = {
