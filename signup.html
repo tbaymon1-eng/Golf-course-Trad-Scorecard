@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Create account — Tournament platform</title>
+  <title>First-time organizer signup — Tournament platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Barlow:wght@600;700;800&display=swap" rel="stylesheet">
@@ -19,15 +19,42 @@
     .btn { width: 100%; padding: 16px; border: none; border-radius: 16px; font-size: 1.15rem; font-weight: 900; cursor: pointer; font-family: inherit; background: var(--green); color: #fff; margin-top: 8px; }
     .btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-secondary { background: var(--blue); margin-top: 12px; text-decoration: none; display: block; text-align: center; line-height: 1.3; }
-    .err { color: #a32; font-weight: 700; font-size: 0.95rem; margin-top: 8px; min-height: 1.4em; }
+    .status {
+      margin-top: 14px;
+      min-height: 2.6em;
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.35;
+      color: #3d4a3a;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.35);
+      border: 2px solid rgba(154,98,23,.25);
+    }
+    .status:empty { display: none; }
+    .status.status--error {
+      color: #7a1f18;
+      border-color: rgba(196,70,47,.45);
+      background: rgba(255,235,230,.5);
+    }
+    .status.status--success {
+      color: #1e4a22;
+      border-color: rgba(47,122,49,.4);
+      background: rgba(230,245,230,.45);
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Create your course account</h1>
-    <p>One account per golf course or club. You’ll get an organization ID used in all tournament links.</p>
+    <h1>Set up your course or club (first time only)</h1>
+    <p>
+      Use this page when your golf course or club does <strong>not</strong> have an organizer account yet.
+      You’ll create the <strong>first administrator</strong> for your facility and, at the same time, the
+      <strong>organization</strong> that powers your tournament links and shared URLs.
+      If your staff already registered, go to sign in instead—do not create a second organization here.
+    </p>
     <form id="form">
-      <label for="courseName">Course or club name</label>
+      <label for="courseName">Course or club name (your organization’s display name)</label>
       <input id="courseName" type="text" required autocomplete="organization" placeholder="e.g. Oak Valley Golf Club" />
 
       <label for="email">Email</label>
@@ -36,10 +63,10 @@
       <label for="password">Password (6+ characters)</label>
       <input id="password" type="password" required minlength="6" autocomplete="new-password" />
 
-      <button type="submit" class="btn" id="submitBtn">Create account</button>
-      <div class="err" id="err"></div>
+      <button type="submit" class="btn" id="submitBtn">Create organizer account and organization</button>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
     </form>
-    <a class="btn btn-secondary" href="./login.html">Already have an account? Sign in</a>
+    <a class="btn btn-secondary" href="./login.html">Already have an organizer account? Sign in</a>
   </div>
 
   <script type="module">
@@ -55,48 +82,105 @@
 
     const $ = (id) => document.getElementById(id);
 
-    $("form").addEventListener("submit", async (e) => {
+    const statusEl = $("status");
+    const form = $("form");
+
+    function setStatus(message, kind) {
+      statusEl.textContent = message || "";
+      statusEl.classList.remove("status--error", "status--success");
+      if (!message) return;
+      if (kind === "error") statusEl.classList.add("status--error");
+      else if (kind === "success") statusEl.classList.add("status--success");
+    }
+
+    function formatSignupError(err, authAccountCreated) {
+      const code = err?.code ? String(err.code) : "";
+      const rawMsg = err?.message != null ? String(err.message) : String(err || "");
+
+      if (code === "auth/email-already-in-use") {
+        return "This email is already registered. Use “Sign in” below—do not create another organization here.";
+      }
+      if (code === "auth/weak-password") {
+        return "Password is too weak. Use at least 6 characters.";
+      }
+      if (code === "auth/invalid-email") {
+        return "Enter a valid email address.";
+      }
+      if (
+        code === "unauthenticated" ||
+        code === "functions/unauthenticated" ||
+        code === "functions/internal"
+      ) {
+        if (authAccountCreated) {
+          return (
+            "Your sign-in was created, but organization setup did not finish (cloud function error: " +
+            (rawMsg || code) +
+            "). Go to Sign in, log in with this email and password, then try again or contact support. Do not sign up again."
+          );
+        }
+        return "Organization setup was not authorized. Refresh the page and try again. If it keeps failing, check that Cloud Functions are deployed and you are online.";
+      }
+
+      if (code.startsWith("functions/")) {
+        return "Organization setup failed: " + (rawMsg || code);
+      }
+
+      return rawMsg || code || "Something went wrong. Please try again.";
+    }
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
+
       const courseName = $("courseName").value.trim();
       const email = $("email").value.trim();
       const password = $("password").value;
-      const err = $("err");
       const btn = $("submitBtn");
-      err.textContent = "";
+
+      setStatus("");
       btn.disabled = true;
 
+      let authAccountCreated = false;
+      let succeeded = false;
+
       try {
-  if (!courseName) {
-    throw new Error("Course or club name is required.");
-  }
+        if (!courseName) {
+          throw new Error("Course or club name is required.");
+        }
 
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  await userCredential.user.getIdToken(true);
+        setStatus("Creating account...");
 
-  const res = await setupOrganization({ courseName });
-  const orgId = res.data?.orgId;
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        authAccountCreated = true;
+        await userCredential.user.getIdToken(true);
 
-  if (!orgId) {
-    throw new Error("Organization was not created.");
-  }
+        setStatus("Creating organization...");
 
-  sessionStorage.setItem("orgId", orgId);
-  window.location.href = "./create-course.html";
-} catch (e2) {
-  console.error(e2);
-  const code = e2?.code || "";
-  let msg = e2?.message || String(e2);
+        const res = await setupOrganization({ courseName });
 
-  if (code === "auth/email-already-in-use") {
-    msg = "That email is already registered. Sign in instead.";
-  } else if (code === "unauthenticated" || code === "functions/unauthenticated") {
-    msg = "Account was created, but setup did not finish. Please sign in again.";
-  }
+        const data = res && res.data != null ? res.data : {};
+        const orgId =
+          typeof data.orgId === "string" ? data.orgId.trim() : String(data.orgId || "").trim();
 
-  err.textContent = msg;
-}
+        if (!orgId) {
+          throw new Error(
+            "Organization was not created: the server did not return an orgId. Check Cloud Function logs for setupOrganization."
+          );
+        }
+
+        sessionStorage.setItem("orgId", orgId);
+        setStatus("Success! Redirecting…", "success");
+        succeeded = true;
+
+        window.setTimeout(() => {
+          window.location.href = "./create-course.html";
+        }, 450);
+      } catch (err) {
+        console.error(err);
+        setStatus(formatSignupError(err, authAccountCreated), "error");
       } finally {
-        btn.disabled = false;
+        if (!succeeded) {
+          btn.disabled = false;
+        }
       }
     });
   </script>
