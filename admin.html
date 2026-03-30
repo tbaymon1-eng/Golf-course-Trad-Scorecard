@@ -688,7 +688,7 @@
   let result = { ok: false, message: "Could not load your organization." };
   if (!oid) {
     result = await resolveOrganizerOrgId(app, auth, db);
-    oid = result.ok && result.orgId ? result.orgId : "";
+  oid = (result && (result.orgId || result.organizationId)) || "";
   }
   if (!oid) {
     throw new Error(result.message || "Could not load your organization.");
@@ -1537,7 +1537,7 @@ onAuthStateChanged(auth, async (user) => {
     };
     if (!orgId) {
       resolved = await resolveOrganizerOrgId(app, auth, db);
-      orgId = resolved.ok && resolved.orgId ? resolved.orgId : "";
+      orgId = (resolved && (resolved.orgId || resolved.organizationId)) || "";
     }
     if (!orgId) {
       alert(
