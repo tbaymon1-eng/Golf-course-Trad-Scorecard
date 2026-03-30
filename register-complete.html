@@ -560,7 +560,7 @@ import {
 
     const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
-    const { orgId, tournamentId } = parseOrgTournamentFromSearch();
+    const { orgId, tournamentId } = parseOrgTournamentFromSearch(params);
 
     const state = {
   orgId,
