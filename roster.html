@@ -1163,13 +1163,22 @@
       setDoc,
       updateDoc,
       deleteDoc,
-      collection,
       onSnapshot,
       query,
       serverTimestamp,
       writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      parseOrgTournamentFromSearch,
+      tournamentDocRef,
+      tournamentRegistrationsCollection,
+      tournamentRegistrationDoc,
+      tournamentSubmissionsDoc,
+      tournamentSubmissionsCollection,
+      tournamentAlertsLiveRef,
+      applyOrgTournamentParams,
+    } from "./js/org-paths.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
@@ -1187,7 +1196,7 @@
     await signInAnonymously(auth);
 
     const params = new URLSearchParams(location.search);
-    const tournamentId = (params.get("id") || params.get("t") || "").trim();
+    const { orgId, tournamentId } = parseOrgTournamentFromSearch(params);
 
     /* ---------------------------------------------------- */
     /* DOM REFERENCES */
@@ -1807,10 +1816,14 @@
         return;
       }
 
-      joinBtn.href=`./index.html?id=${tournamentId}`;
-      leaderBtn.href=`./leaderboard.html?id=${tournamentId}`;
+      const joinUrl = new URL("./index.html", location.href);
+      applyOrgTournamentParams(joinUrl, orgId, tournamentId);
+      joinBtn.href = joinUrl.toString();
+      const leaderUrl = new URL("./leaderboard.html", location.href);
+      applyOrgTournamentParams(leaderUrl, orgId, tournamentId);
+      leaderBtn.href = leaderUrl.toString();
 
-      const snap=await getDoc(doc(db,"tournaments",tournamentId));
+      const snap=await getDoc(tournamentDocRef(db, orgId, tournamentId));
 
       if(snap.exists()){
         tournamentMeta=snap.data();
@@ -1918,8 +1931,8 @@
       const playerDetails = buildPlayerDetailsFromModal(finalPlayers, captainName);
 
       const ref=editingId
-        ? doc(db,"tournaments",tournamentId,"registrations",editingId)
-        : doc(collection(db,"tournaments",tournamentId,"registrations"));
+        ? tournamentRegistrationDoc(db, orgId, tournamentId, editingId)
+        : doc(tournamentRegistrationsCollection(db, orgId, tournamentId));
 
       const payload={
         teamName,
@@ -1948,7 +1961,7 @@
       const ok=confirm(`Delete ${r.teamName}? This removes the registration record.`);
       if(!ok) return;
 
-      await deleteDoc(doc(db,"tournaments",tournamentId,"registrations",editingId));
+      await deleteDoc(tournamentRegistrationDoc(db, orgId, tournamentId, editingId));
       closeModal();
     }
 
@@ -1992,7 +2005,7 @@
         return;
       }
 
-      await updateDoc(doc(db,"tournaments",tournamentId,"registrations",id),{
+      await updateDoc(tournamentRegistrationDoc(db, orgId, tournamentId, id),{
         assignedHole: nextHole,
         status: normalizeStatus(r.status)==="registered" ? "assigned" : normalizeStatus(r.status),
         updatedAt: serverTimestamp()
@@ -2014,7 +2027,7 @@
 
       if(current==="cancelled"){
         const restoreStatus=normalizeHoleLabel(r.assignedHole) ? "assigned" : "registered";
-        await updateDoc(doc(db,"tournaments",tournamentId,"registrations",id),{
+        await updateDoc(tournamentRegistrationDoc(db, orgId, tournamentId, id),{
           status: restoreStatus,
           updatedAt: serverTimestamp()
         });
@@ -2024,7 +2037,7 @@
       const ok=confirm(`Cancel ${r.teamName}? Their hole will become available again.`);
       if(!ok) return;
 
-      await updateDoc(doc(db,"tournaments",tournamentId,"registrations",id),{
+      await updateDoc(tournamentRegistrationDoc(db, orgId, tournamentId, id),{
         status: "cancelled",
         updatedAt: serverTimestamp()
       });
@@ -2058,7 +2071,7 @@
 
       unassigned.forEach((r,idx)=>{
         batch.set(
-          doc(db,"tournaments",tournamentId,"registrations",r.id),
+          tournamentRegistrationDoc(db, orgId, tournamentId, r.id),
           {
             assignedHole: freeSlots[idx],
             status: normalizeStatus(r.status)==="registered" ? "assigned" : normalizeStatus(r.status),
@@ -2174,7 +2187,7 @@
       }
 
       try{
-        const snap = await getDoc(doc(db, "tournaments", tournamentId, "submissions", deviceId));
+        const snap = await getDoc(tournamentSubmissionsDoc(db, orgId, tournamentId, deviceId));
         if (!snap.exists()){
           alert("Submission document not found.");
           return;
@@ -2224,7 +2237,7 @@
 
       try{
         await setDoc(
-          doc(db, "tournaments", tournamentId, "submissions", scoreEditDeviceId),
+          tournamentSubmissionsDoc(db, orgId, tournamentId, scoreEditDeviceId),
           {
             scoresFlat,
             updatedAt: serverTimestamp()
@@ -2394,7 +2407,7 @@
     /* ---------------------------------------------------- */
 
     function alertLiveDocRef(){
-      return doc(db, "tournaments", tournamentId, "alerts", "live");
+      return tournamentAlertsLiveRef(db, orgId, tournamentId);
     }
 
     function setAlertStatus(msg){
@@ -2465,7 +2478,7 @@
     /* ---------------------------------------------------- */
 
     function rulesSheetDocRef(){
-      return doc(db, "tournaments", tournamentId);
+      return tournamentDocRef(db, orgId, tournamentId);
     }
 
     function getTournamentDisplayTitle(){
@@ -2532,7 +2545,11 @@
 
     function buildDefaultJoinLink(){
       if (!tournamentId) return "";
-      return `${location.origin}${location.pathname.replace(/[^/]+$/, "index.html")}?id=${encodeURIComponent(tournamentId)}`;
+      const url = new URL(
+        `${location.origin}${location.pathname.replace(/[^/]+$/, "index.html")}`
+      );
+      applyOrgTournamentParams(url, orgId, tournamentId);
+      return url.toString();
     }
 
     function buildDefaultRulesSheetData(){
@@ -2887,7 +2904,7 @@
     }else{
       if(alertOrganizerBox) alertOrganizerBox.style.display="block";
 
-      const regCol=collection(db,"tournaments",tournamentId,"registrations");
+      const regCol=tournamentRegistrationsCollection(db, orgId, tournamentId);
       const q=query(regCol);
 
       onSnapshot(q,(snap)=>{
@@ -2937,7 +2954,7 @@
         textOut.textContent="Live updates blocked (rules/network).";
       });
 
-      const subCol = collection(db, "tournaments", tournamentId, "submissions");
+      const subCol = tournamentSubmissionsCollection(db, orgId, tournamentId);
       const subQ = query(subCol);
 
       onSnapshot(subQ, (snap) => {
