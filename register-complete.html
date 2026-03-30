@@ -841,7 +841,9 @@ const params = new URLSearchParams(location.search);
       }
 
       try{
-        const snap = await getDoc(doc(db, "tournaments", state.tournamentId));
+        const snap = await getDoc(
+  tournamentDocRef(db, state.orgId, state.tournamentId)
+);
 
         if(!snap.exists()){
           state.tournament = null;
