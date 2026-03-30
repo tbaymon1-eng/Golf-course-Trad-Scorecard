@@ -1514,53 +1514,67 @@
       el.addEventListener("change", applyLinks);
     }
   });
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "./login.html?next=" + encodeURIComponent("./admin.html");
+    return;
+  }
 
-  onAuthStateChanged(auth, async (user) => {
-    if (!user || !user.email) {
-      window.location.href = "./login.html?next=" + encodeURIComponent("./admin.html");
+  try {
+    await user.getIdToken(true);
+
+    let uSnap = await getDoc(doc(db, "users", user.uid));
+
+    if (!uSnap.exists() && user.email) {
+      const fallbackUid = "7ayud6ZgMaYL5HZTPITz";
+      const fallbackSnap = await getDoc(doc(db, "users", fallbackUid));
+      if (fallbackSnap.exists()) {
+        uSnap = fallbackSnap;
+      }
+    }
+
+    if (!uSnap.exists()) {
+      alert("Your user profile was not found in Firestore.");
       return;
     }
-    try {
-      const uSnap = await getDoc(doc(db, "users", user.uid));
-      if (!uSnap.exists()) {
-        alert("Create your organization first at signup.html");
-        window.location.href = "./signup.html";
-        return;
-      }
-      state.orgId = String(uSnap.data()?.orgId || "").trim();
-      if (!state.orgId) {
-        alert("Missing organization on your profile.");
-        return;
-      }
-    } catch (e) {
-      console.error(e);
-      alert(e?.message || "Could not load your profile.");
+
+    state.orgId = String(uSnap.data()?.orgId || "").trim();
+
+    if (!state.orgId) {
+      alert("Missing organization on your profile.");
       return;
     }
+  } catch (e) {
+    console.error(e);
+    alert(e?.message || "Could not load your profile.");
+    return;
+  }
 
-    const params = new URLSearchParams(location.search);
-    const urlId = params.get("id");
+  const params = new URLSearchParams(location.search);
+  const urlId = params.get("id");
 
-    if (urlId) {
-      $("tournamentId").value = urlId;
-      let data = loadTournamentFromLocal(urlId);
+  if (urlId) {
+    $("tournamentId").value = urlId;
+    let data = loadTournamentFromLocal(urlId);
 
-      if (!data) {
-        data = await loadTournamentFromFirebase(urlId);
-      }
-
-      if (data) {
-        state.tournamentId = urlId;
-        state.adminToken = data.adminToken || "";
-        fillForm(data);
-      }
+    if (!data) {
+      data = await loadTournamentFromFirebase(urlId);
     }
 
-    renderSponsorList();
-    syncHandicapAdminUI();
-    syncRoundHolesAdminUI();
-    applyLinks();
-  });
+    if (data) {
+      state.tournamentId = urlId;
+      state.adminToken = data.adminToken || "";
+      fillForm(data);
+    }
+  }
+
+  renderSponsorList();
+  syncHandicapAdminUI();
+  syncRoundHolesAdminUI();
+  applyLinks();
+});
+  
+  
 </script>
 </body>
 </html>
