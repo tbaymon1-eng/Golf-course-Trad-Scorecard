@@ -135,7 +135,11 @@
       }
       $("err").textContent = "";
       try {
-        await deleteTournamentCallable({ orgId, tournamentId });
+        await deleteTournamentCallable({
+          orgId,
+          organizationId: orgId,
+          tournamentId,
+        });
         await renderList(orgId);
       } catch (e) {
         console.error(e);

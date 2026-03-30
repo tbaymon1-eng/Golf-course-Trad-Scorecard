@@ -79,6 +79,10 @@ export function publicLinkDocRef(db, token) {
   return doc(db, "publicLinks", token);
 }
 
+export function orgCoursesCollection(db, orgId) {
+  return collection(db, "organizations", orgId, "courses");
+}
+
 export function courseDocRef(db, orgId, courseId) {
   return doc(db, "organizations", orgId, "courses", courseId);
 }

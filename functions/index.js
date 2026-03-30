@@ -384,15 +384,26 @@ exports.deleteTournament = onCall(
       throw new HttpsError("unauthenticated", "Sign in to delete a tournament.");
     }
 
-    const orgId = safeText(request.data?.orgId);
-    const tournamentId = safeText(request.data?.tournamentId);
+    const data = request.data || {};
+    const orgId = safeText(data.orgId || data.organizationId);
+    const tournamentId = safeText(data.tournamentId);
     if (!orgId || !tournamentId) {
-      throw new HttpsError("invalid-argument", "orgId and tournamentId are required.");
+      throw new HttpsError("invalid-argument", "orgId (or organizationId) and tournamentId are required.");
     }
 
     const userSnap = await db.collection("users").doc(request.auth.uid).get();
-    const userOrgId = safeText(userSnap.data()?.orgId);
-    if (!userOrgId || userOrgId !== orgId) {
+    const userData = userSnap.exists ? userSnap.data() || {} : {};
+    const userOrgId = safeText(userData.orgId || userData.organizationId);
+
+    const orgSnap = await db.collection("organizations").doc(orgId).get();
+    if (!orgSnap.exists) {
+      throw new HttpsError("not-found", "Organization not found.");
+    }
+    const orgOwnerUid = safeText(orgSnap.data()?.ownerUid);
+    const isOrgOwner = !!orgOwnerUid && orgOwnerUid === request.auth.uid;
+    const isOrgMember = !!userOrgId && userOrgId === orgId;
+
+    if (!isOrgMember && !isOrgOwner) {
       throw new HttpsError("permission-denied", "You can only delete tournaments in your organization.");
     }
 
