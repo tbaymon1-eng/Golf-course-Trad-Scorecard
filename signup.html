@@ -66,20 +66,35 @@
       btn.disabled = true;
 
       try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        const res = await setupOrganization({ courseName });
-        const orgId = res.data?.orgId;
-        if (!orgId) throw new Error("Organization was not created.");
-        sessionStorage.setItem("orgId", orgId);
-        window.location.href = "./dashboard.html";
-      } catch (e2) {
-        console.error(e2);
-        const code = e2?.code || "";
-        let msg = e2?.message || String(e2);
-        if (code === "auth/email-already-in-use") {
-          msg = "That email is already registered. Sign in instead.";
-        }
-        err.textContent = msg;
+  if (!courseName) {
+    throw new Error("Course or club name is required.");
+  }
+
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  await userCredential.user.getIdToken(true);
+
+  const res = await setupOrganization({ courseName });
+  const orgId = res.data?.orgId;
+
+  if (!orgId) {
+    throw new Error("Organization was not created.");
+  }
+
+  sessionStorage.setItem("orgId", orgId);
+  window.location.href = "./dashboard.html";
+} catch (e2) {
+  console.error(e2);
+  const code = e2?.code || "";
+  let msg = e2?.message || String(e2);
+
+  if (code === "auth/email-already-in-use") {
+    msg = "That email is already registered. Sign in instead.";
+  } else if (code === "unauthenticated" || code === "functions/unauthenticated") {
+    msg = "Account was created, but setup did not finish. Please sign in again.";
+  }
+
+  err.textContent = msg;
+}
       } finally {
         btn.disabled = false;
       }
