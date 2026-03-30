@@ -1,5 +1,5 @@
 // sw.js
-// Better caching strategy for GitHub Pages + iOS Safari:
+// Better caching strategy for static hosting (Firebase Hosting, etc.) + iOS Safari:
 // - HTML: network-first (gets updates)
 // - Assets: cache-first (fast)
 // - Cleans old caches when version changes

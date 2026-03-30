@@ -590,6 +590,14 @@
       font-weight:500;
     }
 
+    .rulesQrColumn{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:flex-start;
+      gap:16px;
+    }
+
     .rulesQrWrap{
       display:flex;
       flex-direction:column;
@@ -656,6 +664,7 @@
         grid-template-columns:1fr;
       }
 
+      .rulesQrColumn,
       .rulesQrWrap{
         align-items:flex-start;
       }
@@ -1072,7 +1081,7 @@
         <div>
           <p class="sheetTitle">Rules Sheet</p>
           <div class="sheetSubtle">
-            Editable tournament welcome/rules sheet with auto-filled join link and QR code.
+            Editable tournament welcome/rules sheet with auto-filled join and leaderboard links and QR codes.
           </div>
         </div>
         <button type="button" id="closeRulesSheetBtn" class="miniBtn">✕ Close</button>
@@ -1120,9 +1129,19 @@
             <input id="rulesJoinLinkInput" />
           </div>
 
+          <div class="fieldSp">
+            <label class="fieldLabel" for="rulesLeaderboardLinkInput">Leaderboard Link</label>
+            <input id="rulesLeaderboardLinkInput" />
+          </div>
+
           <div class="checkRow">
             <input type="checkbox" id="rulesShowQrInput" checked />
-            <label for="rulesShowQrInput" style="font-weight:900;">Show QR code</label>
+            <label for="rulesShowQrInput" style="font-weight:900;">Show join (scoring) QR code</label>
+          </div>
+
+          <div class="checkRow">
+            <input type="checkbox" id="rulesShowLeaderboardQrInput" checked />
+            <label for="rulesShowLeaderboardQrInput" style="font-weight:900;">Show leaderboard QR code</label>
           </div>
 
           <div class="checkRow">
@@ -1279,7 +1298,9 @@
     const rulesScheduleInput = document.getElementById("rulesScheduleInput");
     const rulesFooterInput = document.getElementById("rulesFooterInput");
     const rulesJoinLinkInput = document.getElementById("rulesJoinLinkInput");
+    const rulesLeaderboardLinkInput = document.getElementById("rulesLeaderboardLinkInput");
     const rulesShowQrInput = document.getElementById("rulesShowQrInput");
+    const rulesShowLeaderboardQrInput = document.getElementById("rulesShowLeaderboardQrInput");
     const rulesShowJoinLinkInput = document.getElementById("rulesShowJoinLinkInput");
     const rulesSheetPreview = document.getElementById("rulesSheetPreview");
     const rulesPrintHost = document.getElementById("rulesPrintHost");
@@ -1572,7 +1593,7 @@
       if (!t) return "";
       if (/^https?:\/\//i.test(t) || /^data:/i.test(t)) return t;
       try{
-        return new URL(t, location.href).href;
+        return new URL(t, window.location.href).href;
       }catch{
         return t;
       }
@@ -1816,10 +1837,10 @@
         return;
       }
 
-      const joinUrl = new URL("./index.html", location.href);
+      const joinUrl = new URL("./index.html", window.location.href);
       applyOrgTournamentParams(joinUrl, orgId, tournamentId);
       joinBtn.href = joinUrl.toString();
-      const leaderUrl = new URL("./leaderboard.html", location.href);
+      const leaderUrl = new URL("./leaderboard.html", window.location.href);
       applyOrgTournamentParams(leaderUrl, orgId, tournamentId);
       leaderBtn.href = leaderUrl.toString();
 
@@ -2545,9 +2566,20 @@
 
     function buildDefaultJoinLink(){
       if (!tournamentId) return "";
-      const url = new URL(
-        `${location.origin}${location.pathname.replace(/[^/]+$/, "index.html")}`
-      );
+      const path = window.location.pathname;
+      const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
+      const base = `${window.location.origin}${dir}`;
+      const url = new URL("index.html", base);
+      applyOrgTournamentParams(url, orgId, tournamentId);
+      return url.toString();
+    }
+
+    function buildDefaultLeaderboardLink(){
+      if (!tournamentId) return "";
+      const path = window.location.pathname;
+      const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
+      const base = `${window.location.origin}${dir}`;
+      const url = new URL("leaderboard.html", base);
       applyOrgTournamentParams(url, orgId, tournamentId);
       return url.toString();
     }
@@ -2572,7 +2604,9 @@
         scheduleText,
         footerText: "Good luck and have a great round.",
         joinLink: buildDefaultJoinLink(),
-        showQr: true,
+        leaderboardLink: buildDefaultLeaderboardLink(),
+        showJoinQr: true,
+        showLeaderboardQr: true,
         showJoinLink: true
       };
     }
@@ -2587,7 +2621,9 @@
         scheduleText: String(rulesScheduleInput?.value || "").trim(),
         footerText: String(rulesFooterInput?.value || "").trim(),
         joinLink: String(rulesJoinLinkInput?.value || "").trim(),
-        showQr: !!rulesShowQrInput?.checked,
+        leaderboardLink: String(rulesLeaderboardLinkInput?.value || "").trim(),
+        showJoinQr: !!rulesShowQrInput?.checked,
+        showLeaderboardQr: !!rulesShowLeaderboardQrInput?.checked,
         showJoinLink: !!rulesShowJoinLinkInput?.checked
       };
     }
@@ -2603,7 +2639,12 @@
       rulesScheduleInput.value = d.scheduleText || "";
       rulesFooterInput.value = d.footerText || "";
       rulesJoinLinkInput.value = d.joinLink || buildDefaultJoinLink();
-      rulesShowQrInput.checked = d.showQr !== false;
+      rulesLeaderboardLinkInput.value = d.leaderboardLink || buildDefaultLeaderboardLink();
+      const joinQrOn =
+        d.showJoinQr !== undefined ? d.showJoinQr !== false : d.showQr !== false;
+      rulesShowQrInput.checked = joinQrOn;
+      rulesShowLeaderboardQrInput.checked =
+        d.showLeaderboardQr !== undefined ? d.showLeaderboardQr !== false : true;
       rulesShowJoinLinkInput.checked = d.showJoinLink !== false;
 
       renderRulesSheetPreview();
@@ -2614,11 +2655,23 @@
       const previewTitle = d.title || "Tournament";
       const courseLine = d.course ? `<div><b>Course:</b> ${escapeHtml(d.course)}</div>` : "";
       const dateLine = d.date ? `<div><b>Date:</b> ${escapeHtml(d.date)}</div>` : "";
-      const qrHtml = d.showQr
-        ? `<div class="rulesQrWrap">
-             <div id="rulesQrBox" class="rulesQrBox"></div>
-             <div class="rulesQrCaption">Scan here to join live scoring</div>
-             ${d.showJoinLink && d.joinLink ? `<div class="rulesJoinLinkText">${escapeHtml(d.joinLink)}</div>` : ``}
+      const joinQrOn =
+        d.showJoinQr !== undefined ? d.showJoinQr !== false : d.showQr !== false;
+      const leaderQrOn =
+        d.showLeaderboardQr !== undefined ? d.showLeaderboardQr !== false : true;
+      const showQrColumn =
+        (joinQrOn && d.joinLink) || (leaderQrOn && d.leaderboardLink);
+      const qrHtml = showQrColumn
+        ? `<div class="rulesQrColumn">
+             ${joinQrOn && d.joinLink ? `<div class="rulesQrWrap">
+               <div id="rulesQrBoxJoin" class="rulesQrBox"></div>
+               <div class="rulesQrCaption">Scan to join live scoring</div>
+               ${d.showJoinLink && d.joinLink ? `<div class="rulesJoinLinkText">${escapeHtml(d.joinLink)}</div>` : ``}
+             </div>` : ``}
+             ${leaderQrOn && d.leaderboardLink ? `<div class="rulesQrWrap">
+               <div id="rulesQrBoxLeaderboard" class="rulesQrBox"></div>
+               <div class="rulesQrCaption">Scan for live leaderboard</div>
+             </div>` : ``}
            </div>`
         : `<div></div>`;
 
@@ -2662,8 +2715,8 @@
       `;
     }
 
-    function renderRulesSheetQr(link){
-      const box = document.getElementById("rulesQrBox");
+    function renderRulesSheetQrInto(boxId, link){
+      const box = document.getElementById(boxId);
       if (!box) return;
 
       box.innerHTML = "";
@@ -2687,8 +2740,15 @@
       if (!rulesSheetPreview) return;
       const data = getRulesSheetFormData();
       rulesSheetPreview.innerHTML = buildRulesSheetPreviewHtml(data);
-      if (data.showQr && data.joinLink){
-        renderRulesSheetQr(data.joinLink);
+      const joinQrOn =
+        data.showJoinQr !== undefined ? data.showJoinQr !== false : data.showQr !== false;
+      const leaderQrOn =
+        data.showLeaderboardQr !== undefined ? data.showLeaderboardQr !== false : true;
+      if (joinQrOn && data.joinLink){
+        renderRulesSheetQrInto("rulesQrBoxJoin", data.joinLink);
+      }
+      if (leaderQrOn && data.leaderboardLink){
+        renderRulesSheetQrInto("rulesQrBoxLeaderboard", data.leaderboardLink);
       }
     }
 
@@ -2723,7 +2783,12 @@
         scheduleText: saved.scheduleText || "",
         footerText: saved.footerText || "",
         joinLink: saved.joinLink || buildDefaultJoinLink(),
-        showQr: saved.showQr !== false,
+        leaderboardLink: saved.leaderboardLink || buildDefaultLeaderboardLink(),
+        showJoinQr:
+          saved.showJoinQr !== undefined
+            ? saved.showJoinQr !== false
+            : saved.showQr !== false,
+        showLeaderboardQr: saved.showLeaderboardQr !== false,
         showJoinLink: saved.showJoinLink !== false
       } : buildDefaultRulesSheetData();
 
@@ -2766,13 +2831,33 @@
       document.body.classList.add("rulesPrintActive");
       rulesPrintHost.setAttribute("aria-hidden", "false");
 
-      if (data.showQr && data.joinLink){
-        const box = rulesPrintHost.querySelector("#rulesQrBox");
+      const joinQrOn =
+        data.showJoinQr !== undefined ? data.showJoinQr !== false : data.showQr !== false;
+      const leaderQrOn =
+        data.showLeaderboardQr !== undefined ? data.showLeaderboardQr !== false : true;
+      if (joinQrOn && data.joinLink){
+        const box = rulesPrintHost.querySelector("#rulesQrBoxJoin");
         if (box){
           box.innerHTML = "";
           try{
             new QRCode(box, {
               text: data.joinLink,
+              width: 172,
+              height: 172,
+              correctLevel: QRCode.CorrectLevel.H
+            });
+          }catch(err){
+            console.error(err);
+          }
+        }
+      }
+      if (leaderQrOn && data.leaderboardLink){
+        const boxLb = rulesPrintHost.querySelector("#rulesQrBoxLeaderboard");
+        if (boxLb){
+          boxLb.innerHTML = "";
+          try{
+            new QRCode(boxLb, {
+              text: data.leaderboardLink,
               width: 172,
               height: 172,
               correctLevel: QRCode.CorrectLevel.H
@@ -2872,7 +2957,9 @@
       rulesScheduleInput,
       rulesFooterInput,
       rulesJoinLinkInput,
+      rulesLeaderboardLinkInput,
       rulesShowQrInput,
+      rulesShowLeaderboardQrInput,
       rulesShowJoinLinkInput
     ].forEach(el => {
       if (!el) return;

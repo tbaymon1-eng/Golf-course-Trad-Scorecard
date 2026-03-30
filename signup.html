@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>First-time organizer signup — Tournament platform</title>
+  <title>Create account — Tournament platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Barlow:wght@600;700;800&display=swap" rel="stylesheet">
@@ -19,8 +19,7 @@
     .btn { width: 100%; padding: 16px; border: none; border-radius: 16px; font-size: 1.15rem; font-weight: 900; cursor: pointer; font-family: inherit; background: var(--green); color: #fff; margin-top: 8px; }
     .btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-secondary { background: var(--blue); margin-top: 12px; text-decoration: none; display: block; text-align: center; line-height: 1.3; }
-    #retrySetupBtn { display: none; margin-top: 12px; }
-    #retrySetupBtn { display: none; margin-top: 12px; }
+    #staffRetryBtn, #o_retrySetupBtn { display: none; margin-top: 12px; }
     .status {
       margin-top: 14px;
       min-height: 2.6em;
@@ -44,32 +43,62 @@
       border-color: rgba(47,122,49,.4);
       background: rgba(230,245,230,.45);
     }
+    details.org-first { margin-top: 22px; padding-top: 18px; border-top: 2px dashed rgba(154,98,23,.35); }
+    details.org-first summary { cursor: pointer; font-weight: 800; color: var(--blue); margin-bottom: 12px; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Set up your course or club (first time only)</h1>
+    <h1>Create your account</h1>
     <p>
-      Use this page when your golf course or club does <strong>not</strong> have an organizer account yet.
-      You’ll create the <strong>first administrator</strong> for your facility and, at the same time, the
-      <strong>organization</strong> that powers your tournament links and shared URLs.
-      If your staff already registered, go to sign in instead—do not create a second organization here.
+      <strong>Staff:</strong> use your work email, the golf course name your manager gave you, and the staff invite code.
+      If your club does not have an organizer account yet, use <em>First-time organizer</em> below instead.
     </p>
-    <form id="form">
-      <label for="courseName">Course or club name (your organization’s display name)</label>
-      <input id="courseName" type="text" required autocomplete="organization" placeholder="e.g. Oak Valley Golf Club" />
 
-      <label for="email">Email</label>
-      <input id="email" type="email" required autocomplete="email" />
+    <form id="staffForm">
+      <label for="staffDisplayName">Display name</label>
+      <input id="staffDisplayName" type="text" required autocomplete="name" placeholder="e.g. Jordan Smith" />
 
-      <label for="password">Password (6+ characters)</label>
-      <input id="password" type="password" required minlength="6" autocomplete="new-password" />
+      <label for="staffEmail">Email</label>
+      <input id="staffEmail" type="email" required autocomplete="email" />
 
-      <button type="submit" class="btn" id="submitBtn">Create organizer account and organization</button>
-      <button type="button" class="btn btn-secondary" id="retrySetupBtn">Retry organization setup (same account)</button>
-      <div id="status" class="status" role="status" aria-live="polite"></div>
+      <label for="staffPassword">Password (6+ characters)</label>
+      <input id="staffPassword" type="password" required minlength="6" autocomplete="new-password" />
+
+      <label for="staffCourseName">Golf course name</label>
+      <input id="staffCourseName" type="text" required autocomplete="organization" placeholder="Must match your club’s signup (e.g. Cypresswood Golf Club)" />
+
+      <label for="staffInviteCode">Staff invite code</label>
+      <input id="staffInviteCode" type="password" required autocomplete="off" placeholder="From your manager" />
+
+      <button type="submit" class="btn" id="staffSubmitBtn">Create account &amp; join organization</button>
+      <button type="button" class="btn btn-secondary" id="staffRetryBtn">Retry join (same account)</button>
+      <div id="staffStatus" class="status" role="status" aria-live="polite"></div>
     </form>
-    <a class="btn btn-secondary" href="./login.html">Already have an organizer account? Sign in</a>
+
+    <details class="org-first">
+      <summary>First-time organizer — create a new organization</summary>
+      <p style="margin-top:12px;">
+        Use this only when your golf course does <strong>not</strong> have an organizer account yet.
+        You’ll create the first administrator and organization in one step.
+      </p>
+      <form id="orgForm">
+        <label for="o_courseName">Course or club name (your organization’s display name)</label>
+        <input id="o_courseName" type="text" required autocomplete="organization" placeholder="e.g. Oak Valley Golf Club" />
+
+        <label for="o_email">Email</label>
+        <input id="o_email" type="email" required autocomplete="email" />
+
+        <label for="o_password">Password (6+ characters)</label>
+        <input id="o_password" type="password" required minlength="6" autocomplete="new-password" />
+
+        <button type="submit" class="btn" id="o_submitBtn">Create organizer account and organization</button>
+        <button type="button" class="btn btn-secondary" id="o_retrySetupBtn">Retry organization setup (same account)</button>
+        <div id="o_status" class="status" role="status" aria-live="polite"></div>
+      </form>
+    </details>
+
+    <a class="btn-secondary" href="./login.html" style="margin-top:16px;">Already have an account? Sign in</a>
   </div>
 
   <script type="module">
@@ -82,27 +111,20 @@
     const auth = getAuth(app);
     const functions = getFunctions(app, "us-central1");
     const setupOrganization = httpsCallable(functions, "setupOrganization");
+    const staffSignupWithInvite = httpsCallable(functions, "staffSignupWithInvite");
 
     const $ = (id) => document.getElementById(id);
 
-    const statusEl = $("status");
-    const form = $("form");
-    const retrySetupBtn = $("retrySetupBtn");
-
-    function setStatus(message, kind) {
-      statusEl.textContent = message || "";
-      statusEl.classList.remove("status--error", "status--success");
+    function setStatus(el, message, kind) {
+      if (!el) return;
+      el.textContent = message || "";
+      el.classList.remove("status--error", "status--success");
       if (!message) return;
-      if (kind === "error") statusEl.classList.add("status--error");
-      else if (kind === "success") statusEl.classList.add("status--success");
+      if (kind === "error") el.classList.add("status--error");
+      else if (kind === "success") el.classList.add("status--success");
     }
 
-    /**
-     * "Your sign-in was created…" is only returned when authAccountCreated === true,
-     * which is set only after createUserWithEmailAndPassword resolves (signup.html).
-     * It cannot run from the catch path if account creation failed first.
-     */
-    function formatSignupError(err, authAccountCreated) {
+    function formatOrgSignupError(err, authAccountCreated) {
       const code = err?.code ? String(err.code) : "";
       const rawMsg = err?.message != null ? String(err.message) : String(err || "");
       const isInternalish =
@@ -112,7 +134,7 @@
         code === "functions/unauthenticated";
 
       if (code === "auth/email-already-in-use") {
-        return "This email is already registered. Use “Sign in” below—do not create another organization here.";
+        return "This email is already registered. Use “Sign in” below.";
       }
       if (code === "auth/weak-password") {
         return "Password is too weak. Use at least 6 characters.";
@@ -125,27 +147,56 @@
           return (
             "Your Firebase sign-in was created, but organization setup failed (" +
             (rawMsg || code) +
-            "). Use “Retry organization setup” below while you are still on this page. " +
-            "If you go to Sign in instead, use the same email and password on this same site URL. " +
-            "auth/invalid-credential on login usually means the wrong password or a different Firebase site (e.g. file vs hosted URL) than the one where you signed up—not that the message above was wrong."
+            "). Use “Retry organization setup” below while you are still on this page."
           );
         }
-        return "Organization setup was not authorized. Refresh the page and try again. If it keeps failing, check that Cloud Functions are deployed and you are online.";
+        return "Organization setup was not authorized. Refresh and try again, or confirm Cloud Functions are deployed.";
       }
-
       if (code.startsWith("functions/")) {
         return "Organization setup failed: " + (rawMsg || code);
       }
-
       return rawMsg || code || "Something went wrong. Please try again.";
     }
 
-    function updateRetryVisibility(authAccountCreated, succeeded) {
-      const show =
-        !!authAccountCreated &&
-        !succeeded &&
-        !!auth.currentUser;
-      retrySetupBtn.style.display = show ? "block" : "none";
+    function formatStaffSignupError(err, authAccountCreated) {
+      const code = err?.code ? String(err.code) : "";
+      const rawMsg = err?.message != null ? String(err.message) : String(err || "");
+
+      if (code === "auth/email-already-in-use") {
+        return "This email is already registered. Use “Sign in” below.";
+      }
+      if (code === "auth/weak-password") {
+        return "Password is too weak. Use at least 6 characters.";
+      }
+      if (code === "auth/invalid-email") {
+        return "Enter a valid email address.";
+      }
+      if (code === "functions/unauthenticated" || code === "unauthenticated") {
+        return authAccountCreated
+          ? "Could not complete staff signup (" + (rawMsg || code) + "). Use “Retry join” below."
+          : "Sign in required. Try again.";
+      }
+      if (code === "functions/not-found") {
+        return rawMsg || "No organization found for that golf course name.";
+      }
+      if (code === "functions/permission-denied") {
+        return rawMsg || "Invalid invite code.";
+      }
+      if (code === "functions/failed-precondition") {
+        return rawMsg || "Cannot join this organization right now.";
+      }
+      if (code === "functions/already-exists") {
+        return rawMsg || "This account is already linked to an organization.";
+      }
+      if (code === "functions/internal" || code === "internal") {
+        return authAccountCreated
+          ? "Account created but join failed (" + (rawMsg || code) + "). Use “Retry join” below."
+          : "Staff signup failed. Try again or check Cloud Functions are deployed.";
+      }
+      if (code.startsWith("functions/")) {
+        return rawMsg || code;
+      }
+      return rawMsg || code || "Something went wrong. Please try again.";
     }
 
     async function parseOrgIdFromCallableResult(res) {
@@ -154,37 +205,132 @@
         typeof data.orgId === "string" ? data.orgId.trim() : String(data.orgId || "").trim();
       if (!orgId) {
         throw new Error(
-          "Organization was not created: the server did not return an orgId. Check Cloud Function logs for setupOrganization."
+          "Organization was not created: the server did not return an orgId."
         );
       }
       return orgId;
     }
 
+    function updateStaffRetryVisibility(authAccountCreated, succeeded) {
+      const btn = $("staffRetryBtn");
+      if (!btn) return;
+      btn.style.display =
+        !!authAccountCreated && !succeeded && !!auth.currentUser ? "block" : "none";
+    }
+
+    function updateOrgRetryVisibility(authAccountCreated, succeeded) {
+      const btn = $("o_retrySetupBtn");
+      if (!btn) return;
+      btn.style.display =
+        !!authAccountCreated && !succeeded && !!auth.currentUser ? "block" : "none";
+    }
+
     async function runOrgSetupThenRedirect(courseName) {
-      setStatus("Creating organization...");
+      setStatus($("o_status"), "Creating organization...", "");
       const res = await setupOrganization({ courseName });
       const orgId = await parseOrgIdFromCallableResult(res);
       sessionStorage.setItem("orgId", orgId);
-      setStatus("Success! Redirecting…", "success");
+      setStatus($("o_status"), "Success! Redirecting…", "success");
       window.setTimeout(() => {
         window.location.href = "./create-course.html";
       }, 450);
       return true;
     }
 
-    form.addEventListener("submit", async (e) => {
+    async function runStaffJoinThenRedirect(displayName, golfCourseName, inviteCode) {
+      setStatus($("staffStatus"), "Joining your organization...", "");
+      const res = await staffSignupWithInvite({
+        displayName,
+        golfCourseName,
+        inviteCode,
+      });
+      const data = res && res.data != null ? res.data : {};
+      const orgId =
+        typeof data.orgId === "string" ? data.orgId.trim() : String(data.orgId || "").trim();
+      if (!orgId) {
+        throw new Error("Server did not return orgId.");
+      }
+      sessionStorage.setItem("orgId", orgId);
+      setStatus($("staffStatus"), "Success! Redirecting…", "success");
+      window.setTimeout(() => {
+        window.location.href = "./dashboard.html";
+      }, 450);
+      return true;
+    }
+
+    $("staffForm").addEventListener("submit", async (e) => {
       e.preventDefault();
+      const displayName = $("staffDisplayName").value.trim();
+      const email = $("staffEmail").value.trim();
+      const password = $("staffPassword").value;
+      const golfCourseName = $("staffCourseName").value.trim();
+      const inviteCode = $("staffInviteCode").value.trim();
+      const btn = $("staffSubmitBtn");
 
-      const courseName = $("courseName").value.trim();
-      const email = $("email").value.trim();
-      const password = $("password").value;
-      const btn = $("submitBtn");
-
-      setStatus("");
+      setStatus($("staffStatus"), "");
       btn.disabled = true;
+      $("staffRetryBtn").style.display = "none";
+
+      let authAccountCreated = false;
+      let succeeded = false;
+
       try {
-        retrySetupBtn.style.display = "none";
-      } catch (_e) {}
+        if (!displayName || !golfCourseName || !inviteCode) {
+          throw new Error("Please fill in all fields.");
+        }
+        setStatus($("staffStatus"), "Creating account...");
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        authAccountCreated = true;
+        await userCredential.user.getIdToken(true);
+        succeeded = await runStaffJoinThenRedirect(displayName, golfCourseName, inviteCode);
+      } catch (err) {
+        console.error(err);
+        setStatus($("staffStatus"), formatStaffSignupError(err, authAccountCreated), "error");
+      } finally {
+        updateStaffRetryVisibility(authAccountCreated, succeeded);
+        if (!succeeded) btn.disabled = false;
+      }
+    });
+
+    $("staffRetryBtn").addEventListener("click", async () => {
+      const displayName = $("staffDisplayName").value.trim();
+      const golfCourseName = $("staffCourseName").value.trim();
+      const inviteCode = $("staffInviteCode").value.trim();
+      const btn = $("staffSubmitBtn");
+      if (!displayName || !golfCourseName || !inviteCode) {
+        setStatus($("staffStatus"), "Fill in display name, golf course name, and invite code.", "error");
+        return;
+      }
+      if (!auth.currentUser) {
+        setStatus($("staffStatus"), "You are not signed in. Submit the form again.", "error");
+        return;
+      }
+      $("staffRetryBtn").disabled = true;
+      btn.disabled = true;
+      let succeeded = false;
+      try {
+        await auth.currentUser.getIdToken(true);
+        succeeded = await runStaffJoinThenRedirect(displayName, golfCourseName, inviteCode);
+      } catch (err) {
+        console.error(err);
+        setStatus($("staffStatus"), formatStaffSignupError(err, true), "error");
+      } finally {
+        updateStaffRetryVisibility(true, succeeded);
+        $("staffRetryBtn").disabled = false;
+        if (!succeeded) btn.disabled = false;
+      }
+    });
+
+    $("orgForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const courseName = $("o_courseName").value.trim();
+      const email = $("o_email").value.trim();
+      const password = $("o_password").value;
+      const btn = $("o_submitBtn");
+
+      setStatus($("o_status"), "");
+      btn.disabled = true;
+      $("o_retrySetupBtn").style.display = "none";
 
       let authAccountCreated = false;
       let succeeded = false;
@@ -193,50 +339,43 @@
         if (!courseName) {
           throw new Error("Course or club name is required.");
         }
-
-        setStatus("Creating account...");
-
+        setStatus($("o_status"), "Creating account...");
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         authAccountCreated = true;
         await userCredential.user.getIdToken(true);
-
         succeeded = await runOrgSetupThenRedirect(courseName);
       } catch (err) {
         console.error(err);
-        setStatus(formatSignupError(err, authAccountCreated), "error");
+        setStatus($("o_status"), formatOrgSignupError(err, authAccountCreated), "error");
       } finally {
-        updateRetryVisibility(authAccountCreated, succeeded);
-        if (!succeeded) {
-          btn.disabled = false;
-        }
+        updateOrgRetryVisibility(authAccountCreated, succeeded);
+        if (!succeeded) btn.disabled = false;
       }
     });
 
-    retrySetupBtn.addEventListener("click", async () => {
-      const courseName = $("courseName").value.trim();
-      const btn = $("submitBtn");
+    $("o_retrySetupBtn").addEventListener("click", async () => {
+      const courseName = $("o_courseName").value.trim();
+      const btn = $("o_submitBtn");
       if (!courseName) {
-        setStatus("Please enter a course or club name first.", "error");
+        setStatus($("o_status"), "Please enter a course or club name first.", "error");
         return;
       }
       if (!auth.currentUser) {
-        setStatus("You are not signed in. Submit the form again to create an account.", "error");
+        setStatus($("o_status"), "You are not signed in. Submit the form again.", "error");
         return;
       }
-      retrySetupBtn.disabled = true;
+      $("o_retrySetupBtn").disabled = true;
       btn.disabled = true;
       let succeeded = false;
       try {
         succeeded = await runOrgSetupThenRedirect(courseName);
       } catch (err) {
         console.error(err);
-        setStatus(formatSignupError(err, true), "error");
+        setStatus($("o_status"), formatOrgSignupError(err, true), "error");
       } finally {
-        updateRetryVisibility(true, succeeded);
-        retrySetupBtn.disabled = false;
-        if (!succeeded) {
-          btn.disabled = false;
-        }
+        updateOrgRetryVisibility(true, succeeded);
+        $("o_retrySetupBtn").disabled = false;
+        if (!succeeded) btn.disabled = false;
       }
     });
   </script>

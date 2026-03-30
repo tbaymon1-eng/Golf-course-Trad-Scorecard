@@ -35,7 +35,8 @@
     .links a { font-size: 0.88rem; font-weight: 800; color: var(--blue); }
     .card-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     .empty { padding: 24px; text-align: center; color: #6c645c; border: 2px dashed var(--line); border-radius: 16px; }
-    .err { color: var(--red); font-weight: 700; }
+    .err { color: var(--red); font-weight: 700; min-height: 0; }
+    .err:empty { display: none; }
   </style>
 </head>
 <body>
@@ -80,10 +81,9 @@
     let showArchived = false;
 
     function baseDir() {
-      const url = new URL(location.href);
-      const path = url.pathname;
+      const path = window.location.pathname;
       const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
-      return `${url.origin}${dir}`;
+      return `${window.location.origin}${dir}`;
     }
 
     function tournamentLinks(orgId, tId) {
@@ -265,35 +265,56 @@
     });
 
     onAuthStateChanged(auth, async (user) => {
-      $("err").textContent = "";
+      const errEl = $("err");
+      errEl.textContent = "";
       if (!user) {
         window.location.href = "./login.html?next=" + encodeURIComponent("./dashboard.html");
         return;
       }
 
-      const resolved = await resolveOrganizerOrgId(app, auth, db);
-      if (!resolved.ok) {
-        $("err").textContent =
-          resolved.message ||
-          "Your organizer profile could not be loaded. Sign in again from the same site URL you used to register, or complete first-time signup.";
-        return;
-      }
-
-      const orgId = resolved.orgId;
-
-      const oSnap = await getDoc(doc(db, "organizations", orgId));
-      const orgName = oSnap.exists() ? String(oSnap.data()?.name || "") : "";
-      $("orgLine").textContent = orgName
-        ? `${orgName} · Organization ID: ${orgId}`
-        : `Organization ID: ${orgId}`;
-
-      $("adminBtn").href = "./admin.html";
+      console.info("[dashboard] auth uid:", user.uid);
 
       try {
-        await renderList(orgId);
+        await auth.authStateReady();
+
+        const resolved = await resolveOrganizerOrgId(app, auth, db);
+        console.info("[dashboard] resolveOrganizerOrgId:", resolved);
+
+        if (!resolved || resolved.ok !== true) {
+          console.info(
+            "[dashboard] show no-org error banner: true | orgId:",
+            resolved && resolved.orgId
+          );
+          errEl.textContent =
+            (resolved && resolved.message) ||
+            "No organization is linked to this account.";
+          return;
+        }
+
+        console.info(
+          "[dashboard] show no-org error banner: false | orgId:",
+          resolved.orgId
+        );
+
+        const orgId = resolved.orgId;
+
+        const oSnap = await getDoc(doc(db, "organizations", orgId));
+        const orgName = oSnap.exists() ? String(oSnap.data()?.name || "") : "";
+        $("orgLine").textContent = orgName
+          ? `${orgName} · Organization ID: ${orgId}`
+          : `Organization ID: ${orgId}`;
+
+        $("adminBtn").href = "./admin.html";
+
+        try {
+          await renderList(orgId);
+        } catch (e) {
+          console.error(e);
+          errEl.textContent = e?.message || "Could not load tournaments.";
+        }
       } catch (e) {
-        console.error(e);
-        $("err").textContent = e?.message || "Could not load tournaments.";
+        console.error("[dashboard] profile / org load error:", e);
+        errEl.textContent = e?.message || "Could not load your profile.";
       }
     });
   </script>

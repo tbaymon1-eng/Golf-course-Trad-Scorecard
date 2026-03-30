@@ -23,6 +23,36 @@ function safeText(value, fallback = "") {
   return String(value || fallback || "").trim();
 }
 
+/** Match client js/resolve-organizer-org.js: orgId or organizationId; skip empty orgId string. */
+function orgIdFromUserSnapData(data) {
+  if (!data) return "";
+  const candidates = [data.orgId, data.organizationId];
+  for (const raw of candidates) {
+    if (raw == null) continue;
+    if (typeof raw === "string") {
+      const s = safeText(raw);
+      if (s) return s;
+      continue;
+    }
+    if (typeof raw === "object" && raw && typeof raw.id === "string") {
+      const s = safeText(raw.id);
+      if (s) return s;
+    }
+  }
+  return "";
+}
+
+/** Lowercase, trim, collapse spaces to hyphens, strip characters outside a-z0-9-. */
+function normalizeOrgSlug(raw) {
+  return String(raw || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 /**
  * Logs JSON lines for Cloud Logging / emulator console. Avoid logging full PII in production if needed.
  */
@@ -202,7 +232,7 @@ exports.repairUserProfile = onCall(
     const userRef = db.collection("users").doc(uid);
     const userSnap = await userRef.get();
     if (userSnap.exists) {
-      const existing = safeText(userSnap.data()?.orgId);
+      const existing = orgIdFromUserSnapData(userSnap.data());
       if (existing) {
         return { orgId: existing, repaired: false };
       }
@@ -252,6 +282,94 @@ exports.repairUserProfile = onCall(
     await userRef.set(payload, { merge: true });
 
     return { orgId, repaired: true };
+  }
+);
+
+/**
+ * Staff self-signup: after Firebase Auth account exists, verify org slug + invite code and write users/{uid}.
+ */
+exports.staffSignupWithInvite = onCall(
+  {
+    region: "us-central1",
+    cors: true,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+
+    const uid = request.auth.uid;
+    const email = safeText(request.auth.token?.email || "");
+    const data = request.data || {};
+    const displayName = safeText(data.displayName);
+    const inviteCode = safeText(data.inviteCode);
+    const slug = normalizeOrgSlug(data.golfCourseName != null ? data.golfCourseName : data.slug);
+
+    if (!displayName) {
+      throw new HttpsError("invalid-argument", "Display name is required.");
+    }
+    if (!inviteCode) {
+      throw new HttpsError("invalid-argument", "Staff invite code is required.");
+    }
+    if (!slug) {
+      throw new HttpsError("invalid-argument", "Golf course name is required.");
+    }
+
+    const userRef = db.collection("users").doc(uid);
+    const userSnap = await userRef.get();
+    if (userSnap.exists) {
+      const existingOrg = safeText(userSnap.data()?.orgId);
+      if (existingOrg) {
+        throw new HttpsError(
+          "already-exists",
+          "This account is already linked to an organization. Sign in instead."
+        );
+      }
+    }
+
+    const q = await db.collection("organizations").where("slug", "==", slug).limit(2).get();
+    if (q.empty) {
+      throw new HttpsError(
+        "not-found",
+        "No organization matches that golf course name. Check spelling or ask your manager for the exact course name."
+      );
+    }
+    if (q.size > 1) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Multiple organizations match this name. Contact support."
+      );
+    }
+
+    const orgDoc = q.docs[0];
+    const orgData = orgDoc.data() || {};
+    if (orgData.active === false) {
+      throw new HttpsError(
+        "failed-precondition",
+        "This organization is not accepting new staff signups right now."
+      );
+    }
+
+    const expected = safeText(orgData.staffInviteCode);
+    if (!expected || inviteCode !== expected) {
+      throw new HttpsError("permission-denied", "Invalid invite code.");
+    }
+
+    const payload = {
+      displayName,
+      email,
+      orgId: orgDoc.id,
+      role: "admin",
+      active: true,
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+    if (!userSnap.exists()) {
+      payload.createdAt = FieldValue.serverTimestamp();
+    }
+
+    await userRef.set(payload, { merge: true });
+
+    return { orgId: orgDoc.id, ok: true };
   }
 );
 

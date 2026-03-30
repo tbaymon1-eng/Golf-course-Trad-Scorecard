@@ -659,7 +659,7 @@
 
   if (location.protocol === "file:") {
     alert(
-      "Open this admin page from a website (GitHub Pages, etc.), not as a file on your computer. Firebase needs https:// or http:// localhost."
+      "Open this admin page from your live hosted URL (https), not as a file on your computer. Firebase needs https:// or http:// localhost."
     );
   }
 
@@ -741,10 +741,9 @@
   }
 
   function getBaseShareRoot(){
-    const url = new URL(location.href);
-    const path = url.pathname;
+    const path = window.location.pathname;
     const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
-    return `${url.origin}${dir}`;
+    return `${window.location.origin}${dir}`;
   }
 
   function buildLinks(orgId, id, token){

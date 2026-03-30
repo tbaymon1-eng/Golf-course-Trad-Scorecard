@@ -2279,18 +2279,18 @@
     hideSponsors();
     if (liveAlertBanner) liveAlertBanner.style.display = "none";
   } else {
-    const joinUrl = new URL("./index.html", location.href);
+    const joinUrl = new URL("./index.html", window.location.href);
     applyOrgTournamentParams(joinUrl, organizationId, tournamentId);
     joinBtn.href = joinUrl.toString();
 
-    const tvUrl = new URL(location.href);
+    const tvUrl = new URL(window.location.href);
     applyOrgTournamentParams(tvUrl, organizationId, tournamentId);
     tvUrl.searchParams.set("tv", "1");
     tvBtn.href = tvUrl.toString();
 
     copyBtn.addEventListener("click", async () => {
       try{
-        await navigator.clipboard.writeText(location.href);
+        await navigator.clipboard.writeText(window.location.href);
         copyBtn.textContent = "✅ Copied";
         setTimeout(() => copyBtn.textContent = "📋 Copy Link", 900);
       }catch(e){
