@@ -537,7 +537,10 @@
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-
+import {
+  parseOrgTournamentFromSearch,
+  tournamentDocRef
+} from "./js/org-paths.js";
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -557,13 +560,13 @@
 
     const $ = (id) => document.getElementById(id);
 
-    const params = new URLSearchParams(location.search);
-    const tournamentId = (params.get("id") || params.get("t") || "").trim();
+    const { orgId, tournamentId } = parseOrgTournamentFromSearch();
 
     const state = {
-      tournamentId,
-      tournament: null
-    };
+  orgId,
+  tournamentId,
+  tournament: null
+};
 
     function showToast(msg){
       const el = $("toast");
