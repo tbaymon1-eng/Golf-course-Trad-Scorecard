@@ -180,6 +180,81 @@ exports.setupOrganization = onCall(
   }
 );
 
+/**
+ * Repairs users/{uid} when the document is missing or lacks orgId, using Admin SDK.
+ * Links the signed-in user to an organization they own (ownerUid) or to an explicit orgId
+ * after verifying ownership. Client writes to users/{uid} are denied by Firestore rules.
+ */
+exports.repairUserProfile = onCall(
+  {
+    region: "us-central1",
+    cors: true,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+
+    const uid = request.auth.uid;
+    const email = safeText(request.auth.token?.email || "");
+    const requestedOrgId = safeText((request.data || {}).orgId);
+
+    const userRef = db.collection("users").doc(uid);
+    const userSnap = await userRef.get();
+    if (userSnap.exists) {
+      const existing = safeText(userSnap.data()?.orgId);
+      if (existing) {
+        return { orgId: existing, repaired: false };
+      }
+    }
+
+    let orgId = requestedOrgId;
+
+    if (!orgId) {
+      const q = await db.collection("organizations").where("ownerUid", "==", uid).limit(10).get();
+      if (q.empty) {
+        throw new HttpsError(
+          "failed-precondition",
+          "No organization is linked to this account. Complete first-time signup, or contact support if you already created one."
+        );
+      }
+      if (q.size > 1) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Multiple organizations are owned by this account. Contact support or pass a specific organization id."
+        );
+      }
+      orgId = q.docs[0].id;
+    } else {
+      const orgSnap = await db.collection("organizations").doc(orgId).get();
+      if (!orgSnap.exists) {
+        throw new HttpsError("not-found", "Organization not found.");
+      }
+      const ownerUid = safeText(orgSnap.data()?.ownerUid);
+      if (ownerUid !== uid) {
+        throw new HttpsError(
+          "permission-denied",
+          "This account is not the owner of that organization."
+        );
+      }
+    }
+
+    const payload = {
+      orgId,
+      email,
+      role: "admin",
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+    if (!userSnap.exists()) {
+      payload.createdAt = FieldValue.serverTimestamp();
+    }
+
+    await userRef.set(payload, { merge: true });
+
+    return { orgId, repaired: true };
+  }
+);
+
 // --- String helpers (aligned with register-complete.html) ---
 // safeText is defined above (used by setupOrganization).
 

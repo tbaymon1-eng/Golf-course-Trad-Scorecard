@@ -53,7 +53,6 @@
     import {
       getFirestore,
       doc,
-      getDoc,
       getDocs,
       setDoc,
       serverTimestamp,
@@ -61,6 +60,7 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { firebaseConfig } from "./js/firebase-config.js";
     import { orgCoursesCollection } from "./js/org-paths.js";
+    import { resolveOrganizerOrgId } from "./js/resolve-organizer-org.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -86,15 +86,17 @@
         return;
       }
 
-      const uSnap = await getDoc(doc(db, "users", user.uid));
-      if (!uSnap.exists()) {
-        errEl.textContent = "Your profile was not found. Complete signup first.";
+      const resolved = await resolveOrganizerOrgId(app, auth, db);
+      if (!resolved.ok) {
+        errEl.textContent =
+          resolved.message ||
+          "Your organizer profile could not be loaded. Try signing in again, or complete first-time signup.";
         form.style.display = "none";
         skipLink.style.display = "none";
         return;
       }
 
-      orgId = safeText(uSnap.data()?.orgId || uSnap.data()?.organizationId);
+      orgId = resolved.orgId;
       if (!orgId) {
         errEl.textContent = "No organization linked to this account.";
         form.style.display = "none";
@@ -102,8 +104,6 @@
         skipLink.textContent = "Create an organization";
         return;
       }
-
-      sessionStorage.setItem("orgId", orgId);
 
       try {
         const coursesSnap = await getDocs(orgCoursesCollection(db, orgId));

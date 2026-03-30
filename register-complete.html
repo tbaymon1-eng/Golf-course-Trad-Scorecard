@@ -539,7 +539,8 @@
     import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import {
   parseOrgTournamentFromSearch,
-  tournamentDocRef
+  tournamentDocRef,
+  applyOrgTournamentParams
 } from "./js/org-paths.js";
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
@@ -927,16 +928,12 @@ const params = new URLSearchParams(location.search);
 
     function buildScorecardUrl(registrationId){
       const url = new URL("./index.html", window.location.href);
-
-      if(state.tournamentId){
-        url.searchParams.set("id", state.tournamentId);
-        url.searchParams.set("t", state.tournamentId);
-      }
-
-      if(registrationId){
+      // Must match index.html / org-paths: org-scoped tournaments need ?org= or registration fetch + tournament doc read use the wrong paths.
+      applyOrgTournamentParams(url, state.orgId, state.tournamentId);
+      if (registrationId) {
         url.searchParams.set("registration", registrationId);
+        url.searchParams.set("r", registrationId);
       }
-
       return url.toString();
     }
 

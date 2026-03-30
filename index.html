@@ -2911,6 +2911,9 @@ async function checkTournamentFromURL(){
   const { orgId, tournamentId: tId } = parseOrgTournamentFromSearch(params);
   const regId = (params.get("registration") || params.get("r") || "").trim();
 
+  console.info("[scorecard] URL search:", location.search || "(empty)");
+  console.info("[scorecard] parsed orgId:", orgId || "(none)", "tournamentId:", tId || "(none)", "registration:", regId || "(none)");
+
   if (!tId) return false;
 
   organizationId = orgId;
@@ -2947,17 +2950,21 @@ async function checkTournamentFromURL(){
         renderScorecardSponsorTicker(t);
       }
 
-      build();
-
       const tournamentMetaText = `${t.tournamentName || t.name || "Tournament"}${(t.eventDate || t.date) ? " • " + (t.eventDate || t.date) : ""}`;
 
       if(incomingRegistrationId){
         const reg = await fetchRegistrationById(incomingRegistrationId);
+        console.info("[scorecard] tournament format:", tournamentFormat, "playersCount:", playersCount, "joinCompleted (pre-auto):", joinCompleted);
+        console.info("[scorecard] selectedRegistrationId:", incomingRegistrationId, "fetched registration:", reg ? { id: reg.id, teamName: reg.teamName, assignedHole: reg.assignedHole, players: reg.players } : null);
         if(reg){
           await autoStartFromRegistration(reg);
+          console.info("[scorecard] after autoStartFromRegistration — joinCompleted:", joinCompleted, "format:", tournamentFormat);
           return true;
         }
+        console.warn("[scorecard] registration id in URL but document not found (check ?org= matches organizer org). Building join UI.");
       }
+
+      build();
 
       const onsiteMode = isOnsiteEntryMode(tournamentEntryMode);
 
@@ -2986,6 +2993,7 @@ async function checkTournamentFromURL(){
       }
       return true;
     } else {
+      console.warn("[scorecard] tournament document not found at expected path (missing ?org= for org-hosted tournaments?). orgId:", organizationId || "(none)", "tournamentId:", tournamentId);
       hideScorecardSponsorTicker();
     }
 

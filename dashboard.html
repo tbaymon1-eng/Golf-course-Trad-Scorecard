@@ -67,6 +67,7 @@
     import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
     import { firebaseConfig } from "./js/firebase-config.js";
     import { applyOrgTournamentParams, orgTournamentsCollection, tournamentDocRef } from "./js/org-paths.js";
+    import { resolveOrganizerOrgId } from "./js/resolve-organizer-org.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -270,28 +271,15 @@
         return;
       }
 
-      let uSnap = await getDoc(doc(db, "users", user.uid));
-
-      if (!uSnap.exists() && user.email) {
-        const fallbackUid = "7ayud6ZgMaYL5HZTPITz";
-        const fallbackSnap = await getDoc(doc(db, "users", fallbackUid));
-        if (fallbackSnap.exists()) {
-          uSnap = fallbackSnap;
-        }
-      }
-
-      if (!uSnap.exists()) {
-        $("err").textContent = "Your profile is missing. Complete signup first.";
+      const resolved = await resolveOrganizerOrgId(app, auth, db);
+      if (!resolved.ok) {
+        $("err").textContent =
+          resolved.message ||
+          "Your organizer profile could not be loaded. Sign in again from the same site URL you used to register, or complete first-time signup.";
         return;
       }
 
-      const orgId = String(uSnap.data()?.orgId || "").trim();
-      if (!orgId) {
-        $("err").textContent = "No organization linked to this account.";
-        return;
-      }
-
-      sessionStorage.setItem("orgId", orgId);
+      const orgId = resolved.orgId;
 
       const oSnap = await getDoc(doc(db, "organizations", orgId));
       const orgName = oSnap.exists() ? String(oSnap.data()?.name || "") : "";
