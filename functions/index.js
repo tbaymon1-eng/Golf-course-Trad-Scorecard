@@ -149,7 +149,7 @@ exports.setupOrganization = onCall(
           const userSnap = await tx.get(userRef);
 
           if (userSnap.exists) {
-            const existingOrgId = safeText(userSnap.data()?.orgId);
+           const existingOrgId = orgIdFromUserSnapData(userSnap.data());
             if (existingOrgId) {
               return { orgId: existingOrgId, alreadySetup: true };
             }
@@ -275,7 +275,7 @@ exports.repairUserProfile = onCall(
       role: "admin",
       updatedAt: FieldValue.serverTimestamp(),
     };
-    if (!userSnap.exists()) {
+    if (!userSnap.exists) {
       payload.createdAt = FieldValue.serverTimestamp();
     }
 
@@ -318,7 +318,7 @@ exports.staffSignupWithInvite = onCall(
     const userRef = db.collection("users").doc(uid);
     const userSnap = await userRef.get();
     if (userSnap.exists) {
-      const existingOrg = safeText(userSnap.data()?.orgId);
+      const existingOrg = orgIdFromUserSnapData(userSnap.data());
       if (existingOrg) {
         throw new HttpsError(
           "already-exists",
