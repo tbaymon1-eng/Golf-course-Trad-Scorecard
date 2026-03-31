@@ -87,23 +87,24 @@
       }
 
       const resolved = await resolveOrganizerOrgId(app, auth, db);
-      if (!resolved.ok) {
-        errEl.textContent =
-          resolved.message ||
-          "Your organizer profile could not be loaded. Try signing in again, or complete first-time signup.";
-        form.style.display = "none";
-        skipLink.style.display = "none";
-        return;
-      }
+if (!resolved.ok) {
+  errEl.textContent =
+    resolved.message ||
+    "Your organizer profile could not be loaded. Try signing in again, or complete first-time signup.";
+  form.style.display = "none";
+  skipLink.style.display = "none";
+  return;
+}
 
-      orgId = resolved.orgId;
-      if (!orgId) {
-        errEl.textContent = "No organization linked to this account.";
-        form.style.display = "none";
-        skipLink.href = "./signup.html";
-        skipLink.textContent = "Create an organization";
-        return;
-      }
+orgId = resolved.orgId || auth.currentUser?.uid || "";
+
+if (!orgId) {
+  errEl.textContent = "Please sign in with your organizer account.";
+  form.style.display = "none";
+  skipLink.href = "./signup.html";
+  skipLink.textContent = "Create organizer account";
+  return;
+}
 
       try {
         const coursesSnap = await getDocs(orgCoursesCollection(db, orgId));
