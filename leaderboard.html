@@ -1276,7 +1276,7 @@
   const totSum = document.getElementById("totSum");
 
   const params = new URLSearchParams(location.search);
-  const { orgId: organizationId, tournamentId: tournamentIdFromUrl } = parseOrgTournamentFromSearch(params);
+  let { orgId: organizationId, tournamentId: tournamentIdFromUrl } = parseOrgTournamentFromSearch(params);
   const tournamentId = tournamentIdFromUrl;
   const tvMode = params.get("tv") === "1";
 
@@ -2319,6 +2319,8 @@
       const tSnap = await getDoc(tournamentDocRef(db, organizationId, tournamentId));
       if (tSnap.exists()){
         const t = tSnap.data() || {};
+        const canonOrg = String(t.organizationId || t.orgId || "").trim();
+if (canonOrg) organizationId = canonOrg;
 
         tournament = {
           ...tournament,
