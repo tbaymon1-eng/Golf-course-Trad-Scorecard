@@ -1312,9 +1312,9 @@
 
   function normalizeFormatValue(v){
     const s = String(v || "").trim().toLowerCase();
-    if (s === "scramble") return "scramble";
-    if (s === "best ball" || s === "bestball") return "bestball";
-    if (s === "stroke play" || s === "stroke") return "stroke";
+    if (s.includes("scramble")) return "scramble";
+    if (s.includes("best ball") || s === "bestball") return "bestball";
+    if (s.includes("stroke") || s.includes("stroke play")) return "stroke";
     return "stroke";
   }
 

@@ -540,7 +540,7 @@
 import {
   parseOrgTournamentFromSearch,
   tournamentDocRef,
-  applyOrgTournamentParams
+  canonicalOrgIdFromTournament
 } from "./js/org-paths.js";
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
@@ -561,11 +561,11 @@ import {
 
     const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
-    const { orgId, tournamentId } = parseOrgTournamentFromSearch(params);
+    const parsed = parseOrgTournamentFromSearch(params);
 
     const state = {
-  orgId,
-  tournamentId,
+  orgId: parsed.orgId,
+  tournamentId: parsed.tournamentId,
   tournament: null
 };
 
@@ -854,6 +854,8 @@ const params = new URLSearchParams(location.search);
         }
 
         state.tournament = snap.data() || {};
+        const canonOrg = canonicalOrgIdFromTournament(state.tournament);
+        if (canonOrg) state.orgId = canonOrg;
         setHandicapVisibility(isHandicapEnabled());
         renderEventHeader(state.tournament);
 
@@ -928,12 +930,13 @@ const params = new URLSearchParams(location.search);
 
     function buildScorecardUrl(registrationId){
       const url = new URL("./index.html", window.location.href);
-      // Must match index.html / org-paths: org-scoped tournaments need ?org= or registration fetch + tournament doc read use the wrong paths.
-      applyOrgTournamentParams(url, state.orgId, state.tournamentId);
-      if (registrationId) {
-        url.searchParams.set("registration", registrationId);
-        url.searchParams.set("r", registrationId);
-      }
+      const tid = String(state.tournamentId || "").trim();
+      const oid = String(state.orgId || "").trim();
+      const rid = String(registrationId || "").trim();
+      if (!tid || !rid) return url.toString();
+      url.searchParams.set("t", tid);
+      if (oid) url.searchParams.set("org", oid);
+      url.searchParams.set("registration", rid);
       return url.toString();
     }
 

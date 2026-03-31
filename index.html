@@ -1069,6 +1069,7 @@ import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/1
 import { firebaseConfig } from "./js/firebase-config.js";
 import {
   parseOrgTournamentFromSearch,
+  canonicalOrgIdFromTournament,
   tournamentDocRef,
   tournamentRegistrationsCollection,
   tournamentRegistrationDoc,
@@ -1221,10 +1222,11 @@ const sideGamesNote = document.getElementById("sideGamesNote");
 function sum(arr){ return arr.reduce((a,b)=>a+(Number(b)||0),0); }
 
 function normalizeFormatValue(v){
-  const s = String(v || "").trim().toLowerCase();
-  if (s === "scramble") return "scramble";
-  if (s === "best ball" || s === "bestball") return "bestball";
-  if (s === "stroke play" || s === "stroke") return "stroke";
+  const s = String(v || "").trim();
+  if (s.toLowerCase().includes("scramble")) return "scramble";
+  const sl = s.toLowerCase();
+  if (sl.includes("best ball") || sl === "bestball") return "bestball";
+  if (sl.includes("stroke") || sl.includes("stroke play")) return "stroke";
   return "stroke";
 }
   function isOnsiteEntryMode(mode){
@@ -2931,6 +2933,8 @@ async function checkTournamentFromURL(){
     const snap = await getDoc(tournamentDocRef(db, organizationId, tournamentId));
     if(snap.exists()){
       const t = snap.data() || {};
+      const canonOrg = canonicalOrgIdFromTournament(t);
+      if (canonOrg) organizationId = canonOrg;
 
       tournamentFormat = normalizeFormatValue(t.formatOfPlay || t.format);
       playersCount = formatToPlayersCount(tournamentFormat);
@@ -2961,7 +2965,17 @@ async function checkTournamentFromURL(){
           console.info("[scorecard] after autoStartFromRegistration — joinCompleted:", joinCompleted, "format:", tournamentFormat);
           return true;
         }
-        console.warn("[scorecard] registration id in URL but document not found (check ?org= matches organizer org). Building join UI.");
+        console.warn("[scorecard] registration id in URL but document not found (check ?org= matches organizer org).");
+        build();
+        teamPickerScreen.style.display = "none";
+        joinScreen.style.display = "none";
+        if (lockBanner) {
+          lockBanner.textContent =
+            "This team scorecard could not be loaded. Open the link from the roster (Team card) or registration confirmation.";
+          lockBanner.classList.add("show");
+        }
+        setPreJoinLock(true);
+        return true;
       }
 
       build();

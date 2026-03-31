@@ -1190,6 +1190,7 @@
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import {
       parseOrgTournamentFromSearch,
+      canonicalOrgIdFromTournament,
       tournamentDocRef,
       tournamentRegistrationsCollection,
       tournamentRegistrationDoc,
@@ -1215,7 +1216,9 @@
     await signInAnonymously(auth);
 
     const params = new URLSearchParams(location.search);
-    const { orgId, tournamentId } = parseOrgTournamentFromSearch(params);
+    const parsed = parseOrgTournamentFromSearch(params);
+    let orgId = parsed.orgId;
+    const tournamentId = parsed.tournamentId;
 
     /* ---------------------------------------------------- */
     /* DOM REFERENCES */
@@ -1837,19 +1840,21 @@
         return;
       }
 
+      const snap=await getDoc(tournamentDocRef(db, orgId, tournamentId));
+
+      if(snap.exists()){
+        tournamentMeta=snap.data();
+        const canon = canonicalOrgIdFromTournament(tournamentMeta);
+        if (canon) orgId = canon;
+        meta.textContent=`${tournamentMeta.name || "Tournament"} • ${tournamentMeta.date || ""}`;
+      }
+
       const joinUrl = new URL("./index.html", window.location.href);
       applyOrgTournamentParams(joinUrl, orgId, tournamentId);
       joinBtn.href = joinUrl.toString();
       const leaderUrl = new URL("./leaderboard.html", window.location.href);
       applyOrgTournamentParams(leaderUrl, orgId, tournamentId);
       leaderBtn.href = leaderUrl.toString();
-
-      const snap=await getDoc(tournamentDocRef(db, orgId, tournamentId));
-
-      if(snap.exists()){
-        tournamentMeta=snap.data();
-        meta.textContent=`${tournamentMeta.name || "Tournament"} • ${tournamentMeta.date || ""}`;
-      }
     }
 
     /* ---------------------------------------------------- */
@@ -2310,6 +2315,10 @@
         ? `<div class="captainLine" style="opacity:.85;">Live scorecard linked</div>`
         : ``;
 
+      const joinRegId = r.isSubmission ? norm(r.registrationId || "") : norm(r.id || "");
+      const teamJoinUrl = buildTeamJoinUrl(joinRegId);
+      const teamJoinHref = teamJoinUrl ? escapeHtml(teamJoinUrl) : "";
+
       return `
         <tr data-id="${r.id}" ${r.isSubmission ? `data-submission="1"` : ""}>
           <td>
@@ -2350,6 +2359,11 @@
 
           <td>
             <div class="rowActions">
+              ${
+                teamJoinHref
+                  ? `<a class="miniBtn" href="${teamJoinHref}" target="_blank" rel="noopener">📱 Team card</a>`
+                  : ``
+              }
               <button type="button" class="miniBtn rowScorecardBtn" data-row-id="${r.id}">📊 Edit Scorecard</button>
               ${
                 r.isSubmission
@@ -2565,12 +2579,31 @@
     }
 
     function buildDefaultJoinLink(){
-      if (!tournamentId) return "";
+      const tid = norm(tournamentId);
+      const oid = norm(orgId);
+      if (!tid || !oid) return "";
       const path = window.location.pathname;
       const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
       const base = `${window.location.origin}${dir}`;
       const url = new URL("index.html", base);
-      applyOrgTournamentParams(url, orgId, tournamentId);
+      url.searchParams.set("t", tid);
+      url.searchParams.set("org", oid);
+      return url.toString();
+    }
+
+    /** Team scorecard: index.html?t={tournamentId}&org={orgId}&registration={registrationId} */
+    function buildTeamJoinUrl(registrationId){
+      const tid = norm(tournamentId);
+      const oid = norm(orgId);
+      const rid = norm(registrationId || "");
+      if (!tid || !oid || !rid) return "";
+      const path = window.location.pathname;
+      const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
+      const base = `${window.location.origin}${dir}`;
+      const url = new URL("index.html", base);
+      url.searchParams.set("t", tid);
+      url.searchParams.set("org", oid);
+      url.searchParams.set("registration", rid);
       return url.toString();
     }
 

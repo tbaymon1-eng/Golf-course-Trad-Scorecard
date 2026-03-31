@@ -10,6 +10,12 @@ export function parseOrgTournamentFromSearch(searchParams) {
   return { orgId, tournamentId };
 }
 
+/** Firestore organizations/{id} document id from tournament doc (not display/slug names). */
+export function canonicalOrgIdFromTournament(data) {
+  const d = data || {};
+  return String(d.organizationId || d.orgId || "").trim();
+}
+
 export function tournamentDocRef(db, orgId, tournamentId) {
   if (orgId) {
     return doc(db, "organizations", orgId, "tournaments", tournamentId);
