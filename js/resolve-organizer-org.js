@@ -85,12 +85,14 @@ export async function readOrganizerOrgIdFromUserDoc(db, uid) {
 
 /**
  * @returns {Promise<{ ok: true, orgId: string } | { ok: false, message: string }>}
+ * `ok: false` only when there is no signed-in user. If the profile has no orgId,
+ * returns `ok: true` with `orgId` set to the current user's UID (same path as organizations/{uid}).
  */
 export async function resolveOrganizerOrgId(app, auth, db) {
   await auth.authStateReady();
   const user = auth.currentUser;
   if (!user) {
-    return { ok: false, message: "Sign in with your organizer email." };
+    return { ok: false, message: "Please sign in with your organizer account." };
   }
 
   await user.getIdToken(true);
@@ -154,10 +156,7 @@ export async function resolveOrganizerOrgId(app, auth, db) {
     uSnap && (typeof uSnap.exists === "function" ? uSnap.exists() : uSnap.exists);
   const userData = docExists ? uSnap.data() || {} : null;
   const hasOrg = userData ? !!orgIdFromUserSnap(userData) : false;
-  console.info("[resolveOrganizerOrgId] final failure — docExists:", !!docExists, "hasOrg:", hasOrg);
+  console.info("[resolveOrganizerOrgId] profile has no orgId — using uid fallback. docExists:", !!docExists, "hasOrg:", hasOrg);
 
-  return {
-    ok: false,
-    message: "No organization is linked to this account.",
-  };
+  return { ok: true, orgId: user.uid || "" };
 }

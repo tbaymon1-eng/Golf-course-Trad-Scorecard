@@ -675,22 +675,31 @@
   }
 
   async function ensureOrgUser(){
-  await auth.authStateReady();
-  const u = auth.currentUser;
+    await auth.authStateReady();
+    const u = auth.currentUser;
 
-  if (!u) {
-    throw new Error("Sign in with your organizer email.");
+    if (!u) {
+      throw new Error("Please sign in with your organizer account.");
+    }
+
+    await u.getIdToken(true);
+
+    let oid = await readOrganizerOrgIdFromUserDoc(db, u.uid);
+    if (!oid) {
+      const resolved = await resolveOrganizerOrgId(app, auth, db);
+      if (!resolved.ok) {
+        throw new Error(
+          resolved.message || "Please sign in with your organizer account."
+        );
+      }
+      oid = (resolved.orgId || u.uid || "").trim();
+    }
+    state.orgId = oid;
+    try {
+      sessionStorage.setItem("orgId", oid);
+    } catch (_e) {}
+    return oid;
   }
-
-  await u.getIdToken(true);
-
- let oid = u.uid;
-  state.orgId = oid;
-  try {
-    sessionStorage.setItem("orgId", oid);
-  } catch (_e) {}
-  return oid;
-}
 
   function deepOmitUndefined(value){
     if (value === undefined) return undefined;
@@ -1521,22 +1530,17 @@ onAuthStateChanged(auth, async (user) => {
     await user.getIdToken(true);
 
     let orgId = await readOrganizerOrgIdFromUserDoc(db, user.uid);
-    let resolved = {
-      ok: false,
-      message:
-        "Your organizer profile could not be loaded. Sign in again from the same hosted URL you used to register, or complete first-time signup.",
-    };
+    let resolved = { ok: true, orgId: "" };
     if (!orgId) {
       resolved = await resolveOrganizerOrgId(app, auth, db);
-      orgId = (resolved && (resolved.orgId || resolved.organizationId)) || "";
+      if (!resolved.ok) {
+        alert(
+          resolved.message || "Please sign in with your organizer account."
+        );
+        return;
+      }
     }
-    if (!orgId) {
-      alert(
-        resolved.message ||
-          "Your organizer profile could not be loaded. Sign in again from the same hosted URL you used to register, or complete first-time signup."
-      );
-      return;
-    }
+    orgId = (orgId || resolved.orgId || auth.currentUser?.uid || "").trim();
 
     state.orgId = orgId;
     try {

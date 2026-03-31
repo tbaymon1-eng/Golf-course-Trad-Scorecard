@@ -96,15 +96,14 @@ if (!resolved.ok) {
   return;
 }
 
-orgId = resolved.orgId || auth.currentUser?.uid || "";
-
-if (!orgId) {
-  errEl.textContent = "Please sign in with your organizer account.";
-  form.style.display = "none";
-  skipLink.href = "./signup.html";
-  skipLink.textContent = "Create organizer account";
-  return;
-}
+      orgId = resolved.orgId;
+      if (!orgId) {
+        errEl.textContent = "No organization linked to this account.";
+        form.style.display = "none";
+        skipLink.href = "./signup.html";
+        skipLink.textContent = "Create an organization";
+        return;
+      }
 
       try {
         const coursesSnap = await getDocs(orgCoursesCollection(db, orgId));

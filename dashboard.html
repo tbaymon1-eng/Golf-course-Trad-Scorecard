@@ -278,19 +278,19 @@
         await auth.authStateReady();
 
         let orgId = await readOrganizerOrgIdFromUserDoc(db, user.uid);
-        let resolved = { ok: false, message: "" };
+        let resolved = { ok: true, orgId: "" };
         if (!orgId) {
           resolved = await resolveOrganizerOrgId(app, auth, db);
-          orgId = resolved.ok && resolved.orgId ? resolved.orgId : "";
+          if (!resolved.ok) {
+            errEl.textContent =
+              resolved.message || "Please sign in with your organizer account.";
+            return;
+          }
         }
+        orgId = (orgId || resolved.orgId || auth.currentUser?.uid || "").trim();
         console.info("[dashboard] orgId:", orgId || "(empty)");
 
-        if (!orgId) {
-          errEl.textContent =
-            (resolved && resolved.message) ||
-            "Unable to load your organizer account.";
-          return;
-        }
+        orgId = (orgId || resolved.orgId || auth.currentUser?.uid || "").trim();
 
         try {
           sessionStorage.setItem("orgId", orgId);

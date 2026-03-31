@@ -245,7 +245,7 @@ exports.repairUserProfile = onCall(
       if (q.empty) {
         throw new HttpsError(
           "failed-precondition",
-          "No organization is linked to this account. Complete first-time signup, or contact support if you already created one."
+          "Complete first-time signup, or contact support if you already created an organization."
         );
       }
       if (q.size > 1) {
