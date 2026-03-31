@@ -540,7 +540,7 @@
 import {
   parseOrgTournamentFromSearch,
   tournamentDocRef,
-  canonicalOrgIdFromTournament
+  applyOrgTournamentParams
 } from "./js/org-paths.js";
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
@@ -854,7 +854,9 @@ const params = new URLSearchParams(location.search);
         }
 
         state.tournament = snap.data() || {};
-        const canonOrg = canonicalOrgIdFromTournament(state.tournament);
+        const canonOrg = String(
+          state.tournament.organizationId || state.tournament.orgId || ""
+        ).trim();
         if (canonOrg) state.orgId = canonOrg;
         setHandicapVisibility(isHandicapEnabled());
         renderEventHeader(state.tournament);
@@ -930,12 +932,9 @@ const params = new URLSearchParams(location.search);
 
     function buildScorecardUrl(registrationId){
       const url = new URL("./index.html", window.location.href);
-      const tid = String(state.tournamentId || "").trim();
-      const oid = String(state.orgId || "").trim();
       const rid = String(registrationId || "").trim();
-      if (!tid || !rid) return url.toString();
-      url.searchParams.set("t", tid);
-      if (oid) url.searchParams.set("org", oid);
+      if (!String(state.tournamentId || "").trim() || !rid) return url.toString();
+      applyOrgTournamentParams(url, state.orgId, state.tournamentId);
       url.searchParams.set("registration", rid);
       return url.toString();
     }
@@ -1106,6 +1105,7 @@ const params = new URLSearchParams(location.search);
       }
 
       const btn = $("submitRegistrationBtn");
+      if (!btn) return;
       btn.disabled = true;
       btn.textContent = "Submitting...";
 

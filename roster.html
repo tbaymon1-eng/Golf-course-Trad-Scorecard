@@ -1190,7 +1190,6 @@
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import {
       parseOrgTournamentFromSearch,
-      canonicalOrgIdFromTournament,
       tournamentDocRef,
       tournamentRegistrationsCollection,
       tournamentRegistrationDoc,
@@ -1844,7 +1843,9 @@
 
       if(snap.exists()){
         tournamentMeta=snap.data();
-        const canon = canonicalOrgIdFromTournament(tournamentMeta);
+        const canon = String(
+          tournamentMeta.organizationId || tournamentMeta.orgId || ""
+        ).trim();
         if (canon) orgId = canon;
         meta.textContent=`${tournamentMeta.name || "Tournament"} • ${tournamentMeta.date || ""}`;
       }

@@ -1069,7 +1069,6 @@ import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/1
 import { firebaseConfig } from "./js/firebase-config.js";
 import {
   parseOrgTournamentFromSearch,
-  canonicalOrgIdFromTournament,
   tournamentDocRef,
   tournamentRegistrationsCollection,
   tournamentRegistrationDoc,
@@ -2933,7 +2932,7 @@ async function checkTournamentFromURL(){
     const snap = await getDoc(tournamentDocRef(db, organizationId, tournamentId));
     if(snap.exists()){
       const t = snap.data() || {};
-      const canonOrg = canonicalOrgIdFromTournament(t);
+      const canonOrg = String(t.organizationId || t.orgId || "").trim();
       if (canonOrg) organizationId = canonOrg;
 
       tournamentFormat = normalizeFormatValue(t.formatOfPlay || t.format);
