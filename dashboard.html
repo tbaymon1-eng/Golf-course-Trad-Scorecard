@@ -278,7 +278,7 @@
         await auth.authStateReady();
 
         let orgId = await readOrganizerOrgIdFromUserDoc(db, user.uid);
-        let resolved = { ok: false, message: "No organization is linked to this account." };
+        let resolved = { ok: false, message: "" };
         if (!orgId) {
           resolved = await resolveOrganizerOrgId(app, auth, db);
           orgId = resolved.ok && resolved.orgId ? resolved.orgId : "";
@@ -288,7 +288,7 @@
         if (!orgId) {
           errEl.textContent =
             (resolved && resolved.message) ||
-            "No organization is linked to this account.";
+            "Unable to load your organizer account.";
           return;
         }
 
