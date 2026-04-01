@@ -283,23 +283,19 @@
         await auth.authStateReady();
 
         let orgId = await readOrganizerOrgIdFromUserDoc(db, user.uid);
-        let resolved = { ok: true, orgId: "" };
+        let resolved = { ok: false, message: "No organization is linked to this account." };
         if (!orgId) {
           resolved = await resolveOrganizerOrgId(app, auth, db);
-<<<<<<< HEAD
-          if (!resolved.ok) {
-            errEl.textContent =
-              resolved.message || "Please sign in with your organizer account.";
-            return;
-          }
-=======
           orgId = resolved && (resolved.orgId || resolved.organizationId) || "";
->>>>>>> ef80cb6 (Safe backup before dashboard fixes)
         }
-        orgId = (orgId || resolved.orgId || auth.currentUser?.uid || "").trim();
         console.info("[dashboard] orgId:", orgId || "(empty)");
 
-        orgId = (orgId || resolved.orgId || auth.currentUser?.uid || "").trim();
+        if (!orgId) {
+          errEl.textContent =
+            (resolved && resolved.message) ||
+            "No organization is linked to this account.";
+          return;
+        }
 
         try {
           sessionStorage.setItem("orgId", orgId);

@@ -655,7 +655,11 @@
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { firebaseConfig } from "./js/firebase-config.js";
   import { tournamentDocRef } from "./js/org-paths.js";
-  import { resolveOrganizerOrgId, readOrganizerOrgIdFromUserDoc } from "./js/resolve-organizer-org.js";
+  import {
+    resolveOrganizerOrgId,
+    readOrganizerOrgIdFromUserDoc,
+    withFirestoreRetry,
+  } from "./js/resolve-organizer-org.js";
 
   if (location.protocol === "file:") {
     alert(
@@ -1099,7 +1103,9 @@
       return null;
     }
     try{
-      const snap = await getDoc(tournamentDocRef(db, state.orgId, id));
+      const snap = await withFirestoreRetry(() =>
+        getDoc(tournamentDocRef(db, state.orgId, id))
+      );
       return snap.exists() ? snap.data() : null;
     }catch(err){
       console.error(err);

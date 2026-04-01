@@ -3,17 +3,51 @@
  * and repairs users/{uid} via the repairUserProfile Cloud Function when the doc
  * is missing but orgId can be inferred (sessionStorage or organization ownerUid).
  *
- * Staff accounts: repair({}) may throw (not org owner). We always re-read users/{uid}
- * from the server after repair so a valid orgId on the profile still succeeds.
+ * Staff accounts: repair({}) may throw (not org owner). After repair we re-read users/{uid}
+ * (cache-first getDoc + retry) so a valid orgId on the profile still succeeds.
  */
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import {
-  doc,
-  getDoc,
-  getDocFromServer,
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const FUNCTIONS_REGION = "us-central1";
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+/** Firestore client offline / transient network (esp. mobile Safari). */
+export function isOfflineLikeFirestoreError(e) {
+  const code = String(e?.code || "");
+  const msg = String(e?.message || "").toLowerCase();
+  return (
+    code === "unavailable" ||
+    code === "deadline-exceeded" ||
+    code === "resource-exhausted" ||
+    /offline|client is offline|network|unavailable|failed to get document/i.test(msg)
+  );
+}
+
+/**
+ * Runs a Firestore read; on offline-like failure waits 500ms and retries once.
+ */
+export async function withFirestoreRetry(operation) {
+  try {
+    return await operation();
+  } catch (e) {
+    if (!isOfflineLikeFirestoreError(e)) throw e;
+    console.warn("[firestore] read failed (will retry once):", e?.code || e?.message);
+    await sleep(500);
+    return await operation();
+  }
+}
+
+function sessionStorageOrgIdFallback() {
+  try {
+    return String(sessionStorage.getItem("orgId") || "").trim();
+  } catch (_e) {
+    return "";
+  }
+}
 
 function normalizeOrgIdValue(raw) {
   if (raw == null) return "";
@@ -47,40 +81,30 @@ function orgIdFromUserSnap(data) {
   return "";
 }
 
-async function getUserDocSnapshot(db, uid, source) {
+async function getUserDocSnapshot(db, uid) {
   const uRef = doc(db, "users", uid);
-  if (source === "server") {
-    try {
-      return await getDocFromServer(uRef);
-    } catch (e) {
-      console.warn("[resolveOrganizerOrgId] getDocFromServer failed; using cache.", e);
-      return getDoc(uRef);
-    }
-  }
-  return getDoc(uRef);
+  return withFirestoreRetry(() => getDoc(uRef));
 }
 
 /**
- * Reads users/{uid} from Firestore (cache-first, then server) and returns org id from orgId or organizationId.
- * Use when resolveOrganizerOrgId fails but the profile document is readable.
+ * Reads users/{uid} via cache-first getDoc (no server-only reads). Uses retry on offline-like errors.
+ * Falls back to sessionStorage orgId if reads fail but org was known from a prior session.
  */
 export async function readOrganizerOrgIdFromUserDoc(db, uid) {
-  const uRef = doc(db, "users", uid);
   const trySnap = (snap) => {
     const exists = typeof snap.exists === "function" ? snap.exists() : !!snap.exists;
     if (!exists) return "";
     return orgIdFromUserSnap(snap.data());
   };
 
-  let oid = trySnap(await getDoc(uRef));
-  if (oid) return oid;
-
   try {
-    oid = trySnap(await getDocFromServer(uRef));
+    const snap = await getUserDocSnapshot(db, uid);
+    const oid = trySnap(snap);
+    if (oid) return oid;
   } catch (e) {
-    console.warn("[readOrganizerOrgIdFromUserDoc] getDocFromServer failed", e);
+    console.warn("[readOrganizerOrgIdFromUserDoc] users/{uid} read failed", e);
   }
-  return oid || "";
+  return sessionStorageOrgIdFallback();
 }
 
 /**
@@ -122,9 +146,24 @@ export async function resolveOrganizerOrgId(app, auth, db) {
     return null;
   };
 
-  // Prefer server so we never treat a stale cache miss as "no profile" (fixes staff vs repair({}) race).
-  let uSnap = await getUserDocSnapshot(db, uid, "server");
-  let resolved = tryReturnFromSnap(uSnap, "server-first");
+  let uSnap;
+  try {
+    uSnap = await getUserDocSnapshot(db, uid);
+  } catch (e) {
+    console.warn("[resolveOrganizerOrgId] users/{uid} read failed", e);
+    const fb = sessionStorageOrgIdFallback();
+    if (fb) {
+      return { ok: true, orgId: fb };
+    }
+    return {
+      ok: false,
+      message: isOfflineLikeFirestoreError(e)
+        ? "You appear offline. Check your connection, then try again."
+        : e?.message || "Could not load your organizer profile.",
+    };
+  }
+
+  let resolved = tryReturnFromSnap(uSnap, "cache-first");
   if (resolved) return resolved;
 
   const cached = String(sessionStorage.getItem("orgId") || "").trim();
@@ -137,9 +176,13 @@ export async function resolveOrganizerOrgId(app, auth, db) {
     } catch (e) {
       console.warn("repairUserProfile (cached orgId) failed", e);
     }
-    uSnap = await getUserDocSnapshot(db, uid, "server");
-    resolved = tryReturnFromSnap(uSnap, "after-cached-repair");
-    if (resolved) return resolved;
+    try {
+      uSnap = await getUserDocSnapshot(db, uid);
+      resolved = tryReturnFromSnap(uSnap, "after-cached-repair");
+      if (resolved) return resolved;
+    } catch (e) {
+      console.warn("[resolveOrganizerOrgId] re-read after cached repair failed", e);
+    }
   }
 
   try {
@@ -148,9 +191,21 @@ export async function resolveOrganizerOrgId(app, auth, db) {
     console.warn("repairUserProfile (lookup by owner) failed (expected for staff)", e);
   }
 
-  uSnap = await getUserDocSnapshot(db, uid, "server");
-  resolved = tryReturnFromSnap(uSnap, "after-repair-failed");
-  if (resolved) return resolved;
+  try {
+    uSnap = await getUserDocSnapshot(db, uid);
+    resolved = tryReturnFromSnap(uSnap, "after-repair");
+    if (resolved) return resolved;
+  } catch (e) {
+    console.warn("[resolveOrganizerOrgId] re-read after repair failed", e);
+  }
+
+  const fb = sessionStorageOrgIdFallback();
+  if (fb) {
+    try {
+      sessionStorage.setItem("orgId", fb);
+    } catch (_e) {}
+    return { ok: true, orgId: fb };
+  }
 
   const docExists =
     uSnap && (typeof uSnap.exists === "function" ? uSnap.exists() : uSnap.exists);
