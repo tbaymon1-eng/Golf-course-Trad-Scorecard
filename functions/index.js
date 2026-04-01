@@ -350,7 +350,7 @@ exports.staffSignupWithInvite = onCall(
       );
     }
 
-    const expected = safeText(orgData.staffInviteCode);
+    const expected = safeText(orgData.staffInviteCode || orgData.inviteCode); 
     if (!expected || inviteCode !== expected) {
       throw new HttpsError("permission-denied", "Invalid invite code.");
     }
@@ -363,7 +363,7 @@ exports.staffSignupWithInvite = onCall(
       active: true,
       updatedAt: FieldValue.serverTimestamp(),
     };
-    if (!userSnap.exists()) {
+    if (!userSnap.exists) {
       payload.createdAt = FieldValue.serverTimestamp();
     }
 
