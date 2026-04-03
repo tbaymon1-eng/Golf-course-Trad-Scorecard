@@ -189,6 +189,7 @@
       links.appendChild(a(r.links.leaderboard, "Leaderboard"));
       links.appendChild(a(r.links.roster, "Roster"));
       links.appendChild(a(r.links.register, "Registration"));
+      links.appendChild(a(`./admin.html?id=${encodeURIComponent(r.id)}`, "Admin"));
       div.appendChild(links);
 
       const actions = document.createElement("div");
@@ -321,6 +322,7 @@
         $("adminBtn").href = "./admin.html";
 
         try {
+          await user.getIdToken(true);
           await renderList(orgId);
         } catch (e) {
           console.error(e);

@@ -642,6 +642,7 @@
   </div>
 
   <div class="toast" id="toast">Copied</div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
@@ -805,74 +806,41 @@
     }
   }
 
-  function drawFakeQr(elId, text){
-    const box = $(elId);
-    if(!box) return;
+  function drawRealQr(elId, text){
+  const box = $(elId);
+  if(!box) return;
 
-    box.innerHTML = "";
+  box.innerHTML = "";
 
-    const canvas = document.createElement("canvas");
-    canvas.width = 220;
-    canvas.height = 220;
-    box.appendChild(canvas);
-
-    const ctx = canvas.getContext("2d");
-    const size = canvas.width;
-
-    ctx.clearRect(0, 0, size, size);
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, size, size);
-
-    if(!text || text === "—"){
-      ctx.strokeStyle = "#ddd";
-      ctx.lineWidth = 4;
-      ctx.strokeRect(10, 10, size - 20, size - 20);
-      ctx.fillStyle = "#666";
-      ctx.font = "700 16px Barlow";
-      ctx.textAlign = "center";
-      ctx.fillText("QR pending", size / 2, size / 2);
-      return;
-    }
-
-    const seed = Array.from(text).reduce((a, c) => a + c.charCodeAt(0), 0);
-    const cells = 25;
-    const pad = 12;
-    const cell = (size - pad * 2) / cells;
-
-    function finder(x, y){
-      ctx.fillStyle = "#111";
-      ctx.fillRect(x, y, cell * 7, cell * 7);
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(x + cell, y + cell, cell * 5, cell * 5);
-      ctx.fillStyle = "#111";
-      ctx.fillRect(x + cell * 2, y + cell * 2, cell * 3, cell * 3);
-    }
-
-    finder(pad, pad);
-    finder(size - pad - cell * 7, pad);
-    finder(pad, size - pad - cell * 7);
-
-    for(let r = 0; r < cells; r++){
-      for(let c = 0; c < cells; c++){
-        const inTopLeft = r < 7 && c < 7;
-        const inTopRight = r < 7 && c >= cells - 7;
-        const inBottomLeft = r >= cells - 7 && c < 7;
-        if(inTopLeft || inTopRight || inBottomLeft) continue;
-
-        const n = (r * cells + c + seed * 13) % 7;
-        if(n === 0 || n === 2 || ((r + c + seed) % 11 === 0)){
-          ctx.fillStyle = "#111";
-          ctx.fillRect(pad + c * cell, pad + r * cell, cell * 0.92, cell * 0.92);
-        }
-      }
-    }
+  if(!text || text === "—"){
+    const placeholder = document.createElement("div");
+    placeholder.style.width = "220px";
+    placeholder.style.height = "220px";
+    placeholder.style.display = "flex";
+    placeholder.style.alignItems = "center";
+    placeholder.style.justifyContent = "center";
+    placeholder.style.border = "2px solid #ddd";
+    placeholder.style.background = "#fff";
+    placeholder.style.color = "#666";
+    placeholder.style.fontWeight = "700";
+    placeholder.textContent = "QR pending";
+    box.appendChild(placeholder);
+    return;
   }
 
+  new QRCode(box, {
+    text,
+    width: 220,
+    height: 220,
+    correctLevel: QRCode.CorrectLevel.H
+  });
+}
+
   function renderAllQrs(){
-    drawFakeQr("joinQr", $("joinLinkBox")?.textContent || "");
-    drawFakeQr("leaderboardQr", $("leaderboardLinkBox")?.textContent || "");
-    drawFakeQr("rosterQr", $("rosterLinkBox")?.textContent || "");
-    drawFakeQr("registrationQr", $("registrationLinkBox")?.textContent || "");
+    drawRealQr("joinQr", $("joinLinkBox")?.textContent || "");
+    drawRealQr("leaderboardQr", $("leaderboardLinkBox")?.textContent || "");
+    drawRealQr("rosterQr", $("rosterLinkBox")?.textContent || "");
+    drawRealQr("registrationQr", $("registrationLinkBox")?.textContent || "");
   }
 
   function syncHandicapAdminUI(){

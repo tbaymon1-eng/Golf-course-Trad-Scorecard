@@ -2516,13 +2516,21 @@ function renderTeamPicker(){
 
   teamList.querySelectorAll(".team-card").forEach(card => {
     card.addEventListener("click", () => {
-      const id = card.getAttribute("data-team-id");
-      const reg = loadedRegistrations.find(x => x.id === id);
-      if(reg) applyRegistrationSelection(reg);
-    });
-  });
-}
+  const id = card.getAttribute("data-team-id");
+  const reg = loadedRegistrations.find(x => x.id === id);
 
+  if (reg) {
+    // ✅ SAVE TEAM
+    localStorage.setItem(
+      `scorecard_selected_team_t_${tournamentId}_v1`,
+      reg.id
+    );
+
+    incomingRegistrationId = reg.id;
+    joinCompleted = true;
+
+    applyRegistrationSelection(reg);}
+    
 async function loadRegistrations(){
   if(!db || !tournamentId) return;
   const snap = await getDocs(tournamentRegistrationsCollection(db, organizationId, tournamentId));
@@ -2919,9 +2927,14 @@ async function checkTournamentFromURL(){
 
   organizationId = orgId;
   tournamentId = tId;
+  const savedTeamId = localStorage.getItem('scorecard_selected_team_t_${tid}_v1'
   incomingRegistrationId = regId;
   isTournamentMode = true;
-  joinCompleted = false;
+  joinCompleted = !!savedTeamId;
+
+if (savedTeamId && !incomingRegistrationId) {
+  incomingRegistrationId = savedTeamId;
+}
   roundFinished = false;
   finishedHolesCount = null;
 
@@ -2960,6 +2973,12 @@ async function checkTournamentFromURL(){
         console.info("[scorecard] tournament format:", tournamentFormat, "playersCount:", playersCount, "joinCompleted (pre-auto):", joinCompleted);
         console.info("[scorecard] selectedRegistrationId:", incomingRegistrationId, "fetched registration:", reg ? { id: reg.id, teamName: reg.teamName, assignedHole: reg.assignedHole, players: reg.players } : null);
         if(reg){
+          localStorage.setItem(
+  `scorecard_selected_team_t_${tournamentId}_v1`,
+  incomingRegistrationId
+);
+joinCompleted = true;
+
           await autoStartFromRegistration(reg);
           console.info("[scorecard] after autoStartFromRegistration — joinCompleted:", joinCompleted, "format:", tournamentFormat);
           return true;
