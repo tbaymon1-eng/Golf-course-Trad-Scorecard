@@ -237,9 +237,7 @@
       <label for="courseName">Course name</label>
       <input id="courseName" type="text" required autocomplete="organization" placeholder="e.g. North Nine, Championship Course" />
 
-      <label for="courseSlug">Slug</label>
-      <div class="hint">Short URL-safe id (lowercase letters, numbers, hyphens). Left blank, it is derived from the course name.</div>
-      <input id="courseSlug" type="text" autocomplete="off" placeholder="e.g. north-nine" inputmode="text" />
+     
     </section>
 
     <section class="section" aria-labelledby="brand-heading">
@@ -495,6 +493,7 @@
       }
 
       ready = true;
+      console.log("[create-course] after org resolution", { orgId, ready });
     });
 
     skipLink.addEventListener("click", (e) => {
@@ -505,6 +504,7 @@
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      console.log("[create-course] submit start", { ready, orgId, submitDisabled: submitBtn.disabled });
       errEl.textContent = "";
       if (!ready || !orgId) {
         errEl.textContent = "Still loading. Please wait.";
@@ -517,7 +517,7 @@
         return;
       }
 
-      const slugInput = safeText($("courseSlug").value);
+      const slugInput = safeText($("courseSlug")?.value);
       const slug = slugInput ? slugifyName(slugInput) : slugifyName(courseName);
       if (!slug) {
         errEl.textContent = "Could not build a valid slug from the course name or slug field.";
@@ -544,7 +544,10 @@
         if (primaryColor) payload.primaryColor = primaryColor;
         if (website) payload.website = website;
 
+        console.log("[create-course] before setDoc", { refPath: newRef.path });
         await setDoc(newRef, payload);
+        console.log("[create-course] after setDoc");
+        console.log("[create-course] before redirect");
         window.location.href = "./dashboard.html";
       } catch (e2) {
         console.error(e2);
