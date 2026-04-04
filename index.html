@@ -1086,7 +1086,11 @@ let authReady = false;
 try {
   const app = initializeApp(firebaseConfig);
   auth = getAuth(app);
-  await signInAnonymously(auth);
+  await auth.authStateReady();
+  // ONLY allow anonymous login if truly no user exists AND no session should exist
+if (!auth.currentUser) {
+  console.log("No user — NOT forcing anonymous login");
+}
   db = getFirestore(app);
   authReady = true;
   console.log("Firebase ready ✅");

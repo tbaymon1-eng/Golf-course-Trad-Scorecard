@@ -1212,7 +1212,8 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    await signInAnonymously(auth);
+    await auth.authStateReady();
+    if (!auth.currentUser) await signInAnonymously(auth);
 
     const params = new URLSearchParams(location.search);
     const parsed = parseOrgTournamentFromSearch(params);
