@@ -123,24 +123,63 @@
     .hole-panel {
       padding-top: 4px;
     }
-    .hole-row {
-      display: grid;
-      grid-template-columns: 36px 1fr 1fr 1fr 1fr 1fr;
+    .hole-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 0 -6px;
+      padding: 0 6px 10px;
+      scrollbar-gutter: stable;
+    }
+    .holes-inner {
+      display: flex;
+      flex-direction: column;
       gap: 6px;
-      align-items: center;
-      margin-bottom: 8px;
-      font-size: 0.8rem;
+      min-width: min-content;
+      font-size: 0.78rem;
       font-weight: 700;
       color: var(--muted);
+    }
+    .hole-row {
+      display: grid;
+      gap: 6px;
+      align-items: center;
     }
     .hole-row input {
       margin-bottom: 0;
       padding: 8px 6px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
+      min-width: 0;
+    }
+    .hole-row.hole-header {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--blue);
+      padding-bottom: 2px;
+    }
+    .hole-row.hole-header .hole-num {
+      font-weight: 800;
+    }
+    .tee-head {
+      text-align: center;
+      line-height: 1.2;
+      padding: 4px 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 80px;
     }
     .hole-num {
       text-align: center;
       color: var(--ink);
+      padding: 8px 2px;
+      font-variant-numeric: tabular-nums;
+    }
+    .hole-grid-msg {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin: 0 0 10px;
+      line-height: 1.4;
     }
     .btn {
       width: 100%;
@@ -175,8 +214,8 @@
       min-height: 1.35em;
     }
     @media (min-width: 480px) {
-      .hole-row {
-        grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+      .tee-head {
+        max-width: 96px;
       }
     }
   </style>
@@ -197,6 +236,10 @@
       <h2 class="section-title" id="course-heading">Course</h2>
       <label for="courseName">Course name</label>
       <input id="courseName" type="text" required autocomplete="organization" placeholder="e.g. North Nine, Championship Course" />
+
+      <label for="courseSlug">Slug</label>
+      <div class="hint">Short URL-safe id (lowercase letters, numbers, hyphens). Left blank, it is derived from the course name.</div>
+      <input id="courseSlug" type="text" autocomplete="off" placeholder="e.g. north-nine" inputmode="text" />
     </section>
 
     <section class="section" aria-labelledby="brand-heading">
@@ -215,11 +258,15 @@
 
     <section class="section" aria-labelledby="holes-heading">
       <h2 class="section-title" id="holes-heading">Hole data</h2>
+      <label for="teeBoxNames">Tee Box Names</label>
+      <div class="hint">Comma-separated, e.g. <span lang="en">Black, Blue, White, Gold</span> or <span lang="en">Pine, Oak, Cypress</span>. Each name becomes a yardage column. Reopen the builder after editing names to refresh the grid.</div>
+      <input id="teeBoxNames" type="text" autocomplete="off" placeholder="Black, Blue, White, Red" />
+
       <button type="button" class="toggle-hole" id="toggleHoleBuilder" aria-expanded="false" aria-controls="holeBuilderPanel">
         Show Hole Builder
       </button>
       <div class="hole-panel" id="holeBuilderPanel" hidden>
-        <div class="hint">Optional reference grid (same as before; not included when you save).</div>
+        <div class="hint">Par, handicap, and yardages are saved with the course when you submit.</div>
         <div id="holesTable"></div>
       </div>
     </section>
@@ -265,23 +312,140 @@
       return String(v || "").trim();
     }
 
-    function buildHoleRows() {
+    /** Comma-separated tee names; duplicates removed (first wins), order preserved. */
+    function parseTeeNames(raw) {
+      const seen = new Set();
+      const out = [];
+      for (const s of String(raw || "").split(",")) {
+        const t = s.trim();
+        if (!t || seen.has(t)) continue;
+        seen.add(t);
+        out.push(t);
+      }
+      return out;
+    }
+
+    function slugifyName(name) {
+      const s = safeText(name)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      return s || "course";
+    }
+
+    function numOrNullFromInput(el) {
+      if (!el) return null;
+      const v = String(el.value ?? "").trim();
+      if (v === "") return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function collectHolesPayload(tees) {
+      const holes = [];
+      for (let h = 1; h <= 18; h++) {
+        const par = numOrNullFromInput($(`par_${h}`));
+        const handicap = numOrNullFromInput($(`hcp_${h}`));
+        const yards = {};
+        tees.forEach((teeName, ti) => {
+          const y = numOrNullFromInput($(`yard_${ti}_${h}`));
+          if (y !== null) yards[teeName] = y;
+        });
+        holes.push({ hole: h, par, handicap, yards });
+      }
+      return holes;
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function escapeAttr(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;");
+    }
+
+    function shortTeeLabel(name, maxLen = 7) {
+      const t = String(name).trim();
+      if (t.length <= maxLen) return t;
+      return t.slice(0, Math.max(1, maxLen - 1)) + "…";
+    }
+
+    function gridColumnTemplate(teeCount) {
+      return `32px minmax(42px,1fr) minmax(42px,1fr) ${Array(teeCount)
+        .fill("minmax(48px,1fr)")
+        .join(" ")}`;
+    }
+
+    function rebuildHoleGrid() {
       const holesTable = $("holesTable");
-      if (!holesTable || holesTable.dataset.built === "1") return;
-      holesTable.dataset.built = "1";
-      for (let i = 1; i <= 18; i++) {
+      const teeInput = $("teeBoxNames");
+      if (!holesTable) return;
+
+      const tees = parseTeeNames(teeInput?.value || "");
+      holesTable.innerHTML = "";
+
+      if (tees.length === 0) {
+        const p = document.createElement("p");
+        p.className = "hole-grid-msg";
+        p.textContent =
+          "Enter at least one comma-separated tee name above, then click Show Hole Builder again.";
+        holesTable.appendChild(p);
+        return;
+      }
+
+      const tmpl = gridColumnTemplate(tees.length);
+      const scroll = document.createElement("div");
+      scroll.className = "hole-scroll";
+      const inner = document.createElement("div");
+      inner.className = "holes-inner";
+
+      const header = document.createElement("div");
+      header.className = "hole-row hole-header";
+      header.style.gridTemplateColumns = tmpl;
+      header.innerHTML = `
+        <span class="hole-num">#</span>
+        <span class="tee-head">Par</span>
+        <span class="tee-head">Hcp</span>
+        ${tees
+          .map(
+            (t) =>
+              `<span class="tee-head" title="${escapeAttr(t)}">${escapeHtml(
+                shortTeeLabel(t)
+              )}</span>`
+          )
+          .join("")}
+      `;
+      inner.appendChild(header);
+
+      for (let h = 1; h <= 18; h++) {
         const row = document.createElement("div");
         row.className = "hole-row";
+        row.style.gridTemplateColumns = tmpl;
+        const yardInputs = tees
+          .map(
+            (t, ti) =>
+              `<input type="number" inputmode="numeric" min="0" id="yard_${ti}_${h}" placeholder="Yds" aria-label="Hole ${h}, ${escapeAttr(
+                t
+              )} yards" />`
+          )
+          .join("");
         row.innerHTML = `
-          <div class="hole-num">${i}</div>
-          <input id="par_${i}" placeholder="Par" type="number" inputmode="numeric" />
-          <input id="hcp_${i}" placeholder="Hcp" type="number" inputmode="numeric" />
-          <input id="blue_${i}" placeholder="Blue" type="number" inputmode="numeric" />
-          <input id="white_${i}" placeholder="White" type="number" inputmode="numeric" />
-          <input id="red_${i}" placeholder="Red" type="number" inputmode="numeric" />
+          <div class="hole-num">${h}</div>
+          <input id="par_${h}" type="number" inputmode="numeric" min="1" max="15" aria-label="Hole ${h} par" />
+          <input id="hcp_${h}" type="number" inputmode="numeric" min="0" aria-label="Hole ${h} handicap stroke index" />
+          ${yardInputs}
         `;
-        holesTable.appendChild(row);
+        inner.appendChild(row);
       }
+
+      scroll.appendChild(inner);
+      holesTable.appendChild(scroll);
     }
 
     toggleHoleBuilder.addEventListener("click", () => {
@@ -289,7 +453,7 @@
       holeBuilderPanel.hidden = !open;
       toggleHoleBuilder.textContent = open ? "Hide Hole Builder" : "Show Hole Builder";
       toggleHoleBuilder.setAttribute("aria-expanded", String(open));
-      if (open) buildHoleRows();
+      if (open) rebuildHoleGrid();
     });
 
     onAuthStateChanged(auth, async (user) => {
@@ -353,15 +517,27 @@
         return;
       }
 
+      const slugInput = safeText($("courseSlug").value);
+      const slug = slugInput ? slugifyName(slugInput) : slugifyName(courseName);
+      if (!slug) {
+        errEl.textContent = "Could not build a valid slug from the course name or slug field.";
+        return;
+      }
+
       const logoUrl = safeText($("logoUrl").value);
       const primaryColor = safeText($("primaryColor").value);
       const website = safeText($("website").value);
+      const teeSets = parseTeeNames($("teeBoxNames")?.value || "");
+      const holes = collectHolesPayload(teeSets);
 
       submitBtn.disabled = true;
       try {
         const newRef = doc(orgCoursesCollection(db, orgId));
         const payload = {
           name: courseName,
+          slug,
+          teeSets,
+          holes,
           createdAt: serverTimestamp(),
         };
         if (logoUrl) payload.logoUrl = logoUrl;
