@@ -554,7 +554,12 @@ import {
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    await signInAnonymously(auth);
+    await auth.authStateReady();
+
+if (!auth.currentUser) {
+  console.log("No user — NOT forcing anonymous login");
+}
+
     const db = getFirestore(app);
     const functions = getFunctions(app, "us-central1");
     const registerTeamCallable = httpsCallable(functions, "registerTeam");
