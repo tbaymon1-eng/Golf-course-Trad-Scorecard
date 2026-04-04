@@ -6,31 +6,201 @@
   <title>Add your first course</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Barlow:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root { --bg:#d9d1c2; --ink:#2f2a26; --line:#9a6217; --green:#2f7a31; --blue:#12356f; }
+    :root {
+      --bg: #d9d1c2;
+      --ink: #2f2a26;
+      --line: #9a6217;
+      --green: #2f7a31;
+      --blue: #12356f;
+      --card: rgba(255, 255, 255, 0.22);
+      --muted: #5f5851;
+    }
     * { box-sizing: border-box; }
-    body { margin:0; font-family: Barlow, system-ui, sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .card { width: min(480px, 100%); background: rgba(255,255,255,.2); border: 4px solid rgba(154,98,23,.45); border-radius: 24px; padding: 28px; }
-    h1 { font-family: Cinzel, serif; font-size: 1.5rem; margin: 0 0 8px; }
-    p { margin: 0 0 18px; color: #4b4631; font-size: 1rem; line-height: 1.4; }
-    label { display: block; font-weight: 800; margin-bottom: 6px; font-size: 0.95rem; }
-    input { width: 100%; padding: 14px 16px; border-radius: 16px; border: 3px solid var(--line); font-size: 1.05rem; margin-bottom: 14px; font-family: inherit; }
-    .btn { width: 100%; padding: 16px; border: none; border-radius: 16px; font-size: 1.1rem; font-weight: 900; cursor: pointer; font-family: inherit; background: var(--green); color: #fff; margin-top: 8px; }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .btn-secondary { background: var(--blue); margin-top: 12px; text-decoration: none; display: block; text-align: center; line-height: 1.3; }
-    .err { color: #a32; font-weight: 700; font-size: 0.95rem; margin-top: 8px; min-height: 1.4em; }
-    .hint { font-size: 0.88rem; color: #5f5851; margin: -8px 0 14px; }
+    body {
+      margin: 0;
+      font-family: Barlow, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: clamp(16px, 4vw, 28px) 16px 48px;
+    }
+    .page-header {
+      max-width: 520px;
+      margin: 0 auto 24px;
+      text-align: center;
+    }
+    .page-header h1 {
+      font-family: Cinzel, serif;
+      font-size: clamp(1.35rem, 4vw, 1.65rem);
+      font-weight: 700;
+      margin: 0 0 8px;
+      letter-spacing: 0.02em;
+    }
+    .page-header p {
+      margin: 0;
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.45;
+      font-weight: 500;
+    }
+    .stack-form {
+      max-width: 520px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 3px solid rgba(154, 98, 23, 0.4);
+      border-radius: 20px;
+      padding: clamp(20px, 4vw, 28px);
+    }
+    .section {
+      margin-bottom: 28px;
+    }
+    .section:last-of-type {
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-family: Cinzel, serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid rgba(154, 98, 23, 0.35);
+      color: var(--blue);
+    }
+    .section-note {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.45;
+      margin: 0 0 12px;
+    }
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+      font-size: 0.92rem;
+    }
+    input[type="text"],
+    input[type="url"] {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 2px solid var(--line);
+      font-size: 1rem;
+      margin-bottom: 12px;
+      font-family: inherit;
+      background: rgba(255, 255, 255, 0.65);
+    }
+    input:focus {
+      outline: 2px solid rgba(18, 53, 111, 0.35);
+      outline-offset: 1px;
+    }
+    .hint {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: -6px 0 10px;
+      line-height: 1.35;
+    }
+    .toggle-hole {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 2px solid var(--line);
+      background: rgba(255, 255, 255, 0.5);
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: var(--blue);
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+    .toggle-hole:hover {
+      background: rgba(255, 255, 255, 0.75);
+    }
+    .hole-panel[hidden] {
+      display: none !important;
+    }
+    .hole-panel {
+      padding-top: 4px;
+    }
+    .hole-row {
+      display: grid;
+      grid-template-columns: 36px 1fr 1fr 1fr 1fr 1fr;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .hole-row input {
+      margin-bottom: 0;
+      padding: 8px 6px;
+      font-size: 0.85rem;
+    }
+    .hole-num {
+      text-align: center;
+      color: var(--ink);
+    }
+    .btn {
+      width: 100%;
+      padding: 14px 16px;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: inherit;
+      background: var(--green);
+      color: #fff;
+      margin-top: 8px;
+    }
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    .btn-secondary {
+      background: var(--blue);
+      margin-top: 12px;
+      text-decoration: none;
+      display: block;
+      text-align: center;
+      line-height: 1.35;
+    }
+    .err {
+      color: #a32;
+      font-weight: 700;
+      font-size: 0.92rem;
+      margin-top: 10px;
+      min-height: 1.35em;
+    }
+    @media (min-width: 480px) {
+      .hole-row {
+        grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="card">
+  <header class="page-header">
     <h1>Add your first course</h1>
-    <p>This is saved to your organization. You can add scoring details and tournaments later from the admin. Legacy Cypresswood links and tournaments are unchanged.</p>
-    <form id="form">
+    <p>Saved to your organization. You can add tournaments and details later in the admin.</p>
+  </header>
+
+  <form id="form" class="stack-form" autocomplete="on">
+    <section class="section" aria-labelledby="org-heading">
+      <h2 class="section-title" id="org-heading">Organization</h2>
+      <p class="section-note">Your course is stored under the organization linked to your signed-in account. Legacy Cypresswood links and tournaments are unchanged.</p>
+    </section>
+
+    <section class="section" aria-labelledby="course-heading">
+      <h2 class="section-title" id="course-heading">Course</h2>
       <label for="courseName">Course name</label>
       <input id="courseName" type="text" required autocomplete="organization" placeholder="e.g. North Nine, Championship Course" />
+    </section>
 
+    <section class="section" aria-labelledby="brand-heading">
+      <h2 class="section-title" id="brand-heading">Branding</h2>
       <label for="logoUrl">Logo URL (optional)</label>
       <div class="hint">HTTPS link to a PNG or SVG hosted online.</div>
       <input id="logoUrl" type="url" inputmode="url" placeholder="https://..." />
@@ -41,10 +211,24 @@
 
       <label for="website">Website (optional)</label>
       <input id="website" type="url" inputmode="url" placeholder="https://yourclub.com" />
+    </section>
 
-      <button type="submit" class="btn" id="submitBtn">Save and continue</button>
-      <div class="err" id="err"></div>
-    </form>
+    <section class="section" aria-labelledby="holes-heading">
+      <h2 class="section-title" id="holes-heading">Hole data</h2>
+      <button type="button" class="toggle-hole" id="toggleHoleBuilder" aria-expanded="false" aria-controls="holeBuilderPanel">
+        Show Hole Builder
+      </button>
+      <div class="hole-panel" id="holeBuilderPanel" hidden>
+        <div class="hint">Optional reference grid (same as before; not included when you save).</div>
+        <div id="holesTable"></div>
+      </div>
+    </section>
+
+    <button type="submit" class="btn" id="submitBtn">Save and continue</button>
+    <div class="err" id="err"></div>
+  </form>
+
+  <div style="max-width:520px;margin:16px auto 0;padding:0 4px;">
     <a class="btn btn-secondary" href="./dashboard.html" id="skipLink">Skip for now</a>
   </div>
 
@@ -71,6 +255,8 @@
     const errEl = $("err");
     const submitBtn = $("submitBtn");
     const skipLink = $("skipLink");
+    const toggleHoleBuilder = $("toggleHoleBuilder");
+    const holeBuilderPanel = $("holeBuilderPanel");
 
     let orgId = "";
     let ready = false;
@@ -78,6 +264,33 @@
     function safeText(v) {
       return String(v || "").trim();
     }
+
+    function buildHoleRows() {
+      const holesTable = $("holesTable");
+      if (!holesTable || holesTable.dataset.built === "1") return;
+      holesTable.dataset.built = "1";
+      for (let i = 1; i <= 18; i++) {
+        const row = document.createElement("div");
+        row.className = "hole-row";
+        row.innerHTML = `
+          <div class="hole-num">${i}</div>
+          <input id="par_${i}" placeholder="Par" type="number" inputmode="numeric" />
+          <input id="hcp_${i}" placeholder="Hcp" type="number" inputmode="numeric" />
+          <input id="blue_${i}" placeholder="Blue" type="number" inputmode="numeric" />
+          <input id="white_${i}" placeholder="White" type="number" inputmode="numeric" />
+          <input id="red_${i}" placeholder="Red" type="number" inputmode="numeric" />
+        `;
+        holesTable.appendChild(row);
+      }
+    }
+
+    toggleHoleBuilder.addEventListener("click", () => {
+      const open = holeBuilderPanel.hidden;
+      holeBuilderPanel.hidden = !open;
+      toggleHoleBuilder.textContent = open ? "Hide Hole Builder" : "Show Hole Builder";
+      toggleHoleBuilder.setAttribute("aria-expanded", String(open));
+      if (open) buildHoleRows();
+    });
 
     onAuthStateChanged(auth, async (user) => {
       errEl.textContent = "";
@@ -87,18 +300,18 @@
       }
 
       const resolved = await resolveOrganizerOrgId(app, auth, db);
-if (!resolved.ok) {
-  errEl.textContent =
-    resolved.message ||
-    "Your organizer profile could not be loaded. Try signing in again, or complete first-time signup.";
-  form.style.display = "none";
-  skipLink.style.display = "none";
-  return;
-}
+      if (!resolved.ok) {
+        errEl.textContent =
+          resolved.message ||
+          "Your organizer profile could not be loaded. Try signing in again, or complete first-time signup.";
+        form.style.display = "none";
+        skipLink.style.display = "none";
+        return;
+      }
 
-      orgId = resolved.orgId;
+      orgId = (resolved.orgId || "").trim();
       if (!orgId) {
-        errEl.textContent = "No organization linked to this account.";
+        errEl.textContent = "No organization is linked to this account.";
         form.style.display = "none";
         skipLink.href = "./signup.html";
         skipLink.textContent = "Create an organization";
