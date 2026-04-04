@@ -2515,22 +2515,28 @@ function renderTeamPicker(){
   teamPickerEmpty.style.display = visible.length ? "none" : "block";
 
   teamList.querySelectorAll(".team-card").forEach(card => {
-    card.addEventListener("click", () => {
-  const id = card.getAttribute("data-team-id");
-  const reg = loadedRegistrations.find(x => x.id === id);
+  card.addEventListener("click", () => {
+    const id = card.getAttribute("data-team-id");
+    const reg = loadedRegistrations.find(x => x.id === id);
 
-  if (reg) {
-    // ✅ SAVE TEAM
-    localStorage.setItem(
-      `scorecard_selected_team_t_${tournamentId}_v1`,
-      reg.id
-    );
+    if (reg) {
+      localStorage.setItem(
+        `scorecard_selected_team_t_${tournamentId}_v1`,
+        reg.id
+      );
 
-    incomingRegistrationId = reg.id;
-    joinCompleted = true;
+      incomingRegistrationId = reg.id;
+      joinCompleted = true;
 
-    applyRegistrationSelection(reg);}
-    
+      applyRegistrationSelection(reg);
+    }
+  });
+});
+}
+
+
+
+
 async function loadRegistrations(){
   if(!db || !tournamentId) return;
   const snap = await getDocs(tournamentRegistrationsCollection(db, organizationId, tournamentId));
@@ -2927,7 +2933,7 @@ async function checkTournamentFromURL(){
 
   organizationId = orgId;
   tournamentId = tId;
-  const savedTeamId = localStorage.getItem('scorecard_selected_team_t_${tid}_v1'
+  const savedTeamId = localStorage.getItem(`scorecard_selected_team_t_${tId}_v1`); 
   incomingRegistrationId = regId;
   isTournamentMode = true;
   joinCompleted = !!savedTeamId;
@@ -3187,22 +3193,22 @@ refreshBtn.addEventListener("click", () => {
 wireButtons();
 
 (async function boot() {
-  const params = new URLSearchParams(location.search);
-  const qToken = (params.get("q") || "").trim();
-  if (qToken && db && authReady) {
-    const casualStarted = await tryStartCasualMode(qToken);
-    if (casualStarted) return;
-  }
-  let tournamentScorecardBuilt = false;
   try {
-    tournamentScorecardBuilt = await checkTournamentFromURL();
+    const params = new URLSearchParams(location.search);
+    const { tournamentId: tId } = parseOrgTournamentFromSearch(params);
+
+    if (tId) {
+      await checkTournamentFromURL();
+      build();// tournament flow (we’ll wire this next)
+    } else {
+      build(); // default/test scorecard
+    }
+
   } catch (err) {
     console.error("Tournament load failed:", err);
-  }
-  const { tournamentId: tId } = parseOrgTournamentFromSearch(params);
-  if (!tId || !tournamentScorecardBuilt) {
     build();
   }
 })();
 </script>
+</body>
 </html>
