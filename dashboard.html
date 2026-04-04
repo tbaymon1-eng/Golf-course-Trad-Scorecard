@@ -35,13 +35,19 @@
     .links a { font-size: 0.88rem; font-weight: 800; color: var(--blue); }
     .card-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     .empty { padding: 24px; text-align: center; color: #6c645c; border: 2px dashed var(--line); border-radius: 16px; }
+    .empty .btn { margin-top: 12px; }
+    .section-heading { font-family: Cinzel, serif; font-size: 1.12rem; margin: 0 0 12px; color: var(--blue); }
+    .section-heading--spaced { margin-top: 28px; }
+    .course-slug { font-size: 0.82rem; color: #5f5851; margin: 4px 0 8px; word-break: break-all; }
+    .course-web { font-size: 0.9rem; margin-bottom: 10px; }
+    .course-web a { color: var(--blue); font-weight: 800; }
     .err { color: var(--red); font-weight: 700; min-height: 0; }
     .err:empty { display: none; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1 id="titleHeading">Your tournaments</h1>
+    <h1 id="titleHeading">Tournament dashboard</h1>
     <p class="meta" id="orgLine"></p>
     <div class="toolbar">
       <a class="btn" href="./admin.html" id="adminBtn">Tournament admin</a>
@@ -52,6 +58,11 @@
       </label>
     </div>
     <div id="err" class="err"></div>
+
+    <h2 class="section-heading">Your courses</h2>
+    <div id="coursesHost" class="list"></div>
+
+    <h2 class="section-heading section-heading--spaced">Your tournaments</h2>
     <div id="listHost" class="list"></div>
   </div>
 
@@ -67,7 +78,12 @@
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
     import { firebaseConfig } from "./js/firebase-config.js";
-    import { applyOrgTournamentParams, orgTournamentsCollection, tournamentDocRef } from "./js/org-paths.js";
+    import {
+      applyOrgTournamentParams,
+      orgCoursesCollection,
+      orgTournamentsCollection,
+      tournamentDocRef,
+    } from "./js/org-paths.js";
     import {
       resolveOrganizerOrgId,
       readOrganizerOrgIdFromUserDoc,
@@ -152,6 +168,82 @@
         const code = e?.code || "";
         const m = e?.message || String(e);
         $("err").textContent = code ? `${code}: ${m}` : m;
+      }
+    }
+
+    function renderCourseCard(row) {
+      const div = document.createElement("div");
+      div.className = "item";
+
+      const titleRow = document.createElement("div");
+      titleRow.className = "item-title-row";
+      const h2 = document.createElement("h2");
+      h2.textContent = row.name || row.id;
+      titleRow.appendChild(h2);
+      div.appendChild(titleRow);
+
+      if (row.slug) {
+        const slugEl = document.createElement("div");
+        slugEl.className = "course-slug";
+        slugEl.textContent = `Slug: ${row.slug}`;
+        div.appendChild(slugEl);
+      }
+
+      const website = String(row.website || "").trim();
+      if (website) {
+        const web = document.createElement("div");
+        web.className = "course-web";
+        const a = document.createElement("a");
+        a.href = website.startsWith("http") ? website : `https://${website}`;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = website;
+        web.appendChild(a);
+        div.appendChild(web);
+      }
+
+      const actions = document.createElement("div");
+      actions.className = "card-actions";
+      const cid = encodeURIComponent(row.id);
+
+      const createT = document.createElement("a");
+      createT.className = "btn btn-sm btn-blue";
+      createT.href = `./admin.html?courseId=${cid}`;
+      createT.textContent = "Create Tournament";
+      actions.appendChild(createT);
+
+      const editC = document.createElement("a");
+      editC.className = "btn btn-sm btn-ghost";
+      editC.href = `./create-course.html?courseId=${cid}`;
+      editC.textContent = "Edit Course";
+      actions.appendChild(editC);
+
+      div.appendChild(actions);
+      return div;
+    }
+
+    async function renderCourses(orgId) {
+      const host = $("coursesHost");
+      host.innerHTML = "";
+      const snap = await withFirestoreRetry(() => getDocs(orgCoursesCollection(db, orgId)));
+      if (snap.empty) {
+        host.innerHTML = `
+          <div class="empty">
+            No courses yet. Add your first course to use it for tournaments and scoring.
+            <a class="btn btn-sm" href="./create-course.html">Add a course</a>
+          </div>`;
+        return;
+      }
+
+      const rows = [];
+      snap.forEach((d) => {
+        const t = d.data() || {};
+        rows.push({ id: d.id, name: t.name, slug: t.slug, website: t.website });
+      });
+      rows.sort((a, b) => String(a.name || a.id).localeCompare(String(b.name || b.id)));
+
+      for (const r of rows) {
+        host.appendChild(renderCourseCard(r));
       }
     }
 
@@ -323,7 +415,7 @@
 
         try {
           await user.getIdToken(true);
-          await renderList(orgId);
+          await Promise.all([renderCourses(orgId), renderList(orgId)]);
         } catch (e) {
           console.error(e);
           errEl.textContent = isOfflineLikeFirestoreError(e)

@@ -655,7 +655,7 @@
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { firebaseConfig } from "./js/firebase-config.js";
-  import { tournamentDocRef } from "./js/org-paths.js";
+  import { courseDocRef, tournamentDocRef } from "./js/org-paths.js";
   import {
     resolveOrganizerOrgId,
     readOrganizerOrgIdFromUserDoc,
@@ -1530,6 +1530,7 @@ onAuthStateChanged(auth, async (user) => {
 
   const params = new URLSearchParams(location.search);
   const urlId = params.get("id");
+  const urlCourseId = (params.get("courseId") || "").trim();
 
   if (urlId) {
     $("tournamentId").value = urlId;
@@ -1543,6 +1544,26 @@ onAuthStateChanged(auth, async (user) => {
       state.tournamentId = urlId;
       state.adminToken = data.adminToken || "";
       fillForm(data);
+    }
+  }
+
+  if (urlCourseId && state.orgId) {
+    try {
+      const cSnap = await withFirestoreRetry(() =>
+        getDoc(courseDocRef(db, state.orgId, urlCourseId))
+      );
+      if (cSnap.exists()) {
+        const c = cSnap.data() || {};
+        const label = String(c.name || urlCourseId).trim() || urlCourseId;
+        const sel = $("defaultCourse");
+        const opt = document.createElement("option");
+        opt.value = urlCourseId;
+        opt.textContent = label;
+        sel.appendChild(opt);
+        sel.value = urlCourseId;
+      }
+    } catch (e) {
+      console.warn("[admin] courseId prefill failed", e);
     }
   }
 
