@@ -904,7 +904,7 @@
 
   function fillForm(data){
     $("tournamentName").value = data.tournamentName || data.name || "";
-    $("defaultCourse").value = data.defaultCourse || "Tradition";
+    setDefaultCourseFromFormData(data);
     $("formatOfPlay").value = data.formatOfPlay || data.format || "Stroke Play";
     if($("roundHoles")){
       const rh = data.roundHoles;
@@ -1128,6 +1128,58 @@
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#39;");
+  }
+
+  function restoreBuiltinDefaultCourseOptions() {
+    const sel = $("defaultCourse");
+    if (!sel) return;
+    sel.innerHTML =
+      '<option value="Tradition">Tradition</option>' +
+      '<option value="Cypress">Cypress</option>';
+  }
+
+  /** Replaces dropdown options with a single org course (Firestore doc id + display name). */
+  function applyOrgCourseAsDefaultSelect(courseId, displayName) {
+    const sel = $("defaultCourse");
+    if (!sel) return;
+    const id = String(courseId || "").trim();
+    if (!id) return;
+    const label = String(displayName || "").trim() || id;
+    sel.innerHTML = "";
+    const opt = document.createElement("option");
+    opt.value = id;
+    opt.textContent = label;
+    sel.appendChild(opt);
+    sel.value = id;
+  }
+
+  /**
+   * Sets Default Course from tournament data. Built-ins Tradition/Cypress vs org course id.
+   * Prefers defaultCourse; falls back to courseDefault (may be lowercased in Firestore).
+   */
+  function setDefaultCourseFromFormData(data) {
+    const raw =
+      data.defaultCourse != null && String(data.defaultCourse).trim() !== ""
+        ? data.defaultCourse
+        : data.courseDefault != null && String(data.courseDefault).trim() !== ""
+          ? data.courseDefault
+          : "";
+    const trimmed = String(raw || "").trim();
+    if (!trimmed) {
+      restoreBuiltinDefaultCourseOptions();
+      $("defaultCourse").value = "Tradition";
+      return;
+    }
+    const lower = trimmed.toLowerCase();
+    if (lower === "tradition") {
+      restoreBuiltinDefaultCourseOptions();
+      $("defaultCourse").value = "Tradition";
+    } else if (lower === "cypress") {
+      restoreBuiltinDefaultCourseOptions();
+      $("defaultCourse").value = "Cypress";
+    } else {
+      applyOrgCourseAsDefaultSelect(trimmed, trimmed);
+    }
   }
 
   /** Firestore documents max ~1MB; logos are stored as data URLs inside the tournament doc. */
@@ -1555,15 +1607,10 @@ onAuthStateChanged(auth, async (user) => {
       if (cSnap.exists()) {
         const c = cSnap.data() || {};
         const label = String(c.name || urlCourseId).trim() || urlCourseId;
-        const sel = $("defaultCourse");
-        const opt = document.createElement("option");
-        opt.value = urlCourseId;
-        opt.textContent = label;
-        sel.appendChild(opt);
-        sel.value = urlCourseId;
+        applyOrgCourseAsDefaultSelect(urlCourseId, label);
       }
     } catch (e) {
-      console.warn("[admin] courseId prefill failed", e);
+      console.warn("[admin] courseId load failed", e);
     }
   }
 
