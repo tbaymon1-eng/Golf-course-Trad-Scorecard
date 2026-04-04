@@ -1404,7 +1404,10 @@
   }
 
   function getCourseForEntry(entryCourseId){
-    return COURSES[entryCourseId] || COURSES[tournament.courseDefault] || COURSE_TRADITION;
+    const e = String(entryCourseId || "").trim().toLowerCase();
+    const tc = String(tournament.courseId || tournament.courseDefault || "").trim().toLowerCase();
+    const key = e || tc || "tradition";
+    return COURSES[key] || COURSES[tc] || COURSES[e] || COURSE_TRADITION;
   }
 
   function getScore(scoresFlat, pIndex, hole){
@@ -1707,7 +1710,11 @@
     const netTotals = Array.isArray(docData.netTotals) ? docData.netTotals : [];
     const updatedAt = docData.updatedAt;
 
-    const courseId = String(docData.courseId || tournament.courseDefault || "tradition").trim().toLowerCase();
+    const courseId = String(
+      docData.courseId || tournament.courseId || tournament.courseDefault || "tradition"
+    )
+      .trim()
+      .toLowerCase();
     const course = getCourseForEntry(courseId);
     const scorerName = playerName || names[0] || "";
     const fmt = normalizeFormatValue(docData.format || tournament.format || "stroke");
@@ -2334,7 +2341,14 @@ if (canonOrg) organizationId = canonOrg;
           ...t,
           name: t.tournamentName || t.name || tournament.name,
           date: t.eventDate || t.date || tournament.date,
-          courseDefault: String(t.defaultCourse || t.courseDefault || "tradition").trim().toLowerCase(),
+          courseId: String(t.courseId || "").trim(),
+          courseName: String(t.courseName || "").trim(),
+          courseDefault: (() => {
+            const id = String(t.courseId || t.defaultCourse || t.courseDefault || "tradition").trim();
+            const l = id.toLowerCase();
+            if (l === "tradition" || l === "cypress") return l;
+            return id;
+          })(),
           format: normalizeFormatValue(t.formatOfPlay || t.format),
           handicapEnabled:
             isHandicapEnabled(t.enableHandicapScoring) ||
@@ -2364,7 +2378,14 @@ if (canonOrg) organizationId = canonOrg;
           scoreHeaderLabel.textContent = getScoreModeLabel();
         }
 
-        setCourseHeaderMini(tournament.courseDefault || "tradition");
+        setCourseHeaderMini(
+          (() => {
+            const id = String(tournament.courseId || tournament.courseDefault || "tradition")
+              .trim()
+              .toLowerCase();
+            return id === "cypress" ? "cypress" : "tradition";
+          })()
+        );
         renderSponsors();
         updateViewButtons();
 

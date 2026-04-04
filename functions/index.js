@@ -506,11 +506,18 @@ function buildRegistrationDocument(tournament, tournamentId, clientData, assigne
 
   const t = tournament || {};
 
+  const resolvedCourseId = (() => {
+    const id = String(t.courseId || t.defaultCourse || "").trim();
+    const l = id.toLowerCase();
+    if (l === "tradition" || l === "cypress") return l;
+    return id;
+  })();
+
   return {
     tournamentId: safeText(tournamentId),
     tournamentName: safeText(t.tournamentName || t.name, ""),
     defaultCourse: safeText(t.defaultCourse, ""),
-    courseId: String(t.defaultCourse || "").trim().toLowerCase(),
+    courseId: resolvedCourseId,
     formatOfPlay: safeText(t.formatOfPlay, ""),
     format: String(t.formatOfPlay || "").trim().toLowerCase(),
     teamName: safeText(clientData.teamName, ""),
@@ -539,11 +546,18 @@ function buildPlainRegistrationForClient(tournament, tournamentId, clientData, a
   const players = playerDetails.map((p) => p.name);
   const t = tournament || {};
 
+  const resolvedCourseId = (() => {
+    const id = String(t.courseId || t.defaultCourse || "").trim();
+    const l = id.toLowerCase();
+    if (l === "tradition" || l === "cypress") return l;
+    return id;
+  })();
+
   return {
     tournamentId: safeText(tournamentId),
     tournamentName: safeText(t.tournamentName || t.name, ""),
     defaultCourse: safeText(t.defaultCourse, ""),
-    courseId: String(t.defaultCourse || "").trim().toLowerCase(),
+    courseId: resolvedCourseId,
     formatOfPlay: safeText(t.formatOfPlay, ""),
     format: String(t.formatOfPlay || "").trim().toLowerCase(),
     teamName: safeText(clientData.teamName, ""),

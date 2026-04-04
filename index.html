@@ -1195,6 +1195,7 @@ let selectedHandicapEnabled = false;
 let selectedHandicapPercent = 100;
 
 const swipeZone = document.getElementById("courseSwipeZone");
+const courseHint = document.getElementById("courseHint");
 const hintLine = document.getElementById("hintLine");
 const scrollX = document.getElementById("scrollX");
 
@@ -1252,7 +1253,7 @@ function setCourseHeader(courseKey){
   const course = COURSES[courseKey];
   if(!courseHeaderImg || !course) return;
   courseHeaderImg.src = course.headerImg;
-  courseHeaderImg.alt = courseKey === "cypress" ? "Cypress Header" : "Tradition Header";
+  courseHeaderImg.alt = `${course.title || courseKey} · header`;
 }
 
 function normalizeUrl(u){
@@ -1979,6 +1980,116 @@ function lockScorecard(){
 
 /* --- Casual scorecard (?q=token via publicLinks) — extension; tournament flow unchanged --- */
 
+const ORG_TEE_ROW_CSS = ["row-black", "row-blue", "row-white", "row-forest", "row-silver", "row-copper", "row-gold"];
+
+function sumYardsNonNegative(arr) {
+  return arr.reduce((a, b) => a + (Number(b) >= 0 ? Number(b) : 0), 0);
+}
+
+/**
+ * Build scorecard course object from create-course / org course docs (teeSets + holes[].yards).
+ * Returns null if the doc looks like a legacy layout instead.
+ */
+function tryBuildOrgCourseFromDoc(d, courseKey) {
+  if (!d || typeof d !== "object") return null;
+  const holesRaw = Array.isArray(d.holes) ? d.holes : null;
+  if (!holesRaw || holesRaw.length < 1) return null;
+
+  const byHole = new Map();
+  for (const h of holesRaw) {
+    const hn = Number(h.hole);
+    if (!Number.isFinite(hn) || hn < 1 || hn > 18) continue;
+    byHole.set(hn, h);
+  }
+  if (byHole.size < 1) return null;
+
+  let teeSets = Array.isArray(d.teeSets)
+    ? d.teeSets.map((x) => String(x).trim()).filter(Boolean)
+    : [];
+  if (!teeSets.length) {
+    const y1 = byHole.get(1)?.yards;
+    if (y1 && typeof y1 === "object") teeSets = Object.keys(y1);
+  }
+  if (!teeSets.length) return null;
+
+  const parArr = [];
+  const hcpArr = [];
+  for (let i = 1; i <= 18; i++) {
+    const h = byHole.get(i);
+    const p = h && h.par != null ? Number(h.par) : NaN;
+    parArr.push(Number.isFinite(p) && p > 0 ? p : 4);
+    const hp =
+      h && (h.handicap != null || h.hcp != null)
+        ? Number(h.handicap != null ? h.handicap : h.hcp)
+        : i;
+    hcpArr.push(Number.isFinite(hp) && hp > 0 ? hp : i);
+  }
+  const parFront = parArr.slice(0, 9);
+  const parBack = parArr.slice(9, 18);
+  const hcpFront = hcpArr.slice(0, 9);
+  const hcpBack = hcpArr.slice(9, 18);
+
+  const teeRows = teeSets.map((label, i) => {
+    const front = [];
+    const back = [];
+    for (let hn = 1; hn <= 9; hn++) {
+      const y = byHole.get(hn)?.yards?.[label];
+      const n = y != null ? Number(y) : NaN;
+      front.push(Number.isFinite(n) && n >= 0 ? n : -1);
+    }
+    for (let hn = 10; hn <= 18; hn++) {
+      const y = byHole.get(hn)?.yards?.[label];
+      const n = y != null ? Number(y) : NaN;
+      back.push(Number.isFinite(n) && n >= 0 ? n : -1);
+    }
+    const out = front.every((x) => x < 0) ? -1 : sumYardsNonNegative(front);
+    const inn = back.every((x) => x < 0) ? -1 : sumYardsNonNegative(back);
+    const tot = out < 0 && inn < 0 ? -1 : (out < 0 ? 0 : out) + (inn < 0 ? 0 : inn);
+    return {
+      css: ORG_TEE_ROW_CSS[i % ORG_TEE_ROW_CSS.length],
+      label: label || `Tee ${i + 1}`,
+      front,
+      out,
+      back,
+      inn,
+      tot,
+    };
+  });
+
+  const last = teeRows[teeRows.length - 1];
+  const bottomRow = {
+    css: "row-copper",
+    label: `${last.label} · Total`,
+    front: last.front.slice(),
+    out: last.out,
+    back: last.back.slice(),
+    inn: last.inn,
+    tot: last.tot,
+  };
+
+  const title = String(d.name || "Course").trim() || "Course";
+  const headerImg = (() => {
+    const h = String(d.headerImageUrl || "").trim();
+    if (h) return h;
+    const l = String(d.logoUrl || "").trim();
+    if (l) return l;
+    return "./assets/cypresswood_header.png";
+  })();
+
+  return {
+    id: String(courseKey),
+    title,
+    headerImg,
+    teeRows,
+    parFront,
+    parBack,
+    hcpFront,
+    hcpBack,
+    bottomRow,
+    extraRow: undefined,
+  };
+}
+
 function courseFromFirestoreData(d, courseKey) {
   const base = COURSES[courseKey];
   if (!d || typeof d !== "object") return base || null;
@@ -2008,13 +2119,107 @@ async function loadCourseFromFirestoreOrBuiltIn(orgId, courseKey) {
   try {
     const snap = await getDoc(courseDocRef(db, orgId, courseKey));
     if (snap.exists()) {
-      const c = courseFromFirestoreData(snap.data(), courseKey);
+      const d = snap.data() || {};
+      const fromOrg = tryBuildOrgCourseFromDoc(d, courseKey);
+      if (fromOrg) return fromOrg;
+      const c = courseFromFirestoreData(d, courseKey);
       if (c) return c;
     }
   } catch (e) {
     console.warn("Course doc:", e);
   }
   return COURSES[courseKey] || null;
+}
+
+/** Tournament: set currentCourseId + #courseSelect from tournament doc (built-ins vs org Firestore course). */
+function syncCourseSelectOptions() {
+  if (!courseSelect) return;
+  const id = currentCourseId;
+  const c = COURSES[id];
+  if (!c) {
+    courseSelect.innerHTML =
+      `<option value="tradition">Tradition</option><option value="cypress">Cypress</option>`;
+    courseSelect.value = "tradition";
+    return;
+  }
+  if (id === "tradition" || id === "cypress") {
+    courseSelect.innerHTML =
+      `<option value="tradition">Tradition</option><option value="cypress">Cypress</option>`;
+    courseSelect.value = id;
+    return;
+  }
+  courseSelect.innerHTML = "";
+  const o = document.createElement("option");
+  o.value = id;
+  o.textContent = c.title || id;
+  courseSelect.appendChild(o);
+  courseSelect.value = id;
+}
+
+async function applyTournamentCourseSelection(t, orgIdForCourse) {
+  const explicit = String(t.courseId || "").trim();
+  if (explicit) {
+    const canon = explicit.toLowerCase();
+    if (canon === "tradition" || canon === "cypress") {
+      currentCourseId = canon;
+      syncCourseSelectOptions();
+      return;
+    }
+    if (!orgIdForCourse || !db) {
+      currentCourseId = "tradition";
+      syncCourseSelectOptions();
+      return;
+    }
+    try {
+      const loaded = await loadCourseFromFirestoreOrBuiltIn(orgIdForCourse, explicit);
+      if (loaded) {
+        COURSES[explicit] = loaded;
+        currentCourseId = explicit;
+      } else {
+        console.warn("[scorecard] Firestore course not found for courseId:", explicit);
+        currentCourseId = "tradition";
+      }
+    } catch (e) {
+      console.warn("[scorecard] org course load error:", e);
+      currentCourseId = "tradition";
+    }
+    syncCourseSelectOptions();
+    return;
+  }
+
+  const raw = String(t.defaultCourse || t.courseDefault || "tradition").trim();
+  const keyLower = raw.toLowerCase();
+
+  if (keyLower === "tradition" || keyLower === "cypress") {
+    currentCourseId = keyLower;
+    syncCourseSelectOptions();
+    return;
+  }
+
+  if (!orgIdForCourse || !db) {
+    currentCourseId = COURSES[keyLower] ? keyLower : "tradition";
+    syncCourseSelectOptions();
+    return;
+  }
+
+  try {
+    let loaded = await loadCourseFromFirestoreOrBuiltIn(orgIdForCourse, raw);
+    if (!loaded && raw !== keyLower) {
+      loaded = await loadCourseFromFirestoreOrBuiltIn(orgIdForCourse, keyLower);
+    }
+    if (loaded) {
+      const storeKey = raw || keyLower;
+      COURSES[storeKey] = loaded;
+      currentCourseId = storeKey;
+    } else {
+      console.warn("[scorecard] org course missing or invalid, using Tradition:", raw);
+      currentCourseId = "tradition";
+    }
+  } catch (e) {
+    console.warn("[scorecard] org course load error:", e);
+    currentCourseId = "tradition";
+  }
+  syncCourseSelectOptions();
 }
 
 function casualRoundLocalKey(orgId, cid) {
@@ -2244,6 +2449,16 @@ function wireInputs(){
   courseSelect.value = currentCourseId;
   setCourseHeader(currentCourseId);
 
+  if (courseHint) {
+    if (isCasualMode) {
+      courseHint.textContent = "Swipe to scroll yardages and scores.";
+    } else if (currentCourseId !== "tradition" && currentCourseId !== "cypress") {
+      courseHint.textContent = "Swipe to scroll. This tournament uses your organization course.";
+    } else {
+      courseHint.textContent = "Swipe left/right here to switch courses";
+    }
+  }
+
   hintLine.textContent = isCasualMode
     ? "Casual round — swipe to scroll, tap to enter scores. Out/In/Tot auto-calc. Your progress syncs to this device."
     : tournamentFormat === "scramble"
@@ -2315,6 +2530,8 @@ swipeZone.addEventListener("touchend", (e) => {
 
   if (isTournamentMode && !joinCompleted) return;
   if (roundFinished) return;
+
+  if (currentCourseId !== "tradition" && currentCourseId !== "cypress") return;
 
   if (dx < 0) setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
   else        setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
@@ -2392,8 +2609,20 @@ function normalizeRegistration(r){
     handicapPercent: Number(r.handicapPercent || 100) || 100,
     assignedHole: String(r.assignedHole || r.startHole || "").trim().toUpperCase(),
     status: String(r.status || "assigned").trim().toLowerCase(),
-    courseId: String(r.courseId || "").trim().toLowerCase()
+    courseId: String(r.courseId || "").trim()
   };
+}
+
+/** Match registration courseId to a loaded COURSES key (exact Firestore id or case-insensitive). */
+function applyRegistrationCourseId(regCourseId) {
+  const rid = String(regCourseId || "").trim();
+  if (!rid) return;
+  if (COURSES[rid]) {
+    currentCourseId = rid;
+    return;
+  }
+  const hit = Object.keys(COURSES).find((k) => k.toLowerCase() === rid.toLowerCase());
+  if (hit) currentCourseId = hit;
 }
 
 async function fetchRegistrationById(registrationId){
@@ -2439,9 +2668,7 @@ async function autoStartFromRegistration(reg){
   joinMate5.value = rosterNames[5] || "";
   joinStartHole.value = reg.assignedHole || "";
 
-  if (COURSES[reg.courseId]) {
-    currentCourseId = reg.courseId;
-  }
+  applyRegistrationCourseId(reg.courseId);
 
   joinCompleted = true;
   roundFinished = false;
@@ -2567,7 +2794,7 @@ function applyRegistrationSelection(reg){
   joinMate5.value = rosterNames[5] || "";
   joinStartHole.value = reg.assignedHole || "";
   startHoleSelected = reg.assignedHole || "";
-  currentCourseId = COURSES[reg.courseId] ? reg.courseId : currentCourseId;
+  applyRegistrationCourseId(reg.courseId);
 
   setPlayerRowNames(rosterNames);
   build();
@@ -2962,8 +3189,7 @@ if (savedTeamId && !incomingRegistrationId) {
       playersCount = formatToPlayersCount(tournamentFormat);
       tournamentEntryMode = String(t.entryMode || "team_rep").trim().toLowerCase();
 
-      const courseDefault = String(t.defaultCourse || t.courseDefault || "tradition").trim().toLowerCase();
-      currentCourseId = COURSES[courseDefault] ? courseDefault : "tradition";
+      await applyTournamentCourseSelection(t, organizationId);
 
       tournamentSideGames = normalizeTournamentSideGames(t.sideGames || {});
 

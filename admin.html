@@ -865,13 +865,35 @@
     wrap.classList.toggle("hidden", !is9);
   }
 
+  function getDefaultCourseSelectionMeta() {
+    const sel = $("defaultCourse");
+    if (!sel) {
+      return { courseId: "tradition", courseName: "Tradition", defaultCourse: "Tradition" };
+    }
+    const opt = sel.options[sel.selectedIndex];
+    const val = String(sel.value || "").trim();
+    const label = opt ? String(opt.textContent || "").trim() : val;
+    const lower = val.toLowerCase();
+    if (lower === "tradition") {
+      return { courseId: "tradition", courseName: label || "Tradition", defaultCourse: val };
+    }
+    if (lower === "cypress") {
+      return { courseId: "cypress", courseName: label || "Cypress", defaultCourse: val };
+    }
+    return { courseId: val, courseName: label || val, defaultCourse: val };
+  }
+
   function collectForm(){
     const handicapScoringValue = String($("handicapEnabled").value || "off").toLowerCase();
     const handicapOn = handicapScoringValue === "on";
 
+    const courseMeta = getDefaultCourseSelectionMeta();
+
     return {
       tournamentName: $("tournamentName").value.trim(),
-      defaultCourse: $("defaultCourse").value,
+      defaultCourse: courseMeta.defaultCourse,
+      courseId: courseMeta.courseId,
+      courseName: courseMeta.courseName,
       formatOfPlay: $("formatOfPlay").value,
       roundHoles: $("roundHoles") ? $("roundHoles").value : "18",
       nineSide: $("nineSide") ? $("nineSide").value : "front",
@@ -995,8 +1017,17 @@
         tournamentName: data.tournamentName,
         name: data.tournamentName,
 
+        courseId: String(data.courseId || "").trim(),
+        courseName: String(data.courseName || "").trim(),
+
         defaultCourse: data.defaultCourse,
-        courseDefault: String(data.defaultCourse || "").trim().toLowerCase(),
+        courseDefault: (() => {
+          const id = String(data.courseId || data.defaultCourse || "").trim();
+          if (!id) return "tradition";
+          const l = id.toLowerCase();
+          if (l === "tradition" || l === "cypress") return l;
+          return id;
+        })(),
 
         formatOfPlay: data.formatOfPlay,
         format: data.formatOfPlay,
@@ -1154,10 +1185,25 @@
   }
 
   /**
-   * Sets Default Course from tournament data. Built-ins Tradition/Cypress vs org course id.
-   * Prefers defaultCourse; falls back to courseDefault (may be lowercased in Firestore).
+   * Sets Default Course from tournament data. Prefers courseId (Firestore doc id), then legacy fields.
    */
   function setDefaultCourseFromFormData(data) {
+    const cid = String(data.courseId || "").trim();
+    if (cid) {
+      const lower = cid.toLowerCase();
+      if (lower === "tradition") {
+        restoreBuiltinDefaultCourseOptions();
+        $("defaultCourse").value = "Tradition";
+        return;
+      }
+      if (lower === "cypress") {
+        restoreBuiltinDefaultCourseOptions();
+        $("defaultCourse").value = "Cypress";
+        return;
+      }
+      applyOrgCourseAsDefaultSelect(cid, String(data.courseName || cid).trim() || cid);
+      return;
+    }
     const raw =
       data.defaultCourse != null && String(data.defaultCourse).trim() !== ""
         ? data.defaultCourse
@@ -1178,7 +1224,7 @@
       restoreBuiltinDefaultCourseOptions();
       $("defaultCourse").value = "Cypress";
     } else {
-      applyOrgCourseAsDefaultSelect(trimmed, trimmed);
+      applyOrgCourseAsDefaultSelect(trimmed, String(data.courseName || trimmed).trim() || trimmed);
     }
   }
 
