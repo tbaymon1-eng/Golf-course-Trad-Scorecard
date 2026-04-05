@@ -38,9 +38,6 @@
     .empty .btn { margin-top: 12px; }
     .section-heading { font-family: Cinzel, serif; font-size: 1.12rem; margin: 0 0 12px; color: var(--blue); }
     .section-heading--spaced { margin-top: 28px; }
-    .course-slug { font-size: 0.82rem; color: #5f5851; margin: 4px 0 8px; word-break: break-all; }
-    .course-web { font-size: 0.9rem; margin-bottom: 10px; }
-    .course-web a { color: var(--blue); font-weight: 800; }
     .err { color: var(--red); font-weight: 700; min-height: 0; }
     .err:empty { display: none; }
     .platform-admin-bar {
@@ -220,26 +217,6 @@
       titleRow.appendChild(h2);
       div.appendChild(titleRow);
 
-      if (row.slug) {
-        const slugEl = document.createElement("div");
-        slugEl.className = "course-slug";
-        slugEl.textContent = `Slug: ${row.slug}`;
-        div.appendChild(slugEl);
-      }
-
-      const website = String(row.website || "").trim();
-      if (website) {
-        const web = document.createElement("div");
-        web.className = "course-web";
-        const a = document.createElement("a");
-        a.href = website.startsWith("http") ? website : `https://${website}`;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        a.textContent = website;
-        web.appendChild(a);
-        div.appendChild(web);
-      }
-
       const actions = document.createElement("div");
       actions.className = "card-actions";
       const cid = encodeURIComponent(row.id);
@@ -278,7 +255,7 @@
       const rows = [];
       snap.forEach((d) => {
         const t = d.data() || {};
-        rows.push({ id: d.id, name: t.name, slug: t.slug, website: t.website });
+        rows.push({ id: d.id, name: t.name });
       });
       rows.sort((a, b) => String(a.name || a.id).localeCompare(String(b.name || b.id)));
 

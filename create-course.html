@@ -81,7 +81,8 @@
       font-size: 0.92rem;
     }
     input[type="text"],
-    input[type="url"] {
+    input[type="url"],
+    input[type="file"] {
       width: 100%;
       padding: 12px 14px;
       border-radius: 14px;
@@ -90,6 +91,28 @@
       margin-bottom: 12px;
       font-family: inherit;
       background: rgba(255, 255, 255, 0.65);
+    }
+    input[type="file"] {
+      font-size: 0.92rem;
+      padding: 10px 12px;
+    }
+    .logo-preview {
+      margin: 0 0 12px;
+    }
+    .logo-preview img {
+      display: block;
+      max-height: 72px;
+      max-width: 100%;
+      border-radius: 10px;
+      border: 2px solid rgba(154, 98, 23, 0.35);
+      object-fit: contain;
+    }
+    .logo-file-info {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-weight: 600;
+      margin: -4px 0 10px;
+      min-height: 1.2em;
     }
     input:focus {
       outline: 2px solid rgba(18, 53, 111, 0.35);
@@ -222,8 +245,8 @@
 </head>
 <body>
   <header class="page-header">
-    <h1>Add your first course</h1>
-    <p>Saved to your organization. You can add tournaments and details later in the admin.</p>
+    <h1 id="pageHeading">Add your first course</h1>
+    <p id="pageSub">Saved to your organization. You can add tournaments and details later in the admin.</p>
   </header>
 
   <form id="form" class="stack-form" autocomplete="on">
@@ -242,8 +265,16 @@
 
     <section class="section" aria-labelledby="brand-heading">
       <h2 class="section-title" id="brand-heading">Branding</h2>
+      <label for="logoFile">Course logo (optional)</label>
+      <div class="hint">Upload a PNG or JPEG. If you choose a file, it is used instead of the URL below.</div>
+      <input id="logoFile" type="file" accept="image/png,image/jpeg" />
+      <div class="logo-file-info" id="logoFileInfo" aria-live="polite"></div>
+      <div class="logo-preview" id="logoPreviewWrap" hidden>
+        <img id="logoPreviewImg" alt="Logo preview" />
+      </div>
+
       <label for="logoUrl">Logo URL (optional)</label>
-      <div class="hint">HTTPS link to a PNG or SVG hosted online.</div>
+      <div class="hint">Or paste an HTTPS link to a logo hosted online.</div>
       <input id="logoUrl" type="url" inputmode="url" placeholder="https://..." />
 
       <label for="primaryColor">Primary color (optional)</label>
@@ -282,18 +313,23 @@
     import {
       getFirestore,
       doc,
+      getDoc,
       getDocs,
       setDoc,
+      updateDoc,
+      deleteField,
       serverTimestamp,
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
     import { firebaseConfig } from "./js/firebase-config.js";
-    import { orgCoursesCollection } from "./js/org-paths.js";
+    import { orgCoursesCollection, courseDocRef } from "./js/org-paths.js";
     import { resolveOrganizerOrgId } from "./js/resolve-organizer-org.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     const $ = (id) => document.getElementById(id);
     const form = $("form");
@@ -303,8 +339,48 @@
     const toggleHoleBuilder = $("toggleHoleBuilder");
     const holeBuilderPanel = $("holeBuilderPanel");
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const editCourseId = (urlParams.get("courseId") || "").trim();
+    const isEditMode = Boolean(editCourseId);
+
     let orgId = "";
     let ready = false;
+
+    function applyEditModeChrome() {
+      document.title = "Edit course";
+      $("pageHeading").textContent = "Edit course";
+      $("pageSub").textContent = "Update course details for your organization.";
+      submitBtn.textContent = "Save changes";
+      skipLink.textContent = "Back to dashboard";
+    }
+
+    if (isEditMode) {
+      applyEditModeChrome();
+    }
+
+    let logoPreviewObjectUrl = null;
+    const logoFileInput = $("logoFile");
+    const logoPreviewWrap = $("logoPreviewWrap");
+    const logoPreviewImg = $("logoPreviewImg");
+    const logoFileInfo = $("logoFileInfo");
+
+    logoFileInput.addEventListener("change", () => {
+      if (logoPreviewObjectUrl) {
+        URL.revokeObjectURL(logoPreviewObjectUrl);
+        logoPreviewObjectUrl = null;
+      }
+      const f = logoFileInput.files?.[0];
+      if (!f) {
+        logoFileInfo.textContent = "";
+        logoPreviewWrap.hidden = true;
+        logoPreviewImg.removeAttribute("src");
+        return;
+      }
+      logoFileInfo.textContent = `Selected: ${f.name}`;
+      logoPreviewObjectUrl = URL.createObjectURL(f);
+      logoPreviewImg.src = logoPreviewObjectUrl;
+      logoPreviewWrap.hidden = false;
+    });
 
     function safeText(v) {
       return String(v || "").trim();
@@ -446,6 +522,49 @@
       holesTable.appendChild(scroll);
     }
 
+    function fillHoleInputsFromDoc(tees, holesArray) {
+      const byHole = new Map();
+      for (const ho of holesArray || []) {
+        const hn = Number(ho.hole);
+        if (Number.isFinite(hn) && hn >= 1 && hn <= 18) byHole.set(hn, ho);
+      }
+      for (let h = 1; h <= 18; h++) {
+        const ho = byHole.get(h);
+        if (!ho) continue;
+        const parEl = $(`par_${h}`);
+        const hcpEl = $(`hcp_${h}`);
+        if (parEl != null && ho.par != null) parEl.value = String(ho.par);
+        if (hcpEl != null && ho.handicap != null) hcpEl.value = String(ho.handicap);
+        const yd = ho.yards && typeof ho.yards === "object" ? ho.yards : {};
+        tees.forEach((teeName, ti) => {
+          const y = yd[teeName];
+          const el = $(`yard_${ti}_${h}`);
+          if (el != null && y != null && Number.isFinite(Number(y))) el.value = String(y);
+        });
+      }
+    }
+
+    function prefillFormFromCourseData(data) {
+      if (!data || typeof data !== "object") return;
+      $("courseName").value = safeText(data.name);
+      $("logoUrl").value = safeText(data.logoUrl);
+      $("primaryColor").value = safeText(data.primaryColor);
+      $("website").value = safeText(data.website);
+      let teeSets = Array.isArray(data.teeSets)
+        ? data.teeSets.map((x) => String(x).trim()).filter(Boolean)
+        : [];
+      if (!teeSets.length && Array.isArray(data.holes) && data.holes.length) {
+        const y0 = data.holes[0].yards;
+        if (y0 && typeof y0 === "object") teeSets = Object.keys(y0);
+      }
+      $("teeBoxNames").value = teeSets.join(", ");
+      holeBuilderPanel.hidden = false;
+      toggleHoleBuilder.textContent = "Hide Hole Builder";
+      toggleHoleBuilder.setAttribute("aria-expanded", "true");
+      rebuildHoleGrid();
+      fillHoleInputsFromDoc(teeSets, data.holes);
+    }
+
     toggleHoleBuilder.addEventListener("click", () => {
       const open = holeBuilderPanel.hidden;
       holeBuilderPanel.hidden = !open;
@@ -457,7 +576,10 @@
     onAuthStateChanged(auth, async (user) => {
       errEl.textContent = "";
       if (!user) {
-        window.location.href = "./login.html?next=" + encodeURIComponent("./create-course.html");
+        const nextPath = isEditMode
+          ? `./create-course.html?courseId=${encodeURIComponent(editCourseId)}`
+          : "./create-course.html";
+        window.location.href = "./login.html?next=" + encodeURIComponent(nextPath);
         return;
       }
 
@@ -480,20 +602,48 @@
         return;
       }
 
-      try {
-        const coursesSnap = await getDocs(orgCoursesCollection(db, orgId));
-        if (!coursesSnap.empty) {
-          window.location.href = "./dashboard.html";
+      if (!isEditMode) {
+        try {
+          const coursesSnap = await getDocs(orgCoursesCollection(db, orgId));
+          if (!coursesSnap.empty) {
+            window.location.href = "./dashboard.html";
+            return;
+          }
+        } catch (e) {
+          console.error(e);
+          errEl.textContent = e?.message || "Could not check existing courses.";
           return;
         }
-      } catch (e) {
-        console.error(e);
-        errEl.textContent = e?.message || "Could not check existing courses.";
-        return;
+      } else {
+        try {
+          const courseRef = courseDocRef(db, orgId, editCourseId);
+          const courseSnap = await getDoc(courseRef);
+          const snapOk =
+            typeof courseSnap.exists === "function" ? courseSnap.exists() : !!courseSnap.exists;
+          if (!snapOk) {
+            errEl.textContent =
+              "We couldn’t find that course. It may have been removed, or the link is out of date.";
+            form.style.display = "none";
+            skipLink.style.display = "block";
+            skipLink.href = "./dashboard.html";
+            skipLink.textContent = "Back to dashboard";
+            return;
+          }
+          prefillFormFromCourseData(courseSnap.data());
+        } catch (e) {
+          console.error(e);
+          errEl.textContent =
+            e?.message || "Could not load this course. Try again from the dashboard.";
+          form.style.display = "none";
+          skipLink.style.display = "block";
+          skipLink.href = "./dashboard.html";
+          skipLink.textContent = "Back to dashboard";
+          return;
+        }
       }
 
       ready = true;
-      console.log("[create-course] after org resolution", { orgId, ready });
+      console.log("[create-course] after org resolution", { orgId, ready, isEditMode });
     });
 
     skipLink.addEventListener("click", (e) => {
@@ -520,11 +670,12 @@
       const slugInput = safeText($("courseSlug")?.value);
       const slug = slugInput ? slugifyName(slugInput) : slugifyName(courseName);
       if (!slug) {
-        errEl.textContent = "Could not build a valid slug from the course name or slug field.";
+        errEl.textContent = "Could not derive a valid identifier from the course name. Try adjusting the name.";
         return;
       }
 
-      const logoUrl = safeText($("logoUrl").value);
+      let logoUrl = safeText($("logoUrl").value);
+      const logoFile = logoFileInput.files?.[0];
       const primaryColor = safeText($("primaryColor").value);
       const website = safeText($("website").value);
       const teeSets = parseTeeNames($("teeBoxNames")?.value || "");
@@ -532,21 +683,56 @@
 
       submitBtn.disabled = true;
       try {
-        const newRef = doc(orgCoursesCollection(db, orgId));
-        const payload = {
-          name: courseName,
-          slug,
-          teeSets,
-          holes,
-          createdAt: serverTimestamp(),
-        };
-        if (logoUrl) payload.logoUrl = logoUrl;
-        if (primaryColor) payload.primaryColor = primaryColor;
-        if (website) payload.website = website;
+        if (logoFile) {
+          const safeBase =
+            String(logoFile.name || "logo")
+              .replace(/[^a-zA-Z0-9._-]/g, "_")
+              .slice(0, 120) || "logo";
+          const path = `org-logos/${orgId}/${Date.now()}_${safeBase}`;
+          const storageRef = ref(storage, path);
+          const ct =
+            logoFile.type === "image/png" || logoFile.type === "image/jpeg"
+              ? logoFile.type
+              : "image/jpeg";
+          await uploadBytes(storageRef, logoFile, { contentType: ct });
+          logoUrl = await getDownloadURL(storageRef);
+        }
 
-        console.log("[create-course] before setDoc", { refPath: newRef.path });
-        await setDoc(newRef, payload);
-        console.log("[create-course] after setDoc");
+        if (isEditMode) {
+          const courseRef = courseDocRef(db, orgId, editCourseId);
+          const patch = {
+            name: courseName,
+            slug,
+            teeSets,
+            holes,
+            updatedAt: serverTimestamp(),
+          };
+          if (logoUrl) patch.logoUrl = logoUrl;
+          else patch.logoUrl = deleteField();
+          if (primaryColor) patch.primaryColor = primaryColor;
+          else patch.primaryColor = deleteField();
+          if (website) patch.website = website;
+          else patch.website = deleteField();
+          console.log("[create-course] before updateDoc", { refPath: courseRef.path });
+          await updateDoc(courseRef, patch);
+          console.log("[create-course] after updateDoc");
+        } else {
+          const newRef = doc(orgCoursesCollection(db, orgId));
+          const payload = {
+            name: courseName,
+            slug,
+            teeSets,
+            holes,
+            createdAt: serverTimestamp(),
+          };
+          if (logoUrl) payload.logoUrl = logoUrl;
+          if (primaryColor) payload.primaryColor = primaryColor;
+          if (website) payload.website = website;
+
+          console.log("[create-course] before setDoc", { refPath: newRef.path });
+          await setDoc(newRef, payload);
+          console.log("[create-course] after setDoc");
+        }
         console.log("[create-course] before redirect");
         window.location.href = "./dashboard.html";
       } catch (e2) {
