@@ -9,7 +9,10 @@
  */
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
+
+const openaiApiKey = defineSecret("OPENAI_API_KEY");
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -689,6 +692,245 @@ async function deleteCollectionInBatches(collectionRef) {
     more = snap.size === 500;
   }
 }
+
+/** Fetch image bytes and build a data URL for OpenAI vision (avoids hotlink issues). */
+async function fetchImageAsDataUrl(imageUrl) {
+  const res = await fetch(imageUrl, {
+    redirect: "follow",
+    signal: AbortSignal.timeout(90000),
+  });
+  if (!res.ok) {
+    throw new Error(`Image fetch failed: HTTP ${res.status}`);
+  }
+  const rawCt = res.headers.get("content-type") || "";
+  const ct = rawCt.split(";")[0].trim().toLowerCase() || "image/jpeg";
+  const buf = Buffer.from(await res.arrayBuffer());
+  if (buf.length > 20 * 1024 * 1024) {
+    throw new Error("Image too large (max 20 MB)");
+  }
+  const b64 = buf.toString("base64");
+  return { dataUrl: `data:${ct};base64,${b64}`, contentType: ct };
+}
+
+function parseJsonFromModelContent(raw) {
+  let s = String(raw || "").trim();
+  const fence = s.match(/^```(?:json)?\s*([\s\S]*?)```$/im);
+  if (fence) {
+    s = fence[1].trim();
+  }
+  return JSON.parse(s);
+}
+
+/**
+ * Validates extracted shape: 18 holes, pars, tee keys match yard columns per hole.
+ * @returns {{ ok: true, courseName: string, teeSets: string[], holes: object[] } | { ok: false }}
+ */
+function validateExtractedScorecard(parsed) {
+  if (!parsed || typeof parsed !== "object") return { ok: false };
+  const courseName = safeText(parsed.courseName);
+  const teeSetsRaw = Array.isArray(parsed.teeSets) ? parsed.teeSets : [];
+  const teeSets = teeSetsRaw.map((t) => String(t).trim()).filter(Boolean);
+  if (teeSets.length < 1) return { ok: false };
+
+  const holesRaw = Array.isArray(parsed.holes) ? parsed.holes : [];
+  if (holesRaw.length !== 18) return { ok: false };
+
+  const byHole = new Map();
+  for (const h of holesRaw) {
+    if (!h || typeof h !== "object") return { ok: false };
+    const hn = Number(h.hole);
+    if (!Number.isFinite(hn) || hn < 1 || hn > 18) return { ok: false };
+    const par = Number(h.par);
+    if (!Number.isFinite(par)) return { ok: false };
+    const handicap = Number(h.handicap);
+    if (!Number.isFinite(handicap)) return { ok: false };
+    if (!h.yards || typeof h.yards !== "object") return { ok: false };
+
+    for (const teeName of teeSets) {
+      if (!(teeName in h.yards)) return { ok: false };
+      const y = Number(h.yards[teeName]);
+      if (!Number.isFinite(y) || y < 0) return { ok: false };
+    }
+    const yardKeys = Object.keys(h.yards);
+    if (yardKeys.length !== teeSets.length) return { ok: false };
+    for (const k of yardKeys) {
+      if (!teeSets.includes(k)) return { ok: false };
+    }
+
+    byHole.set(hn, {
+      hole: hn,
+      par: Math.round(par),
+      handicap: Math.round(handicap),
+      yards: teeSets.reduce((acc, name) => {
+        acc[name] = Math.round(Number(h.yards[name]));
+        return acc;
+      }, {}),
+    });
+  }
+
+  if (byHole.size !== 18) return { ok: false };
+  const holes = [];
+  for (let n = 1; n <= 18; n++) {
+    if (!byHole.has(n)) return { ok: false };
+    holes.push(byHole.get(n));
+  }
+
+  return { ok: true, courseName, teeSets, holes };
+}
+
+const SCORECARD_EXTRACTION_PROMPT = `You are a golf scorecard digitization assistant. Read the scorecard image and extract all visible tabular data.
+
+Return ONLY a single JSON object (no markdown fences, no commentary before or after) with this exact structure:
+{
+  "courseName": "",
+  "teeSets": ["Black", "Blue", "White"],
+  "holes": [
+    {
+      "hole": 1,
+      "par": 4,
+      "handicap": 10,
+      "yards": {
+        "Black": 420,
+        "Blue": 390,
+        "White": 350
+      }
+    }
+  ]
+}
+
+Strict rules:
+- "holes" must contain exactly 18 objects, one for each hole number 1 through 18 (include front and back nine).
+- Every hole must have a numeric "par".
+- Every hole must have a numeric "handicap" (stroke index / handicap ranking as shown on the card).
+- "teeSets" lists tee names left-to-right or in column order as they appear for yardages.
+- For every hole, "yards" must include exactly one numeric yardage for each name in "teeSets", using the same keys as in "teeSets".
+- Do not omit holes. If a value is unreadable, estimate from context or use 0 only for yardage with a note in courseName — prefer leaving par/handicap as numbers you can infer.
+- Use integers for yards and par when shown as whole numbers.
+
+Output valid JSON only.`;
+
+async function callOpenAiVisionExtract(apiKey, dataUrl) {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      temperature: 0.1,
+      max_tokens: 8192,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: SCORECARD_EXTRACTION_PROMPT },
+            {
+              type: "image_url",
+              image_url: { url: dataUrl, detail: "high" },
+            },
+          ],
+        },
+      ],
+    }),
+    signal: AbortSignal.timeout(120000),
+  });
+
+  const bodyText = await res.text();
+  if (!res.ok) {
+    let errMsg = bodyText.slice(0, 500);
+    try {
+      const j = JSON.parse(bodyText);
+      errMsg = j.error?.message || errMsg;
+    } catch (_e) {
+      /* ignore */
+    }
+    throw new Error(`OpenAI API error: ${res.status} ${errMsg}`);
+  }
+
+  const body = JSON.parse(bodyText);
+  const content = body.choices?.[0]?.message?.content;
+  if (!content || typeof content !== "string") {
+    throw new Error("OpenAI returned no message content");
+  }
+  return parseJsonFromModelContent(content);
+}
+
+/**
+ * Callable: extract tee/hole data from a scorecard image URL via OpenAI Vision.
+ * Does not write Firestore. Client applies returned fields to the course builder only.
+ */
+exports.extractScorecardData = onCall(
+  {
+    region: "us-central1",
+    cors: true,
+    secrets: [openaiApiKey],
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in to extract scorecard data.");
+    }
+
+    const data = request.data || {};
+    const scorecardImageUrl = safeText(data.scorecardImageUrl);
+    if (!scorecardImageUrl) {
+      throw new HttpsError("invalid-argument", "scorecardImageUrl is required.");
+    }
+
+    const orgId = safeText(data.orgId);
+    const courseId = safeText(data.courseId);
+
+    if (orgId) {
+      const userSnap = await db.collection("users").doc(request.auth.uid).get();
+      const userData = userSnap.exists ? userSnap.data() || {} : {};
+      const userOrgId = safeText(userData.orgId || userData.organizationId);
+      const role = String(userData.role || "")
+        .trim()
+        .toLowerCase();
+      const isPlatformAdmin = role === "super_admin" || role === "support_admin";
+      if (userOrgId !== orgId && !isPlatformAdmin) {
+        throw new HttpsError(
+          "permission-denied",
+          "Organization does not match your signed-in account."
+        );
+      }
+    }
+
+    const apiKey = openaiApiKey.value();
+    if (!apiKey) {
+      return { error: true, message: "Could not extract scorecard" };
+    }
+
+    try {
+      const { dataUrl } = await fetchImageAsDataUrl(scorecardImageUrl);
+      const parsed = await callOpenAiVisionExtract(apiKey, dataUrl);
+      const validated = validateExtractedScorecard(parsed);
+      if (!validated.ok) {
+        return { error: true, message: "Could not extract scorecard" };
+      }
+
+      return {
+        courseName: validated.courseName,
+        teeSets: validated.teeSets,
+        holes: validated.holes,
+        notes: "Extracted with OpenAI Vision. Review all values before saving.",
+        warnings: [
+          "Automated extraction may contain errors. Compare each cell to the scorecard image.",
+        ],
+        incomplete: false,
+        meta: {
+          orgId: orgId || null,
+          courseId: courseId || null,
+          imageUrlLength: scorecardImageUrl.length,
+        },
+      };
+    } catch (e) {
+      console.error("[extractScorecardData]", e && e.message ? e.message : e);
+      return { error: true, message: "Could not extract scorecard" };
+    }
+  }
+);
 
 /**
  * Callable: permanently delete an org tournament and its registrations, submissions, and alerts.

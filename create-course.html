@@ -114,6 +114,72 @@
       margin: -4px 0 10px;
       min-height: 1.2em;
     }
+    .scorecard-existing,
+    .scorecard-preview {
+      margin: 0 0 12px;
+    }
+    .scorecard-existing img,
+    .scorecard-preview img {
+      display: block;
+      max-height: 220px;
+      max-width: 100%;
+      border-radius: 10px;
+      border: 2px solid rgba(154, 98, 23, 0.35);
+      object-fit: contain;
+      background: rgba(255, 255, 255, 0.4);
+    }
+    .btn-prefill {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 2px solid var(--line);
+      background: rgba(255, 255, 255, 0.55);
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: var(--blue);
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    .btn-prefill:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.85);
+    }
+    .btn-prefill:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .btn-prefill.is-loading {
+      opacity: 0.85;
+      pointer-events: none;
+    }
+    .extract-status {
+      font-size: 0.88rem;
+      margin-top: 10px;
+      line-height: 1.4;
+      min-height: 1.2em;
+      white-space: pre-line;
+    }
+    .extract-status--loading {
+      color: var(--blue);
+      font-weight: 700;
+    }
+    .extract-status--success {
+      color: var(--green);
+      font-weight: 700;
+    }
+    .extract-status--warn {
+      color: #7a4a0a;
+      font-weight: 600;
+    }
+    .extract-status--error {
+      color: #a32;
+      font-weight: 700;
+    }
+    .extract-status ul {
+      margin: 8px 0 0;
+      padding-left: 1.2em;
+      font-weight: 600;
+    }
     input:focus {
       outline: 2px solid rgba(18, 53, 111, 0.35);
       outline-offset: 1px;
@@ -285,6 +351,35 @@
       <input id="website" type="url" inputmode="url" placeholder="https://yourclub.com" />
     </section>
 
+    <section class="section" aria-labelledby="scorecard-upload-heading">
+      <h2 class="section-title" id="scorecard-upload-heading">Upload Scorecard</h2>
+      <p class="section-note">
+        Optional photo of a scorecard for reference while you enter tee and hole data below. This does not replace the manual builder.
+      </p>
+      <label for="scorecardFile">Scorecard image (optional)</label>
+      <div class="hint">PNG or JPEG. Saved to your organization for onboarding reference only.</div>
+      <input id="scorecardFile" type="file" accept="image/png,image/jpeg" />
+      <div class="logo-file-info" id="scorecardFileInfo" aria-live="polite"></div>
+      <div class="scorecard-existing" id="scorecardExistingWrap" hidden>
+        <div class="hint" style="margin-top: 8px">Saved scorecard</div>
+        <img id="scorecardExistingImg" alt="Saved scorecard reference" />
+      </div>
+      <div class="scorecard-preview" id="scorecardPreviewWrap" hidden>
+        <div class="hint" style="margin-top: 4px">New upload preview</div>
+        <img id="scorecardPreviewImg" alt="Scorecard preview" />
+      </div>
+      <button
+        type="button"
+        class="btn-prefill"
+        id="prefillFromScorecardBtn"
+        disabled
+        aria-busy="false"
+      >
+        Auto-fill from scorecard
+      </button>
+      <div id="extractStatus" class="extract-status" role="status" aria-live="polite"></div>
+    </section>
+
     <section class="section" aria-labelledby="holes-heading">
       <h2 class="section-title" id="holes-heading">Hole data</h2>
       <label for="teeBoxNames">Tee Box Names</label>
@@ -321,6 +416,7 @@
       serverTimestamp,
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
     import { firebaseConfig } from "./js/firebase-config.js";
     import { orgCoursesCollection, courseDocRef } from "./js/org-paths.js";
@@ -330,6 +426,8 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     const storage = getStorage(app);
+    const functions = getFunctions(app, "us-central1");
+    const extractScorecardDataCallable = httpsCallable(functions, "extractScorecardData");
 
     const $ = (id) => document.getElementById(id);
     const form = $("form");
@@ -345,6 +443,8 @@
 
     let orgId = "";
     let ready = false;
+    /** Preserved from Firestore in edit mode when not replacing with a new upload. */
+    let savedScorecardImageUrl = "";
 
     function applyEditModeChrome() {
       document.title = "Edit course";
@@ -380,6 +480,188 @@
       logoPreviewObjectUrl = URL.createObjectURL(f);
       logoPreviewImg.src = logoPreviewObjectUrl;
       logoPreviewWrap.hidden = false;
+    });
+
+    let scorecardPreviewObjectUrl = null;
+    const scorecardFileInput = $("scorecardFile");
+    const scorecardPreviewWrap = $("scorecardPreviewWrap");
+    const scorecardPreviewImg = $("scorecardPreviewImg");
+    const scorecardFileInfo = $("scorecardFileInfo");
+    const scorecardExistingWrap = $("scorecardExistingWrap");
+    const scorecardExistingImg = $("scorecardExistingImg");
+    const prefillFromScorecardBtn = $("prefillFromScorecardBtn");
+    const extractStatusEl = $("extractStatus");
+
+    function setExtractStatus(kind, mainText, extraLines = []) {
+      extractStatusEl.className = "extract-status" + (kind ? ` extract-status--${kind}` : "");
+      if (!mainText && !extraLines.length) {
+        extractStatusEl.textContent = "";
+        return;
+      }
+      const lines = [mainText, ...extraLines].filter(Boolean);
+      extractStatusEl.textContent = lines.join("\n");
+    }
+
+    function updatePrefillButtonState() {
+      if (!prefillFromScorecardBtn) return;
+      const hasFile = Boolean(scorecardFileInput.files?.[0]);
+      const hasSaved = Boolean(safeText(savedScorecardImageUrl));
+      prefillFromScorecardBtn.disabled = !(ready && orgId && (hasFile || hasSaved));
+    }
+
+    scorecardFileInput.addEventListener("change", () => {
+      if (scorecardPreviewObjectUrl) {
+        URL.revokeObjectURL(scorecardPreviewObjectUrl);
+        scorecardPreviewObjectUrl = null;
+      }
+      const f = scorecardFileInput.files?.[0];
+      if (!f) {
+        scorecardFileInfo.textContent = "";
+        scorecardPreviewWrap.hidden = true;
+        scorecardPreviewImg.removeAttribute("src");
+        if (savedScorecardImageUrl) {
+          scorecardExistingImg.src = savedScorecardImageUrl;
+          scorecardExistingWrap.hidden = false;
+        }
+        setExtractStatus("", "");
+        updatePrefillButtonState();
+        return;
+      }
+      scorecardFileInfo.textContent = `Selected: ${f.name}`;
+      scorecardPreviewObjectUrl = URL.createObjectURL(f);
+      scorecardPreviewImg.src = scorecardPreviewObjectUrl;
+      scorecardPreviewWrap.hidden = false;
+      scorecardExistingWrap.hidden = true;
+      updatePrefillButtonState();
+    });
+
+    async function uploadPendingScorecardFileToDownloadUrl() {
+      const f = scorecardFileInput.files?.[0];
+      if (!f || !orgId) return null;
+      const safeSc =
+        String(f.name || "scorecard")
+          .replace(/[^a-zA-Z0-9._-]/g, "_")
+          .slice(0, 120) || "scorecard";
+      const scPath = `org-scorecards/${orgId}/${Date.now()}_${safeSc}`;
+      const scRef = ref(storage, scPath);
+      const scCt =
+        f.type === "image/png" || f.type === "image/jpeg" ? f.type : "image/jpeg";
+      await uploadBytes(scRef, f, { contentType: scCt });
+      const url = await getDownloadURL(scRef);
+      console.log("[create-course] scorecard upload for extraction OK", { path: scPath });
+      return url;
+    }
+
+    function applyExtractedDataToForm(payload) {
+      if (!payload || typeof payload !== "object") return;
+      if (payload.error === true) return;
+      const cn = safeText(payload.courseName);
+      if (cn) $("courseName").value = cn;
+
+      let teeSets = Array.isArray(payload.teeSets)
+        ? payload.teeSets.map((x) => String(x).trim()).filter(Boolean)
+        : [];
+      if (!teeSets.length && Array.isArray(payload.holes) && payload.holes.length) {
+        const y0 = payload.holes[0].yards;
+        if (y0 && typeof y0 === "object") teeSets = Object.keys(y0);
+      }
+      $("teeBoxNames").value = teeSets.join(", ");
+      holeBuilderPanel.hidden = false;
+      toggleHoleBuilder.textContent = "Hide Hole Builder";
+      toggleHoleBuilder.setAttribute("aria-expanded", "true");
+      rebuildHoleGrid();
+      fillHoleInputsFromDoc(teeSets, payload.holes);
+    }
+
+    const PREFILL_BTN_DEFAULT = "Auto-fill from scorecard";
+    const PREFILL_BTN_LOADING = "Extracting…";
+
+    prefillFromScorecardBtn.addEventListener("click", async () => {
+      if (!ready || !orgId || prefillFromScorecardBtn.disabled) return;
+      errEl.textContent = "";
+      setExtractStatus("loading", "Extracting data from scorecard…");
+      prefillFromScorecardBtn.disabled = true;
+      prefillFromScorecardBtn.classList.add("is-loading");
+      prefillFromScorecardBtn.setAttribute("aria-busy", "true");
+      prefillFromScorecardBtn.textContent = PREFILL_BTN_LOADING;
+      try {
+        let imageUrl = "";
+        const uploaded = await uploadPendingScorecardFileToDownloadUrl();
+        if (uploaded) imageUrl = uploaded;
+        else if (savedScorecardImageUrl) {
+          imageUrl = savedScorecardImageUrl;
+          console.log("[create-course] using saved scorecardImageUrl for extraction (no new upload)");
+        }
+        if (!imageUrl) {
+          console.warn("[create-course] extraction skipped: no scorecard image URL");
+          errEl.textContent = "Add a scorecard image or use a course that already has one saved.";
+          setExtractStatus("error", "Add a scorecard image or use a course that already has one saved.");
+          return;
+        }
+
+        console.log("[create-course] extractScorecardData call start", {
+          orgId,
+          courseId: isEditMode ? editCourseId : null,
+          imageSource: uploaded ? "upload" : "saved",
+        });
+
+        const result = await extractScorecardDataCallable({
+          scorecardImageUrl: imageUrl,
+          orgId,
+          courseId: isEditMode ? editCourseId : undefined,
+        });
+        const data = result.data || {};
+
+        console.log("[create-course] extractScorecardData response", {
+          error: !!data.error,
+          courseName: data.courseName,
+          teeSetsCount: Array.isArray(data.teeSets) ? data.teeSets.length : 0,
+          holesCount: Array.isArray(data.holes) ? data.holes.length : 0,
+          incomplete: !!data.incomplete,
+        });
+
+        if (data.error === true) {
+          const failMsg = safeText(data.message) || "Could not extract scorecard";
+          console.error("[create-course] extractScorecardData returned error", { message: failMsg });
+          errEl.textContent = failMsg;
+          setExtractStatus("error", failMsg);
+          return;
+        }
+
+        applyExtractedDataToForm(data);
+        console.log("[create-course] form population from extraction complete");
+        try {
+          $("holes-heading").scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (_scrollErr) {
+          /* ignore */
+        }
+
+        const warnList = [];
+        if (data.notes) warnList.push(String(data.notes));
+        if (Array.isArray(data.warnings)) warnList.push(...data.warnings.map((w) => String(w)));
+        if (data.incomplete) {
+          warnList.push("Extraction may be incomplete — verify par, handicap, and yardages.");
+        }
+
+        errEl.textContent = "";
+        if (warnList.length) {
+          setExtractStatus("warn", "Prefilled from scorecard. Review all values before saving.", warnList);
+        } else {
+          setExtractStatus("success", "Prefilled from scorecard. Review values before saving.");
+        }
+      } catch (e) {
+        console.error("[create-course] extractScorecardData failed", e);
+        const code = e?.code ? String(e.code) : "";
+        const msg = e?.message || String(e);
+        const line = code ? `${code}: ${msg}` : msg;
+        errEl.textContent = line;
+        setExtractStatus("error", line);
+      } finally {
+        prefillFromScorecardBtn.classList.remove("is-loading");
+        prefillFromScorecardBtn.setAttribute("aria-busy", "false");
+        prefillFromScorecardBtn.textContent = PREFILL_BTN_DEFAULT;
+        updatePrefillButtonState();
+      }
     });
 
     function safeText(v) {
@@ -563,6 +845,16 @@
       toggleHoleBuilder.setAttribute("aria-expanded", "true");
       rebuildHoleGrid();
       fillHoleInputsFromDoc(teeSets, data.holes);
+
+      savedScorecardImageUrl = safeText(data.scorecardImageUrl);
+      if (savedScorecardImageUrl) {
+        scorecardExistingImg.src = savedScorecardImageUrl;
+        scorecardExistingWrap.hidden = false;
+      } else {
+        scorecardExistingWrap.hidden = true;
+        scorecardExistingImg.removeAttribute("src");
+      }
+      updatePrefillButtonState();
     }
 
     toggleHoleBuilder.addEventListener("click", () => {
@@ -643,6 +935,7 @@
       }
 
       ready = true;
+      updatePrefillButtonState();
       console.log("[create-course] after org resolution", { orgId, ready, isEditMode });
     });
 
@@ -676,6 +969,7 @@
 
       let logoUrl = safeText($("logoUrl").value);
       const logoFile = logoFileInput.files?.[0];
+      const scorecardFile = scorecardFileInput.files?.[0];
       const primaryColor = safeText($("primaryColor").value);
       const website = safeText($("website").value);
       const teeSets = parseTeeNames($("teeBoxNames")?.value || "");
@@ -698,6 +992,22 @@
           logoUrl = await getDownloadURL(storageRef);
         }
 
+        let scorecardImageUrl = "";
+        if (scorecardFile) {
+          const safeSc =
+            String(scorecardFile.name || "scorecard")
+              .replace(/[^a-zA-Z0-9._-]/g, "_")
+              .slice(0, 120) || "scorecard";
+          const scPath = `org-scorecards/${orgId}/${Date.now()}_${safeSc}`;
+          const scRef = ref(storage, scPath);
+          const scCt =
+            scorecardFile.type === "image/png" || scorecardFile.type === "image/jpeg"
+              ? scorecardFile.type
+              : "image/jpeg";
+          await uploadBytes(scRef, scorecardFile, { contentType: scCt });
+          scorecardImageUrl = await getDownloadURL(scRef);
+        }
+
         if (isEditMode) {
           const courseRef = courseDocRef(db, orgId, editCourseId);
           const patch = {
@@ -713,6 +1023,7 @@
           else patch.primaryColor = deleteField();
           if (website) patch.website = website;
           else patch.website = deleteField();
+          if (scorecardFile) patch.scorecardImageUrl = scorecardImageUrl;
           console.log("[create-course] before updateDoc", { refPath: courseRef.path });
           await updateDoc(courseRef, patch);
           console.log("[create-course] after updateDoc");
@@ -728,6 +1039,7 @@
           if (logoUrl) payload.logoUrl = logoUrl;
           if (primaryColor) payload.primaryColor = primaryColor;
           if (website) payload.website = website;
+          if (scorecardImageUrl) payload.scorecardImageUrl = scorecardImageUrl;
 
           console.log("[create-course] before setDoc", { refPath: newRef.path });
           await setDoc(newRef, payload);
