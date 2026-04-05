@@ -43,11 +43,45 @@
     .course-web a { color: var(--blue); font-weight: 800; }
     .err { color: var(--red); font-weight: 700; min-height: 0; }
     .err:empty { display: none; }
+    .platform-admin-bar {
+      display: none;
+      margin-bottom: 20px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 3px solid var(--blue);
+      background: rgba(18, 53, 111, 0.08);
+    }
+    .platform-admin-bar.is-visible { display: block; }
+    .platform-admin-bar .platform-kicker {
+      font-size: 0.72rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 8px;
+    }
+    .platform-admin-bar label { display: block; font-weight: 800; font-size: 0.9rem; margin-bottom: 6px; }
+    .platform-admin-bar select {
+      width: 100%;
+      max-width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 2px solid var(--line);
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      background: rgba(255,255,255,.85);
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1 id="titleHeading">Tournament dashboard</h1>
+    <div id="platformAdminBar" class="platform-admin-bar" aria-live="polite">
+      <div class="platform-kicker">Platform admin</div>
+      <label for="orgSwitcher">View organization</label>
+      <select id="orgSwitcher"></select>
+    </div>
     <p class="meta" id="orgLine"></p>
     <div class="toolbar">
       <a class="btn" href="./admin.html" id="adminBtn">Tournament admin</a>
@@ -59,10 +93,10 @@
     </div>
     <div id="err" class="err"></div>
 
-    <h2 class="section-heading">Your courses</h2>
+    <h2 class="section-heading" id="coursesSectionTitle">Your courses</h2>
     <div id="coursesHost" class="list"></div>
 
-    <h2 class="section-heading section-heading--spaced">Your tournaments</h2>
+    <h2 class="section-heading section-heading--spaced" id="tournamentsSectionTitle">Your tournaments</h2>
     <div id="listHost" class="list"></div>
   </div>
 
@@ -81,15 +115,19 @@
     import {
       applyOrgTournamentParams,
       orgCoursesCollection,
+      organizationsCollection,
       orgTournamentsCollection,
       tournamentDocRef,
     } from "./js/org-paths.js";
     import {
       resolveOrganizerOrgId,
-      readOrganizerOrgIdFromUserDoc,
+      readDashboardAuthContext,
+      isPlatformAdminRole,
       withFirestoreRetry,
       isOfflineLikeFirestoreError,
     } from "./js/resolve-organizer-org.js";
+
+    const DASHBOARD_ADMIN_ORG_KEY = "dashboardAdminOrgId";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -223,9 +261,11 @@
     }
 
     async function renderCourses(orgId) {
+      const oid = String(orgId || "").trim();
+      if (!oid) return;
       const host = $("coursesHost");
       host.innerHTML = "";
-      const snap = await withFirestoreRetry(() => getDocs(orgCoursesCollection(db, orgId)));
+      const snap = await withFirestoreRetry(() => getDocs(orgCoursesCollection(db, oid)));
       if (snap.empty) {
         host.innerHTML = `
           <div class="empty">
@@ -308,10 +348,12 @@
     }
 
     async function renderList(orgId) {
-      cachedOrgId = orgId;
+      const oid = String(orgId || "").trim();
+      if (!oid) return;
+      cachedOrgId = oid;
       const host = $("listHost");
       host.innerHTML = "";
-      const col = orgTournamentsCollection(db, orgId);
+      const col = orgTournamentsCollection(db, oid);
       const snap = await withFirestoreRetry(() => getDocs(col));
       if (snap.empty) {
         host.innerHTML = `<div class="empty">No tournaments yet. Open <b>Tournament admin</b> and click <b>Create New Tournament</b>.</div>`;
@@ -324,7 +366,7 @@
         const archived = t.archived === true;
         const name = t.tournamentName || t.name || d.id;
         const date = t.eventDate || t.date || "";
-        const links = tournamentLinks(orgId, d.id);
+        const links = tournamentLinks(oid, d.id);
         rows.push({ id: d.id, name, date, links, archived });
       });
       rows.sort((a, b) => String(b.id).localeCompare(String(a.id)));
@@ -340,7 +382,7 @@
       }
 
       for (const r of visible) {
-        host.appendChild(renderCard(orgId, r));
+        host.appendChild(renderCard(oid, r));
       }
     }
 
@@ -372,18 +414,108 @@
 
       console.info("[dashboard] auth uid:", user.uid);
 
+      const platformBar = $("platformAdminBar");
+      const orgSwitcher = $("orgSwitcher");
+
       try {
         await auth.authStateReady();
 
-        let orgId = await readOrganizerOrgIdFromUserDoc(db, user.uid);
+        let { role, orgId } = await readDashboardAuthContext(db, user.uid);
         let resolved = { ok: false, message: "No organization is linked to this account." };
         if (!orgId) {
           resolved = await resolveOrganizerOrgId(app, auth, db);
           orgId = resolved && (resolved.orgId || resolved.organizationId) || "";
         }
-        console.info("[dashboard] orgId:", orgId || "(empty)");
 
-        if (!orgId) {
+        const platformAdmin = isPlatformAdminRole(role);
+        console.info("[dashboard] role:", role || "(none)", "platformAdmin:", platformAdmin);
+
+        if (platformAdmin) {
+          platformBar.classList.add("is-visible");
+          $("coursesSectionTitle").textContent = "Courses (selected organization)";
+          $("tournamentsSectionTitle").textContent = "Tournaments (selected organization)";
+
+          let orgSnap;
+          try {
+            orgSnap = await withFirestoreRetry(() => getDocs(organizationsCollection(db)));
+          } catch (e) {
+            console.error(e);
+            errEl.textContent = e?.message || "Could not load organizations.";
+            return;
+          }
+          if (orgSnap.empty) {
+            errEl.textContent = "No organizations found.";
+            orgSwitcher.innerHTML = "";
+            return;
+          }
+
+          const orgOptions = [];
+          orgSnap.forEach((d) => {
+            const nm = String(d.data()?.name || "").trim() || d.id;
+            orgOptions.push({ id: d.id, label: `${nm} (${d.id})` });
+          });
+          orgOptions.sort((a, b) => a.label.localeCompare(b.label));
+
+          let saved = "";
+          try {
+            saved = String(sessionStorage.getItem(DASHBOARD_ADMIN_ORG_KEY) || "").trim();
+          } catch (_e) {}
+
+          orgSwitcher.innerHTML = "";
+          for (const o of orgOptions) {
+            const opt = document.createElement("option");
+            opt.value = o.id;
+            opt.textContent = o.label;
+            orgSwitcher.appendChild(opt);
+          }
+
+          const firstId = orgOptions[0].id;
+          const pick = orgOptions.some((o) => o.id === saved) ? saved : firstId;
+          orgSwitcher.value = pick;
+
+          const applyPlatformOrg = async () => {
+            const v = String(orgSwitcher.value || "").trim();
+            if (!v) return;
+            errEl.textContent = "";
+            try {
+              sessionStorage.setItem(DASHBOARD_ADMIN_ORG_KEY, v);
+              sessionStorage.setItem("orgId", v);
+            } catch (_e) {}
+            let oName = "";
+            try {
+              const oSnap = await withFirestoreRetry(() => getDoc(doc(db, "organizations", v)));
+              oName = oSnap.exists() ? String(oSnap.data()?.name || "").trim() : "";
+            } catch (e) {
+              console.warn("[dashboard] org name read failed", e);
+            }
+            $("orgLine").textContent = oName
+              ? `Platform admin · ${oName} · ${v}`
+              : `Platform admin · Organization ID: ${v}`;
+            $("adminBtn").href = "./admin.html";
+            try {
+              await user.getIdToken(true);
+              await Promise.all([renderCourses(v), renderList(v)]);
+            } catch (e) {
+              console.error(e);
+              errEl.textContent = isOfflineLikeFirestoreError(e)
+                ? "Can't load data while offline. Try again when your connection is stable."
+                : e?.message || "Could not load courses or tournaments.";
+            }
+          };
+
+          orgSwitcher.onchange = () => applyPlatformOrg();
+          await applyPlatformOrg();
+          return;
+        }
+
+        platformBar.classList.remove("is-visible");
+        $("coursesSectionTitle").textContent = "Your courses";
+        $("tournamentsSectionTitle").textContent = "Your tournaments";
+
+        const scopedOrgId = String(orgId || "").trim();
+        console.info("[dashboard] scopedOrgId (org-only):", scopedOrgId || "(empty)");
+
+        if (!scopedOrgId) {
           errEl.textContent =
             (resolved && resolved.message) ||
             "No organization is linked to this account.";
@@ -391,13 +523,13 @@
         }
 
         try {
-          sessionStorage.setItem("orgId", orgId);
+          sessionStorage.setItem("orgId", scopedOrgId);
         } catch (_e) {}
 
         let orgName = "";
         try {
           const oSnap = await withFirestoreRetry(() =>
-            getDoc(doc(db, "organizations", orgId))
+            getDoc(doc(db, "organizations", scopedOrgId))
           );
           orgName = oSnap.exists() ? String(oSnap.data()?.name || "") : "";
         } catch (e) {
@@ -408,14 +540,14 @@
           }
         }
         $("orgLine").textContent = orgName
-          ? `${orgName} · Organization ID: ${orgId}`
-          : `Organization ID: ${orgId}`;
+          ? `${orgName} · Organization ID: ${scopedOrgId}`
+          : `Organization ID: ${scopedOrgId}`;
 
         $("adminBtn").href = "./admin.html";
 
         try {
           await user.getIdToken(true);
-          await Promise.all([renderCourses(orgId), renderList(orgId)]);
+          await Promise.all([renderCourses(scopedOrgId), renderList(scopedOrgId)]);
         } catch (e) {
           console.error(e);
           errEl.textContent = isOfflineLikeFirestoreError(e)

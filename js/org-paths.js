@@ -60,6 +60,10 @@ export function tournamentAlertsLiveRef(db, orgId, tournamentId) {
   return doc(db, "tournaments", tournamentId, "alerts", "live");
 }
 
+export function organizationsCollection(db) {
+  return collection(db, "organizations");
+}
+
 export function orgTournamentsCollection(db, orgId) {
   return collection(db, "organizations", orgId, "tournaments");
 }

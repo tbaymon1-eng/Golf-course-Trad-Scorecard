@@ -714,6 +714,10 @@ exports.deleteTournament = onCall(
     const userSnap = await db.collection("users").doc(request.auth.uid).get();
     const userData = userSnap.exists ? userSnap.data() || {} : {};
     const userOrgId = safeText(userData.orgId || userData.organizationId);
+    const role = String(userData.role || "")
+      .trim()
+      .toLowerCase();
+    const isPlatformAdmin = role === "super_admin" || role === "support_admin";
 
     const orgSnap = await db.collection("organizations").doc(orgId).get();
     if (!orgSnap.exists) {
@@ -723,7 +727,7 @@ exports.deleteTournament = onCall(
     const isOrgOwner = !!orgOwnerUid && orgOwnerUid === request.auth.uid;
     const isOrgMember = !!userOrgId && userOrgId === orgId;
 
-    if (!isOrgMember && !isOrgOwner) {
+    if (!isOrgMember && !isOrgOwner && !isPlatformAdmin) {
       throw new HttpsError("permission-denied", "You can only delete tournaments in your organization.");
     }
 

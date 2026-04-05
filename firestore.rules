@@ -2,16 +2,33 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Match client js/resolve-organizer-org.js: prefer orgId, else organizationId.
+    // Align with js/resolve-organizer-org.js orgIdFromUserSnap: prefer non-empty orgId, else organizationId.
     function userOrgId() {
       let d = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      return d.orgId != null ? d.orgId : d.organizationId;
+      let a = d.orgId is string ? d.orgId : "";
+      let b = d.organizationId is string ? d.organizationId : "";
+      return a != "" ? a : b;
     }
 
     function isOrgMember(orgId) {
       return request.auth != null
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && userOrgId() == orgId;
+    }
+
+    function userData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    /** Matches js/resolve-organizer-org.js isPlatformAdminRole — internal staff only. */
+    function isPlatformAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && (userData().role == 'super_admin' || userData().role == 'support_admin');
+    }
+
+    function canReadOrgScope(orgId) {
+      return isOrgMember(orgId) || isPlatformAdmin();
     }
 
     // Profiles written only by Cloud Functions (setupOrganization).
@@ -21,7 +38,7 @@ service cloud.firestore {
     }
 
     match /organizations/{orgId} {
-      allow read: if isOrgMember(orgId);
+      allow read: if canReadOrgScope(orgId);
       allow create, delete: if false;
       allow update: if isOrgMember(orgId);
     }
@@ -36,8 +53,8 @@ service cloud.firestore {
     // Course layout for casual play (read by any signed-in user including anonymous)
     match /organizations/{orgId}/courses/{courseId} {
       allow get: if request.auth != null;
-      allow list: if isOrgMember(orgId);
-      allow create, update, delete: if isOrgMember(orgId);
+      allow list: if canReadOrgScope(orgId);
+      allow create, update, delete: if isOrgMember(orgId) || isPlatformAdmin();
     }
 
     // Casual rounds: only the anonymous/email user who created the doc
@@ -50,10 +67,10 @@ service cloud.firestore {
     }
 
     match /organizations/{orgId}/tournaments/{tournamentId} {
-      // Single-doc reads for players (incl. anonymous); listing only for org staff.
+      // Single-doc reads for players (incl. anonymous); listing for org staff or platform admins.
       allow get: if request.auth != null;
-      allow list: if isOrgMember(orgId);
-      allow create, update, delete: if isOrgMember(orgId);
+      allow list: if canReadOrgScope(orgId);
+      allow create, update, delete: if isOrgMember(orgId) || isPlatformAdmin();
 
       match /{subcollection}/{docId} {
         allow read: if request.auth != null;

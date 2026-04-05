@@ -81,6 +81,40 @@ function orgIdFromUserSnap(data) {
   return "";
 }
 
+/** Lowercase role string for comparisons. */
+export function normalizeUserRole(raw) {
+  return String(raw ?? "").trim().toLowerCase();
+}
+
+/** Internal platform roles: can list all organizations on the dashboard (see Firestore rules). */
+export function isPlatformAdminRole(role) {
+  const r = normalizeUserRole(role);
+  return r === "super_admin" || r === "support_admin";
+}
+
+/**
+ * Single read of users/{uid} for dashboard: role + orgId.
+ * Org fallback matches readOrganizerOrgIdFromUserDoc (sessionStorage only when user doc is missing / read fails).
+ */
+export async function readDashboardAuthContext(db, uid) {
+  let role = "";
+  try {
+    const snap = await getUserDocSnapshot(db, uid);
+    const exists = typeof snap.exists === "function" ? snap.exists() : !!snap.exists;
+    if (exists) {
+      const data = snap.data() || {};
+      role = normalizeUserRole(data.role);
+      const oid = orgIdFromUserSnap(data);
+      if (oid) return { role, orgId: oid };
+      return { role, orgId: "" };
+    }
+    return { role: "", orgId: sessionStorageOrgIdFallback() };
+  } catch (e) {
+    console.warn("[readDashboardAuthContext] users/{uid} read failed", e);
+  }
+  return { role: "", orgId: sessionStorageOrgIdFallback() };
+}
+
 async function getUserDocSnapshot(db, uid) {
   const uRef = doc(db, "users", uid);
   return withFirestoreRetry(() => getDoc(uRef));
@@ -88,7 +122,8 @@ async function getUserDocSnapshot(db, uid) {
 
 /**
  * Reads users/{uid} via cache-first getDoc (no server-only reads). Uses retry on offline-like errors.
- * Falls back to sessionStorage orgId if reads fail but org was known from a prior session.
+ * Falls back to sessionStorage orgId only when the user doc is missing or the read throws — not when
+ * the doc exists but has no org fields (avoids showing another org’s data from a stale sessionStorage).
  */
 export async function readOrganizerOrgIdFromUserDoc(db, uid) {
   const trySnap = (snap) => {
@@ -99,8 +134,11 @@ export async function readOrganizerOrgIdFromUserDoc(db, uid) {
 
   try {
     const snap = await getUserDocSnapshot(db, uid);
+    const exists = typeof snap.exists === "function" ? snap.exists() : !!snap.exists;
     const oid = trySnap(snap);
     if (oid) return oid;
+    if (!exists) return sessionStorageOrgIdFallback();
+    return "";
   } catch (e) {
     console.warn("[readOrganizerOrgIdFromUserDoc] users/{uid} read failed", e);
   }
