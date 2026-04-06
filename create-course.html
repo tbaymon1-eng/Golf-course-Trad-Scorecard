@@ -307,6 +307,22 @@
         max-width: 96px;
       }
     }
+    .theme-preview-wrap {
+      margin: 12px 0 16px;
+    }
+    .theme-preview-swatches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .theme-preview-swatches span {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 2px solid rgba(0, 0, 0, 0.12);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+    }
   </style>
 </head>
 <body>
@@ -343,8 +359,13 @@
       <div class="hint">Or paste an HTTPS link to a logo hosted online.</div>
       <input id="logoUrl" type="url" inputmode="url" placeholder="https://..." />
 
-      <label for="primaryColor">Primary color (optional)</label>
-      <div class="hint">CSS color, e.g. #2f7a31 or rgb(47,122,49)</div>
+      <div id="themePreviewWrap" class="theme-preview-wrap" hidden>
+        <div class="hint">Scorecard colors (auto from logo; saved with this course)</div>
+        <div id="themePreviewSwatches" class="theme-preview-swatches" aria-label="Theme preview"></div>
+      </div>
+
+      <label for="primaryColor">Primary color (optional override)</label>
+      <div class="hint">Only if you need a manual accent. Leave blank to use colors derived from the logo.</div>
       <input id="primaryColor" type="text" placeholder="#9a6217" />
 
       <label for="website">Website (optional)</label>
@@ -421,6 +442,7 @@
     import { firebaseConfig } from "./js/firebase-config.js";
     import { orgCoursesCollection, courseDocRef } from "./js/org-paths.js";
     import { resolveOrganizerOrgId } from "./js/resolve-organizer-org.js";
+    import { generateThemeFromLogoUrl, generateThemeFromLogoFile } from "./js/course-theme.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -463,6 +485,65 @@
     const logoPreviewWrap = $("logoPreviewWrap");
     const logoPreviewImg = $("logoPreviewImg");
     const logoFileInfo = $("logoFileInfo");
+    const themePreviewWrap = $("themePreviewWrap");
+    const themePreviewSwatches = $("themePreviewSwatches");
+    let themeTimer = null;
+
+    function isSafeThemeHex(v) {
+      return /^#[0-9A-Fa-f]{6}$/.test(String(v || "").trim());
+    }
+
+    function renderThemePreview(theme) {
+      if (!themePreviewSwatches || !themePreviewWrap) return;
+      themePreviewSwatches.innerHTML = "";
+      if (!theme || !isSafeThemeHex(theme.primary)) {
+        themePreviewWrap.hidden = true;
+        return;
+      }
+      themePreviewWrap.hidden = false;
+      const order = [
+        "primary",
+        "secondary",
+        "accent",
+        "surface",
+        "text",
+        "mutedText",
+        "border",
+        "buttonBg",
+        "buttonText",
+      ];
+      for (const k of order) {
+        const sp = document.createElement("span");
+        sp.title = k;
+        sp.style.background = isSafeThemeHex(theme[k]) ? theme[k] : "#cccccc";
+        themePreviewSwatches.appendChild(sp);
+      }
+    }
+
+    async function refreshThemePreview() {
+      const f = logoFileInput.files?.[0];
+      const url = safeText($("logoUrl").value);
+      try {
+        if (f) {
+          const t = await generateThemeFromLogoFile(f);
+          renderThemePreview(t);
+          return;
+        }
+        if (url) {
+          const t = await generateThemeFromLogoUrl(url);
+          renderThemePreview(t);
+          return;
+        }
+      } catch (e) {
+        console.warn("[create-course] theme preview", e);
+      }
+      renderThemePreview(null);
+    }
+
+    function scheduleThemeRefresh() {
+      clearTimeout(themeTimer);
+      themeTimer = setTimeout(() => void refreshThemePreview(), 450);
+    }
 
     logoFileInput.addEventListener("change", () => {
       if (logoPreviewObjectUrl) {
@@ -474,13 +555,17 @@
         logoFileInfo.textContent = "";
         logoPreviewWrap.hidden = true;
         logoPreviewImg.removeAttribute("src");
+        scheduleThemeRefresh();
         return;
       }
       logoFileInfo.textContent = `Selected: ${f.name}`;
       logoPreviewObjectUrl = URL.createObjectURL(f);
       logoPreviewImg.src = logoPreviewObjectUrl;
       logoPreviewWrap.hidden = false;
+      scheduleThemeRefresh();
     });
+
+    $("logoUrl").addEventListener("input", () => scheduleThemeRefresh());
 
     let scorecardPreviewObjectUrl = null;
     const scorecardFileInput = $("scorecardFile");
@@ -855,6 +940,12 @@
         scorecardExistingImg.removeAttribute("src");
       }
       updatePrefillButtonState();
+
+      if (data.theme && typeof data.theme === "object" && data.theme.primary) {
+        renderThemePreview(data.theme);
+      } else {
+        renderThemePreview(null);
+      }
     }
 
     toggleHoleBuilder.addEventListener("click", () => {
@@ -936,6 +1027,7 @@
 
       ready = true;
       updatePrefillButtonState();
+      void refreshThemePreview();
       console.log("[create-course] after org resolution", { orgId, ready, isEditMode });
     });
 
@@ -1008,6 +1100,15 @@
           scorecardImageUrl = await getDownloadURL(scRef);
         }
 
+        let themeForDoc = null;
+        if (logoUrl) {
+          try {
+            themeForDoc = await generateThemeFromLogoUrl(logoUrl);
+          } catch (te) {
+            console.warn("[create-course] theme generation for save", te);
+          }
+        }
+
         if (isEditMode) {
           const courseRef = courseDocRef(db, orgId, editCourseId);
           const patch = {
@@ -1024,6 +1125,11 @@
           if (website) patch.website = website;
           else patch.website = deleteField();
           if (scorecardFile) patch.scorecardImageUrl = scorecardImageUrl;
+          if (themeForDoc && themeForDoc.primary) {
+            patch.theme = themeForDoc;
+          } else if (!logoUrl) {
+            patch.theme = deleteField();
+          }
           console.log("[create-course] before updateDoc", { refPath: courseRef.path });
           await updateDoc(courseRef, patch);
           console.log("[create-course] after updateDoc");
@@ -1040,6 +1146,7 @@
           if (primaryColor) payload.primaryColor = primaryColor;
           if (website) payload.website = website;
           if (scorecardImageUrl) payload.scorecardImageUrl = scorecardImageUrl;
+          if (themeForDoc && themeForDoc.primary) payload.theme = themeForDoc;
 
           console.log("[create-course] before setDoc", { refPath: newRef.path });
           await setDoc(newRef, payload);

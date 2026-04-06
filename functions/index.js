@@ -12,7 +12,7 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 
-const openaiApiKey = defineSecret("OPENAI_API_KEY");
+const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -810,29 +810,30 @@ Strict rules:
 Output valid JSON only.`;
 
 async function callOpenAiVisionExtract(apiKey, dataUrl) {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const res = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4o",
+      model: "gpt-4.1",
       temperature: 0.1,
-      max_tokens: 8192,
-      response_format: { type: "json_object" },
-      messages: [
+      input: [
         {
           role: "user",
           content: [
-            { type: "text", text: SCORECARD_EXTRACTION_PROMPT },
             {
-              type: "image_url",
-              image_url: { url: dataUrl, detail: "high" },
+              type: "input_text",
+              text: SCORECARD_EXTRACTION_PROMPT
             },
-          ],
-        },
-      ],
+            {
+              type: "input_image",
+              image_url: dataUrl
+            }
+          ]
+        }
+      ]
     }),
     signal: AbortSignal.timeout(120000),
   });
@@ -850,10 +851,17 @@ async function callOpenAiVisionExtract(apiKey, dataUrl) {
   }
 
   const body = JSON.parse(bodyText);
-  const content = body.choices?.[0]?.message?.content;
-  if (!content || typeof content !== "string") {
-    throw new Error("OpenAI returned no message content");
-  }
+  let content = body.output_text;
+
+if (!content && Array.isArray(body.output)) {
+  const first = body.output[0];
+  const part = first?.content?.find(c => c.type === "output_text");
+  content = part?.text;
+}
+
+if (!content || typeof content !== "string") {
+  throw new Error("OpenAI returned no message content");
+}
   return parseJsonFromModelContent(content);
 }
 
@@ -865,14 +873,14 @@ exports.extractScorecardData = onCall(
   {
     region: "us-central1",
     cors: true,
-    secrets: [openaiApiKey],
+    secrets: [OPENAI_API_KEY],
   },
-  async (request) => {
-    if (!request.auth) {
+  async (req) => {
+    if (!req.auth) {
       throw new HttpsError("unauthenticated", "Sign in to extract scorecard data.");
     }
 
-    const data = request.data || {};
+    const data = req.data || {};
     const scorecardImageUrl = safeText(data.scorecardImageUrl);
     if (!scorecardImageUrl) {
       throw new HttpsError("invalid-argument", "scorecardImageUrl is required.");
@@ -882,7 +890,7 @@ exports.extractScorecardData = onCall(
     const courseId = safeText(data.courseId);
 
     if (orgId) {
-      const userSnap = await db.collection("users").doc(request.auth.uid).get();
+      const userSnap = await db.collection("users").doc(req.auth.uid).get();
       const userData = userSnap.exists ? userSnap.data() || {} : {};
       const userOrgId = safeText(userData.orgId || userData.organizationId);
       const role = String(userData.role || "")
@@ -897,7 +905,7 @@ exports.extractScorecardData = onCall(
       }
     }
 
-    const apiKey = openaiApiKey.value();
+    const apiKey = OPENAI_API_KEY.value();
     if (!apiKey) {
       return { error: true, message: "Could not extract scorecard" };
     }

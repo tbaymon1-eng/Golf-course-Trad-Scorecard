@@ -19,11 +19,14 @@
     :root{
       --paper:#e9e2d4;
       --ink:#111;
+      --muted:#5c5348;
       --grid:#2b2b2b;
       --headerRow:#d8d1c3;
       --parRow:#a85a13;
       --parRowText:#fff;
+      --parRowLabel:#8f4b10;
       --hcpRow:#f2e6b9;
+      --hcpLabel:#e9dcaa;
       --cellBg:#f8f4ea;
       --border:#7a4a0b;
       --card:#efe7d7;
@@ -32,6 +35,15 @@
       --navy2:#0b2246;
       --green:#2f6b2f;
       --danger:#b6422d;
+      --labelCol:#e1d8c8;
+      --courseSelectBg:#e7ddcb;
+      --buttonSecondaryBg:#e7ddcb;
+      --totalBg:#f1eadb;
+      --focusRing:122, 74, 11;
+      --tickerAccent:#5c4010;
+      --tickerMuted:#7a6a4a;
+      --roundWarm:61, 42, 9;
+      --legalLink:#3d2a09;
     }
 
     *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
@@ -100,12 +112,12 @@
     .team-picker-search input{
       width:100%;
       padding:12px 10px;
-      border:2px solid #7a4a0b;
+      border:2px solid var(--border);
       border-radius:10px;
-      background:#fff;
+      background:var(--cellBg);
       font-size:16px;
       font-weight:800;
-      color:#111;
+      color:var(--ink);
     }
 
     .team-list{
@@ -115,7 +127,7 @@
     }
 
     .team-card{
-      border:2px solid rgba(122,74,11,.18);
+      border:2px solid rgba(var(--focusRing),.18);
       border-radius:12px;
       background: rgba(255,255,255,.55);
       padding:12px;
@@ -150,8 +162,8 @@
       justify-content:center;
       padding:6px 10px;
       border-radius:999px;
-      border:2px solid rgba(122,74,11,.18);
-      background:#fff;
+      border:2px solid rgba(var(--focusRing),.18);
+      background:var(--cellBg);
       font-weight:900;
       font-size:12px;
       letter-spacing:.06em;
@@ -202,9 +214,9 @@
     .team-mates-block input{
       width:100%;
       padding:12px 10px;
-      border:2px solid #7a4a0b;
+      border:2px solid var(--border);
       border-radius:10px;
-      background:#fff;
+      background:var(--cellBg);
       margin-top:6px;
       font-size:16px;
       font-weight:800;
@@ -257,7 +269,7 @@
       right:0;
       bottom:0;
       z-index:50;
-      border-top:2px solid rgba(122,74,11,.35);
+      border-top:2px solid rgba(var(--focusRing),.35);
       background:linear-gradient(180deg, rgba(239,231,215,.98), rgba(233,226,212,.99));
       box-shadow:0 -6px 20px rgba(0,0,0,.1);
       display:none;
@@ -269,16 +281,16 @@
       justify-content:space-between;
       gap:8px;
       padding:6px 12px;
-      border-bottom:1px solid rgba(122,74,11,.2);
+      border-bottom:1px solid rgba(var(--focusRing),.2);
       font-family:Cinzel,serif;
       font-weight:800;
       font-size:10px;
       letter-spacing:.1em;
       text-transform:uppercase;
-      color:#5c4010;
+      color:var(--tickerAccent);
     }
 
-    .scoreTickerHint{ font-size:10px; font-weight:800; color:#7a6a4a; }
+    .scoreTickerHint{ font-size:10px; font-weight:800; color:var(--tickerMuted); }
 
     .scoreTickerTrackWrap{ overflow:hidden; white-space:nowrap; }
 
@@ -302,10 +314,10 @@
       gap:8px;
       padding:8px 12px;
       border-radius:999px;
-      border:2px solid rgba(122,74,11,.28);
+      border:2px solid rgba(var(--focusRing),.28);
       background:rgba(255,255,255,.72);
       text-decoration:none;
-      color:#111;
+      color:var(--ink);
       font-weight:900;
       font-size:12px;
       cursor:pointer;
@@ -343,12 +355,13 @@
 
     .course-hint{
       font-size: 12px;
-      opacity:.8;
+      color: var(--muted);
+      opacity: 0.95;
     }
 
     .course-select{
       border: 2px solid var(--border);
-      background: #e7ddcb;
+      background: var(--courseSelectBg);
       border-radius: 10px;
       padding: 8px 10px;
       font-weight: 900;
@@ -367,7 +380,7 @@
       display:none;
       margin: 10px 10px 0;
       padding: 10px 12px;
-      border:2px solid rgba(122,74,11,.20);
+      border:2px solid rgba(var(--focusRing),.20);
       border-radius:12px;
       background: rgba(255,255,255,.62);
       font-weight: 900;
@@ -419,7 +432,7 @@
       font-weight: 900;
       padding: 0 10px;
       text-align: left;
-      background: #e1d8c8;
+      background: var(--labelCol);
       white-space: nowrap;
     }
 
@@ -460,10 +473,10 @@
     .row-copper .label{ background:#8f4b10; color:#fff; }
 
     .row-par td{ background: var(--parRow); color: var(--parRowText); }
-    .row-par .label{ background: #8f4b10; color:#fff; }
+    .row-par .label{ background: var(--parRowLabel); color: var(--parRowText); }
 
-    .row-hcp td{ background: var(--hcpRow); color:#111; }
-    .row-hcp .label{ background: #e9dcaa; }
+    .row-hcp td{ background: var(--hcpRow); color: var(--ink); }
+    .row-hcp .label{ background: var(--hcpLabel); }
 
     .score-input{
       width: 100%;
@@ -474,7 +487,7 @@
       text-align: center;
       font-weight: 950;
       font-size: 18px;
-      color: #111;
+      color: var(--ink);
       -webkit-appearance: none;
       appearance: none;
       font-family: Georgia, 'Times New Roman', serif;
@@ -486,7 +499,7 @@
     }
 
     .score-input:focus{
-      box-shadow: inset 0 0 0 2px rgba(122,74,11,.55);
+      box-shadow: inset 0 0 0 2px rgba(var(--focusRing),.55);
       background: rgba(255,255,255,.55) !important;
     }
 
@@ -508,8 +521,8 @@
   width:64px;
   height:64px;
   border-radius:50%;
-  background:#2f7a3f;
-  color:white;
+  background:var(--green);
+  color:var(--parRowText);
   font-weight:800;
   font-size:26px;
   display:flex;
@@ -523,7 +536,7 @@
 }
 
     .player-name:focus{
-      box-shadow: inset 0 0 0 2px rgba(122,74,11,.35);
+      box-shadow: inset 0 0 0 2px rgba(var(--focusRing),.35);
       border-radius: 8px;
       background: rgba(255,255,255,.35) !important;
     }
@@ -532,7 +545,7 @@
       text-align:center;
       font-weight: 1000;
       font-size: 18px;
-      background:#f1eadb;
+      background:var(--totalBg);
       font-family: Georgia, 'Times New Roman', serif;
       font-variant-numeric: tabular-nums;
     }
@@ -570,7 +583,7 @@
     }
 
     .sidegame-block{
-      border:2px solid rgba(122,74,11,.14);
+      border:2px solid rgba(var(--focusRing),.14);
       border-radius:12px;
       background: rgba(255,255,255,.58);
       padding:10px;
@@ -602,7 +615,7 @@
       width:100%;
       border:2px solid var(--border);
       border-radius:10px;
-      background:#fff;
+      background:var(--cellBg);
       padding:10px;
       font-weight:900;
       font-size:15px;
@@ -618,7 +631,7 @@
 
     button{
       border: 2px solid var(--border);
-      background: #e7ddcb;
+      background: var(--buttonSecondaryBg);
       border-radius: 10px;
       padding: 12px 10px;
       font-weight: 900;
@@ -633,8 +646,8 @@
       align-items:center;
       justify-content:center;
       border: 2px solid var(--border);
-      background: #2f6b2f;
-      color:#fff;
+      background: var(--green);
+      color:var(--parRowText);
       border-radius: 10px;
       padding: 12px 10px;
       font-weight: 900;
@@ -691,7 +704,7 @@
       margin: 0 0 12px;
       font-size: 15px;
       line-height: 1.45;
-      color: rgba(61,42,9,.92);
+      color: rgba(var(--roundWarm),.92);
     }
 
     .round-complete-summary{
@@ -715,7 +728,7 @@
       margin: 0;
       font-size: 13px;
       font-weight: 800;
-      color: rgba(61,42,9,.92);
+      color: rgba(var(--roundWarm),.92);
     }
 
     .danger{
@@ -745,7 +758,7 @@
     }
 
     .legal a{
-      color: #3d2a09;
+      color: var(--legalLink);
       font-weight: 900;
       text-decoration: none;
       border-bottom: 1px dashed rgba(61,42,9,.4);
@@ -876,7 +889,7 @@
     .liveAlertBanner--urgent .liveAlertLabel{
       border-color: rgba(182,66,45,.5);
       background: rgba(255,235,232,.9);
-      color: #4a1810;
+      color: var(--ink);
     }
   </style>
 </head>
@@ -924,7 +937,7 @@
           <label style="font-weight:900; font-size:13px;">
             Your Name (Scorer)
             <input id="joinName" autocomplete="name"
-              style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
+              style="width:100%; padding:12px 10px; border:2px solid var(--border); border-radius:10px; background:var(--cellBg);" />
           </label>
 
           <div class="team-mates-block">
@@ -940,24 +953,24 @@
             <label style="font-weight:900; font-size:13px;">
               Company Name
               <input id="joinGroup"
-                style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
+                style="width:100%; padding:12px 10px; border:2px solid var(--border); border-radius:10px; background:var(--cellBg);" />
             </label>
 
             <label style="font-weight:900; font-size:13px;">
               Start Hole
               <input id="joinStartHole" placeholder="2A" inputmode="text" autocapitalize="characters"
-                style="width:100%; padding:12px 10px; border:2px solid #7a4a0b; border-radius:10px; background:#fff;" />
+                style="width:100%; padding:12px 10px; border:2px solid var(--border); border-radius:10px; background:var(--cellBg);" />
               <div style="margin-top:6px; font-size:12px; opacity:.8;">
                 Examples: <b>2A</b>, <b>10B</b>
               </div>
             </label>
           </div>
 
-          <button id="joinBtn" style="border:2px solid #7a4a0b; background:#2f6b2f; color:#fff; border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
+          <button id="joinBtn" style="border:2px solid var(--border); background:var(--green); color:var(--parRowText); border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
             Join & Start Scoring
           </button>
 
-          <button id="joinCancel" style="border:2px solid #7a4a0b; background:#e7ddcb; border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
+          <button id="joinCancel" style="border:2px solid var(--border); background:var(--buttonSecondaryBg); border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
             Back to Team List
           </button>
 
@@ -1078,6 +1091,7 @@ import {
   courseDocRef,
   casualRoundDocRef
 } from "./js/org-paths.js";
+import { applyScorecardTheme } from "./js/course-theme.js";
 
 let db = null;
 let auth = null;
@@ -1087,10 +1101,7 @@ try {
   const app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   await auth.authStateReady();
-  // ONLY allow anonymous login if truly no user exists AND no session should exist
-if (!auth.currentUser) {
-  console.log("No user — NOT forcing anonymous login");
-}
+  if (!auth.currentUser) await signInAnonymously(auth);
   db = getFirestore(app);
   authReady = true;
   console.log("Firebase ready ✅");
@@ -2076,6 +2087,9 @@ function tryBuildOrgCourseFromDoc(d, courseKey) {
     return "./assets/cypresswood_header.png";
   })();
 
+  const theme =
+    d.theme && typeof d.theme === "object" && d.theme.primary ? d.theme : null;
+
   return {
     id: String(courseKey),
     title,
@@ -2087,6 +2101,7 @@ function tryBuildOrgCourseFromDoc(d, courseKey) {
     hcpBack,
     bottomRow,
     extraRow: undefined,
+    theme,
   };
 }
 
@@ -2445,6 +2460,7 @@ function wireInputs(){
 }
   function build(){
   const course = COURSES[currentCourseId];
+  applyScorecardTheme(course && course.theme ? course.theme : null);
   courseTitle.textContent = course.title;
   courseSelect.value = currentCourseId;
   setCourseHeader(currentCourseId);
