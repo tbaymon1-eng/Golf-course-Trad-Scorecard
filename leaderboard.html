@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Live Leaderboard</title>
 
-  <meta name="theme-color" content="#0d2a55">
+  <meta name="theme-color" content="#78756e">
 
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
 
@@ -13,14 +13,14 @@
     :root{
       --ink:#111;
       --muted: rgba(0,0,0,.65);
-      --border:#7a4a0b;
+      --border:#8a8578;
 
-      --navy:#0d2a55;
-      --navy2:#0b2246;
-      --gold:#caa24a;
+      --navy:#3a3836;
+      --navy2:#2f2d2c;
+      --gold:#9a9078;
 
-      --fairway1:#0f5a34;
-      --fairway2:#0b3f26;
+      --fairway1:#4a5c48;
+      --fairway2:#3d4a3c;
 
       --font-head: "Cinzel", Georgia, serif;
       --font-row: "Barlow Condensed", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
@@ -43,12 +43,16 @@
       --glassBoard: rgba(255,255,255,.07);
       --panelBorder: rgba(255,255,255,.10);
 
-      --lbHeadBg1: rgba(19,58,115,.55);
-      --lbHeadBg2: rgba(15,42,85,.38);
+      --lbHeadBg1: rgba(58,56,54,0.45);
+      --lbHeadBg2: rgba(47,45,44,0.32);
 
       --lbRowOdd: rgba(255,255,255,.06);
       --lbRowEven: rgba(255,255,255,.10);
       --lbRowHover: rgba(255,255,255,.16);
+
+      --lb-body-bg: #78756e;
+      --lb-overlay-top: rgba(45,44,42,0.25);
+      --lb-overlay-radial: rgba(120,115,105,0.12);
     }
 
     @media (min-width: 820px){
@@ -66,11 +70,11 @@
       margin:0;
       color: var(--ink);
       font-family: Georgia, 'Times New Roman', serif;
-      background-image: url("./assets/IMG_5318.jpeg");
+      background-image: none;
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      background-color: #0f2a55;
+      background-color: var(--lb-body-bg, #78756e);
     }
 
     body::before{
@@ -80,8 +84,8 @@
       z-index: -1;
       pointer-events: none;
       background:
-        linear-gradient(180deg, rgba(13,42,85,.36), rgba(0,0,0,.18)),
-        radial-gradient(circle at 20% 0%, rgba(202,162,74,.18), transparent 60%);
+        linear-gradient(180deg, var(--lb-overlay-top), rgba(0,0,0,.14)),
+        radial-gradient(circle at 20% 0%, var(--lb-overlay-radial), transparent 60%);
     }
 
     .wrap{
@@ -106,7 +110,7 @@
       position:relative;
       padding: 12px 12px 10px;
       background:
-        linear-gradient(135deg, rgba(13,42,85,.16), rgba(13,42,85,.05)),
+        linear-gradient(135deg, var(--lbHeadBg1), var(--lbHeadBg2)),
         var(--glassTop);
       border-bottom: 1px solid rgba(255,255,255,.10);
       backdrop-filter: blur(10px);
@@ -1010,10 +1014,10 @@
       <div class="top">
         <div class="topRow">
           <div class="brand">
-            <img id="courseHeaderMini" class="courseHeaderMini" src="./assets/cypresswood_header.png" alt="Course Header" />
+            <img id="courseHeaderMini" class="courseHeaderMini" src="./assets/neutral-header.svg" alt="Course header" />
             <div class="titleBlock">
               <h1 id="pageTitle">Live Leaderboard</h1>
-              <div class="clubName" id="clubName">Cypresswood Golf Club</div>
+              <div class="clubName" id="clubName">Golf Club</div>
               <div class="meta" id="pageMeta">Loading…</div>
             </div>
           </div>
@@ -1174,7 +1178,14 @@
     tournamentSubmissionsCollection,
     tournamentAlertsLiveRef,
     applyOrgTournamentParams,
+    courseDocRef,
   } from "./js/org-paths.js";
+  import {
+    applyLeaderboardTheme,
+    BUILT_IN_CYPRESSWOOD_SCORECARD_THEME,
+    normalizeFirestoreTheme,
+    PLACEHOLDER_COURSE_HEADER_IMAGE,
+  } from "./js/course-theme.js";
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -1188,21 +1199,113 @@
 
   const COURSE_TRADITION = {
     id:"tradition",
-    headerMini:"./assets/cypresswood_header.png",
-    clubName:"Cypresswood Golf Club",
+    headerMini:"./assets/neutral-header.svg",
+    clubName:"Tradition Course",
     par:[4,4,3,4,5,4,5,3,4, 4,3,5,4,3,4,4,4,5],
-    hcp:[7,17,11,1,3,13,9,15,5, 14,8,10,6,18,12,2,16,4]
+    hcp:[7,17,11,1,3,13,9,15,5, 14,8,10,6,18,12,2,16,4],
+    theme: BUILT_IN_CYPRESSWOOD_SCORECARD_THEME,
   };
 
   const COURSE_CYPRESS = {
     id:"cypress",
     headerMini:"./assets/cypress_header.png",
-    clubName:"Cypresswood Golf Club",
+    clubName:"Cypress Course",
     par:[5,4,4,4,3,4,3,5,4, 4,4,4,4,3,5,3,5,4],
-    hcp:[3,13,11,7,15,9,17,1,5, 6,10,12,14,18,2,16,4,8]
+    hcp:[3,13,11,7,15,9,17,1,5, 6,10,12,14,18,2,16,4,8],
+    theme: BUILT_IN_CYPRESSWOOD_SCORECARD_THEME,
   };
 
   const COURSES = { tradition: COURSE_TRADITION, cypress: COURSE_CYPRESS };
+
+  function parArrFromOrgDoc(d) {
+    const holes = Array.isArray(d.holes) ? d.holes : [];
+    const byHole = new Map();
+    for (const h of holes) {
+      const hn = Number(h.hole);
+      if (hn >= 1 && hn <= 18 && h != null && h.par != null) {
+        const p = Number(h.par);
+        if (Number.isFinite(p) && p > 0) byHole.set(hn, p);
+      }
+    }
+    const par = [];
+    for (let i = 1; i <= 18; i++) {
+      const p = byHole.get(i);
+      par.push(Number.isFinite(p) && p > 0 ? p : 4);
+    }
+    return par;
+  }
+
+  function hcpArrFromOrgDoc(d) {
+    const holes = Array.isArray(d.holes) ? d.holes : [];
+    const byHole = new Map();
+    for (const h of holes) {
+      const hn = Number(h.hole);
+      if (hn >= 1 && hn <= 18 && h != null) {
+        const v =
+          h.handicap != null
+            ? Number(h.handicap)
+            : h.hcp != null
+              ? Number(h.hcp)
+              : NaN;
+        if (Number.isFinite(v) && v > 0) byHole.set(hn, v);
+      }
+    }
+    const hcp = [];
+    for (let i = 1; i <= 18; i++) {
+      const v = byHole.get(i);
+      hcp.push(Number.isFinite(v) && v > 0 ? v : i);
+    }
+    return hcp;
+  }
+
+  async function ensureOrgCourseLoadedForLeaderboard(orgId, courseIdRaw) {
+    const raw = String(courseIdRaw || "").trim();
+    if (!orgId || !raw) {
+      applyLeaderboardTheme(null);
+      return;
+    }
+    const low = raw.toLowerCase();
+    if (low === "tradition" || low === "cypress") {
+      applyLeaderboardTheme(COURSES[low].theme);
+      return;
+    }
+    if (COURSES[raw] && COURSES[raw].loaded) {
+      applyLeaderboardTheme(COURSES[raw].theme);
+      return;
+    }
+    try {
+      const snap = await getDoc(courseDocRef(db, orgId, raw));
+      if (!snap.exists()) {
+        applyLeaderboardTheme(null);
+        return;
+      }
+      const d = snap.data() || {};
+      const par = parArrFromOrgDoc(d);
+      const hcp = hcpArrFromOrgDoc(d);
+      const headerMini =
+        String(d.headerImageUrl || "").trim() ||
+        String(d.logoUrl || "").trim() ||
+        PLACEHOLDER_COURSE_HEADER_IMAGE;
+      const clubName = String(d.name || tournament.courseName || "Golf Club").trim();
+      let theme = normalizeFirestoreTheme(d.theme);
+      if (!theme && String(d.primaryColor || "").trim()) {
+        theme = normalizeFirestoreTheme({ primary: String(d.primaryColor).trim() });
+      }
+      COURSES[raw] = {
+        id: raw,
+        headerMini,
+        clubName,
+        par,
+        hcp,
+        theme,
+        loaded: true,
+      };
+      applyLeaderboardTheme(theme);
+    } catch (e) {
+      console.warn("[leaderboard] org course", e);
+      applyLeaderboardTheme(null);
+    }
+  }
 
   const listEl = document.getElementById("list");
   const sideGamesListEl = document.getElementById("sideGamesList");
@@ -1394,9 +1497,11 @@
   }
 
   function setCourseHeaderMini(courseId){
-    const c = COURSES[courseId] || COURSE_TRADITION;
-    courseHeaderMini.src = c.headerMini;
-    courseHeaderMini.alt = courseId === "cypress" ? "Cypress Header" : "Tradition Header";
+    const cid = String(courseId || "tradition").trim();
+    const low = cid.toLowerCase();
+    const c = COURSES[cid] || COURSES[low] || COURSE_TRADITION;
+    courseHeaderMini.src = c.headerMini || PLACEHOLDER_COURSE_HEADER_IMAGE;
+    courseHeaderMini.alt = `${c.clubName || "Course"} · header`;
     clubNameEl.textContent = c.clubName || "Golf Club";
 
     const totalPar = c.par.reduce((a,b)=>a+(Number(b)||0),0);
@@ -2378,14 +2483,13 @@ if (canonOrg) organizationId = canonOrg;
           scoreHeaderLabel.textContent = getScoreModeLabel();
         }
 
-        setCourseHeaderMini(
-          (() => {
-            const id = String(tournament.courseId || tournament.courseDefault || "tradition")
-              .trim()
-              .toLowerCase();
-            return id === "cypress" ? "cypress" : "tradition";
-          })()
-        );
+        {
+          const courseKey = String(
+            tournament.courseId || tournament.courseDefault || "tradition"
+          ).trim();
+          await ensureOrgCourseLoadedForLeaderboard(organizationId, courseKey);
+          setCourseHeaderMini(courseKey);
+        }
         renderSponsors();
         updateViewButtons();
 

@@ -1,38 +1,113 @@
 /**
- * Auto theme from course logo: palette extraction + classic golf UI mapping.
- * Firestore shape: theme: { mode, primary, secondary, accent, surface, text, mutedText, border, buttonBg, buttonText }
+ * Course-specific themes (Firestore `theme` on organizations/{orgId}/courses/{courseId}).
+ * Use {@link normalizeFirestoreTheme} for the canonical shape.
+ * Built-in Tradition/Cypress use {@link BUILT_IN_CYPRESSWOOD_SCORECARD_THEME} explicitly — not as a silent default.
  */
 
+/** Neutral scorecard palette when no course theme is set. */
 /** @type {Readonly<Record<string, string>>} */
-export const DEFAULT_SCORECARD_CSS_VARS = {
-  "--paper": "#e9e2d4",
-  "--ink": "#111111",
-  "--muted": "#5c5348",
-  "--grid": "#2b2b2b",
-  "--headerRow": "#d8d1c3",
-  "--parRow": "#a85a13",
+export const NEUTRAL_SCORECARD_CSS_VARS = {
+  "--paper": "#ece8e0",
+  "--ink": "#252422",
+  "--muted": "#5c5854",
+  "--grid": "#4a4845",
+  "--headerRow": "#d9d4cc",
+  "--parRow": "#6a655e",
   "--parRowText": "#ffffff",
-  "--hcpRow": "#f2e6b9",
-  "--hcpLabel": "#e9dcaa",
-  "--cellBg": "#f8f4ea",
-  "--border": "#7a4a0b",
-  "--card": "#efe7d7",
+  "--parRowLabel": "#3d3a37",
+  "--hcpRow": "#e5e0d8",
+  "--hcpLabel": "#d8d2c8",
+  "--cellBg": "#f5f2ec",
+  "--border": "#7a7670",
+  "--card": "#f0ebe4",
   "--chip": "#ffffff55",
-  "--navy": "#0d2a55",
-  "--navy2": "#0b2246",
-  "--green": "#2f6b2f",
+  "--navy": "#3d3c3a",
+  "--navy2": "#323130",
+  "--green": "#4a5c48",
   "--danger": "#b6422d",
-  "--labelCol": "#e1d8c8",
-  "--courseSelectBg": "#e7ddcb",
-  "--buttonSecondaryBg": "#e7ddcb",
-  "--totalBg": "#f1eadb",
-  "--parRowLabel": "#8f4b10",
-  "--focusRing": "122, 74, 11",
-  "--tickerAccent": "#5c4010",
-  "--tickerMuted": "#7a6a4a",
-  "--roundWarm": "61, 42, 9",
-  "--legalLink": "#3d2a09",
+  "--labelCol": "#ded8ce",
+  "--courseSelectBg": "#e2ddd6",
+  "--buttonSecondaryBg": "#e2ddd6",
+  "--totalBg": "#ebe6df",
+  "--focusRing": "90, 88, 85",
+  "--tickerAccent": "#3d3b38",
+  "--tickerMuted": "#6e6a64",
+  "--roundWarm": "55, 53, 50",
+  "--legalLink": "#3d3b38",
 };
+
+/** @deprecated Use NEUTRAL_SCORECARD_CSS_VARS — kept for external imports that referenced the old name. */
+export const DEFAULT_SCORECARD_CSS_VARS = NEUTRAL_SCORECARD_CSS_VARS;
+
+/** Explicit theme for legacy built-in Tradition / Cypress courses (warm + navy accents). */
+export const BUILT_IN_CYPRESSWOOD_SCORECARD_THEME = {
+  primary: "#12356f",
+  secondary: "#d8d1c3",
+  accent: "#9a6217",
+  surface: "#e9e2d4",
+  text: "#111111",
+  mutedText: "#5c5348",
+  border: "#7a4a0b",
+  buttonBg: "#12356f",
+  buttonText: "#ffffff",
+};
+
+/**
+ * Optional preset: warm paper, charcoal text, muted gold/green accents (add to Firestore course.theme or copy fields).
+ */
+export const PRESET_PLUM_CREEK_SCORECARD_THEME = {
+  primary: "#3d3428",
+  secondary: "#dbd3c4",
+  accent: "#8b7a58",
+  background: "#ebe4d6",
+  surface: "#ebe4d6",
+  tableHeader: "#ddd4c4",
+  text: "#252220",
+  mutedText: "#5c534a",
+  border: "#9a907c",
+  buttonBg: "#4a4034",
+  buttonText: "#f7f5f0",
+  fontStyle: "Georgia, 'Times New Roman', serif",
+};
+
+/** SVG placeholder when no logo / header image URL (avoids hardcoded club asset). */
+export const PLACEHOLDER_COURSE_HEADER_IMAGE =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="200" viewBox="0 0 800 200"><rect fill="#e8e4dc" width="800" height="200"/><text x="400" y="108" text-anchor="middle" font-family="Georgia,serif" font-size="22" fill="#6b6560">Course</text></svg>`
+  );
+
+/**
+ * Normalize Firestore theme (supports primaryColor, background, tableHeader, etc.).
+ * @returns {Record<string, string> | null}
+ */
+export function normalizeFirestoreTheme(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const primary = raw.primary != null ? String(raw.primary).trim() : "";
+  const primaryAlt = raw.primaryColor != null ? String(raw.primaryColor).trim() : "";
+  const p = primary || primaryAlt;
+  if (!p) return null;
+
+  const pick = (a, b) => {
+    const x = a != null && String(a).trim() !== "" ? String(a).trim() : "";
+    if (x) return x;
+    return b != null && String(b).trim() !== "" ? String(b).trim() : "";
+  };
+
+  return {
+    primary: p,
+    secondary: pick(raw.secondary, raw.secondaryColor),
+    accent: pick(raw.accent, raw.accentColor),
+    surface: pick(raw.surface, raw.background),
+    text: pick(raw.text, raw.primaryText),
+    mutedText: pick(raw.mutedText, raw.muted),
+    border: pick(raw.border, raw.accent),
+    tableHeader: raw.tableHeader != null ? String(raw.tableHeader).trim() : "",
+    fontStyle: raw.fontStyle != null ? String(raw.fontStyle).trim() : "",
+    buttonBg: raw.buttonBg != null ? String(raw.buttonBg).trim() : "",
+    buttonText: raw.buttonText != null ? String(raw.buttonText).trim() : "",
+  };
+}
 
 function relLum([r, g, b]) {
   const lin = (c) => {
@@ -373,11 +448,12 @@ function contrastRatio(lumA, lumB) {
  * @returns {Record<string, string>}
  */
 export function semanticThemeToScorecardVars(theme) {
-  if (!theme || typeof theme !== "object" || !theme.primary) return { ...DEFAULT_SCORECARD_CSS_VARS };
+  const t = normalizeFirestoreTheme(theme);
+  if (!t) return { ...NEUTRAL_SCORECARD_CSS_VARS };
 
-  const P0 = hexToRgb(theme.primary) || [61, 79, 66];
-  const S0 = hexToRgb(theme.secondary) || P0;
-  const A0 = hexToRgb(theme.accent) || [138, 115, 72];
+  const P0 = hexToRgb(t.primary) || [61, 79, 66];
+  const S0 = hexToRgb(t.secondary) || P0;
+  const A0 = hexToRgb(t.accent) || [138, 115, 72];
   const P = (() => {
     const { h, s, l } = rgbToHsl(P0[0], P0[1], P0[2]);
     return hslToRgb(h, Math.min(s, 0.28), l);
@@ -390,15 +466,17 @@ export function semanticThemeToScorecardVars(theme) {
     const { h, s, l } = rgbToHsl(A0[0], A0[1], A0[2]);
     return hslToRgb(h, Math.min(s, 0.26), l);
   })();
-  const surf = hexToRgb(theme.surface) || [244, 241, 234];
-  const ink = hexToRgb(theme.text) || [42, 40, 38];
-  const muted = hexToRgb(theme.mutedText) || mixRgb(ink, surf, 0.35);
-  const border = hexToRgb(theme.border) || A;
-  const btnBg = hexToRgb(theme.buttonBg) || mixRgb(P, [40, 50, 60], 0.25);
-  const btnTx = hexToRgb(theme.buttonText) || [255, 255, 255];
+  const surf = hexToRgb(t.surface) || [244, 241, 234];
+  const ink = hexToRgb(t.text) || [42, 40, 38];
+  const muted = hexToRgb(t.mutedText) || mixRgb(ink, surf, 0.35);
+  const border = hexToRgb(t.border) || A;
+  const btnBg = hexToRgb(t.buttonBg) || mixRgb(P, [40, 50, 60], 0.25);
+  const btnTx = hexToRgb(t.buttonText) || [255, 255, 255];
 
   const card = mixRgb(surf, [255, 255, 255], 0.08);
-  const headerRow = mixRgb(S, surf, 0.5);
+  const thRgb = t.tableHeader ? hexToRgb(t.tableHeader) : null;
+  const headerRow =
+    thRgb && thRgb.length === 3 ? thRgb : mixRgb(S, surf, 0.5);
   const parRow = mixRgb(A, P, 0.38);
   const parRowHsl = rgbToHsl(parRow[0], parRow[1], parRow[2]);
   const parRowFinal = hslToRgb(
@@ -422,8 +500,8 @@ export function semanticThemeToScorecardVars(theme) {
   const focusRgb = mixRgb(border, A, 0.5);
 
   const out = {
-    ...DEFAULT_SCORECARD_CSS_VARS,
-    "--paper": theme.surface || DEFAULT_SCORECARD_CSS_VARS["--paper"],
+    ...NEUTRAL_SCORECARD_CSS_VARS,
+    "--paper": rgbToHex(surf[0], surf[1], surf[2]),
     "--ink": rgbToHex(ink[0], ink[1], ink[2]),
     "--muted": rgbToHex(muted[0], muted[1], muted[2]),
     "--grid": rgbToHex(grid[0], grid[1], grid[2]),
@@ -446,7 +524,7 @@ export function semanticThemeToScorecardVars(theme) {
       Math.min(255, cellBg[1]),
       Math.min(255, cellBg[2])
     ),
-    "--border": theme.border || DEFAULT_SCORECARD_CSS_VARS["--border"],
+    "--border": rgbToHex(border[0], border[1], border[2]),
     "--card": rgbToHex(card[0], card[1], card[2]),
     "--navy": rgbToHex(navy[0], navy[1], navy[2]),
     "--navy2": rgbToHex(navy2[0], navy2[1], navy2[2]),
@@ -499,9 +577,94 @@ export function applyScorecardTheme(themeFirestore) {
   for (const [k, v] of Object.entries(vars)) {
     root.style.setProperty(k, v);
   }
+  const nt = normalizeFirestoreTheme(themeFirestore);
+  if (nt && nt.fontStyle) {
+    document.body.style.fontFamily = nt.fontStyle;
+  } else {
+    document.body.style.fontFamily = "";
+  }
   const meta = document.querySelector('meta[name="theme-color"]');
-  const border = vars["--border"] || "#7a4a0b";
+  const border = vars["--border"] || "#7a7670";
   if (meta) meta.setAttribute("content", border);
+}
+
+/** Leaderboard / glass UI: map course theme → CSS vars (same semantic source as scorecard). */
+export function semanticThemeToLeaderboardVars(theme) {
+  const t = normalizeFirestoreTheme(theme);
+  if (!t) {
+    const surface = "#78756e";
+    const ink = "#1a1918";
+    return {
+      "--lb-theme-color": surface,
+      "--lb-body-bg": surface,
+      "--lb-overlay-top": "rgba(45,44,42,0.25)",
+      "--lb-overlay-radial": "rgba(120,115,105,0.12)",
+      "--ink": ink,
+      "--border": "#8a8578",
+      "--navy": "#3a3836",
+      "--navy2": "#2f2d2c",
+      "--gold": "#9a9078",
+      "--fairway1": "#4a5c48",
+      "--fairway2": "#3d4a3c",
+      "--lbHeadBg1": "rgba(58,56,54,0.45)",
+      "--lbHeadBg2": "rgba(47,45,44,0.32)",
+      "--glassTop": "rgba(255,255,255,.14)",
+      "--glassBoard": "rgba(255,255,255,.06)",
+      "--panelBorder": "rgba(255,255,255,.10)",
+    };
+  }
+
+  const P = hexToRgb(t.primary) || [58, 56, 54];
+  const A = hexToRgb(t.accent) || P;
+  const surf = hexToRgb(t.surface) || [236, 232, 224];
+  const ink = hexToRgb(t.text) || [26, 25, 24];
+  const navy = mixRgb(P, [20, 22, 28], 0.2);
+  const navy2 = mixRgb(navy, [0, 0, 0], 0.15);
+  const gold = mixRgb(A, [255, 248, 230], 0.35);
+  const fair1 = mixRgb(A, [40, 72, 48], 0.25);
+  const fair2 = mixRgb(fair1, [0, 0, 0], 0.2);
+  const br = hexToRgb(t.border) || A;
+
+  const surfHex = rgbToHex(surf[0], surf[1], surf[2]);
+
+  return {
+    "--lb-theme-color": surfHex,
+    "--lb-body-bg": surfHex,
+    "--lb-overlay-top": `rgba(${Math.round(mixRgb(ink, surf, 0.7)[0])},${Math.round(mixRgb(ink, surf, 0.7)[1])},${Math.round(mixRgb(ink, surf, 0.7)[2])},0.22)`,
+    "--lb-overlay-radial": `rgba(${Math.round(A[0])},${Math.round(A[1])},${Math.round(A[2])},0.14)`,
+    "--ink": rgbToHex(ink[0], ink[1], ink[2]),
+    "--border": rgbToHex(br[0], br[1], br[2]),
+    "--navy": rgbToHex(navy[0], navy[1], navy[2]),
+    "--navy2": rgbToHex(navy2[0], navy2[1], navy2[2]),
+    "--gold": rgbToHex(
+      Math.min(255, gold[0]),
+      Math.min(255, gold[1]),
+      Math.min(255, gold[2])
+    ),
+    "--fairway1": rgbToHex(fair1[0], fair1[1], fair1[2]),
+    "--fairway2": rgbToHex(fair2[0], fair2[1], fair2[2]),
+    "--lbHeadBg1": `rgba(${navy[0]},${navy[1]},${navy[2]},0.5)`,
+    "--lbHeadBg2": `rgba(${navy2[0]},${navy2[1]},${navy2[2]},0.38)`,
+    "--glassTop": "rgba(255,255,255,.18)",
+    "--glassBoard": "rgba(255,255,255,.07)",
+    "--panelBorder": "rgba(255,255,255,.10)",
+  };
+}
+
+export function applyLeaderboardTheme(themeFirestore) {
+  const root = document.documentElement;
+  const vars = semanticThemeToLeaderboardVars(themeFirestore);
+  for (const [k, v] of Object.entries(vars)) {
+    root.style.setProperty(k, v);
+  }
+  const nt = normalizeFirestoreTheme(themeFirestore);
+  if (nt && nt.fontStyle) {
+    document.body.style.fontFamily = nt.fontStyle;
+  } else {
+    document.body.style.fontFamily = "";
+  }
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", vars["--lb-theme-color"] || "#78756e");
 }
 
 /** Alias — same as {@link applyScorecardTheme}. */

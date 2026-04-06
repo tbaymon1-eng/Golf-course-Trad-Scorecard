@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Cypresswood Scorecard</title>
+  <title>Scorecard</title>
 
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="theme-color" content="#7a4a0b">
+  <meta name="theme-color" content="#7a7670">
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -897,7 +897,7 @@
   <div class="wrap">
     <div class="card" id="card">
 
-      <img id="courseHeader" class="header-img" src="./assets/cypresswood_header.png" alt="Scorecard Header" />
+      <img id="courseHeader" class="header-img" src="./assets/neutral-header.svg" alt="Course header" />
 
       <div id="liveAlertBanner" class="liveAlertBanner liveAlertBanner--info" style="display:none;" role="alert">
         <div class="liveAlertInner">
@@ -1091,7 +1091,12 @@ import {
   courseDocRef,
   casualRoundDocRef
 } from "./js/org-paths.js";
-import { applyScorecardTheme } from "./js/course-theme.js";
+import {
+  applyScorecardTheme,
+  BUILT_IN_CYPRESSWOOD_SCORECARD_THEME,
+  normalizeFirestoreTheme,
+  PLACEHOLDER_COURSE_HEADER_IMAGE,
+} from "./js/course-theme.js";
 
 let db = null;
 let auth = null;
@@ -1113,7 +1118,8 @@ try {
 const COURSE_TRADITION = {
   id: "tradition",
   title: "Tradition Course",
-  headerImg: "./assets/cypresswood_header.png",
+  headerImg: "./assets/neutral-header.svg",
+  theme: BUILT_IN_CYPRESSWOOD_SCORECARD_THEME,
   teeRows: [
     { css:"row-black", label:"Black Tees", front:[465,384,203,448,606,376,528,196,453], out:3657, back:[405,256,545,464,185,394,472,318,546], inn:3563, tot:7220 },
     { css:"row-blue", label:"Blue Tees", front:[373,356,195,422,565,343,508,169,409], out:3340, back:[370,211,518,423,169,357,439,291,520], inn:3298, tot:6638 },
@@ -1131,6 +1137,7 @@ const COURSE_CYPRESS = {
   id: "cypress",
   title: "Cypress Course",
   headerImg: "./assets/cypress_header.png",
+  theme: BUILT_IN_CYPRESSWOOD_SCORECARD_THEME,
   teeRows: [
     { css:"row-blue", label:"Blue", front:[514,396,387,426,182,417,160,563,427], out:3472, back:[416,409,388,349,149,586,193,531,413], inn:3434, tot:6906 },
     { css:"row-forest", label:"Forest", front:[485,335,326,375,155,361,137,527,352], out:3053, back:[381,368,354,320,117,546,160,490,379], inn:3115, tot:6168 }
@@ -1263,7 +1270,7 @@ function yardCell(v){
 function setCourseHeader(courseKey){
   const course = COURSES[courseKey];
   if(!courseHeaderImg || !course) return;
-  courseHeaderImg.src = course.headerImg;
+  courseHeaderImg.src = course.headerImg || PLACEHOLDER_COURSE_HEADER_IMAGE;
   courseHeaderImg.alt = `${course.title || courseKey} · header`;
 }
 
@@ -2084,11 +2091,17 @@ function tryBuildOrgCourseFromDoc(d, courseKey) {
     if (h) return h;
     const l = String(d.logoUrl || "").trim();
     if (l) return l;
-    return "./assets/cypresswood_header.png";
+    return PLACEHOLDER_COURSE_HEADER_IMAGE;
   })();
 
-  const theme =
-    d.theme && typeof d.theme === "object" && d.theme.primary ? d.theme : null;
+  let theme = normalizeFirestoreTheme(d.theme);
+  if (!theme && String(d.primaryColor || "").trim()) {
+    theme = normalizeFirestoreTheme({
+      primary: String(d.primaryColor).trim(),
+      accent: String(d.secondaryColor || d.accentColor || "").trim() || undefined,
+      surface: String(d.backgroundColor || "").trim() || undefined,
+    });
+  }
 
   return {
     id: String(courseKey),
@@ -2118,7 +2131,8 @@ function courseFromFirestoreData(d, courseKey) {
   return {
     id: String(d.id || courseKey),
     title: String(d.title || base?.title || "Course"),
-    headerImg: String(d.headerImg || base?.headerImg || "./assets/cypresswood_header.png"),
+    headerImg: String(d.headerImg || base?.headerImg || PLACEHOLDER_COURSE_HEADER_IMAGE),
+    theme: normalizeFirestoreTheme(d.theme) || base?.theme || undefined,
     teeRows,
     parFront,
     parBack,

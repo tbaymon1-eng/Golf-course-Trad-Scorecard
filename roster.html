@@ -1198,6 +1198,7 @@
       tournamentAlertsLiveRef,
       applyOrgTournamentParams,
     } from "./js/org-paths.js";
+    import { resolvePlacardCourseBrand } from "./js/branding-display.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
@@ -1615,10 +1616,7 @@
     }
 
     function placardCourseBrand(){
-      const m = tournamentMeta;
-      if (!m) return "Cypresswood Golf Club";
-      const b = norm(m.clubName || m.courseBrand || m.venueName || m.golfCourseName || "");
-      return b || "Cypresswood Golf Club";
+      return resolvePlacardCourseBrand(tournamentMeta);
     }
 
     function placardTournamentTitle(){

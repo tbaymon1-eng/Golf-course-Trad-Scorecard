@@ -4,15 +4,15 @@
 // - Assets: cache-first (fast)
 // - Cleans old caches when version changes
 
-const CACHE_VERSION = "v7"; // <--- BUMP THIS when you deploy changes (v8, v9...)
-const CACHE_NAME = `cypresswood-scorecard-${CACHE_VERSION}`;
+const CACHE_VERSION = "v8"; // <--- BUMP THIS when you deploy changes (v8, v9...)
+const CACHE_NAME = `golf-scorecard-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./pwa.js",
-  "./assets/cypresswood_header.png",
+  "./assets/neutral-header.svg",
   "./assets/cypress_header.png",
   "./assets/icon-192.png",
   "./assets/icon-512.png"

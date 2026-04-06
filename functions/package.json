@@ -1,6 +1,6 @@
 {
   "name": "cypresswood-tournament-functions",
-  "description": "Cloud Functions for Cypresswood tournament registration",
+  "description": "Cloud Functions for tournament registration",
   "engines": {
     "node": "22"
   },

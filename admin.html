@@ -320,7 +320,7 @@
       <section class="content">
         <div class="field">
           <label class="label" for="tournamentName">Tournament Name</label>
-          <input id="tournamentName" type="text" placeholder="Cypresswood Saturday Classic" />
+          <input id="tournamentName" type="text" placeholder="Saturday Club Classic" />
         </div>
 
         <div class="field">
@@ -1113,7 +1113,8 @@
   }
 
   function applyLinks(){
-    const token = $("adminToken").value.trim();
+    const token =
+      $("adminToken").value.trim() || String(state.adminToken || "").trim();
 
     if(!state.tournamentId || !token){
       setBox("joinLinkBox", "—");
@@ -1627,20 +1628,22 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   const params = new URLSearchParams(location.search);
-  const urlId = params.get("id");
+  const fromUrl = (params.get("id") || params.get("t") || "").trim();
+  const fromInput = ($("tournamentId")?.value || "").trim();
+  const resumeId = fromUrl || fromInput;
   const urlCourseId = (params.get("courseId") || "").trim();
 
-  if (urlId) {
-    $("tournamentId").value = urlId;
-    let data = loadTournamentFromLocal(urlId);
+  if (resumeId) {
+    $("tournamentId").value = resumeId;
+    let data = loadTournamentFromLocal(resumeId);
 
     if (!data) {
-      data = await loadTournamentFromFirebase(urlId);
+      data = await loadTournamentFromFirebase(resumeId);
     }
 
     if (data) {
-      state.tournamentId = urlId;
-      state.adminToken = data.adminToken || "";
+      state.tournamentId = resumeId;
+      state.adminToken = String(data.adminToken || "").trim();
       fillForm(data);
     }
   }
