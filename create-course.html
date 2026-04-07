@@ -1119,7 +1119,12 @@
       if (!isEditMode) {
         try {
           const coursesSnap = await getDocs(orgCoursesCollection(db, orgId));
-          if (!coursesSnap.empty) {
+          let hasActiveCourses = false;
+          coursesSnap.forEach((d) => {
+            const c = d.data() || {};
+            if (c.active !== false) hasActiveCourses = true;
+          });
+          if (hasActiveCourses) {
             console.info(
               "[create-course] redirect to dashboard: create-course is only for orgs with zero courses (not in edit mode)"
             );

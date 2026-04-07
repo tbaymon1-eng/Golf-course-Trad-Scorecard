@@ -69,6 +69,34 @@
       font-weight: 600;
       background: rgba(255,255,255,.85);
     }
+    .btn-course-delete { background: #8e2c1d; color: #fff; border: none; }
+    .btn-course-delete:hover { filter: brightness(0.95); }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(0, 0, 0, 0.42);
+    }
+    .modal-backdrop.is-open { display: flex; }
+    .modal {
+      width: min(520px, 100%);
+      background: #efe8da;
+      border: 3px solid rgba(154,98,23,.55);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 14px 34px rgba(0,0,0,.25);
+    }
+    .modal h3 { margin: 0 0 10px; font-family: Cinzel, serif; color: var(--ink); }
+    .modal p { margin: 0 0 12px; color: #4b4641; line-height: 1.42; }
+    .modal .err { margin: 8px 0 10px; min-height: 1.25em; }
+    .modal-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    .platform-admin-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-org-delete { background: #7e2317; color: #fff; border: none; }
+    .btn-org-delete:hover { filter: brightness(0.95); }
   </style>
 </head>
 <body>
@@ -78,6 +106,9 @@
       <div class="platform-kicker">Platform admin</div>
       <label for="orgSwitcher">View organization</label>
       <select id="orgSwitcher"></select>
+      <div class="platform-admin-actions">
+        <button type="button" class="btn btn-sm btn-org-delete" id="deleteOrgBtn">Delete Organization</button>
+      </div>
     </div>
     <p class="meta" id="orgLine"></p>
     <div class="toolbar">
@@ -97,14 +128,42 @@
     <div id="listHost" class="list"></div>
   </div>
 
+  <div id="courseDeleteModalBackdrop" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="courseDeleteTitle">
+      <h3 id="courseDeleteTitle">Delete course</h3>
+      <p id="courseDeleteBody">This course will be hidden from active lists.</p>
+      <div id="courseDeleteErr" class="err"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sm btn-ghost" id="courseDeleteCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-sm btn-course-delete" id="courseDeleteConfirmBtn">Delete Course</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="orgDeleteModalBackdrop" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="orgDeleteTitle">
+      <h3 id="orgDeleteTitle">Delete organization</h3>
+      <p id="orgDeleteBody">This organization will be soft-deleted and hidden from active dashboards.</p>
+      <div id="orgDeleteErr" class="err"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sm btn-ghost" id="orgDeleteCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-sm btn-org-delete" id="orgDeleteConfirmBtn">Delete Organization</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getFirestore,
+      collection,
       doc,
       getDoc,
       getDocs,
+      query,
+      where,
       updateDoc,
+      serverTimestamp,
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
@@ -115,6 +174,7 @@
       organizationsCollection,
       orgTournamentsCollection,
       tournamentDocRef,
+      courseDocRef,
     } from "./js/org-paths.js";
     import {
       resolveOrganizerOrgId,
@@ -136,6 +196,10 @@
 
     let cachedOrgId = "";
     let showArchived = false;
+    let canDeleteCourses = false;
+    let pendingCourseDelete = null;
+    let canDeleteOrganizations = false;
+    let pendingOrgDelete = null;
 
     function baseDir() {
       const path = window.location.pathname;
@@ -164,6 +228,193 @@
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;");
+    }
+
+    function isCourseLinkedToTournament(t, courseId) {
+      const cid = String(courseId || "").trim().toLowerCase();
+      if (!cid) return false;
+      const explicit = String(t?.courseId || "").trim().toLowerCase();
+      const legacy = String(t?.defaultCourse || t?.courseDefault || "").trim().toLowerCase();
+      return explicit === cid || legacy === cid;
+    }
+
+    function openCourseDeleteModal(orgId, row) {
+      pendingCourseDelete = { orgId, row };
+      $("courseDeleteErr").textContent = "";
+      $("courseDeleteBody").textContent = `Delete "${row.name || "Course"}"? This is a soft delete and hides it from active lists.`;
+      $("courseDeleteConfirmBtn").disabled = false;
+      $("courseDeleteConfirmBtn").textContent = "Delete Course";
+      $("courseDeleteModalBackdrop").classList.add("is-open");
+      $("courseDeleteModalBackdrop").setAttribute("aria-hidden", "false");
+    }
+
+    function closeCourseDeleteModal() {
+      pendingCourseDelete = null;
+      $("courseDeleteModalBackdrop").classList.remove("is-open");
+      $("courseDeleteModalBackdrop").setAttribute("aria-hidden", "true");
+    }
+
+    async function listActiveOrganizations() {
+      const snap = await withFirestoreRetry(() => getDocs(organizationsCollection(db)));
+      const rows = [];
+      snap.forEach((d) => {
+        const o = d.data() || {};
+        if (o.active === false) return;
+        const label = String(o.name || "").trim() || "Organization";
+        rows.push({ id: d.id, label });
+      });
+      rows.sort((a, b) => a.label.localeCompare(b.label));
+      return rows;
+    }
+
+    async function getLinkedCountsForOrg(orgId) {
+      const [coursesSnap, tournamentsSnap, usersA, usersB] = await Promise.all([
+        withFirestoreRetry(() => getDocs(orgCoursesCollection(db, orgId))),
+        withFirestoreRetry(() => getDocs(orgTournamentsCollection(db, orgId))),
+        withFirestoreRetry(() => getDocs(query(collection(db, "users"), where("orgId", "==", orgId)))),
+        withFirestoreRetry(() => getDocs(query(collection(db, "users"), where("organizationId", "==", orgId)))),
+      ]);
+      const userIds = new Set();
+      usersA.forEach((d) => userIds.add(d.id));
+      usersB.forEach((d) => userIds.add(d.id));
+      return {
+        courses: coursesSnap.size,
+        tournaments: tournamentsSnap.size,
+        staffUsers: userIds.size,
+      };
+    }
+
+    async function openOrgDeleteModal(orgId) {
+      const oid = String(orgId || "").trim();
+      if (!oid) return;
+      pendingOrgDelete = { orgId: oid };
+      $("orgDeleteErr").textContent = "";
+      $("orgDeleteBody").textContent = "Checking linked data…";
+      $("orgDeleteConfirmBtn").disabled = true;
+      $("orgDeleteConfirmBtn").textContent = "Checking…";
+      $("orgDeleteModalBackdrop").classList.add("is-open");
+      $("orgDeleteModalBackdrop").setAttribute("aria-hidden", "false");
+      try {
+        const counts = await getLinkedCountsForOrg(oid);
+        pendingOrgDelete.counts = counts;
+        console.info("[dashboard] org delete linked counts", {
+          selectedOrgId: oid,
+          linkedCounts: counts,
+        });
+        $("orgDeleteBody").textContent =
+          `Delete organization "${oid}"?\n` +
+          `Linked data: courses ${counts.courses}, tournaments ${counts.tournaments}, staff/users ${counts.staffUsers}. ` +
+          "This is a soft delete; data remains recoverable.";
+      } catch (e) {
+        console.error(e);
+        $("orgDeleteErr").textContent = e?.message || "Could not inspect linked data.";
+      } finally {
+        $("orgDeleteConfirmBtn").disabled = false;
+        $("orgDeleteConfirmBtn").textContent = "Delete Organization";
+      }
+    }
+
+    function closeOrgDeleteModal() {
+      pendingOrgDelete = null;
+      $("orgDeleteModalBackdrop").classList.remove("is-open");
+      $("orgDeleteModalBackdrop").setAttribute("aria-hidden", "true");
+    }
+
+    async function softDeleteOrganization(orgId) {
+      const oid = String(orgId || "").trim();
+      if (!oid) return;
+      const confirmBtn = $("orgDeleteConfirmBtn");
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = "Deleting…";
+      $("orgDeleteErr").textContent = "";
+      try {
+        console.info("[dashboard] org delete permission", {
+          selectedOrgId: oid,
+          deletePermission: canDeleteOrganizations,
+        });
+        await updateDoc(doc(db, "organizations", oid), {
+          active: false,
+          deletedAt: serverTimestamp(),
+        });
+        console.info("[dashboard] org delete result", {
+          selectedOrgId: oid,
+          ok: true,
+        });
+      } catch (e) {
+        console.error(e);
+        $("orgDeleteErr").textContent = e?.message || "Could not delete organization.";
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = "Delete Organization";
+        return;
+      }
+      closeOrgDeleteModal();
+
+      const orgSwitcher = $("orgSwitcher");
+      const active = await listActiveOrganizations();
+      orgSwitcher.innerHTML = "";
+      for (const o of active) {
+        const opt = document.createElement("option");
+        opt.value = o.id;
+        opt.textContent = o.label;
+        orgSwitcher.appendChild(opt);
+      }
+      if (!active.length) {
+        $("coursesHost").innerHTML = `<div class="empty">No active organizations found.</div>`;
+        $("listHost").innerHTML = "";
+        $("orgLine").textContent = "Platform admin · No active organizations";
+        return;
+      }
+      orgSwitcher.value = active[0].id;
+      try {
+        sessionStorage.setItem(DASHBOARD_ADMIN_ORG_KEY, active[0].id);
+        sessionStorage.setItem("orgId", active[0].id);
+        sessionStorage.setItem("selectedOrgId", active[0].id);
+        localStorage.setItem("selectedOrgId", active[0].id);
+      } catch (_e) {}
+      await Promise.all([renderCourses(active[0].id), renderList(active[0].id)]);
+      $("adminBtn").href = `./admin.html?orgId=${encodeURIComponent(active[0].id)}`;
+      const oSnap = await withFirestoreRetry(() => getDoc(doc(db, "organizations", active[0].id)));
+      const oName = oSnap.exists() ? String(oSnap.data()?.name || "").trim() : "";
+      $("orgLine").textContent = oName
+        ? `Platform admin · ${oName}`
+        : `Platform admin · Selected organization`;
+    }
+
+    async function softDeleteCourse(orgId, courseRow) {
+      $("courseDeleteErr").textContent = "";
+      const confirmBtn = $("courseDeleteConfirmBtn");
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = "Checking…";
+      try {
+        const tSnap = await withFirestoreRetry(() => getDocs(orgTournamentsCollection(db, orgId)));
+        let linkedActive = 0;
+        tSnap.forEach((d) => {
+          const t = d.data() || {};
+          if (t.archived === true) return;
+          if (isCourseLinkedToTournament(t, courseRow.id)) linkedActive += 1;
+        });
+        if (linkedActive > 0) {
+          $("courseDeleteErr").textContent =
+            "This course is linked to active tournaments. Archive or remove those tournaments first.";
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = "Delete Course";
+          return;
+        }
+
+        confirmBtn.textContent = "Deleting…";
+        await updateDoc(courseDocRef(db, orgId, courseRow.id), {
+          active: false,
+          deletedAt: serverTimestamp(),
+        });
+
+        closeCourseDeleteModal();
+        await renderCourses(orgId);
+      } catch (e) {
+        console.error(e);
+        $("courseDeleteErr").textContent = e?.message || "Could not delete this course.";
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = "Delete Course";
+      }
     }
 
     async function archiveTournament(orgId, tournamentId, name) {
@@ -256,6 +507,15 @@
       });
       actions.appendChild(editC);
 
+      if (canDeleteCourses) {
+        const delCourse = document.createElement("button");
+        delCourse.type = "button";
+        delCourse.className = "btn btn-sm btn-course-delete";
+        delCourse.textContent = "Delete Course";
+        delCourse.addEventListener("click", () => openCourseDeleteModal(oid, row));
+        actions.appendChild(delCourse);
+      }
+
       div.appendChild(actions);
       return div;
     }
@@ -278,8 +538,17 @@
       const rows = [];
       snap.forEach((d) => {
         const t = d.data() || {};
+        if (t.active === false) return;
         rows.push({ id: d.id, name: t.name });
       });
+      if (!rows.length) {
+        host.innerHTML = `
+          <div class="empty">
+            No courses yet. Add your first course to use it for tournaments and scoring.
+            <a class="btn btn-sm" href="./create-course.html">Add a course</a>
+          </div>`;
+        return;
+      }
       rows.sort((a, b) => String(a.name || a.id).localeCompare(String(b.name || b.id)));
 
       for (const r of rows) {
@@ -321,7 +590,7 @@
       links.appendChild(a(r.links.leaderboard, "Leaderboard"));
       links.appendChild(a(r.links.roster, "Roster"));
       links.appendChild(a(r.links.register, "Registration"));
-      const adminA = a(`./admin.html?id=${encodeURIComponent(r.id)}`, "Admin");
+      const adminA = a(`./admin.html?id=${encodeURIComponent(r.id)}&orgId=${encodeURIComponent(orgId)}`, "Admin");
       adminA.addEventListener("click", () => {
         try {
           localStorage.setItem(`${ADMIN_LAST_TOURNAMENT_KEY}_${orgId}`, r.id);
@@ -435,6 +704,8 @@
         }
 
         const platformAdmin = isPlatformAdminRole(role);
+        canDeleteCourses = platformAdmin;
+        canDeleteOrganizations = platformAdmin;
         console.info("[dashboard] role:", role || "(none)", "platformAdmin:", platformAdmin);
 
         if (platformAdmin) {
@@ -442,26 +713,19 @@
           $("coursesSectionTitle").textContent = "Courses (selected organization)";
           $("tournamentsSectionTitle").textContent = "Tournaments (selected organization)";
 
-          let orgSnap;
+          let orgOptions;
           try {
-            orgSnap = await withFirestoreRetry(() => getDocs(organizationsCollection(db)));
+            orgOptions = await listActiveOrganizations();
           } catch (e) {
             console.error(e);
             errEl.textContent = e?.message || "Could not load organizations.";
             return;
           }
-          if (orgSnap.empty) {
-            errEl.textContent = "No organizations found.";
+          if (!orgOptions.length) {
+            errEl.textContent = "No active organizations found.";
             orgSwitcher.innerHTML = "";
             return;
           }
-
-          const orgOptions = [];
-          orgSnap.forEach((d) => {
-            const nm = String(d.data()?.name || "").trim() || "Organization";
-            orgOptions.push({ id: d.id, label: nm });
-          });
-          orgOptions.sort((a, b) => a.label.localeCompare(b.label));
 
           let saved = "";
           try {
@@ -498,7 +762,11 @@
             $("orgLine").textContent = oName
               ? `Platform admin · ${oName}`
               : `Platform admin · Selected organization`;
-            $("adminBtn").href = "./admin.html";
+            $("adminBtn").href = `./admin.html?orgId=${encodeURIComponent(v)}`;
+            try {
+              sessionStorage.setItem("selectedOrgId", v);
+              localStorage.setItem("selectedOrgId", v);
+            } catch (_e) {}
             try {
               await user.getIdToken(true);
               await Promise.all([renderCourses(v), renderList(v)]);
@@ -516,6 +784,8 @@
         }
 
         platformBar.classList.remove("is-visible");
+        canDeleteCourses = false;
+        canDeleteOrganizations = false;
         $("coursesSectionTitle").textContent = "Your courses";
         $("tournamentsSectionTitle").textContent = "Your tournaments";
 
@@ -538,7 +808,14 @@
           const oSnap = await withFirestoreRetry(() =>
             getDoc(doc(db, "organizations", scopedOrgId))
           );
-          orgName = oSnap.exists() ? String(oSnap.data()?.name || "") : "";
+          const oData = oSnap.exists() ? (oSnap.data() || {}) : null;
+          if (oData && oData.active === false) {
+            errEl.textContent = "This organization is inactive.";
+            $("coursesHost").innerHTML = "";
+            $("listHost").innerHTML = "";
+            return;
+          }
+          orgName = oData ? String(oData.name || "") : "";
         } catch (e) {
           console.warn("[dashboard] organization name read failed", e);
           if (isOfflineLikeFirestoreError(e)) {
@@ -548,7 +825,11 @@
         }
         $("orgLine").textContent = orgName ? orgName : "Your organization";
 
-        $("adminBtn").href = "./admin.html";
+        $("adminBtn").href = `./admin.html?orgId=${encodeURIComponent(scopedOrgId)}`;
+        try {
+          sessionStorage.setItem("selectedOrgId", scopedOrgId);
+          localStorage.setItem("selectedOrgId", scopedOrgId);
+        } catch (_e) {}
 
         try {
           await user.getIdToken(true);
@@ -563,6 +844,29 @@
         console.error("[dashboard] profile / org load error:", e);
         errEl.textContent = e?.message || "Could not load your profile.";
       }
+    });
+
+    $("courseDeleteCancelBtn").addEventListener("click", closeCourseDeleteModal);
+    $("courseDeleteModalBackdrop").addEventListener("click", (ev) => {
+      if (ev.target === $("courseDeleteModalBackdrop")) closeCourseDeleteModal();
+    });
+    $("courseDeleteConfirmBtn").addEventListener("click", async () => {
+      if (!pendingCourseDelete) return;
+      await softDeleteCourse(pendingCourseDelete.orgId, pendingCourseDelete.row);
+    });
+    $("orgDeleteCancelBtn").addEventListener("click", closeOrgDeleteModal);
+    $("orgDeleteModalBackdrop").addEventListener("click", (ev) => {
+      if (ev.target === $("orgDeleteModalBackdrop")) closeOrgDeleteModal();
+    });
+    $("orgDeleteConfirmBtn").addEventListener("click", async () => {
+      if (!pendingOrgDelete || !canDeleteOrganizations) return;
+      await softDeleteOrganization(pendingOrgDelete.orgId);
+    });
+    $("deleteOrgBtn").addEventListener("click", async () => {
+      if (!canDeleteOrganizations) return;
+      const selectedOrgId = String($("orgSwitcher").value || "").trim();
+      console.info("[dashboard] selected org for delete", { selectedOrgId });
+      await openOrgDeleteModal(selectedOrgId);
     });
   </script>
 </body>

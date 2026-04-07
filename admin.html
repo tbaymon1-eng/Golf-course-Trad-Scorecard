@@ -669,14 +669,17 @@
     initializeFirestore,
     doc,
     getDoc,
+    getDocs,
     setDoc,
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { firebaseConfig } from "./js/firebase-config.js";
-  import { courseDocRef, tournamentDocRef } from "./js/org-paths.js";
+  import { orgCoursesCollection, tournamentDocRef } from "./js/org-paths.js";
   import {
     resolveOrganizerOrgId,
+    readDashboardAuthContext,
+    isPlatformAdminRole,
     readOrganizerOrgIdFromUserDoc,
     withFirestoreRetry,
   } from "./js/resolve-organizer-org.js";
@@ -708,6 +711,12 @@
 
     await u.getIdToken(true);
 
+    const pinned = String(state.orgId || "").trim();
+    if (pinned) {
+      persistSelectedOrgId(pinned);
+      return pinned;
+    }
+
     let oid = await readOrganizerOrgIdFromUserDoc(db, u.uid);
     if (!oid) {
       const resolved = await resolveOrganizerOrgId(app, auth, db);
@@ -719,9 +728,7 @@
       oid = (resolved.orgId || u.uid || "").trim();
     }
     state.orgId = oid;
-    try {
-      sessionStorage.setItem("orgId", oid);
-    } catch (_e) {}
+    persistSelectedOrgId(oid);
     return oid;
   }
 
@@ -751,8 +758,12 @@
 
   /** While true, skip applyLinks so share boxes are not cleared before Firestore hydrate. */
   let adminBootstrapping = true;
+  let authRole = "";
+  let profileOrgId = "";
 
   const LS_ADMIN_LAST_TID = "tournament_admin_last_id_v1";
+  const LS_SELECTED_ORG = "selectedOrgId";
+  const SS_DASHBOARD_ADMIN_ORG = "dashboardAdminOrgId";
 
   function lastTournamentKey(orgId) {
     const o = String(orgId || "").trim();
@@ -776,6 +787,40 @@
     } catch (_e) {
       return "";
     }
+  }
+
+  function readOrgFromStorage() {
+    const read = (store, key) => {
+      try {
+        return String(store.getItem(key) || "").trim();
+      } catch (_e) {
+        return "";
+      }
+    };
+    return (
+      read(sessionStorage, LS_SELECTED_ORG) ||
+      read(localStorage, LS_SELECTED_ORG) ||
+      read(sessionStorage, SS_DASHBOARD_ADMIN_ORG) ||
+      read(sessionStorage, "orgId") ||
+      ""
+    );
+  }
+
+  function persistSelectedOrgId(orgId) {
+    const oid = String(orgId || "").trim();
+    if (!oid) return;
+    try { sessionStorage.setItem("orgId", oid); } catch (_e) {}
+    try { sessionStorage.setItem(LS_SELECTED_ORG, oid); } catch (_e) {}
+    try { sessionStorage.setItem(SS_DASHBOARD_ADMIN_ORG, oid); } catch (_e) {}
+    try { localStorage.setItem(LS_SELECTED_ORG, oid); } catch (_e) {}
+  }
+
+  function resolveAdminOrgId({ urlOrgId, storageOrgId, profileOrgId, isPlatformAdmin }) {
+    const u = String(urlOrgId || "").trim();
+    const s = String(storageOrgId || "").trim();
+    const p = String(profileOrgId || "").trim();
+    if (isPlatformAdmin) return u || s || p;
+    return p || u || s;
   }
 
   function syncAdminUrlWithTournamentId(tournamentId) {
@@ -1249,6 +1294,46 @@
       '<option value="Cypress">Cypress</option>';
   }
 
+  async function loadDefaultCourseOptionsForOrg(orgId, preferredCourseId = "") {
+    const sel = $("defaultCourse");
+    if (!sel) return { activeCount: 0 };
+    const oid = String(orgId || "").trim();
+    const preferred = String(preferredCourseId || "").trim();
+    if (!oid) {
+      restoreBuiltinDefaultCourseOptions();
+      return { activeCount: 0 };
+    }
+
+    const snap = await withFirestoreRetry(() => getDocs(orgCoursesCollection(db, oid)));
+    const rows = [];
+    snap.forEach((d) => {
+      const c = d.data() || {};
+      if (c.active === false) return;
+      rows.push({ id: d.id, name: String(c.name || d.id).trim() || d.id });
+    });
+    rows.sort((a, b) => a.name.localeCompare(b.name));
+
+    console.info("[admin] course query result", {
+      resolvedOrgId: oid,
+      courseDocsCount: rows.length,
+    });
+
+    if (!rows.length) {
+      restoreBuiltinDefaultCourseOptions();
+      return { activeCount: 0 };
+    }
+
+    sel.innerHTML = "";
+    for (const r of rows) {
+      const opt = document.createElement("option");
+      opt.value = r.id;
+      opt.textContent = r.name;
+      sel.appendChild(opt);
+    }
+    sel.value = rows.some((r) => r.id === preferred) ? preferred : rows[0].id;
+    return { activeCount: rows.length };
+  }
+
   /** Replaces dropdown options with a single org course (Firestore doc id + display name). */
   function applyOrgCourseAsDefaultSelect(courseId, displayName) {
     const sel = $("defaultCourse");
@@ -1701,6 +1786,17 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
     await user.getIdToken(true);
+    const params = new URLSearchParams(location.search);
+    const urlOrgId = (
+      params.get("orgId") ||
+      params.get("organizationId") ||
+      params.get("org") ||
+      ""
+    ).trim();
+    const storageOrgId = readOrgFromStorage();
+
+    const ctx = await readDashboardAuthContext(db, user.uid);
+    authRole = String(ctx.role || "").trim().toLowerCase();
 
     let orgId = await readOrganizerOrgIdFromUserDoc(db, user.uid);
     let resolved = { ok: true, orgId: "" };
@@ -1713,20 +1809,36 @@ onAuthStateChanged(auth, async (user) => {
         return;
       }
     }
-    orgId = (orgId || resolved.orgId || auth.currentUser?.uid || "").trim();
+    profileOrgId = (orgId || resolved.orgId || auth.currentUser?.uid || "").trim();
 
-    state.orgId = orgId;
-    try {
-      sessionStorage.setItem("orgId", state.orgId);
-    } catch (_e) {}
+    const platformAdmin = isPlatformAdminRole(authRole);
+    const resolvedOrgId = resolveAdminOrgId({
+      urlOrgId,
+      storageOrgId,
+      profileOrgId,
+      isPlatformAdmin: platformAdmin,
+    });
 
-    const params = new URLSearchParams(location.search);
+    console.info("[admin] org resolution", {
+      selectedOrgId: resolvedOrgId || "(none)",
+      urlOrgId: urlOrgId || "(none)",
+      storageOrgId: storageOrgId || "(none)",
+      resolvedOrgIdUsedForCourseQuery: resolvedOrgId || "(none)",
+      role: authRole || "(none)",
+      platformAdmin,
+    });
+
+    state.orgId = resolvedOrgId;
+    persistSelectedOrgId(state.orgId);
+
     fromUrl = (params.get("id") || params.get("t") || "").trim();
     const fromInput = ($("tournamentId")?.value || "").trim();
     const fromStorage = readLastTournamentId(state.orgId);
     let resumeId = fromUrl || fromInput || fromStorage;
     fromStorageUsed = Boolean(!fromUrl && !fromInput && fromStorage && resumeId === fromStorage);
     const urlCourseId = (params.get("courseId") || "").trim();
+
+    await loadDefaultCourseOptionsForOrg(state.orgId, urlCourseId);
 
     if (resumeId) {
       $("tournamentId").value = resumeId;
@@ -1740,6 +1852,7 @@ onAuthStateChanged(auth, async (user) => {
         state.tournamentId = resumeId;
         state.adminToken = String(data.adminToken || "").trim();
         fillForm(data);
+        await loadDefaultCourseOptionsForOrg(state.orgId, String(data.courseId || urlCourseId || "").trim());
         persistLastTournamentId(state.orgId, resumeId);
         if (fromStorageUsed) {
           syncAdminUrlWithTournamentId(resumeId);
@@ -1747,21 +1860,6 @@ onAuthStateChanged(auth, async (user) => {
       } else {
         state.tournamentId = "";
         state.adminToken = "";
-      }
-    }
-
-    if (urlCourseId && state.orgId) {
-      try {
-        const cSnap = await withFirestoreRetry(() =>
-          getDoc(courseDocRef(db, state.orgId, urlCourseId))
-        );
-        if (cSnap.exists()) {
-          const c = cSnap.data() || {};
-          const label = String(c.name || urlCourseId).trim() || urlCourseId;
-          applyOrgCourseAsDefaultSelect(urlCourseId, label);
-        }
-      } catch (e) {
-        console.warn("[admin] courseId load failed", e);
       }
     }
 
