@@ -323,6 +323,18 @@
       border: 2px solid rgba(0, 0, 0, 0.12);
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
     }
+    .init-banner {
+      max-width: 520px;
+      margin: 0 auto 20px;
+      padding: 20px 18px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: var(--blue);
+      background: var(--card);
+      border: 3px solid rgba(154, 98, 23, 0.4);
+      border-radius: 18px;
+    }
   </style>
 </head>
 <body>
@@ -331,7 +343,9 @@
     <p id="pageSub">Saved to your organization. You can add tournaments and details later in the admin.</p>
   </header>
 
-  <form id="form" class="stack-form" autocomplete="on">
+  <div id="initLoading" class="init-banner" role="status" aria-live="polite">Loading…</div>
+
+  <form id="form" class="stack-form" autocomplete="on" hidden>
     <section class="section" aria-labelledby="org-heading">
       <h2 class="section-title" id="org-heading">Organization</h2>
       <p class="section-note">Your course is stored under the organization linked to your signed-in account. Existing share links and tournaments for this org are unchanged.</p>
@@ -417,8 +431,9 @@
     </section>
 
     <button type="submit" class="btn" id="submitBtn">Save and continue</button>
-    <div class="err" id="err"></div>
   </form>
+
+  <div class="err" id="err" style="max-width:520px;margin:0 auto 12px;padding:0 4px;"></div>
 
   <div style="max-width:520px;margin:16px auto 0;padding:0 4px;">
     <a class="btn btn-secondary" href="./dashboard.html" id="skipLink">Skip for now</a>
@@ -441,7 +456,11 @@
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
     import { firebaseConfig } from "./js/firebase-config.js";
     import { orgCoursesCollection, courseDocRef } from "./js/org-paths.js";
-    import { resolveOrganizerOrgId } from "./js/resolve-organizer-org.js";
+    import {
+      resolveOrganizerOrgId,
+      readDashboardAuthContext,
+      isPlatformAdminRole,
+    } from "./js/resolve-organizer-org.js";
     import { generateThemeFromLogoUrl, generateThemeFromLogoFile } from "./js/course-theme.js";
 
     const app = initializeApp(firebaseConfig);
@@ -460,8 +479,42 @@
     const holeBuilderPanel = $("holeBuilderPanel");
 
     const urlParams = new URLSearchParams(window.location.search);
-    const editCourseId = (urlParams.get("courseId") || "").trim();
-    const isEditMode = Boolean(editCourseId);
+
+    const SEL_ORG = "selectedOrgId";
+    const SEL_COURSE = "selectedCourseId";
+
+    function readSel(key) {
+      try {
+        return String(sessionStorage.getItem(key) || localStorage.getItem(key) || "").trim();
+      } catch (_e) {
+        return "";
+      }
+    }
+
+    function writeSel(orgId, courseId) {
+      try {
+        if (orgId) {
+          sessionStorage.setItem(SEL_ORG, orgId);
+          localStorage.setItem(SEL_ORG, orgId);
+        }
+        if (courseId) {
+          sessionStorage.setItem(SEL_COURSE, courseId);
+          localStorage.setItem(SEL_COURSE, courseId);
+        }
+      } catch (_e) {}
+    }
+
+    function sessionOrgFromDashboard() {
+      try {
+        return String(sessionStorage.getItem("orgId") || "").trim();
+      } catch (_e) {
+        return "";
+      }
+    }
+
+    /** Resolved after auth; used by submit and extract. */
+    let editCourseId = "";
+    let isEditMode = false;
 
     let orgId = "";
     let ready = false;
@@ -474,10 +527,6 @@
       $("pageSub").textContent = "Update course details for your organization.";
       submitBtn.textContent = "Save changes";
       skipLink.textContent = "Back to dashboard";
-    }
-
-    if (isEditMode) {
-      applyEditModeChrome();
     }
 
     let logoPreviewObjectUrl = null;
@@ -958,30 +1007,112 @@
 
     onAuthStateChanged(auth, async (user) => {
       errEl.textContent = "";
+      skipLink.style.display = "";
+      const initLoading = $("initLoading");
+
+      const setLoadingMessage = (msg) => {
+        if (initLoading) initLoading.textContent = msg;
+        if (initLoading) initLoading.hidden = false;
+        form.hidden = true;
+      };
+
+      const endInit = (showForm) => {
+        if (initLoading) initLoading.hidden = true;
+        form.hidden = !showForm;
+      };
+
+      const urlOrgParam =
+        (urlParams.get("orgId") || urlParams.get("organizationId") || "").trim();
+      const urlCourseParam = (urlParams.get("courseId") || "").trim();
+
       if (!user) {
-        const nextPath = isEditMode
-          ? `./create-course.html?courseId=${encodeURIComponent(editCourseId)}`
-          : "./create-course.html";
+        const nextQs = new URLSearchParams();
+        if (urlOrgParam) nextQs.set("orgId", urlOrgParam);
+        if (urlCourseParam) nextQs.set("courseId", urlCourseParam);
+        const qs = nextQs.toString();
+        const nextPath = qs ? `./edit-course.html?${qs}` : "./create-course.html";
+        console.info("[create-course] redirect to login (no user)", {
+          nextPath,
+          urlOrgParam: urlOrgParam || "(none)",
+          urlCourseParam: urlCourseParam || "(none)",
+        });
         window.location.href = "./login.html?next=" + encodeURIComponent(nextPath);
         return;
       }
 
+      setLoadingMessage("Loading…");
+
+      const ctx = await readDashboardAuthContext(db, user.uid);
       const resolved = await resolveOrganizerOrgId(app, auth, db);
       if (!resolved.ok) {
+        endInit(false);
         errEl.textContent =
           resolved.message ||
           "Your organizer profile could not be loaded. Try signing in again, or complete first-time signup.";
-        form.style.display = "none";
         skipLink.style.display = "none";
+        console.warn("[create-course] profile resolution failed", {
+          reason: "resolveOrganizerOrgId returned ok:false",
+          message: resolved.message,
+        });
         return;
       }
 
-      orgId = (resolved.orgId || "").trim();
+      const profileOrg = (resolved.orgId || "").trim();
+      const fromStorageOrg = readSel(SEL_ORG);
+      const fromStorageCourse = readSel(SEL_COURSE);
+
+      let useOrgId = profileOrg;
+      if (isPlatformAdminRole(ctx.role)) {
+        const picked = (
+          urlOrgParam ||
+          fromStorageOrg ||
+          sessionOrgFromDashboard()
+        ).trim();
+        if (picked) useOrgId = picked;
+      } else if (urlOrgParam && urlOrgParam !== profileOrg) {
+        console.warn(
+          "[create-course] URL orgId does not match signed-in organizer org; using profile org",
+          { urlOrgParam, profileOrg }
+        );
+      }
+
+      editCourseId = urlCourseParam || "";
+      if (
+        !editCourseId &&
+        fromStorageCourse &&
+        fromStorageOrg &&
+        fromStorageOrg === useOrgId
+      ) {
+        editCourseId = fromStorageCourse;
+      }
+      isEditMode = Boolean(editCourseId);
+
+      console.info("[create-course] init context", {
+        selectedOrgId: useOrgId,
+        selectedCourseId: editCourseId || "(none)",
+        urlOrgParam: urlOrgParam || "(none)",
+        urlCourseParam: urlCourseParam || "(none)",
+        storageOrg: fromStorageOrg || "(none)",
+        storageCourse: fromStorageCourse || "(none)",
+        profileOrg: profileOrg || "(none)",
+        platformAdmin: isPlatformAdminRole(ctx.role),
+        isEditMode,
+      });
+
+      orgId = useOrgId;
+
+      if (isEditMode) {
+        setLoadingMessage("Loading course…");
+        applyEditModeChrome();
+      }
+
       if (!orgId) {
+        endInit(false);
         errEl.textContent = "No organization is linked to this account.";
-        form.style.display = "none";
+        skipLink.style.display = "";
         skipLink.href = "./signup.html";
         skipLink.textContent = "Create an organization";
+        console.warn("[create-course] no orgId after resolution", { profileOrg });
         return;
       }
 
@@ -989,12 +1120,18 @@
         try {
           const coursesSnap = await getDocs(orgCoursesCollection(db, orgId));
           if (!coursesSnap.empty) {
+            console.info(
+              "[create-course] redirect to dashboard: create-course is only for orgs with zero courses (not in edit mode)"
+            );
+            endInit(false);
             window.location.href = "./dashboard.html";
             return;
           }
         } catch (e) {
           console.error(e);
+          endInit(false);
           errEl.textContent = e?.message || "Could not check existing courses.";
+          console.warn("[create-course] list courses failed", { orgId, err: e?.message });
           return;
         }
       } else {
@@ -1004,23 +1141,34 @@
           const snapOk =
             typeof courseSnap.exists === "function" ? courseSnap.exists() : !!courseSnap.exists;
           if (!snapOk) {
+            endInit(false);
             errEl.textContent =
               "We couldn’t find that course. It may have been removed, or the link is out of date.";
-            form.style.display = "none";
             skipLink.style.display = "block";
             skipLink.href = "./dashboard.html";
             skipLink.textContent = "Back to dashboard";
+            console.warn("[create-course] course document missing after load", {
+              reason: "no document at organizations/{orgId}/courses/{courseId}",
+              selectedOrgId: orgId,
+              selectedCourseId: editCourseId,
+            });
             return;
           }
           prefillFormFromCourseData(courseSnap.data());
+          writeSel(orgId, editCourseId);
         } catch (e) {
           console.error(e);
+          endInit(false);
           errEl.textContent =
             e?.message || "Could not load this course. Try again from the dashboard.";
-          form.style.display = "none";
           skipLink.style.display = "block";
           skipLink.href = "./dashboard.html";
           skipLink.textContent = "Back to dashboard";
+          console.warn("[create-course] course load threw", {
+            reason: e?.message || String(e),
+            selectedOrgId: orgId,
+            selectedCourseId: editCourseId,
+          });
           return;
         }
       }
@@ -1028,6 +1176,7 @@
       ready = true;
       updatePrefillButtonState();
       void refreshThemePreview();
+      endInit(true);
       console.log("[create-course] after org resolution", { orgId, ready, isEditMode });
     });
 

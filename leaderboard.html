@@ -1014,7 +1014,7 @@
       <div class="top">
         <div class="topRow">
           <div class="brand">
-            <img id="courseHeaderMini" class="courseHeaderMini" src="./assets/neutral-header.svg" alt="Course header" />
+            <img id="courseHeaderMini" class="courseHeaderMini" src="./assets/cypresswood_header.png" alt="Tradition Course header" />
             <div class="titleBlock">
               <h1 id="pageTitle">Live Leaderboard</h1>
               <div class="clubName" id="clubName">Golf Club</div>
@@ -1183,8 +1183,10 @@
   import {
     applyLeaderboardTheme,
     BUILT_IN_CYPRESSWOOD_SCORECARD_THEME,
+    BUILT_IN_SCORECARD_HEADER_BY_KEY,
     normalizeFirestoreTheme,
     PLACEHOLDER_COURSE_HEADER_IMAGE,
+    resolveScorecardHeaderImageForDoc,
   } from "./js/course-theme.js";
 
   const app = initializeApp(firebaseConfig);
@@ -1199,7 +1201,7 @@
 
   const COURSE_TRADITION = {
     id:"tradition",
-    headerMini:"./assets/neutral-header.svg",
+    headerMini: BUILT_IN_SCORECARD_HEADER_BY_KEY.tradition,
     clubName:"Tradition Course",
     par:[4,4,3,4,5,4,5,3,4, 4,3,5,4,3,4,4,4,5],
     hcp:[7,17,11,1,3,13,9,15,5, 14,8,10,6,18,12,2,16,4],
@@ -1208,7 +1210,7 @@
 
   const COURSE_CYPRESS = {
     id:"cypress",
-    headerMini:"./assets/cypress_header.png",
+    headerMini: BUILT_IN_SCORECARD_HEADER_BY_KEY.cypress,
     clubName:"Cypress Course",
     par:[5,4,4,4,3,4,3,5,4, 4,4,4,4,3,5,3,5,4],
     hcp:[3,13,11,7,15,9,17,1,5, 6,10,12,14,18,2,16,4,8],
@@ -1282,10 +1284,7 @@
       const d = snap.data() || {};
       const par = parArrFromOrgDoc(d);
       const hcp = hcpArrFromOrgDoc(d);
-      const headerMini =
-        String(d.headerImageUrl || "").trim() ||
-        String(d.logoUrl || "").trim() ||
-        PLACEHOLDER_COURSE_HEADER_IMAGE;
+      const headerMini = resolveScorecardHeaderImageForDoc(raw, d, null);
       const clubName = String(d.name || tournament.courseName || "Golf Club").trim();
       let theme = normalizeFirestoreTheme(d.theme);
       if (!theme && String(d.primaryColor || "").trim()) {
@@ -1500,7 +1499,11 @@
     const cid = String(courseId || "tradition").trim();
     const low = cid.toLowerCase();
     const c = COURSES[cid] || COURSES[low] || COURSE_TRADITION;
-    courseHeaderMini.src = c.headerMini || PLACEHOLDER_COURSE_HEADER_IMAGE;
+    const fromCourse = String(c.headerMini || "").trim();
+    courseHeaderMini.src =
+      fromCourse ||
+      resolveScorecardHeaderImageForDoc(cid, null, null) ||
+      PLACEHOLDER_COURSE_HEADER_IMAGE;
     courseHeaderMini.alt = `${c.clubName || "Course"} · header`;
     clubNameEl.textContent = c.clubName || "Golf Club";
 

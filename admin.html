@@ -297,6 +297,19 @@
 
     .hidden{ display:none !important; }
 
+    .admin-loading-banner{
+      margin:0 0 16px;
+      padding:14px 16px;
+      border-radius:var(--radius-sm);
+      border:3px solid rgba(18,53,111,.35);
+      background:rgba(18,53,111,.08);
+      font-weight:800;
+      font-size:clamp(16px,2.4vw,20px);
+      color:var(--blue);
+      text-align:center;
+    }
+    .admin-loading-banner[hidden]{ display:none !important; }
+
     .row-2{
       display:grid;
       grid-template-columns:1fr;
@@ -318,6 +331,12 @@
       </section>
 
       <section class="content">
+        <div id="adminLoadingBanner" class="admin-loading-banner" role="status" aria-live="polite" hidden>Loading tournament…</div>
+        <p id="adminRestoreHint" class="muted-block hidden" style="margin-bottom:14px"></p>
+        <p id="adminFreshStartHint" class="muted-block hidden" style="margin-bottom:14px">
+          Create a new tournament below, or paste an existing tournament ID and tap <b>Load Existing</b>.
+        </p>
+
         <div class="field">
           <label class="label" for="tournamentName">Tournament Name</label>
           <input id="tournamentName" type="text" placeholder="Saturday Club Classic" />
@@ -730,6 +749,65 @@
     sponsors: []
   };
 
+  /** While true, skip applyLinks so share boxes are not cleared before Firestore hydrate. */
+  let adminBootstrapping = true;
+
+  const LS_ADMIN_LAST_TID = "tournament_admin_last_id_v1";
+
+  function lastTournamentKey(orgId) {
+    const o = String(orgId || "").trim();
+    return o ? `${LS_ADMIN_LAST_TID}_${o}` : "";
+  }
+
+  function persistLastTournamentId(orgId, tournamentId) {
+    const k = lastTournamentKey(orgId);
+    const t = String(tournamentId || "").trim();
+    if (!k || !t) return;
+    try {
+      localStorage.setItem(k, t);
+    } catch (_e) {}
+  }
+
+  function readLastTournamentId(orgId) {
+    const k = lastTournamentKey(orgId);
+    if (!k) return "";
+    try {
+      return String(localStorage.getItem(k) || "").trim();
+    } catch (_e) {
+      return "";
+    }
+  }
+
+  function syncAdminUrlWithTournamentId(tournamentId) {
+    const t = String(tournamentId || "").trim();
+    if (!t) return;
+    try {
+      const u = new URL(window.location.href);
+      const had =
+        String(u.searchParams.get("id") || u.searchParams.get("t") || "").trim();
+      if (had) return;
+      u.searchParams.set("id", t);
+      history.replaceState(null, "", `${u.pathname}${u.search}${u.hash || ""}`);
+    } catch (_e) {}
+  }
+
+  function updateAdminUiHints(fromUrl, fromStorageUsed, restoredOk) {
+    const rh = $("adminRestoreHint");
+    const fh = $("adminFreshStartHint");
+    if (rh) {
+      const show = Boolean(restoredOk && fromStorageUsed && !fromUrl);
+      rh.classList.toggle("hidden", !show);
+      if (show) {
+        rh.textContent =
+          "Restored your last tournament from this device. Links are ready below.";
+      }
+    }
+    if (fh) {
+      const hasStored = Boolean(readLastTournamentId(state.orgId));
+      fh.classList.toggle("hidden", Boolean(state.tournamentId || hasStored));
+    }
+  }
+
   function randomId(prefix = "tournament"){
     const part = Math.random().toString(36).slice(2, 8);
     const stamp = Date.now().toString(36).slice(-6);
@@ -1113,6 +1191,7 @@
   }
 
   function applyLinks(){
+    if (adminBootstrapping) return;
     const token =
       $("adminToken").value.trim() || String(state.adminToken || "").trim();
 
@@ -1176,7 +1255,7 @@
     if (!sel) return;
     const id = String(courseId || "").trim();
     if (!id) return;
-    const label = String(displayName || "").trim() || id;
+    const label = String(displayName || "").trim() || "Course";
     sel.innerHTML = "";
     const opt = document.createElement("option");
     opt.value = id;
@@ -1202,7 +1281,7 @@
         $("defaultCourse").value = "Cypress";
         return;
       }
-      applyOrgCourseAsDefaultSelect(cid, String(data.courseName || cid).trim() || cid);
+      applyOrgCourseAsDefaultSelect(cid, String(data.courseName || "").trim());
       return;
     }
     const raw =
@@ -1225,7 +1304,7 @@
       restoreBuiltinDefaultCourseOptions();
       $("defaultCourse").value = "Cypress";
     } else {
-      applyOrgCourseAsDefaultSelect(trimmed, String(data.courseName || trimmed).trim() || trimmed);
+      applyOrgCourseAsDefaultSelect(trimmed, String(data.courseName || "").trim());
     }
   }
 
@@ -1404,6 +1483,9 @@
       saveTournamentToLocal();
       await saveTournamentToFirebase();
 
+      persistLastTournamentId(state.orgId, state.tournamentId);
+      syncAdminUrlWithTournamentId(state.tournamentId);
+
       applyLinks();
       showToast("Tournament created");
     }catch(err){
@@ -1433,6 +1515,8 @@
     state.tournamentId = id;
     state.adminToken = data.adminToken || "";
     fillForm(data);
+    persistLastTournamentId(state.orgId, id);
+    syncAdminUrlWithTournamentId(id);
     applyLinks();
     showToast("Tournament loaded");
   }
@@ -1445,6 +1529,7 @@
 
     saveTournamentToLocal();
     await saveTournamentToFirebase();
+    persistLastTournamentId(state.orgId, state.tournamentId);
     applyLinks();
     showToast("Changes saved");
   }
@@ -1455,6 +1540,7 @@
     if(state.tournamentId){
       saveTournamentToLocal();
       await saveTournamentToFirebase();
+      persistLastTournamentId(state.orgId, state.tournamentId);
       applyLinks();
       showToast("Tournament closed");
     }else{
@@ -1596,10 +1682,22 @@
     }
   });
 onAuthStateChanged(auth, async (user) => {
+  const loadingEl = $("adminLoadingBanner");
+
+  await auth.authStateReady();
+
   if (!user) {
+    adminBootstrapping = false;
+    if (loadingEl) loadingEl.hidden = true;
     window.location.href = "./login.html?next=" + encodeURIComponent("./admin.html");
     return;
   }
+
+  if (loadingEl) loadingEl.hidden = false;
+  adminBootstrapping = true;
+
+  let fromUrl = "";
+  let fromStorageUsed = false;
 
   try {
     await user.getIdToken(true);
@@ -1621,53 +1719,77 @@ onAuthStateChanged(auth, async (user) => {
     try {
       sessionStorage.setItem("orgId", state.orgId);
     } catch (_e) {}
+
+    const params = new URLSearchParams(location.search);
+    fromUrl = (params.get("id") || params.get("t") || "").trim();
+    const fromInput = ($("tournamentId")?.value || "").trim();
+    const fromStorage = readLastTournamentId(state.orgId);
+    let resumeId = fromUrl || fromInput || fromStorage;
+    fromStorageUsed = Boolean(!fromUrl && !fromInput && fromStorage && resumeId === fromStorage);
+    const urlCourseId = (params.get("courseId") || "").trim();
+
+    if (resumeId) {
+      $("tournamentId").value = resumeId;
+      let data = loadTournamentFromLocal(resumeId);
+
+      if (!data) {
+        data = await loadTournamentFromFirebase(resumeId);
+      }
+
+      if (data) {
+        state.tournamentId = resumeId;
+        state.adminToken = String(data.adminToken || "").trim();
+        fillForm(data);
+        persistLastTournamentId(state.orgId, resumeId);
+        if (fromStorageUsed) {
+          syncAdminUrlWithTournamentId(resumeId);
+        }
+      } else {
+        state.tournamentId = "";
+        state.adminToken = "";
+      }
+    }
+
+    if (urlCourseId && state.orgId) {
+      try {
+        const cSnap = await withFirestoreRetry(() =>
+          getDoc(courseDocRef(db, state.orgId, urlCourseId))
+        );
+        if (cSnap.exists()) {
+          const c = cSnap.data() || {};
+          const label = String(c.name || urlCourseId).trim() || urlCourseId;
+          applyOrgCourseAsDefaultSelect(urlCourseId, label);
+        }
+      } catch (e) {
+        console.warn("[admin] courseId load failed", e);
+      }
+    }
+
+    renderSponsorList();
+    syncHandicapAdminUI();
+    syncRoundHolesAdminUI();
   } catch (e) {
     console.error(e);
     alert(e?.message || "Could not load your profile.");
-    return;
+  } finally {
+    if (loadingEl) loadingEl.hidden = true;
+    adminBootstrapping = false;
+    applyLinks();
+    updateAdminUiHints(fromUrl, fromStorageUsed, Boolean(state.tournamentId));
   }
-
-  const params = new URLSearchParams(location.search);
-  const fromUrl = (params.get("id") || params.get("t") || "").trim();
-  const fromInput = ($("tournamentId")?.value || "").trim();
-  const resumeId = fromUrl || fromInput;
-  const urlCourseId = (params.get("courseId") || "").trim();
-
-  if (resumeId) {
-    $("tournamentId").value = resumeId;
-    let data = loadTournamentFromLocal(resumeId);
-
-    if (!data) {
-      data = await loadTournamentFromFirebase(resumeId);
-    }
-
-    if (data) {
-      state.tournamentId = resumeId;
-      state.adminToken = String(data.adminToken || "").trim();
-      fillForm(data);
-    }
-  }
-
-  if (urlCourseId && state.orgId) {
-    try {
-      const cSnap = await withFirestoreRetry(() =>
-        getDoc(courseDocRef(db, state.orgId, urlCourseId))
-      );
-      if (cSnap.exists()) {
-        const c = cSnap.data() || {};
-        const label = String(c.name || urlCourseId).trim() || urlCourseId;
-        applyOrgCourseAsDefaultSelect(urlCourseId, label);
-      }
-    } catch (e) {
-      console.warn("[admin] courseId load failed", e);
-    }
-  }
-
-  renderSponsorList();
-  syncHandicapAdminUI();
-  syncRoundHolesAdminUI();
-  applyLinks();
 });
+
+  window.addEventListener("pageshow", (ev) => {
+    if (!ev.persisted) return;
+    if (adminBootstrapping) return;
+    const tid = ($("tournamentId")?.value || "").trim();
+    const tok = ($("adminToken")?.value || "").trim();
+    if (tid && tok) {
+      state.tournamentId = tid;
+      state.adminToken = tok;
+      applyLinks();
+    }
+  });
   
   
 </script>

@@ -731,6 +731,7 @@ function validateExtractedScorecard(parsed) {
   const teeSetsRaw = Array.isArray(parsed.teeSets) ? parsed.teeSets : [];
   const teeSets = teeSetsRaw.map((t) => String(t).trim()).filter(Boolean);
   if (teeSets.length < 1) return { ok: false };
+  if (teeSets.length > 12) return { ok: false };
 
   const holesRaw = Array.isArray(parsed.holes) ? parsed.holes : [];
   if (holesRaw.length !== 18) return { ok: false };
@@ -778,21 +779,77 @@ function validateExtractedScorecard(parsed) {
   return { ok: true, courseName, teeSets, holes };
 }
 
+/**
+ * If the model listed too few tee names but each hole's "yards" includes extra columns
+ * (same keys on every hole), expand teeSets to match hole 1 column order.
+ */
+function normalizeParsedScorecardTeeSets(parsed) {
+  if (!parsed || typeof parsed !== "object") return parsed;
+  const holesRaw = Array.isArray(parsed.holes) ? parsed.holes : [];
+  if (holesRaw.length !== 18) return parsed;
+
+  const sortedHoles = [...holesRaw].sort((a, b) => Number(a.hole) - Number(b.hole));
+  const keysPerHole = sortedHoles.map((h) => {
+    if (!h || typeof h !== "object" || !h.yards || typeof h.yards !== "object") return null;
+    return Object.keys(h.yards).filter((k) => {
+      const y = Number(h.yards[k]);
+      return Number.isFinite(y) && y >= 0;
+    });
+  });
+  if (keysPerHole.some((k) => !k || k.length === 0)) return parsed;
+
+  const firstKeys = keysPerHole[0];
+  const setEq = (a, b) => {
+    if (a.length !== b.length) return false;
+    const sa = new Set(a);
+    if (sa.size !== a.length) return false;
+    return b.every((k) => sa.has(k));
+  };
+  if (!keysPerHole.every((keys) => setEq(keys, firstKeys))) return parsed;
+
+  const declared = (Array.isArray(parsed.teeSets) ? parsed.teeSets : [])
+    .map((t) => String(t).trim())
+    .filter(Boolean);
+
+  if (firstKeys.length <= declared.length) return parsed;
+
+  const ordered = [];
+  const seen = new Set();
+  for (const d of declared) {
+    if (firstKeys.includes(d) && !seen.has(d)) {
+      ordered.push(d);
+      seen.add(d);
+    }
+  }
+  for (const k of firstKeys) {
+    if (!seen.has(k)) {
+      ordered.push(k);
+      seen.add(k);
+    }
+  }
+  if (ordered.length === firstKeys.length && ordered.length <= 12) {
+    parsed.teeSets = ordered;
+  }
+  return parsed;
+}
+
 const SCORECARD_EXTRACTION_PROMPT = `You are a golf scorecard digitization assistant. Read the scorecard image and extract all visible tabular data.
 
-Return ONLY a single JSON object (no markdown fences, no commentary before or after) with this exact structure:
+Return ONLY a single JSON object (no markdown fences, no commentary before or after) with this exact structure (one example hole shown; you must output all 18 holes with the same shape):
 {
   "courseName": "",
-  "teeSets": ["Black", "Blue", "White"],
+  "teeSets": ["Gold", "Forest", "Blue", "Stone", "Copper"],
   "holes": [
     {
       "hole": 1,
       "par": 4,
       "handicap": 10,
       "yards": {
-        "Black": 420,
-        "Blue": 390,
-        "White": 350
+        "Gold": 420,
+        "Forest": 400,
+        "Blue": 380,
+        "Stone": 360,
+        "Copper": 340
       }
     }
   ]
@@ -802,10 +859,12 @@ Strict rules:
 - "holes" must contain exactly 18 objects, one for each hole number 1 through 18 (include front and back nine).
 - Every hole must have a numeric "par".
 - Every hole must have a numeric "handicap" (stroke index / handicap ranking as shown on the card).
-- "teeSets" lists tee names left-to-right or in column order as they appear for yardages.
+- **Tee / yardage columns:** Include EVERY distinct yardage column visible on the card (often 4–8 columns). Scorecards may list tees in multiple horizontal bands or stacked blocks (e.g. Gold, Forest, Blue, Stone, Copper). Scan the entire yardage table—do NOT stop after two or three columns. If you see five tee names, "teeSets" must have five names and every hole's "yards" must have five matching keys with numeric values.
+- "teeSets" lists those tee/column names in the same order as the yardage columns appear on the scorecard (left-to-right, or top-to-bottom if that matches how columns are labeled).
 - For every hole, "yards" must include exactly one numeric yardage for each name in "teeSets", using the same keys as in "teeSets".
 - Do not omit holes. If a value is unreadable, estimate from context or use 0 only for yardage with a note in courseName — prefer leaving par/handicap as numbers you can infer.
 - Use integers for yards and par when shown as whole numbers.
+- Support at least 6 tee columns when the image shows that many; there is no benefit to merging or dropping columns.
 
 Output valid JSON only.`;
 
@@ -819,6 +878,7 @@ async function callOpenAiVisionExtract(apiKey, dataUrl) {
     body: JSON.stringify({
       model: "gpt-4.1",
       temperature: 0.1,
+      max_output_tokens: 16384,
       input: [
         {
           role: "user",
@@ -913,6 +973,7 @@ exports.extractScorecardData = onCall(
     try {
       const { dataUrl } = await fetchImageAsDataUrl(scorecardImageUrl);
       const parsed = await callOpenAiVisionExtract(apiKey, dataUrl);
+      normalizeParsedScorecardTeeSets(parsed);
       const validated = validateExtractedScorecard(parsed);
       if (!validated.ok) {
         return { error: true, message: "Could not extract scorecard" };

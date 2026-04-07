@@ -20,6 +20,45 @@
     .btn:disabled { opacity: 0.6; }
     .btn-secondary { background: var(--blue); margin-top: 12px; text-decoration: none; display: block; text-align: center; line-height: 1.3; padding: 16px; border-radius: 16px; color: #fff; font-weight: 800; }
     .err { color: #a32; font-weight: 700; margin-top: 8px; min-height: 1.4em; }
+    .forgot-wrap { margin-top: 6px; text-align: center; }
+    .forgot-link {
+      background: none;
+      border: none;
+      color: var(--blue);
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-family: inherit;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      padding: 10px 8px;
+    }
+    .forgot-link:hover { color: #0d2858; }
+    .reset-panel {
+      margin-top: 14px;
+      padding-top: 16px;
+      border-top: 2px solid rgba(154, 98, 23, 0.28);
+      text-align: left;
+    }
+    .reset-panel[hidden] { display: none !important; }
+    .reset-hint { font-size: 0.92rem; color: #4b4641; margin: 0 0 12px; line-height: 1.4; }
+    .reset-msg { margin-top: 12px; min-height: 1.45em; font-weight: 700; font-size: 0.95rem; line-height: 1.35; }
+    .reset-msg.is-success { color: var(--green); }
+    .reset-msg.is-error { color: #a32; }
+    .btn-reset {
+      width: 100%;
+      margin-top: 4px;
+      padding: 14px;
+      border: none;
+      border-radius: 16px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: inherit;
+      background: var(--blue);
+      color: #fff;
+    }
+    .btn-reset:disabled { opacity: 0.6; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -36,12 +75,28 @@
       <button type="submit" class="btn" id="submitBtn">Sign in</button>
       <div class="err" id="err"></div>
     </form>
+    <div class="forgot-wrap">
+      <button type="button" class="forgot-link" id="forgotToggle" aria-expanded="false" aria-controls="resetPanel">
+        Forgot password?
+      </button>
+      <div class="reset-panel" id="resetPanel" hidden>
+        <p class="reset-hint">Enter your email and we’ll send you a link to reset your password.</p>
+        <label for="resetEmail">Email</label>
+        <input id="resetEmail" type="email" autocomplete="email" />
+        <button type="button" class="btn-reset" id="resetSendBtn">Send reset email</button>
+        <div class="reset-msg" id="resetMsg" role="status" aria-live="polite"></div>
+      </div>
+    </div>
     <a class="btn-secondary" href="./signup.html">Create a course account</a>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      sendPasswordResetEmail,
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { firebaseConfig } from "./js/firebase-config.js";
 
     const app = initializeApp(firebaseConfig);
@@ -51,6 +106,60 @@
     const nextUrl = params.get("next") || "./dashboard.html";
 
     const $ = (id) => document.getElementById(id);
+
+    const resetPanel = $("resetPanel");
+    const resetMsg = $("resetMsg");
+    const resetEmail = $("resetEmail");
+    const resetSendBtn = $("resetSendBtn");
+    const forgotToggle = $("forgotToggle");
+
+    function setResetMessage(text, kind) {
+      resetMsg.textContent = text || "";
+      resetMsg.classList.remove("is-success", "is-error");
+      if (kind === "success") resetMsg.classList.add("is-success");
+      else if (kind === "error") resetMsg.classList.add("is-error");
+    }
+
+    forgotToggle.addEventListener("click", () => {
+      const open = resetPanel.hidden;
+      resetPanel.hidden = !open;
+      forgotToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      if (open) {
+        setResetMessage("", null);
+        const main = $("email").value.trim();
+        if (main) resetEmail.value = main;
+        resetEmail.focus();
+      }
+    });
+
+    async function sendPasswordReset() {
+      const email = resetEmail.value.trim();
+      setResetMessage("", null);
+      if (!email) {
+        setResetMessage("Please enter your email address.", "error");
+        resetEmail.focus();
+        return;
+      }
+      resetSendBtn.disabled = true;
+      try {
+        await sendPasswordResetEmail(auth, email);
+        setResetMessage("Password reset email sent. Check your inbox.", "success");
+      } catch (e2) {
+        console.error(e2);
+        setResetMessage(e2?.message || String(e2), "error");
+      } finally {
+        resetSendBtn.disabled = false;
+      }
+    }
+
+    resetSendBtn.addEventListener("click", () => void sendPasswordReset());
+
+    resetEmail.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        void sendPasswordReset();
+      }
+    });
 
     $("form").addEventListener("submit", async (e) => {
       e.preventDefault();

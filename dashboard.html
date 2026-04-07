@@ -125,6 +125,7 @@
     } from "./js/resolve-organizer-org.js";
 
     const DASHBOARD_ADMIN_ORG_KEY = "dashboardAdminOrgId";
+    const ADMIN_LAST_TOURNAMENT_KEY = "tournament_admin_last_id_v1";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -206,31 +207,53 @@
       }
     }
 
-    function renderCourseCard(row) {
+    function persistCourseSelection(orgId, courseId) {
+      try {
+        sessionStorage.setItem("selectedOrgId", orgId);
+        sessionStorage.setItem("selectedCourseId", courseId);
+        localStorage.setItem("selectedOrgId", orgId);
+        localStorage.setItem("selectedCourseId", courseId);
+      } catch (_e) {}
+    }
+
+    function renderCourseCard(orgId, row) {
+      const oid = String(orgId || "").trim();
       const div = document.createElement("div");
       div.className = "item";
 
       const titleRow = document.createElement("div");
       titleRow.className = "item-title-row";
       const h2 = document.createElement("h2");
-      h2.textContent = row.name || row.id;
+      h2.textContent = row.name || "Course";
       titleRow.appendChild(h2);
       div.appendChild(titleRow);
 
       const actions = document.createElement("div");
       actions.className = "card-actions";
-      const cid = encodeURIComponent(row.id);
+      const q = new URLSearchParams();
+      if (oid) q.set("orgId", oid);
+      q.set("courseId", row.id);
+      const courseQs = q.toString();
 
       const createT = document.createElement("a");
       createT.className = "btn btn-sm btn-blue";
-      createT.href = `./admin.html?courseId=${cid}`;
+      createT.href = `./admin.html?${courseQs}`;
       createT.textContent = "Create Tournament";
+      createT.addEventListener("click", () => persistCourseSelection(oid, row.id));
       actions.appendChild(createT);
 
       const editC = document.createElement("a");
       editC.className = "btn btn-sm btn-ghost";
-      editC.href = `./create-course.html?courseId=${cid}`;
+      editC.href = `./edit-course.html?${courseQs}`;
       editC.textContent = "Edit Course";
+      editC.addEventListener("click", () => {
+        persistCourseSelection(oid, row.id);
+        console.info("[dashboard] Edit Course navigation", {
+          selectedOrgId: oid,
+          selectedCourseId: row.id,
+          href: editC.href,
+        });
+      });
       actions.appendChild(editC);
 
       div.appendChild(actions);
@@ -260,7 +283,7 @@
       rows.sort((a, b) => String(a.name || a.id).localeCompare(String(b.name || b.id)));
 
       for (const r of rows) {
-        host.appendChild(renderCourseCard(r));
+        host.appendChild(renderCourseCard(oid, r));
       }
     }
 
@@ -298,7 +321,13 @@
       links.appendChild(a(r.links.leaderboard, "Leaderboard"));
       links.appendChild(a(r.links.roster, "Roster"));
       links.appendChild(a(r.links.register, "Registration"));
-      links.appendChild(a(`./admin.html?id=${encodeURIComponent(r.id)}`, "Admin"));
+      const adminA = a(`./admin.html?id=${encodeURIComponent(r.id)}`, "Admin");
+      adminA.addEventListener("click", () => {
+        try {
+          localStorage.setItem(`${ADMIN_LAST_TOURNAMENT_KEY}_${orgId}`, r.id);
+        } catch (_e) {}
+      });
+      links.appendChild(adminA);
       div.appendChild(links);
 
       const actions = document.createElement("div");
@@ -385,6 +414,7 @@
       const errEl = $("err");
       errEl.textContent = "";
       if (!user) {
+        console.info("[dashboard] redirect to login (no user)");
         window.location.href = "./login.html?next=" + encodeURIComponent("./dashboard.html");
         return;
       }
@@ -428,8 +458,8 @@
 
           const orgOptions = [];
           orgSnap.forEach((d) => {
-            const nm = String(d.data()?.name || "").trim() || d.id;
-            orgOptions.push({ id: d.id, label: `${nm} (${d.id})` });
+            const nm = String(d.data()?.name || "").trim() || "Organization";
+            orgOptions.push({ id: d.id, label: nm });
           });
           orgOptions.sort((a, b) => a.label.localeCompare(b.label));
 
@@ -466,8 +496,8 @@
               console.warn("[dashboard] org name read failed", e);
             }
             $("orgLine").textContent = oName
-              ? `Platform admin · ${oName} · ${v}`
-              : `Platform admin · Organization ID: ${v}`;
+              ? `Platform admin · ${oName}`
+              : `Platform admin · Selected organization`;
             $("adminBtn").href = "./admin.html";
             try {
               await user.getIdToken(true);
@@ -516,9 +546,7 @@
               "You're offline or the connection dropped. Organization name may not show until you're back online.";
           }
         }
-        $("orgLine").textContent = orgName
-          ? `${orgName} · Organization ID: ${scopedOrgId}`
-          : `Organization ID: ${scopedOrgId}`;
+        $("orgLine").textContent = orgName ? orgName : "Your organization";
 
         $("adminBtn").href = "./admin.html";
 

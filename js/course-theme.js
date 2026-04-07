@@ -78,6 +78,39 @@ export const PLACEHOLDER_COURSE_HEADER_IMAGE =
   );
 
 /**
+ * Static header art for built-in scorecard courses (paths under site root).
+ * Tradition: original branded scorecard header PNG. Cypress: club scorecard header PNG.
+ */
+export const BUILT_IN_SCORECARD_HEADER_BY_KEY = Object.freeze({
+  tradition: "./assets/cypresswood_header.png",
+  cypress: "./assets/cypress_header.png",
+});
+
+/**
+ * Header image URL: prefer explicit Firestore fields, then merged built-in base URL,
+ * then built-in asset for tradition/cypress keys only, else {@link PLACEHOLDER_COURSE_HEADER_IMAGE}.
+ *
+ * @param {string} courseKey Document id or built-in key (case-insensitive for built-in branch).
+ * @param {object} [d] Firestore course fields (headerImageUrl, logoUrl, headerImg, …).
+ * @param {string} [baseHeaderImg] Fallback from merged built-in COURSE (e.g. courseFromFirestoreData).
+ */
+export function resolveScorecardHeaderImageForDoc(courseKey, d, baseHeaderImg) {
+  const key = String(courseKey || "").trim().toLowerCase();
+  const doc = d && typeof d === "object" ? d : {};
+  const pick = (x) => String(x ?? "").trim();
+  if (pick(doc.headerImageUrl)) return pick(doc.headerImageUrl);
+  if (pick(doc.logoUrl)) return pick(doc.logoUrl);
+  if (pick(doc.scorecardImageUrl)) return pick(doc.scorecardImageUrl);
+  if (pick(doc.headerImg)) return pick(doc.headerImg);
+  if (pick(baseHeaderImg)) return pick(baseHeaderImg);
+  if (key === "tradition" || key === "cypress") {
+    const p = BUILT_IN_SCORECARD_HEADER_BY_KEY[key];
+    if (p) return p;
+  }
+  return PLACEHOLDER_COURSE_HEADER_IMAGE;
+}
+
+/**
  * Normalize Firestore theme (supports primaryColor, background, tableHeader, etc.).
  * @returns {Record<string, string> | null}
  */

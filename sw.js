@@ -4,7 +4,7 @@
 // - Assets: cache-first (fast)
 // - Cleans old caches when version changes
 
-const CACHE_VERSION = "v8"; // <--- BUMP THIS when you deploy changes (v8, v9...)
+const CACHE_VERSION = "v10"; // <--- BUMP THIS when you deploy changes (v8, v9...)
 const CACHE_NAME = `golf-scorecard-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -13,6 +13,7 @@ const CORE_ASSETS = [
   "./manifest.webmanifest",
   "./pwa.js",
   "./assets/neutral-header.svg",
+  "./assets/cypresswood_header.png",
   "./assets/cypress_header.png",
   "./assets/icon-192.png",
   "./assets/icon-512.png"
