@@ -1077,7 +1077,7 @@
     
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, collection, getDocs, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, where, limit, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { firebaseConfig } from "./js/firebase-config.js";
 import {
@@ -2162,12 +2162,32 @@ function courseFromFirestoreData(d, courseKey) {
   };
 }
 
-async function loadCourseFromFirestoreOrBuiltIn(orgId, courseKey) {
+function detectHeaderSourceForLog(courseKey, docData, baseHeaderImg) {
+  const d = docData && typeof docData === "object" ? docData : {};
+  if (String(d.headerImageUrl || "").trim()) return "doc.headerImageUrl";
+  if (String(d.logoUrl || "").trim()) return "doc.logoUrl";
+  if (String(d.scorecardImageUrl || "").trim()) return "doc.scorecardImageUrl";
+  if (String(d.headerImg || "").trim()) return "doc.headerImg";
+  if (String(baseHeaderImg || "").trim()) return "baseHeaderImg";
+  const key = String(courseKey || "").trim().toLowerCase();
+  if (key === "tradition" || key === "cypress") return "builtInHeaderByKey";
+  return "placeholder";
+}
+
+async function loadCourseFromFirestoreOrBuiltIn(orgId, courseKey, options = {}) {
+  const allowBuiltInFallback = options.allowBuiltInFallback !== false;
   if (!db) return null;
   try {
     const snap = await getDoc(courseDocRef(db, orgId, courseKey));
     if (snap.exists()) {
       const d = snap.data() || {};
+      const base = COURSES[courseKey];
+      console.info("[scorecard] standalone course resolver", {
+        selectedCourseId: String(courseKey || "").trim(),
+        selectedOrgId: String(orgId || "").trim() || "(none)",
+        resolvedCourseDocumentId: snap.id,
+        resolvedBrandingHeaderSource: detectHeaderSourceForLog(courseKey, d, base?.headerImg),
+      });
       const fromOrg = tryBuildOrgCourseFromDoc(d, courseKey);
       if (fromOrg) return fromOrg;
       const c = courseFromFirestoreData(d, courseKey);
@@ -2176,7 +2196,82 @@ async function loadCourseFromFirestoreOrBuiltIn(orgId, courseKey) {
   } catch (e) {
     console.warn("Course doc:", e);
   }
+  if (!allowBuiltInFallback) return null;
   return COURSES[courseKey] || null;
+}
+
+async function resolveStandaloneCourseStrict(orgId, incomingCourseId) {
+  const oid = String(orgId || "").trim();
+  const incoming = String(incomingCourseId || "").trim();
+  const lower = incoming.toLowerCase();
+  const normalizedSlug = lower.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  console.info("[scorecard] standalone incoming", {
+    incomingCourseId: incoming || "(none)",
+    incomingOrgId: oid || "(none)",
+  });
+
+  const attemptByDocId = async (candidateId, reason) => {
+    const id = String(candidateId || "").trim();
+    if (!id) return null;
+    try {
+      const snap = await getDoc(courseDocRef(db, oid, id));
+      console.info("[scorecard] standalone direct doc lookup", {
+        candidateId: id,
+        reason,
+        found: snap.exists(),
+      });
+      if (!snap.exists()) return null;
+      const d = snap.data() || {};
+      const built = tryBuildOrgCourseFromDoc(d, id) || courseFromFirestoreData(d, id);
+      if (!built) return null;
+      return {
+        course: built,
+        resolvedCourseDocId: snap.id,
+        headerSource: detectHeaderSourceForLog(id, d, COURSES[id]?.headerImg),
+        lookupPath: `doc:${reason}`,
+      };
+    } catch (e) {
+      console.warn("[scorecard] standalone direct doc lookup error", { candidateId: id, reason, error: e });
+      return null;
+    }
+  };
+
+  const attemptBySlug = async (slugValue, reason) => {
+    const slug = String(slugValue || "").trim();
+    if (!slug) return null;
+    try {
+      const col = collection(db, "organizations", oid, "courses");
+      const qy = query(col, where("slug", "==", slug), limit(1));
+      const snap = await getDocs(qy);
+      console.info("[scorecard] standalone slug lookup", {
+        slug,
+        reason,
+        found: !snap.empty,
+      });
+      if (snap.empty) return null;
+      const d = snap.docs[0];
+      const data = d.data() || {};
+      const built = tryBuildOrgCourseFromDoc(data, d.id) || courseFromFirestoreData(data, d.id);
+      if (!built) return null;
+      return {
+        course: built,
+        resolvedCourseDocId: d.id,
+        headerSource: detectHeaderSourceForLog(d.id, data, COURSES[d.id]?.headerImg),
+        lookupPath: `slug:${reason}`,
+      };
+    } catch (e) {
+      console.warn("[scorecard] standalone slug lookup error", { slug, reason, error: e });
+      return null;
+    }
+  };
+
+  return (
+    await attemptByDocId(incoming, "incoming") ||
+    await attemptByDocId(lower, "lowercase") ||
+    await attemptBySlug(incoming, "incoming") ||
+    await attemptBySlug(lower, "lowercase") ||
+    await attemptBySlug(normalizedSlug, "normalized")
+  );
 }
 
 /** Tournament: set currentCourseId + #courseSelect from tournament doc (built-ins vs org Firestore course). */
@@ -3218,62 +3313,9 @@ async function checkTournamentFromURL(){
   incomingRegistrationId = regId;
   isTournamentMode = true;
   joinCompleted = !!savedTeamId;
-
-if (savedTeamId && !incomingRegistrationId) {
-  incomingRegistrationId = savedTeamId;
-}
-
-/** Load standalone everyday-play course from URL (?orgId=...&courseId=...). */
-async function checkStandaloneCourseFromURL() {
-  const params = new URLSearchParams(location.search);
-  const courseParam = String(params.get("courseId") || params.get("c") || "").trim();
-  const orgParam = String(params.get("orgId") || params.get("organizationId") || params.get("org") || "").trim();
-  if (!courseParam) return false;
-
-  const courseKey = courseParam.toLowerCase();
-  console.info("[scorecard] standalone course URL params", {
-    orgId: orgParam || "(none)",
-    courseId: courseParam,
-  });
-
-  // Built-in fallback works without Firestore documents.
-  if ((courseKey === "cypress" || courseKey === "tradition") && COURSES[courseKey]) {
-    currentCourseId = courseKey;
-    isCasualMode = true;
-    casualCourseId = courseKey;
-    organizationId = orgParam || organizationId || "";
-    teamPickerScreen.style.display = "none";
-    joinScreen.style.display = "none";
-    return true;
+  if (savedTeamId && !incomingRegistrationId) {
+    incomingRegistrationId = savedTeamId;
   }
-
-  if (!db || !orgParam) {
-    console.warn("[scorecard] standalone course load skipped (missing db/orgId)", {
-      hasDb: !!db,
-      orgId: orgParam || "(none)",
-      courseId: courseParam,
-    });
-    return false;
-  }
-
-  const loaded = await loadCourseFromFirestoreOrBuiltIn(orgParam, courseParam);
-  if (!loaded) {
-    console.warn("[scorecard] standalone course not found", {
-      orgId: orgParam,
-      courseId: courseParam,
-    });
-    return false;
-  }
-
-  COURSES[courseParam] = loaded;
-  currentCourseId = courseParam;
-  isCasualMode = true;
-  casualCourseId = courseParam;
-  organizationId = orgParam;
-  teamPickerScreen.style.display = "none";
-  joinScreen.style.display = "none";
-  return true;
-}
   roundFinished = false;
   finishedHolesCount = null;
 
@@ -3372,6 +3414,81 @@ joinCompleted = true;
     hideScorecardSponsorTicker();
   }
   return false;
+}
+
+function showStandaloneCourseError(msg) {
+  const text = String(msg || "Course data not found for this link.").trim();
+  console.error("[scorecard] standalone fatal:", text);
+  if (lockBanner) {
+    lockBanner.textContent = text;
+    lockBanner.classList.add("show");
+  } else {
+    alert(text);
+  }
+  if (teamPickerScreen) teamPickerScreen.style.display = "none";
+  if (joinScreen) joinScreen.style.display = "none";
+  if (courseHeaderImg) {
+    courseHeaderImg.src = PLACEHOLDER_COURSE_HEADER_IMAGE;
+  }
+}
+
+/** Load standalone everyday-play course from URL (?orgId=...&courseId=...). */
+async function checkStandaloneCourseFromURL() {
+  const params = new URLSearchParams(location.search);
+  const courseParam = String(params.get("courseId") || params.get("c") || "").trim();
+  const orgParam = String(params.get("orgId") || params.get("organizationId") || params.get("org") || "").trim();
+  if (!courseParam) return false;
+
+  console.info("[scorecard] standalone course URL params", {
+    incomingCourseId: courseParam,
+    incomingOrgId: orgParam || "(none)",
+    builtInFallbackAttempted: false,
+    fallbackAllowedReason: "courseId provided -> strict Firestore course resolution only",
+  });
+
+  if (!db || !orgParam) {
+    console.warn("[scorecard] standalone course load skipped (missing db/orgId)", {
+      hasDb: !!db,
+      incomingOrgId: orgParam || "(none)",
+      incomingCourseId: courseParam,
+    });
+    showStandaloneCourseError("Course data not found for this link");
+    return false;
+  }
+
+  const resolved = await resolveStandaloneCourseStrict(orgParam, courseParam);
+  if (!resolved || !resolved.course) {
+    console.warn("[scorecard] standalone course not found after strict lookups", {
+      incomingCourseId: courseParam,
+      incomingOrgId: orgParam,
+      builtInFallbackAttempted: false,
+      fallbackAllowedReason: "courseId explicitly provided",
+    });
+    showStandaloneCourseError("Course data not found for this link");
+    return false;
+  }
+
+  const storeKey = String(resolved.resolvedCourseDocId || resolved.course.id || courseParam).trim();
+  const loaded = resolved.course;
+  loaded.id = storeKey;
+  COURSES[storeKey] = loaded;
+  currentCourseId = storeKey;
+  isCasualMode = true;
+  casualCourseId = storeKey;
+  organizationId = orgParam;
+  teamPickerScreen.style.display = "none";
+  joinScreen.style.display = "none";
+  console.info("[scorecard] standalone resolved course", {
+    incomingCourseId: courseParam,
+    incomingOrgId: orgParam,
+    directDocLookupResult: resolved.lookupPath.startsWith("doc:"),
+    slugLookupResult: resolved.lookupPath.startsWith("slug:"),
+    finalResolvedCourseDocId: storeKey,
+    resolvedBrandingHeaderSource: resolved.headerSource || "unknown",
+    builtInFallbackAttempted: false,
+    fallbackAllowedReason: "courseId explicitly provided",
+  });
+  return true;
 }
 
 joinBtn.addEventListener("click", async () => {
@@ -3525,21 +3642,31 @@ refreshBtn.addEventListener("click", () => {
 wireButtons();
 
 (async function boot() {
+  const params = new URLSearchParams(location.search);
+  const hasStandaloneCourseId = Boolean(String(params.get("courseId") || params.get("c") || "").trim());
   try {
-    const params = new URLSearchParams(location.search);
     const { tournamentId: tId } = parseOrgTournamentFromSearch(params);
 
     if (tId) {
       await checkTournamentFromURL();
       build();// tournament flow (we’ll wire this next)
-    } else if (await checkStandaloneCourseFromURL()) {
-      build(); // standalone everyday-play course mode
+    } else if (hasStandaloneCourseId) {
+      const ok = await checkStandaloneCourseFromURL();
+      if (ok) {
+        build(); // standalone everyday-play course mode
+      } else {
+        showStandaloneCourseError("Course data not found for this link");
+      }
     } else {
       build(); // default/test scorecard
     }
 
   } catch (err) {
     console.error("Tournament load failed:", err);
+    if (hasStandaloneCourseId) {
+      showStandaloneCourseError("Course data not found for this link");
+      return;
+    }
     build();
   }
 })();

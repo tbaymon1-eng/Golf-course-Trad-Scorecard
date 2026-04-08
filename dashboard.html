@@ -278,7 +278,7 @@
         courseRow.courseId || courseRow.slug || courseRow.id || ""
       ).trim();
       const selectedOrgId = String(
-        courseRow.orgId || courseRow.organizationId || fallbackOrgId || ""
+        courseRow.sourceOrgId || courseRow.orgId || courseRow.organizationId || fallbackOrgId || ""
       ).trim();
       const selectedCourseName = String(courseRow.name || "course").trim() || "course";
       const finalUrl = buildPublicCourseScorecardUrl(selectedOrgId, selectedCourseId);
@@ -619,8 +619,9 @@
         rows.push({
           id: d.id,
           name: t.name,
-          courseId: t.courseId || t.slug || d.id,
+          courseId: d.id,
           slug: t.slug || "",
+          sourceOrgId: oid,
           orgId: t.orgId || t.organizationId || oid,
           organizationId: t.organizationId || t.orgId || oid,
         });
