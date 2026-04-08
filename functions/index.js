@@ -1062,3 +1062,123 @@ exports.deleteTournament = onCall(
     return { ok: true };
   }
 );
+
+/**
+ * Callable: soft-delete an organization and deactivate its courses.
+ * Permission: users/{uid}.role must be "super_admin".
+ */
+exports.deleteOrganization = onCall(
+  {
+    region: "us-central1",
+    cors: true,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+
+    const uid = request.auth.uid;
+    const orgId = safeText((request.data || {}).orgId);
+    if (!orgId) {
+      throw new HttpsError("invalid-argument", "orgId is required.");
+    }
+
+    const userSnap = await db.collection("users").doc(uid).get();
+    const userData = userSnap.exists ? userSnap.data() || {} : {};
+    const role = String(userData.role || "").trim().toLowerCase();
+    const allowed = role === "super_admin";
+    console.log(
+      JSON.stringify({
+        fn: "deleteOrganization",
+        step: "permission_check",
+        uid,
+        orgId,
+        role,
+        allowed,
+        t: new Date().toISOString(),
+      })
+    );
+    if (!allowed) {
+      throw new HttpsError("permission-denied", "You do not have permission.");
+    }
+
+    const orgRef = db.collection("organizations").doc(orgId);
+    const orgSnap = await orgRef.get();
+    if (!orgSnap.exists) {
+      throw new HttpsError("not-found", "Organization not found.");
+    }
+
+    const coursesCol = orgRef.collection("courses");
+    const tournamentsCol = orgRef.collection("tournaments");
+
+    const [coursesSnap, tournamentsSnap, usersByOrgIdSnap, usersByOrganizationIdSnap] =
+      await Promise.all([
+        coursesCol.get(),
+        tournamentsCol.get(),
+        db.collection("users").where("orgId", "==", orgId).get(),
+        db.collection("users").where("organizationId", "==", orgId).get(),
+      ]);
+
+    const userIds = new Set();
+    usersByOrgIdSnap.forEach((d) => userIds.add(d.id));
+    usersByOrganizationIdSnap.forEach((d) => userIds.add(d.id));
+
+    const counts = {
+      courses: coursesSnap.size,
+      tournaments: tournamentsSnap.size,
+      users: userIds.size,
+    };
+
+    console.log(
+      JSON.stringify({
+        fn: "deleteOrganization",
+        uid,
+        orgId,
+        counts,
+        t: new Date().toISOString(),
+      })
+    );
+
+    const courseDocs = coursesSnap.docs;
+    const chunkSize = 400;
+    for (let i = 0; i < courseDocs.length; i += chunkSize) {
+      const batch = db.batch();
+      for (const d of courseDocs.slice(i, i + chunkSize)) {
+        batch.set(
+          d.ref,
+          {
+            active: false,
+            deletedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true }
+        );
+      }
+      if (i === 0) {
+        batch.set(
+          orgRef,
+          {
+            active: false,
+            deletedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true }
+        );
+      }
+      await batch.commit();
+    }
+
+    if (courseDocs.length === 0) {
+      await orgRef.set(
+        {
+          active: false,
+          deletedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+    }
+
+    return {
+      ok: true,
+      counts,
+    };
+  }
+);

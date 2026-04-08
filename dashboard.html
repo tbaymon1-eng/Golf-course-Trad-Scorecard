@@ -97,6 +97,8 @@
     .platform-admin-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
     .btn-org-delete { background: #7e2317; color: #fff; border: none; }
     .btn-org-delete:hover { filter: brightness(0.95); }
+    .readonly-box { border: 2px solid rgba(154,98,23,.4); border-radius: 10px; padding: 10px 12px; background: rgba(255,255,255,.65); word-break: break-all; font-size: 0.92rem; }
+    .qr-box { min-height: 228px; display:flex; align-items:center; justify-content:center; background:#fff; border:2px dashed rgba(154,98,23,.45); border-radius:10px; margin: 10px 0 0; }
   </style>
 </head>
 <body>
@@ -151,17 +153,31 @@
       </div>
     </div>
   </div>
+  <div id="courseQrModalBackdrop" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="courseQrTitle">
+      <h3 id="courseQrTitle">Daily Scorecard Link / QR</h3>
+      <p id="courseQrBody">Use this QR for everyday play on this course.</p>
+      <div id="courseQrUrlBox" class="readonly-box">—</div>
+      <div class="modal-actions" style="justify-content:flex-start;margin-top:10px;">
+        <button type="button" class="btn btn-sm btn-ghost" id="courseQrCopyBtn">Copy Link</button>
+        <a id="courseQrOpenBtn" class="btn btn-sm btn-blue" target="_blank" rel="noopener">Open Link</a>
+      </div>
+      <div id="courseQrCanvas" class="qr-box"></div>
+      <div id="courseQrErr" class="err"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sm btn-ghost" id="courseQrCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getFirestore,
-      collection,
       doc,
       getDoc,
       getDocs,
-      query,
-      where,
       updateDoc,
       serverTimestamp,
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -183,6 +199,7 @@
       withFirestoreRetry,
       isOfflineLikeFirestoreError,
     } from "./js/resolve-organizer-org.js";
+    import { buildPublicCourseScorecardUrl } from "./js/public-course-links.js";
 
     const DASHBOARD_ADMIN_ORG_KEY = "dashboardAdminOrgId";
     const ADMIN_LAST_TOURNAMENT_KEY = "tournament_admin_last_id_v1";
@@ -191,6 +208,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     const deleteTournamentCallable = httpsCallable(getFunctions(app, "us-central1"), "deleteTournament");
+    const deleteOrganizationCallable = httpsCallable(getFunctions(app, "us-central1"), "deleteOrganization");
 
     const $ = (id) => document.getElementById(id);
 
@@ -200,6 +218,7 @@
     let pendingCourseDelete = null;
     let canDeleteOrganizations = false;
     let pendingOrgDelete = null;
+    let pendingCourseQr = null;
 
     function baseDir() {
       const path = window.location.pathname;
@@ -228,6 +247,78 @@
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;");
+    }
+
+    async function copyText(text) {
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (_e) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+      }
+    }
+
+    function closeCourseQrModal() {
+      pendingCourseQr = null;
+      $("courseQrErr").textContent = "";
+      $("courseQrModalBackdrop").classList.remove("is-open");
+      $("courseQrModalBackdrop").setAttribute("aria-hidden", "true");
+      const box = $("courseQrCanvas");
+      if (box) box.innerHTML = "";
+    }
+
+    function resolveCourseQrContext(fallbackOrgId, row) {
+      const courseRow = row || {};
+      const selectedCourseId = String(
+        courseRow.courseId || courseRow.slug || courseRow.id || ""
+      ).trim();
+      const selectedOrgId = String(
+        courseRow.orgId || courseRow.organizationId || fallbackOrgId || ""
+      ).trim();
+      const selectedCourseName = String(courseRow.name || "course").trim() || "course";
+      const finalUrl = buildPublicCourseScorecardUrl(selectedOrgId, selectedCourseId);
+      return { selectedCourseName, selectedCourseId, selectedOrgId, finalUrl };
+    }
+
+    function openCourseQrModal(orgId, row) {
+      const ctx = resolveCourseQrContext(orgId, row);
+      pendingCourseQr = { ...ctx, row, url: ctx.finalUrl };
+      console.info("[dashboard] Daily scorecard QR context", {
+        selectedCourseName: ctx.selectedCourseName,
+        selectedCourseId: ctx.selectedCourseId || "(none)",
+        selectedOrgId: ctx.selectedOrgId || "(none)",
+        finalGeneratedUrl: ctx.finalUrl || "(none)",
+      });
+      $("courseQrErr").textContent = "";
+      $("courseQrBody").textContent = `Everyday-play scorecard for ${ctx.selectedCourseName}.`;
+      $("courseQrUrlBox").textContent = ctx.finalUrl || "—";
+      const openBtn = $("courseQrOpenBtn");
+      if (ctx.finalUrl) {
+        openBtn.href = ctx.finalUrl;
+        openBtn.removeAttribute("aria-disabled");
+      } else {
+        openBtn.href = "#";
+        openBtn.setAttribute("aria-disabled", "true");
+      }
+      const qrHost = $("courseQrCanvas");
+      qrHost.innerHTML = "";
+      if (!ctx.finalUrl) {
+        $("courseQrErr").textContent = "Could not build scorecard URL for this course.";
+      } else if (typeof QRCode !== "undefined") {
+        new QRCode(qrHost, {
+          text: ctx.finalUrl,
+          width: 220,
+          height: 220,
+          correctLevel: QRCode.CorrectLevel.H,
+        });
+      }
+      $("courseQrModalBackdrop").classList.add("is-open");
+      $("courseQrModalBackdrop").setAttribute("aria-hidden", "false");
     }
 
     function isCourseLinkedToTournament(t, courseId) {
@@ -267,51 +358,19 @@
       return rows;
     }
 
-    async function getLinkedCountsForOrg(orgId) {
-      const [coursesSnap, tournamentsSnap, usersA, usersB] = await Promise.all([
-        withFirestoreRetry(() => getDocs(orgCoursesCollection(db, orgId))),
-        withFirestoreRetry(() => getDocs(orgTournamentsCollection(db, orgId))),
-        withFirestoreRetry(() => getDocs(query(collection(db, "users"), where("orgId", "==", orgId)))),
-        withFirestoreRetry(() => getDocs(query(collection(db, "users"), where("organizationId", "==", orgId)))),
-      ]);
-      const userIds = new Set();
-      usersA.forEach((d) => userIds.add(d.id));
-      usersB.forEach((d) => userIds.add(d.id));
-      return {
-        courses: coursesSnap.size,
-        tournaments: tournamentsSnap.size,
-        staffUsers: userIds.size,
-      };
-    }
-
     async function openOrgDeleteModal(orgId) {
       const oid = String(orgId || "").trim();
       if (!oid) return;
       pendingOrgDelete = { orgId: oid };
       $("orgDeleteErr").textContent = "";
-      $("orgDeleteBody").textContent = "Checking linked data…";
       $("orgDeleteConfirmBtn").disabled = true;
-      $("orgDeleteConfirmBtn").textContent = "Checking…";
+      $("orgDeleteConfirmBtn").textContent = "Delete Organization";
       $("orgDeleteModalBackdrop").classList.add("is-open");
       $("orgDeleteModalBackdrop").setAttribute("aria-hidden", "false");
-      try {
-        const counts = await getLinkedCountsForOrg(oid);
-        pendingOrgDelete.counts = counts;
-        console.info("[dashboard] org delete linked counts", {
-          selectedOrgId: oid,
-          linkedCounts: counts,
-        });
-        $("orgDeleteBody").textContent =
-          `Delete organization "${oid}"?\n` +
-          `Linked data: courses ${counts.courses}, tournaments ${counts.tournaments}, staff/users ${counts.staffUsers}. ` +
-          "This is a soft delete; data remains recoverable.";
-      } catch (e) {
-        console.error(e);
-        $("orgDeleteErr").textContent = e?.message || "Could not inspect linked data.";
-      } finally {
-        $("orgDeleteConfirmBtn").disabled = false;
-        $("orgDeleteConfirmBtn").textContent = "Delete Organization";
-      }
+      $("orgDeleteBody").textContent =
+        `Delete organization "${oid}"?\n` +
+        "This is a soft delete; data remains recoverable.";
+      $("orgDeleteConfirmBtn").disabled = false;
     }
 
     function closeOrgDeleteModal() {
@@ -332,17 +391,28 @@
           selectedOrgId: oid,
           deletePermission: canDeleteOrganizations,
         });
-        await updateDoc(doc(db, "organizations", oid), {
-          active: false,
-          deletedAt: serverTimestamp(),
+        const res = await deleteOrganizationCallable({ orgId: oid });
+        const counts = res?.data?.counts || {};
+        console.info("[dashboard] org delete linked counts", {
+          selectedOrgId: oid,
+          linkedCounts: counts,
         });
         console.info("[dashboard] org delete result", {
           selectedOrgId: oid,
           ok: true,
+          counts,
         });
       } catch (e) {
         console.error(e);
-        $("orgDeleteErr").textContent = e?.message || "Could not delete organization.";
+        const code = String(e?.code || "");
+        const msg = String(e?.message || "");
+        if (code.includes("permission-denied")) {
+          $("orgDeleteErr").textContent = "You do not have permission";
+        } else if (code.includes("failed-precondition") || /active tournaments/i.test(msg)) {
+          $("orgDeleteErr").textContent = "Organization has active tournaments";
+        } else {
+          $("orgDeleteErr").textContent = msg || "Could not delete organization.";
+        }
         confirmBtn.disabled = false;
         confirmBtn.textContent = "Delete Organization";
         return;
@@ -507,6 +577,13 @@
       });
       actions.appendChild(editC);
 
+      const dailyQr = document.createElement("button");
+      dailyQr.type = "button";
+      dailyQr.className = "btn btn-sm btn-ghost";
+      dailyQr.textContent = "Daily Scorecard QR";
+      dailyQr.addEventListener("click", () => openCourseQrModal(oid, row));
+      actions.appendChild(dailyQr);
+
       if (canDeleteCourses) {
         const delCourse = document.createElement("button");
         delCourse.type = "button";
@@ -539,7 +616,14 @@
       snap.forEach((d) => {
         const t = d.data() || {};
         if (t.active === false) return;
-        rows.push({ id: d.id, name: t.name });
+        rows.push({
+          id: d.id,
+          name: t.name,
+          courseId: t.courseId || t.slug || d.id,
+          slug: t.slug || "",
+          orgId: t.orgId || t.organizationId || oid,
+          organizationId: t.organizationId || t.orgId || oid,
+        });
       });
       if (!rows.length) {
         host.innerHTML = `
@@ -867,6 +951,15 @@
       const selectedOrgId = String($("orgSwitcher").value || "").trim();
       console.info("[dashboard] selected org for delete", { selectedOrgId });
       await openOrgDeleteModal(selectedOrgId);
+    });
+    $("courseQrCopyBtn").addEventListener("click", async () => {
+      const url = String(pendingCourseQr?.url || "");
+      if (!url) return;
+      await copyText(url);
+    });
+    $("courseQrCloseBtn").addEventListener("click", closeCourseQrModal);
+    $("courseQrModalBackdrop").addEventListener("click", (ev) => {
+      if (ev.target === $("courseQrModalBackdrop")) closeCourseQrModal();
     });
   </script>
 </body>

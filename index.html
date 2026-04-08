@@ -1037,7 +1037,7 @@
 
           <a
             id="bookBtn"
-            href="https://foresightcypress.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225"
+            href="#"
             target="_blank"
             class="book-btn"
           >
@@ -1121,6 +1121,7 @@ const COURSE_TRADITION = {
   id: "tradition",
   title: "Tradition Course",
   headerImg: BUILT_IN_SCORECARD_HEADER_BY_KEY.tradition,
+  bookingUrl: "https://foresightcypress.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225",
   theme: BUILT_IN_CYPRESSWOOD_SCORECARD_THEME,
   teeRows: [
     { css:"row-black", label:"Black Tees", front:[465,384,203,448,606,376,528,196,453], out:3657, back:[405,256,545,464,185,394,472,318,546], inn:3563, tot:7220 },
@@ -1139,6 +1140,7 @@ const COURSE_CYPRESS = {
   id: "cypress",
   title: "Cypress Course",
   headerImg: BUILT_IN_SCORECARD_HEADER_BY_KEY.cypress,
+  bookingUrl: "https://foresightcypress.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225",
   theme: BUILT_IN_CYPRESSWOOD_SCORECARD_THEME,
   teeRows: [
     { css:"row-blue", label:"Blue", front:[514,396,387,426,182,417,160,563,427], out:3472, back:[416,409,388,349,149,586,193,531,413], inn:3434, tot:6906 },
@@ -1278,6 +1280,21 @@ function setCourseHeader(courseKey){
     resolveScorecardHeaderImageForDoc(courseKey, null, null) ||
     PLACEHOLDER_COURSE_HEADER_IMAGE;
   courseHeaderImg.alt = `${course.title || courseKey} · header`;
+}
+
+function setBookButtonForCourse(course){
+  const bookBtn = document.getElementById("bookBtn");
+  if(!bookBtn) return;
+  const url = normalizeUrl(String(course?.bookingUrl || "").trim());
+  if(!url){
+    bookBtn.style.display = "none";
+    bookBtn.setAttribute("aria-disabled", "true");
+    bookBtn.removeAttribute("href");
+    return;
+  }
+  bookBtn.style.display = "";
+  bookBtn.removeAttribute("aria-disabled");
+  bookBtn.href = url;
 }
 
 function normalizeUrl(u){
@@ -2107,6 +2124,7 @@ function tryBuildOrgCourseFromDoc(d, courseKey) {
     id: String(courseKey),
     title,
     headerImg,
+    bookingUrl: String(d.bookingUrl || "").trim(),
     teeRows,
     parFront,
     parBack,
@@ -2132,6 +2150,7 @@ function courseFromFirestoreData(d, courseKey) {
     id: String(d.id || courseKey),
     title: String(d.name || d.title || base?.title || "Course").trim() || "Course",
     headerImg: resolveScorecardHeaderImageForDoc(courseKey, d, base?.headerImg),
+    bookingUrl: String(d.bookingUrl || d.bookOnlineUrl || base?.bookingUrl || "").trim(),
     theme: normalizeFirestoreTheme(d.theme) || base?.theme || undefined,
     teeRows,
     parFront,
@@ -2478,6 +2497,7 @@ function wireInputs(){
   courseTitle.textContent = course.title;
   courseSelect.value = currentCourseId;
   setCourseHeader(currentCourseId);
+  setBookButtonForCourse(course);
 
   if (courseHint) {
     if (isCasualMode) {
@@ -3202,6 +3222,58 @@ async function checkTournamentFromURL(){
 if (savedTeamId && !incomingRegistrationId) {
   incomingRegistrationId = savedTeamId;
 }
+
+/** Load standalone everyday-play course from URL (?orgId=...&courseId=...). */
+async function checkStandaloneCourseFromURL() {
+  const params = new URLSearchParams(location.search);
+  const courseParam = String(params.get("courseId") || params.get("c") || "").trim();
+  const orgParam = String(params.get("orgId") || params.get("organizationId") || params.get("org") || "").trim();
+  if (!courseParam) return false;
+
+  const courseKey = courseParam.toLowerCase();
+  console.info("[scorecard] standalone course URL params", {
+    orgId: orgParam || "(none)",
+    courseId: courseParam,
+  });
+
+  // Built-in fallback works without Firestore documents.
+  if ((courseKey === "cypress" || courseKey === "tradition") && COURSES[courseKey]) {
+    currentCourseId = courseKey;
+    isCasualMode = true;
+    casualCourseId = courseKey;
+    organizationId = orgParam || organizationId || "";
+    teamPickerScreen.style.display = "none";
+    joinScreen.style.display = "none";
+    return true;
+  }
+
+  if (!db || !orgParam) {
+    console.warn("[scorecard] standalone course load skipped (missing db/orgId)", {
+      hasDb: !!db,
+      orgId: orgParam || "(none)",
+      courseId: courseParam,
+    });
+    return false;
+  }
+
+  const loaded = await loadCourseFromFirestoreOrBuiltIn(orgParam, courseParam);
+  if (!loaded) {
+    console.warn("[scorecard] standalone course not found", {
+      orgId: orgParam,
+      courseId: courseParam,
+    });
+    return false;
+  }
+
+  COURSES[courseParam] = loaded;
+  currentCourseId = courseParam;
+  isCasualMode = true;
+  casualCourseId = courseParam;
+  organizationId = orgParam;
+  teamPickerScreen.style.display = "none";
+  joinScreen.style.display = "none";
+  return true;
+}
   roundFinished = false;
   finishedHolesCount = null;
 
@@ -3460,6 +3532,8 @@ wireButtons();
     if (tId) {
       await checkTournamentFromURL();
       build();// tournament flow (we’ll wire this next)
+    } else if (await checkStandaloneCourseFromURL()) {
+      build(); // standalone everyday-play course mode
     } else {
       build(); // default/test scorecard
     }

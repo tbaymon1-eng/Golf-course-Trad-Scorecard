@@ -384,6 +384,9 @@
 
       <label for="website">Website (optional)</label>
       <input id="website" type="url" inputmode="url" placeholder="https://yourclub.com" />
+
+      <label for="bookingUrl">Book Online URL (optional)</label>
+      <input id="bookingUrl" type="url" inputmode="url" placeholder="https://..." />
     </section>
 
     <section class="section" aria-labelledby="scorecard-upload-heading">
@@ -966,6 +969,7 @@
       $("logoUrl").value = safeText(data.logoUrl);
       $("primaryColor").value = safeText(data.primaryColor);
       $("website").value = safeText(data.website);
+      $("bookingUrl").value = safeText(data.bookingUrl);
       let teeSets = Array.isArray(data.teeSets)
         ? data.teeSets.map((x) => String(x).trim()).filter(Boolean)
         : [];
@@ -1218,6 +1222,7 @@
       const scorecardFile = scorecardFileInput.files?.[0];
       const primaryColor = safeText($("primaryColor").value);
       const website = safeText($("website").value);
+      const bookingUrl = safeText($("bookingUrl").value);
       const teeSets = parseTeeNames($("teeBoxNames")?.value || "");
       const holes = collectHolesPayload(teeSets);
 
@@ -1278,6 +1283,8 @@
           else patch.primaryColor = deleteField();
           if (website) patch.website = website;
           else patch.website = deleteField();
+          if (bookingUrl) patch.bookingUrl = bookingUrl;
+          else patch.bookingUrl = deleteField();
           if (scorecardFile) patch.scorecardImageUrl = scorecardImageUrl;
           if (themeForDoc && themeForDoc.primary) {
             patch.theme = themeForDoc;
@@ -1299,6 +1306,7 @@
           if (logoUrl) payload.logoUrl = logoUrl;
           if (primaryColor) payload.primaryColor = primaryColor;
           if (website) payload.website = website;
+          if (bookingUrl) payload.bookingUrl = bookingUrl;
           if (scorecardImageUrl) payload.scorecardImageUrl = scorecardImageUrl;
           if (themeForDoc && themeForDoc.primary) payload.theme = themeForDoc;
 
