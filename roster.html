@@ -6,7 +6,7 @@
   <title>Roster (Organizer)</title>
 
   <meta name="theme-color" content="#0d2a55" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Barlow:wght@500;600;700;800&family=Playfair+Display:wght@600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <style>
@@ -678,8 +678,8 @@
     #placardPrintHost{
       display: none;
       background: #fff;
-      color: #000;
-      font-family: Georgia, "Times New Roman", serif;
+      color: #1f1f1f;
+      font-family: "Libre Baskerville", Georgia, "Times New Roman", serif;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -712,8 +712,8 @@
       min-height: calc(100vh - 32px);
       display: flex;
       flex-direction: column;
-      gap: 0.12in;
-      justify-content: flex-start;
+      gap: 0.14in;
+      justify-content: center;
     }
 
     #placardPrintHost .pp-printPage:last-child{
@@ -721,7 +721,7 @@
     }
 
     #placardPrintHost .pp-printPage--single{
-      justify-content: flex-start;
+      justify-content: center;
     }
 
     #placardPrintHost .pp-printPage--single .pp-placard{
@@ -734,42 +734,74 @@
       flex: 1 1 0;
       min-height: 0;
       box-sizing: border-box;
-      border: 1px solid #000;
+      border: 1px solid #d6d1c4;
       background: #fff;
-      padding: 0.18in 0.3in 0.2in;
+      padding: 0.3in 0.36in 0.3in;
       display: flex;
       flex-direction: column;
-      align-items: stretch;
-      justify-content: flex-start;
+      align-items: center;
+      justify-content: center;
       text-align: center;
+      color: #1f1f1f;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #placardPrintHost .pp-placard::before{
+      content: "";
+      position: absolute;
+      inset: 12%;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      opacity: 0.05;
+      pointer-events: none;
+      z-index: 0;
+      display: none;
+    }
+
+    #placardPrintHost .pp-placard.pp-placard--watermark::before{
+      display: block;
+      background-image: var(--pp-watermark-url);
+    }
+
+    #placardPrintHost .pp-placard > *{
+      position: relative;
+      z-index: 1;
     }
 
     #placardPrintHost .pp-top{
       flex-shrink: 0;
-      padding-bottom: 0.1in;
-      margin-bottom: 0.06in;
-      border-bottom: 1px solid #000;
+      width: 100%;
+      padding-bottom: 0.12in;
+      margin-bottom: 0.16in;
+      border-bottom: 1px solid #d6d1c4;
     }
 
     #placardPrintHost .pp-brand{
+      font-family: "Cinzel", Georgia, serif;
       font-size: 9px;
       font-weight: 700;
-      letter-spacing: 0.24em;
+      letter-spacing: 0.26em;
       text-transform: uppercase;
       line-height: 1.25;
+      color: #4a4a4a;
     }
 
     #placardPrintHost .pp-event{
-      font-size: 12.5px;
+      font-family: "Cinzel", Georgia, serif;
+      font-size: 13px;
       font-weight: 700;
-      line-height: 1.25;
-      margin-top: 0.1in;
+      line-height: 1.35;
+      letter-spacing: 0.03em;
+      margin-top: 0.08in;
       max-width: 100%;
       word-wrap: break-word;
+      color: #2f4a3f;
     }
 
     #placardPrintHost .pp-sponsor{
-      margin-top: 0.08in;
+      margin-top: 0.09in;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -786,45 +818,56 @@
     }
 
     #placardPrintHost .pp-hole-wrap{
-      flex: 1 1 auto;
+      flex: 0 0 auto;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 1.35in;
+      margin-bottom: 0.16in;
+      width: 100%;
     }
 
     #placardPrintHost .pp-hole{
-      font-size: clamp(58px, 11.5vw, 108px);
-      font-weight: 700;
-      line-height: 0.92;
-      letter-spacing: 0.04em;
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: 22px;
+      font-style: italic;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
       margin: 0;
+      color: #4a4a4a;
     }
 
     #placardPrintHost .pp-bottom{
       flex-shrink: 0;
-      padding-top: 0.06in;
+      width: 100%;
+      padding-top: 0.08in;
+      border-top: 1px solid #d6d1c4;
     }
 
-    #placardPrintHost .pp-team{
-      font-size: 18px;
+    #placardPrintHost .pp-teamName{
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: 34px;
       font-weight: 700;
-      line-height: 1.2;
-      margin-bottom: 0.12in;
+      line-height: 1.1;
+      margin: 0.08in 0 0.12in;
+      letter-spacing: 0.01em;
       max-width: 100%;
       word-wrap: break-word;
+      color: #1f1f1f;
     }
 
     #placardPrintHost .pp-players{
       width: 100%;
       max-width: 5.2in;
       margin: 0 auto;
-      font-size: 13.5px;
+      font-family: "Libre Baskerville", Georgia, serif;
+      font-size: 14px;
       font-weight: 400;
-      line-height: 1.45;
+      line-height: 1.56;
+      color: #1f1f1f;
     }
 
-    #placardPrintHost .pp-player{ margin: 0.1em 0; }
+    #placardPrintHost .pp-player{ margin: 0.12em 0; }
     #placardPrintHost .pp-player--muted{ opacity: 0.55; }
 
     @media print{
@@ -1615,6 +1658,31 @@
       return logo ? resolvePrintAssetUrl(logo) : "";
     }
 
+    function tournamentPlacardWatermarkLogoUrl(){
+      const m = tournamentMeta;
+      if (!m) return "";
+      const candidates = [
+        m.logoUrl,
+        m.courseLogo,
+        m.courseLogoUrl,
+        m.organizationLogo,
+        m.organizationLogoUrl,
+        m.branding && m.branding.logoUrl
+      ];
+      for (const raw of candidates){
+        const u = resolvePrintAssetUrl(raw);
+        if (u) return u;
+      }
+      return "";
+    }
+
+    function cssBackgroundUrlToken(rawUrl){
+      const u = String(rawUrl || "").trim();
+      if (!u) return "";
+      const safe = u.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+      return `url("${safe}")`;
+    }
+
     function placardCourseBrand(){
       return resolvePlacardCourseBrand(tournamentMeta);
     }
@@ -1634,7 +1702,7 @@
         .sort((a, b) => compareHoleLabels(a.assignedHole, b.assignedHole));
     }
 
-    function placardCardHtml(r, sponsorLogoUrl){
+    function placardCardHtml(r, sponsorLogoUrl, watermarkLogoUrl){
       const brand = escapeHtml(placardCourseBrand());
       const eventTitle = escapeHtml(placardTournamentTitle());
       const hole = escapeHtml(normalizeHoleLabel(r.assignedHole));
@@ -1646,19 +1714,24 @@
       const playerLines = players.length
         ? players.map(p => `<div class="pp-player">${escapeHtml(p)}</div>`).join("")
         : `<div class="pp-player pp-player--muted">—</div>`;
+      const watermarkToken = cssBackgroundUrlToken(watermarkLogoUrl);
+      const watermarkClass = watermarkToken ? " pp-placard--watermark" : "";
+      const watermarkStyle = watermarkToken
+        ? ` style="--pp-watermark-url:${escapeHtml(watermarkToken)};"`
+        : "";
 
       return `
-        <div class="pp-placard">
+        <div class="pp-placard${watermarkClass}"${watermarkStyle}>
           <header class="pp-top">
             <div class="pp-brand">${brand}</div>
             <div class="pp-event">${eventTitle}</div>
             ${sponsorRow}
           </header>
           <div class="pp-hole-wrap">
-            <div class="pp-hole">${hole}</div>
+            <div class="pp-hole">Starting Hole ${hole}</div>
           </div>
           <div class="pp-bottom">
-            <div class="pp-team">${team}</div>
+            <div class="pp-team pp-teamName">${team}</div>
             <div class="pp-players">${playerLines}</div>
           </div>
         </div>`;
@@ -1681,6 +1754,7 @@
       }
 
       const sponsorLogoUrl = tournamentSponsorLogoUrlForPrint();
+      const watermarkLogoUrl = tournamentPlacardWatermarkLogoUrl();
       const chunks = [];
 
       for (let i = 0; i < rows.length; i += 2){
@@ -1688,10 +1762,10 @@
         const b = rows[i + 1];
 
         if (!b && rows.length % 2 === 1){
-          chunks.push(`<div class="pp-printPage pp-printPage--single">${placardCardHtml(a, sponsorLogoUrl)}</div>`);
+          chunks.push(`<div class="pp-printPage pp-printPage--single">${placardCardHtml(a, sponsorLogoUrl, watermarkLogoUrl)}</div>`);
         } else {
           chunks.push(
-            `<div class="pp-printPage">${placardCardHtml(a, sponsorLogoUrl)}${placardCardHtml(b, sponsorLogoUrl)}</div>`
+            `<div class="pp-printPage">${placardCardHtml(a, sponsorLogoUrl, watermarkLogoUrl)}${placardCardHtml(b, sponsorLogoUrl, watermarkLogoUrl)}</div>`
           );
         }
       }

@@ -21,7 +21,16 @@ export function resolvePlacardCourseBrand(tournamentMeta) {
   const m = tournamentMeta;
   if (!m) return NEUTRAL_ORG_LABEL;
   const b = String(
-    m.clubName || m.courseBrand || m.venueName || m.golfCourseName || ""
+    m.courseName ||
+      m.defaultCourse ||
+      m.course ||
+      m.organizationName ||
+      m.orgName ||
+      m.clubName ||
+      m.courseBrand ||
+      m.venueName ||
+      m.golfCourseName ||
+      ""
   ).trim();
   return b || NEUTRAL_ORG_LABEL;
 }

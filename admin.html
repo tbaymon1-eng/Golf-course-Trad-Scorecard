@@ -193,6 +193,12 @@
       text-align:center;
       box-shadow:none;
       -webkit-tap-highlight-color:transparent;
+      touch-action:manipulation;
+    }
+    .btn[disabled]{
+      opacity:.65;
+      cursor:not-allowed;
+      filter:saturate(.75);
     }
 
     .btn + .btn{ margin-top:18px; }
@@ -340,6 +346,11 @@
       background:#efe7d8;
       z-index:1;
       font-weight:900;
+    }
+    #csvPreviewPane{
+      position:relative;
+      z-index:2;
+      pointer-events:auto;
     }
 
     @media (min-width:760px){
@@ -556,25 +567,31 @@
         <div id="csvImportPanel" class="dash-box hidden" style="margin-top:14px;">
           <h2 class="dash-title">IMPORT REGISTRATIONS</h2>
           <div class="field">
-            <label class="label" for="csvFileInput">CSV file</label>
-            <input id="csvFileInput" type="file" accept=".csv,text/csv" style="min-height:auto;padding:18px;background:#f4f4f4;" />
-            <div class="hint">Upload CSV, map columns, then import into this tournament.</div>
+            <label class="label" for="csvFileInput">Excel / CSV file</label>
+            <input id="csvFileInput" type="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="min-height:auto;padding:18px;background:#f4f4f4;" />
+            <div class="hint">Upload .xlsx or .csv, map columns, then import into this tournament.</div>
           </div>
           <div class="field">
             <label class="label">Detected Headers</label>
             <div id="csvHeadersPreview" class="readonly-box">—</div>
           </div>
           <div class="field">
+            <label class="label">Source Row Preview (first 20 rows)</label>
+            <div class="csv-preview-wrap">
+              <table class="csv-preview-table">
+                <thead><tr><th>Row</th><th>Values</th></tr></thead>
+                <tbody id="importSourcePreviewBody"><tr><td colspan="2">No file loaded yet.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="field">
             <label class="label">Column Mapping</label>
             <div class="row-2">
+              <div><label class="hint" for="mapTeamName">Team (required)</label><select id="mapTeamName"></select></div>
               <div><label class="hint" for="mapFirstName">First Name</label><select id="mapFirstName"></select></div>
               <div><label class="hint" for="mapLastName">Last Name</label><select id="mapLastName"></select></div>
-              <div><label class="hint" for="mapEmail">Email</label><select id="mapEmail"></select></div>
+              <div><label class="hint" for="mapEmail">Email (optional)</label><select id="mapEmail"></select></div>
               <div><label class="hint" for="mapPhone">Phone (optional)</label><select id="mapPhone"></select></div>
-              <div><label class="hint" for="mapTeamName">Team Name (optional)</label><select id="mapTeamName"></select></div>
-              <div><label class="hint" for="mapPlayer2First">Player 2 First Name (optional)</label><select id="mapPlayer2First"></select></div>
-              <div><label class="hint" for="mapPlayer2Last">Player 2 Last Name (optional)</label><select id="mapPlayer2Last"></select></div>
-              <div><label class="hint" for="mapHandicap">Handicap (optional)</label><select id="mapHandicap"></select></div>
             </div>
           </div>
           <div class="field">
@@ -584,8 +601,8 @@
               <option value="overwrite">Overwrite (replace all existing registrations)</option>
             </select>
           </div>
-          <button class="btn btn-green" id="runImportBtn" type="button">Run CSV Import</button>
-          <div class="hint" id="csvImportStatus">Load a CSV to begin.</div>
+          <button class="btn btn-green" id="runImportBtn" type="button">Preview Import</button>
+          <div class="hint" id="csvImportStatus">Load an Excel/CSV file to begin.</div>
 
           <div id="csvPreviewPane" class="hidden" style="margin-top:14px;">
             <div class="field">
@@ -598,20 +615,19 @@
                 <thead>
                   <tr>
                     <th>Team Name</th>
-                    <th>Player 1</th>
-                    <th>Player 2</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Handicap</th>
+                    <th>Players</th>
+                    <th>Captain Email</th>
+                    <th>Captain Phone</th>
                   </tr>
                 </thead>
                 <tbody id="csvPreviewBody"></tbody>
               </table>
             </div>
             <div class="hint" id="csvPreviewFootnote" style="margin-top:8px;"></div>
-            <button class="btn btn-green" id="confirmImportBtn" type="button">Confirm Import</button>
+            <button class="btn btn-green" id="confirmImportBtn" type="button">Import</button>
             <button class="btn btn-ghost" id="backToMappingBtn" type="button">Back to Mapping</button>
             <button class="btn btn-red" id="cancelImportBtn" type="button">Cancel</button>
+            <a class="btn btn-blue hidden" id="viewRosterAfterImport" href="#" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;margin-left:8px;">View Roster</a>
           </div>
         </div>
 
@@ -751,6 +767,7 @@
 
   <div class="toast" id="toast">Copied</div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
@@ -764,6 +781,7 @@
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
   import { firebaseConfig } from "./js/firebase-config.js";
   import { orgCoursesCollection, tournamentDocRef, tournamentRegistrationsCollection } from "./js/org-paths.js";
   import {
@@ -782,6 +800,8 @@
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  const functions = getFunctions(app, "us-central1");
+  const registerTeamCallable = httpsCallable(functions, "registerTeam");
 
   let db;
   try {
@@ -853,6 +873,8 @@
   let csvImportHeaders = [];
   let csvImportRows = [];
   let csvPreviewPayload = null;
+  let isImportRunning = false;
+  let lastImportTapTs = 0;
 
   const LS_ADMIN_LAST_TID = "tournament_admin_last_id_v1";
   const LS_SELECTED_ORG = "selectedOrgId";
@@ -1061,10 +1083,39 @@
     return rows;
   }
 
+  function buildHeadersAndRowsFromMatrix(matrix){
+    const headerRow = Array.isArray(matrix?.[0]) ? matrix[0] : [];
+    const headerMeta = [];
+    const used = new Set();
+
+    headerRow.forEach((rawHeader, idx) => {
+      let header = String(rawHeader || "").trim();
+      if (!header) header = `Column ${idx + 1}`;
+      let uniqueHeader = header;
+      let suffix = 2;
+      while (used.has(uniqueHeader.toLowerCase())) {
+        uniqueHeader = `${header} (${suffix})`;
+        suffix += 1;
+      }
+      used.add(uniqueHeader.toLowerCase());
+      headerMeta.push({ index: idx, key: uniqueHeader });
+    });
+
+    const headers = headerMeta.map((h) => h.key);
+    const rows = matrix.slice(1).map((arr) => {
+      const row = {};
+      headerMeta.forEach(({ index, key }) => {
+        row[key] = String(arr?.[index] ?? "").trim();
+      });
+      return row;
+    }).filter((r) => Object.values(r).some((v) => String(v || "").trim()));
+
+    return { headers, rows };
+  }
+
   function resetImportMappingOptions(headers){
     const mappingIds = [
-      "mapFirstName","mapLastName","mapEmail","mapPhone",
-      "mapTeamName","mapPlayer2First","mapPlayer2Last","mapHandicap"
+      "mapTeamName","mapFirstName","mapLastName","mapEmail","mapPhone"
     ];
     mappingIds.forEach((id) => {
       const sel = $(id);
@@ -1090,14 +1141,11 @@
       const found = headers.find((h) => regex.test(String(h || "").toLowerCase()));
       if (found) sel.value = found;
     };
+    pick("mapTeamName", /(team|group|foursome|squad)/i);
     pick("mapFirstName", /(first.*name|fname|player.*1.*first|player.*first)/i);
     pick("mapLastName", /(last.*name|lname|surname|player.*1.*last|player.*last)/i);
     pick("mapEmail", /email/i);
     pick("mapPhone", /(phone|mobile|cell)/i);
-    pick("mapTeamName", /(team|company|group)/i);
-    pick("mapPlayer2First", /(player.*2.*first|second.*first|p2.*first)/i);
-    pick("mapPlayer2Last", /(player.*2.*last|second.*last|p2.*last)/i);
-    pick("mapHandicap", /(handicap|hcp|index)/i);
   }
 
   function parseCsvFromFile(file){
@@ -1109,6 +1157,38 @@
     });
   }
 
+  function parseSpreadsheetFromArrayBuffer(buffer){
+    if (!window.XLSX) throw new Error("Spreadsheet parser not loaded.");
+    const wb = window.XLSX.read(buffer, { type: "array" });
+    const firstSheetName = Array.isArray(wb.SheetNames) ? wb.SheetNames[0] : "";
+    if (!firstSheetName) return [];
+    const ws = wb.Sheets[firstSheetName];
+    const matrix = window.XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: "" });
+    return Array.isArray(matrix) ? matrix : [];
+  }
+
+  function parseExcelFromFile(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error || new Error("Could not read Excel file"));
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  async function parseImportMatrixFromFile(file){
+    const lower = String(file?.name || "").toLowerCase();
+    if (lower.endsWith(".csv")) {
+      const text = await parseCsvFromFile(file);
+      return parseCsvText(text);
+    }
+    if (lower.endsWith(".xlsx")) {
+      const buffer = await parseExcelFromFile(file);
+      return parseSpreadsheetFromArrayBuffer(buffer);
+    }
+    throw new Error("Unsupported file type. Please upload .xlsx or .csv.");
+  }
+
   function pickValue(row, key){
     if (!key) return "";
     return String(row?.[key] || "").trim();
@@ -1118,9 +1198,8 @@
     return `${String(first || "").trim()} ${String(last || "").trim()}`.trim();
   }
 
-  function normalizeHandicap(v){
-    const n = Number(String(v || "").replace(/[^\d.-]/g, ""));
-    return Number.isFinite(n) ? n : 0;
+  function normalizeTeamNameForImport(value){
+    return String(value || "").trim().toLowerCase();
   }
 
   function playersPerTeamFromFormat(){
@@ -1130,80 +1209,85 @@
     return 1;
   }
 
+  function renderSourceRowPreview(rows){
+    const body = $("importSourcePreviewBody");
+    if (!body) return;
+    const top = Array.isArray(rows) ? rows.slice(0, 20) : [];
+    if (!top.length) {
+      body.innerHTML = `<tr><td colspan="2">No parsed rows.</td></tr>`;
+      return;
+    }
+    body.innerHTML = top.map((row, idx) => {
+      const values = csvImportHeaders.map((h) => `${h}: ${pickValue(row, h)}`).join(" | ");
+      return `<tr><td>${idx + 1}</td><td>${escapeHtml(values)}</td></tr>`;
+    }).join("");
+  }
+
   function buildImportRegistrationsFromMappedRows(mappedRows, mapping){
-    const rows = [];
+    const groupedMap = new Map();
+    let skippedRows = 0;
+    let ignoredBlankRows = 0;
+
     mappedRows.forEach((r) => {
-      const p1 = playerName(pickValue(r, mapping.firstName), pickValue(r, mapping.lastName));
-      const p2 = playerName(pickValue(r, mapping.player2First), pickValue(r, mapping.player2Last));
-      const players = [p1, p2].filter(Boolean);
-      if (!players.length) return;
-      rows.push({
-        teamName: pickValue(r, mapping.teamName),
-        email: pickValue(r, mapping.email),
-        phone: pickValue(r, mapping.phone),
-        players,
-        handicap: normalizeHandicap(pickValue(r, mapping.handicap))
-      });
-    });
+      const team = pickValue(r, mapping.teamName);
+      const first = pickValue(r, mapping.firstName);
+      const last = pickValue(r, mapping.lastName);
+      const email = pickValue(r, mapping.email);
+      const phone = pickValue(r, mapping.phone);
 
-    const grouped = [];
-    const hasTeamName = rows.some((r) => r.teamName);
-    if (hasTeamName) {
-      const byTeam = new Map();
-      rows.forEach((r) => {
-        const key = String(r.teamName || "").trim() || "__untitled__";
-        if (!byTeam.has(key)) byTeam.set(key, []);
-        byTeam.get(key).push(r);
-      });
-      let idx = 1;
-      for (const [teamKey, arr] of byTeam.entries()) {
-        const players = [];
-        const details = [];
-        arr.forEach((r) => {
-          r.players.forEach((p, i) => {
-            if (!players.includes(p)) {
-              players.push(p);
-              details.push({ name: p, handicap: i === 0 ? r.handicap : 0, isCaptain: players.length === 1 });
-            }
-          });
-        });
-        grouped.push({
-          teamName: teamKey === "__untitled__" ? `Team ${idx}` : teamKey,
-          captainName: players[0] || "",
-          captainEmail: arr[0]?.email || "",
-          captainPhone: arr[0]?.phone || "",
-          players,
-          playerDetails: details
-        });
-        idx += 1;
+      const isBlank = !team && !first && !last && !email && !phone;
+      if (isBlank) {
+        ignoredBlankRows += 1;
+        return;
       }
-      return grouped;
-    }
+      if (!team) {
+        skippedRows += 1;
+        return;
+      }
 
-    const flattened = [];
-    rows.forEach((r) => {
-      r.players.forEach((p, i) => flattened.push({
-        name: p,
-        handicap: i === 0 ? r.handicap : 0,
-        email: r.email,
-        phone: r.phone
-      }));
+      const fullName = playerName(first, last);
+      if (!fullName) {
+        skippedRows += 1;
+        return;
+      }
+
+      if (!groupedMap.has(team)) {
+        groupedMap.set(team, {
+          teamKey: team,
+          captainEmail: "",
+          captainPhone: "",
+          players: []
+        });
+      }
+      const group = groupedMap.get(team);
+      if (!group.captainEmail && email) group.captainEmail = email;
+      if (!group.captainPhone && phone) group.captainPhone = phone;
+      group.players.push(fullName);
     });
-    const teamSize = playersPerTeamFromFormat();
-    for (let i = 0; i < flattened.length; i += teamSize) {
-      const slice = flattened.slice(i, i + teamSize);
-      const players = slice.map((x) => x.name).filter(Boolean);
-      if (!players.length) continue;
-      grouped.push({
-        teamName: `Team ${grouped.length + 1}`,
-        captainName: players[0] || "",
-        captainEmail: slice[0]?.email || "",
-        captainPhone: slice[0]?.phone || "",
-        players,
-        playerDetails: slice.map((x, idx) => ({ name: x.name, handicap: x.handicap, isCaptain: idx === 0 }))
+
+    const regs = [];
+    for (const team of groupedMap.values()) {
+      const seen = new Set();
+      const uniquePlayers = [];
+      team.players.forEach((p) => {
+        const key = String(p || "").trim().toLowerCase();
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        uniquePlayers.push(String(p).trim());
+      });
+      if (!uniquePlayers.length) continue;
+      regs.push({
+        teamKey: team.teamKey,
+        teamName: team.teamKey,
+        captainName: uniquePlayers[0] || "",
+        captainEmail: team.captainEmail || "",
+        captainPhone: team.captainPhone || "",
+        players: uniquePlayers,
+        playerDetails: uniquePlayers.map((name, idx) => ({ name, isCaptain: idx === 0 }))
       });
     }
-    return grouped;
+
+    return { regs, skippedRows, ignoredBlankRows };
   }
 
   async function clearExistingRegistrations(orgId, tournamentId){
@@ -1230,6 +1314,7 @@
     $("csvPreviewWarning").textContent = "";
     $("csvPreviewBody").innerHTML = "";
     $("csvPreviewFootnote").textContent = "";
+    $("viewRosterAfterImport")?.classList.add("hidden");
     if (closePanel) $("csvImportPanel")?.classList.add("hidden");
   }
 
@@ -1239,7 +1324,7 @@
     const formatLabel = String($("formatOfPlay")?.value || "Stroke Play");
     const autoSize = payload?.teamSize || playersPerTeamFromFormat();
     $("csvPreviewSummary").textContent =
-      `${regs.length} teams • ${totalPlayers} players • Format: ${formatLabel} • Team-size assumption: ${autoSize}`;
+      `${regs.length} teams ready • ${totalPlayers} players • Format: ${formatLabel} • Team-size assumption: ${autoSize}`;
 
     const avg = regs.length ? (totalPlayers / regs.length) : 0;
     let warning = "";
@@ -1248,22 +1333,18 @@
     else if (avg > 4.5) warning = "Warning: average players per team is unusually high.";
     $("csvPreviewWarning").textContent = warning;
 
-    const top = regs.slice(0, 10);
+    const top = regs.slice(0, 20);
     const rowsHtml = top.map((r) => {
-      const p1 = String(r.players?.[0] || "");
-      const p2 = String(r.players?.[1] || "");
-      const hcp = Number(r.playerDetails?.[0]?.handicap || 0);
+      const players = Array.isArray(r.players) ? r.players.join(", ") : "";
       return `<tr>
         <td>${escapeHtml(r.teamName || "")}</td>
-        <td>${escapeHtml(p1)}</td>
-        <td>${escapeHtml(p2)}</td>
+        <td>${escapeHtml(players)}</td>
         <td>${escapeHtml(r.captainEmail || "")}</td>
         <td>${escapeHtml(r.captainPhone || "")}</td>
-        <td>${Number.isFinite(hcp) ? String(hcp) : ""}</td>
       </tr>`;
     }).join("");
-    $("csvPreviewBody").innerHTML = rowsHtml || `<tr><td colspan="6">No preview rows.</td></tr>`;
-    $("csvPreviewFootnote").textContent = regs.length > 10 ? `Showing first 10 of ${regs.length} teams.` : "Showing all detected teams.";
+    $("csvPreviewBody").innerHTML = rowsHtml || `<tr><td colspan="4">No preview rows.</td></tr>`;
+    $("csvPreviewFootnote").textContent = regs.length > 20 ? `Showing first 20 of ${regs.length} teams.` : "Showing all detected teams.";
     $("csvPreviewPane")?.classList.remove("hidden");
   }
 
@@ -1273,33 +1354,42 @@
       return null;
     }
     if (!csvImportRows.length) {
-      showToast("Upload a CSV file first");
+      showToast("Upload an Excel/CSV file first");
+      $("csvImportStatus").textContent = "Import blocked: upload an Excel/CSV file first.";
       return null;
     }
 
     const mapping = {
+      teamName: $("mapTeamName")?.value || "",
       firstName: $("mapFirstName")?.value || "",
       lastName: $("mapLastName")?.value || "",
       email: $("mapEmail")?.value || "",
-      phone: $("mapPhone")?.value || "",
-      teamName: $("mapTeamName")?.value || "",
-      player2First: $("mapPlayer2First")?.value || "",
-      player2Last: $("mapPlayer2Last")?.value || "",
-      handicap: $("mapHandicap")?.value || ""
+      phone: $("mapPhone")?.value || ""
     };
-    if (!mapping.firstName || !mapping.lastName || !mapping.email) {
-      showToast("Map First Name, Last Name, and Email");
+    if (!mapping.teamName || !mapping.firstName || !mapping.lastName) {
+      showToast("Map Team, First Name, and Last Name");
+      $("csvImportStatus").textContent = "Import blocked: Team, First Name, and Last Name mappings are required.";
       return null;
     }
 
     $("csvImportStatus").textContent = "Preparing preview…";
-    const regs = buildImportRegistrationsFromMappedRows(csvImportRows, mapping);
+    const grouped = buildImportRegistrationsFromMappedRows(csvImportRows, mapping);
+    const regs = grouped.regs;
     if (!regs.length) {
-      $("csvImportStatus").textContent = "No valid player rows found in the mapped CSV.";
+      $("csvImportStatus").textContent = "No valid player rows found in the mapped file.";
       return null;
     }
+    const firstTeamValues = csvImportRows.slice(0, 5).map((row) => pickValue(row, mapping.teamName));
+    console.log("IMPORT mapping debug", {
+      teamColumnHeader: mapping.teamName,
+      emailColumnHeader: mapping.email || "",
+      firstTeamValues,
+    });
+
     return {
       regs,
+      skippedRows: grouped.skippedRows || 0,
+      ignoredBlankRows: grouped.ignoredBlankRows || 0,
       mapping,
       importMode: $("importMode")?.value || "merge",
       teamSize: playersPerTeamFromFormat(),
@@ -1307,46 +1397,134 @@
   }
 
   async function confirmCsvImport(){
+    console.log("Import button tapped");
     if (!csvPreviewPayload || !Array.isArray(csvPreviewPayload.regs) || !csvPreviewPayload.regs.length) {
       showToast("Preview import first");
+      $("csvImportStatus").textContent = "Import blocked: preview import first.";
+      console.log("Import failed", "missing preview payload");
+      return;
+    }
+    if (isImportRunning) {
+      $("csvImportStatus").textContent = "Import already running…";
       return;
     }
     const statusEl = $("csvImportStatus");
+    const confirmBtn = $("confirmImportBtn");
+    const originalBtnText = confirmBtn?.textContent || "Import";
+    isImportRunning = true;
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = "Importing...";
+    }
+    console.log("Import validation passed");
     try {
+      console.log("Import started");
       if (csvPreviewPayload.importMode === "overwrite") {
         statusEl.textContent = "Clearing existing registrations…";
         await clearExistingRegistrations(state.orgId, state.tournamentId);
       }
-      statusEl.textContent = "Importing to Firestore…";
+      console.log(`Teams grouped: ${csvPreviewPayload.regs.length}`);
+
+      const existingSnap = await withFirestoreRetry(() =>
+        getDocs(tournamentRegistrationsCollection(db, state.orgId, state.tournamentId))
+      );
+      const seenTeamNames = new Set();
+      existingSnap.forEach((docSnap) => {
+        const data = docSnap.data() || {};
+        const normalized = normalizeTeamNameForImport(data.teamName || "");
+        if (normalized) seenTeamNames.add(normalized);
+      });
+      console.log(`Existing teams: ${seenTeamNames.size}`);
+
+      statusEl.textContent = "Importing teams through registration pipeline…";
       let count = 0;
       let playerCount = 0;
+      let teamFailures = 0;
+      let teamsSkipped = 0;
+      const failureTeams = [];
+      const handicapOn = String($("handicapEnabled")?.value || "off").toLowerCase() === "on";
       for (const reg of csvPreviewPayload.regs) {
-        const ref = doc(tournamentRegistrationsCollection(db, state.orgId, state.tournamentId));
-        await setDoc(ref, {
-          teamName: reg.teamName,
-          captainName: reg.captainName,
-          captainEmail: reg.captainEmail,
-          captainPhone: reg.captainPhone,
-          players: reg.players,
-          playerDetails: reg.playerDetails,
-          assignedHole: "",
-          status: "registered",
-          source: "csv_import",
-          importedAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          createdAt: serverTimestamp(),
-        }, { merge: true });
-        count += 1;
-        playerCount += Array.isArray(reg.players) ? reg.players.length : 0;
+        try {
+          const importPlayers = Array.isArray(reg.playerDetails)
+            ? reg.playerDetails.map((p) => {
+                const full = String(p?.name || "").trim();
+                const parts = full.split(/\s+/).filter(Boolean);
+                const firstName = parts[0] || "";
+                const lastName = parts.length > 1 ? parts.slice(1).join(" ") : "";
+                return {
+                  firstName,
+                  lastName,
+                  email: reg.captainEmail || "",
+                };
+              })
+            : [];
+          const teamName = String(reg.teamKey || "").trim();
+          const payload = {
+            tournamentId: state.tournamentId,
+            organizationId: state.orgId,
+            teamName,
+            captainName: reg.captainName,
+            captainEmail: reg.captainEmail,
+            captainPhone: reg.captainPhone,
+            playerDetails: reg.playerDetails,
+            notes: "",
+            handicapEnabled: handicapOn,
+            handicapPercent: handicapOn ? Number($("handicapPercent")?.value || 100) : 0,
+          };
+          console.log("IMPORT registerTeam payload", {
+            teamName,
+            teamKey: reg.teamKey || "",
+            playerCount: importPlayers.length,
+            firstPlayer: importPlayers[0] || null,
+          });
+          if (!teamName) {
+            teamFailures += 1;
+            if (failureTeams.length < 5) failureTeams.push("(missing team)");
+            continue;
+          }
+          const normalizedTeamName = normalizeTeamNameForImport(teamName);
+          if (!normalizedTeamName || seenTeamNames.has(normalizedTeamName)) {
+            teamsSkipped += 1;
+            continue;
+          }
+          seenTeamNames.add(normalizedTeamName);
+          // Reuse the same callable as normal registration so assignment/status/schema stay consistent.
+          await registerTeamCallable(payload);
+          count += 1;
+          playerCount += Array.isArray(reg.players) ? reg.players.length : 0;
+        } catch (teamErr) {
+          teamFailures += 1;
+          if (failureTeams.length < 5) failureTeams.push(reg.teamKey || "(untitled team)");
+          console.error("Failed to import team", reg.teamKey, teamErr);
+        }
       }
-      statusEl.textContent = `Imported ${count} teams • ${playerCount} players • mode: ${csvPreviewPayload.importMode}. Redirecting to roster…`;
+      const skippedRows = Number(csvPreviewPayload.skippedRows || 0);
+      const ignoredBlankRows = Number(csvPreviewPayload.ignoredBlankRows || 0);
+      const baseMsg = `${count} teams imported successfully (${playerCount} players).`;
+      const skipMsg = skippedRows ? ` Skipped rows: ${skippedRows}.` : "";
+      const blankMsg = ignoredBlankRows ? ` Ignored blank rows: ${ignoredBlankRows}.` : "";
+      const duplicateMsg = teamsSkipped ? ` Teams skipped (duplicates): ${teamsSkipped}.` : "";
+      const failMsg = teamFailures ? ` Team failures: ${teamFailures}${failureTeams.length ? ` (${failureTeams.join(", ")})` : ""}.` : "";
+      statusEl.textContent = `${baseMsg}${skipMsg}${blankMsg}${duplicateMsg}${failMsg}`;
+      console.log(`Teams created: ${count}`);
+      console.log(`Teams skipped: ${teamsSkipped}`);
+      console.log("Import completed");
       const links = buildLinks(state.orgId, state.tournamentId, state.adminToken);
-      setTimeout(() => {
-        window.location.href = links.roster;
-      }, 650);
+      const rosterBtn = $("viewRosterAfterImport");
+      if (rosterBtn) {
+        rosterBtn.href = links.roster;
+        rosterBtn.classList.remove("hidden");
+      }
     } catch (err) {
       console.error(err);
       statusEl.textContent = `Import failed: ${err?.message || err}`;
+      console.log("Import failed", err);
+    } finally {
+      isImportRunning = false;
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = originalBtnText;
+      }
     }
   }
 
@@ -1356,7 +1534,7 @@
     if (!payload) return;
     csvPreviewPayload = payload;
     renderCsvPreview(payload);
-    $("csvImportStatus").textContent = "Preview ready. Confirm Import to write to Firestore.";
+    $("csvImportStatus").textContent = "Preview ready. Click Import to create registrations.";
   }
 
   function drawRealQr(elId, text){
@@ -2209,31 +2387,38 @@
       const file = ev.target?.files?.[0];
       if (!file) return;
       try {
-        $("csvImportStatus").textContent = "Reading CSV…";
-        const text = await parseCsvFromFile(file);
-        const matrix = parseCsvText(text);
+        $("csvImportStatus").textContent = "Reading file…";
+        const matrix = await parseImportMatrixFromFile(file);
         if (!matrix.length) {
-          $("csvImportStatus").textContent = "CSV is empty.";
+          $("csvImportStatus").textContent = "The first worksheet/file is empty.";
           return;
         }
-        csvImportHeaders = matrix[0].map((h) => String(h || "").trim()).filter(Boolean);
-        csvImportRows = matrix.slice(1).map((arr) => {
-          const row = {};
-          csvImportHeaders.forEach((h, i) => { row[h] = String(arr[i] || "").trim(); });
-          return row;
-        }).filter((r) => Object.values(r).some((v) => String(v || "").trim()));
+        const parsed = buildHeadersAndRowsFromMatrix(matrix);
+        csvImportHeaders = parsed.headers;
+        csvImportRows = parsed.rows;
         $("csvHeadersPreview").textContent = csvImportHeaders.length ? csvImportHeaders.join(" | ") : "—";
+        renderSourceRowPreview(csvImportRows);
         resetImportMappingOptions(csvImportHeaders);
         suggestMapping(csvImportHeaders);
-        $("csvImportStatus").textContent = `Loaded ${csvImportRows.length} data rows. Map columns, then import.`;
+        $("csvImportStatus").textContent = `Loaded ${csvImportRows.length} data rows. Map columns, then preview import.`;
       } catch (err) {
         console.error(err);
-        $("csvImportStatus").textContent = `Could not parse CSV: ${err?.message || err}`;
+        $("csvImportStatus").textContent = `Could not parse file: ${err?.message || err}`;
       }
     });
   }
   if (runImportBtn) runImportBtn.addEventListener("click", runCsvImport);
-  if (confirmImportBtn) confirmImportBtn.addEventListener("click", confirmCsvImport);
+  if (confirmImportBtn) {
+    const triggerImport = (ev) => {
+      if (ev?.type === "touchend") ev.preventDefault();
+      const now = Date.now();
+      if (now - lastImportTapTs < 450) return;
+      lastImportTapTs = now;
+      void confirmCsvImport();
+    };
+    confirmImportBtn.addEventListener("click", triggerImport);
+    confirmImportBtn.addEventListener("touchend", triggerImport, { passive: false });
+  }
   if (backToMappingBtn) backToMappingBtn.addEventListener("click", () => {
     $("csvPreviewPane")?.classList.add("hidden");
     $("csvImportStatus").textContent = "Back to mapping. Adjust fields, then run preview again.";
