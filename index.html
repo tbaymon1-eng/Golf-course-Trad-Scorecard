@@ -1252,6 +1252,7 @@ function normalizeFormatValue(v){
   if (s.toLowerCase().includes("scramble")) return "scramble";
   const sl = s.toLowerCase();
   if (sl.includes("best ball") || sl === "bestball") return "bestball";
+  if (sl.includes("modified stableford") || sl === "stableford") return "stableford";
   if (sl.includes("stroke") || sl.includes("stroke play")) return "stroke";
   return "stroke";
 }
@@ -1842,6 +1843,89 @@ function getNetTotalForRow(rowIndex){
   return net;
 }
 
+function shouldUseFormatTotals(){
+  const fmt = normalizeFormatValue(tournamentFormat);
+  return fmt === "bestball" || fmt === "stableford";
+}
+
+function getPlayerHoleScore(playerIdx, holeNum){
+  const raw = document.getElementById(`p${playerIdx}_h${holeNum}`)?.value || "";
+  const score = parseInt(raw, 10);
+  return Number.isFinite(score) ? score : null;
+}
+
+function getParForHole(holeNum){
+  const course = COURSES[currentCourseId];
+  if (!course || holeNum < 1 || holeNum > 18) return null;
+
+  if (holeNum <= 9) return Number(course.parFront?.[holeNum - 1] ?? null);
+  return Number(course.parBack?.[holeNum - 10] ?? null);
+}
+
+function convertToStableford(score, par){
+  if (!Number.isFinite(score) || !Number.isFinite(par)) return 0;
+  const rel = score - par;
+  if (rel <= -2) return 4;
+  if (rel === -1) return 3;
+  if (rel === 0) return 2;
+  if (rel === 1) return 1;
+  return 0;
+}
+
+function calculateHoleScore(holeNum){
+  const fmt = normalizeFormatValue(tournamentFormat);
+  const p0 = getPlayerHoleScore(0, holeNum);
+
+  if (fmt === "scramble" || fmt === "stroke"){
+    return p0 ?? 0;
+  }
+
+  const validScores = [];
+  for (let i = 0; i < playersCount; i++){
+    const score = getPlayerHoleScore(i, holeNum);
+    if (Number.isFinite(score)) validScores.push(score);
+  }
+  if (!validScores.length) return 0;
+
+  if (fmt === "bestball"){
+    return Math.min(...validScores);
+  }
+
+  if (fmt === "stableford"){
+    const par = getParForHole(holeNum);
+    if (!Number.isFinite(par)) return 0;
+
+    let bestPoints = 0;
+    for (const score of validScores){
+      const points = convertToStableford(score, par);
+      if (points > bestPoints) bestPoints = points;
+    }
+    return bestPoints;
+  }
+
+  return p0 ?? 0;
+}
+
+function recalcFormatTotals(){
+  let out = 0;
+  let inn = 0;
+
+  for (let holeNum = 1; holeNum <= 18; holeNum++){
+    const holeScore = calculateHoleScore(holeNum);
+    if (holeNum <= 9) out += holeScore;
+    else inn += holeScore;
+  }
+
+  const tot = out + inn;
+  const outEl = document.querySelector(`[data-out="0"]`);
+  const inEl  = document.querySelector(`[data-in="0"]`);
+  const totEl = document.querySelector(`[data-tot="0"]`);
+
+  if (outEl) outEl.textContent = out;
+  if (inEl)  inEl.textContent = inn;
+  if (totEl) totEl.textContent = tot;
+}
+
 function recalcPlayer(i){
   let out = 0;
   let inn = 0;
@@ -1921,6 +2005,7 @@ function loadState(){
     const n = Number(state.finishedHolesCount);
     finishedHolesCount = (n === 9 || n === 18) ? n : null;
     for(let i=0;i<playersCount;i++) recalcPlayer(i);
+    if (shouldUseFormatTotals()) recalcFormatTotals();
     renderSideGamesPanel(state.sideGames || null);
   }catch(e){
     renderSideGamesPanel();
@@ -2402,6 +2487,7 @@ async function applyCasualRoundDocToApp(d) {
   const n = Number(d.finishedHolesCount);
   finishedHolesCount = n === 9 || n === 18 ? n : null;
   for (let i = 0; i < playersCount; i++) recalcPlayer(i);
+  if (shouldUseFormatTotals()) recalcFormatTotals();
   if (roundFinished) {
     lockScorecard();
   }
@@ -2554,6 +2640,7 @@ function wireInputs(){
 
         el.value = sanitizeScoreValue(el.value, tournamentFormat === "scramble");
         recalcPlayer(i);
+        if (shouldUseFormatTotals()) recalcFormatTotals();
         saveState();
         enforceStartHoleLock();
         scheduleTournamentPush();
@@ -2571,6 +2658,7 @@ function wireInputs(){
     }
     recalcPlayer(i);
   }
+  if (shouldUseFormatTotals()) recalcFormatTotals();
 
   document.querySelectorAll(".player-name").forEach(inp => {
     inp.addEventListener("input", () => {
@@ -3145,6 +3233,7 @@ function scheduleTournamentPush(){
     document.querySelectorAll(".sidegame-select").forEach(i => i.value = "");
     clearState();
     for (let i=0;i<playersCount;i++) recalcPlayer(i);
+    if (shouldUseFormatTotals()) recalcFormatTotals();
     if(Array.isArray(rosterNames) && rosterNames.length){
       setPlayerRowNames(rosterNames);
     }
