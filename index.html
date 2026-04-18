@@ -1099,6 +1099,7 @@ import {
   PLACEHOLDER_COURSE_HEADER_IMAGE,
   resolveScorecardHeaderImageForDoc,
 } from "./js/course-theme.js";
+import { normalizeAssignmentType, ASSIGNMENT_TEE_TIMES } from "./js/tournament-fields.js";
 
 let db = null;
 let auth = null;
@@ -1201,6 +1202,7 @@ let playersCount = 6;
 let sponsorUrl = "";
 let tournamentFormat = "stroke";
 let tournamentEntryMode = "team_rep";
+let tournamentStartType = "shotgun";
 let tournamentSideGames = {
   skinsEnabled:false,
   ctpEnabled:false,
@@ -2824,6 +2826,11 @@ function readScoresFromDOM(){
 function normalizeRegistration(r){
   const players = Array.isArray(r.players) ? r.players : (Array.isArray(r.rosterNames) ? r.rosterNames : []);
   const playerDetails = Array.isArray(r.playerDetails) ? r.playerDetails : [];
+  const shRaw = r.startingHole;
+  const startingHole =
+    shRaw != null && shRaw !== "" && Number.isFinite(Number(shRaw))
+      ? Math.max(1, Math.min(18, Math.round(Number(shRaw))))
+      : null;
 
   return {
     id: r.id || "",
@@ -2841,9 +2848,21 @@ function normalizeRegistration(r){
     handicapEnabled: !!r.handicapEnabled,
     handicapPercent: Number(r.handicapPercent || 100) || 100,
     assignedHole: String(r.assignedHole || r.startHole || "").trim().toUpperCase(),
+    startingHole,
+    teeTime: String(r.teeTime || "").trim(),
     status: String(r.status || "assigned").trim().toLowerCase(),
     courseId: String(r.courseId || "").trim()
   };
+}
+
+function registrationEffectiveStartHoleLabel(reg){
+  if (!reg) return "";
+  if (tournamentStartType === ASSIGNMENT_TEE_TIMES){
+    const n = Number(reg.startingHole);
+    if (Number.isFinite(n) && n >= 1 && n <= 18) return String(n);
+    return "1";
+  }
+  return String(reg.assignedHole || "").trim();
 }
 
 /** Match registration courseId to a loaded COURSES key (exact Firestore id or case-insensitive). */
@@ -2890,7 +2909,7 @@ async function autoStartFromRegistration(reg){
   selectedHandicapPercent = Number(reg.handicapPercent || 100) || 100;
 
   rosterNames = Array.isArray(reg.players) ? reg.players.slice(0,6) : [];
-  startHoleSelected = reg.assignedHole || "";
+  startHoleSelected = registrationEffectiveStartHoleLabel(reg);
 
   joinGroup.value = reg.teamName || "";
   joinName.value = reg.captainName || rosterNames[0] || "";
@@ -2899,7 +2918,7 @@ async function autoStartFromRegistration(reg){
   joinMate3.value = rosterNames[3] || "";
   joinMate4.value = rosterNames[4] || "";
   joinMate5.value = rosterNames[5] || "";
-  joinStartHole.value = reg.assignedHole || "";
+  joinStartHole.value = registrationEffectiveStartHoleLabel(reg);
 
   applyRegistrationCourseId(reg.courseId);
 
@@ -2937,6 +2956,7 @@ function teamMatchesSearch(team, q){
     team.teamName,
     team.captainName,
     team.assignedHole,
+    team.teeTime,
     ...(team.players || [])
   ].join(" ").toLowerCase();
   return hay.includes(q);
@@ -2948,6 +2968,12 @@ function renderTeamPicker(){
     .filter(t => t.status !== "cancelled")
     .filter(t => teamMatchesSearch(t, q))
     .sort((a,b) => {
+      if (tournamentStartType === ASSIGNMENT_TEE_TIMES) {
+        const ta = String(a.teeTime || "").trim();
+        const tb = String(b.teeTime || "").trim();
+        if (ta !== tb) return ta.localeCompare(tb);
+        return (a.teamName || "").localeCompare(b.teamName || "");
+      }
       const A = normalizeStartHole(a.assignedHole) || { holeNum:999, label:"999Z" };
       const B = normalizeStartHole(b.assignedHole) || { holeNum:999, label:"999Z" };
       if(A.label.endsWith("A") && !B.label.endsWith("A")) return -1;
@@ -2960,7 +2986,11 @@ function renderTeamPicker(){
   <div class="team-card" data-team-id="${escapeHtmlAttr(team.id)}">
 
     <div class="team-hole-badge">
-      ${escapeHtml(team.assignedHole || "—")}
+      ${escapeHtml(
+        tournamentStartType === ASSIGNMENT_TEE_TIMES
+          ? (team.teeTime || "—")
+          : (team.assignedHole || "—")
+      )}
     </div>
 
     <div class="team-card-body">
@@ -3025,8 +3055,9 @@ function applyRegistrationSelection(reg){
   joinMate3.value = rosterNames[3] || "";
   joinMate4.value = rosterNames[4] || "";
   joinMate5.value = rosterNames[5] || "";
-  joinStartHole.value = reg.assignedHole || "";
-  startHoleSelected = reg.assignedHole || "";
+  const startLbl = registrationEffectiveStartHoleLabel(reg);
+  joinStartHole.value = startLbl;
+  startHoleSelected = startLbl;
   applyRegistrationCourseId(reg.courseId);
 
   setPlayerRowNames(rosterNames);
@@ -3034,7 +3065,10 @@ function applyRegistrationSelection(reg){
 
   teamPickerScreen.style.display = "none";
   joinScreen.style.display = "block";
-  joinMeta.textContent = `Confirm Team: ${reg.teamName || "Team"} • Start Hole ${reg.assignedHole || "—"}`;
+  joinMeta.textContent =
+    tournamentStartType === ASSIGNMENT_TEE_TIMES
+      ? `Confirm Team: ${reg.teamName || "Team"} • Tee time ${reg.teeTime || "—"} • Hole ${startLbl}`
+      : `Confirm Team: ${reg.teamName || "Team"} • Start Hole ${reg.assignedHole || "—"}`;
   updateJoinScreenForEntryMode();
 }
 
@@ -3421,6 +3455,7 @@ async function checkTournamentFromURL(){
       tournamentFormat = normalizeFormatValue(t.formatOfPlay || t.format);
       playersCount = formatToPlayersCount(tournamentFormat);
       tournamentEntryMode = String(t.entryMode || "team_rep").trim().toLowerCase();
+      tournamentStartType = normalizeAssignmentType(t);
 
       await applyTournamentCourseSelection(t, organizationId);
 

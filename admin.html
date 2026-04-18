@@ -112,6 +112,19 @@
       font-weight:700;
     }
 
+    .import-mapping-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+      gap:10px;
+    }
+    .import-mapping-grid .map-cell label{
+      display:block;
+      margin:0 0 6px;
+      font-size:14px;
+      font-weight:800;
+      color:#3a342e;
+    }
+
     input[type="text"],
     input[type="url"],
     input[type="date"],
@@ -526,32 +539,98 @@
         </div>
 
         <div class="dash-box" style="margin-top:22px;">
-          <h2 class="dash-title">HOLE ASSIGNMENT</h2>
+          <h2 class="dash-title">EVENT TYPE &amp; REGISTRATION</h2>
 
           <div class="field">
-            <label class="label" for="autoAssignEnabled">Auto Assign On Registration</label>
-            <select id="autoAssignEnabled">
-              <option value="on">On</option>
-              <option value="off">Off</option>
+            <label class="label" for="eventCategory">Event category</label>
+            <select id="eventCategory">
+              <option value="golf_tournament">Golf tournament</option>
+              <option value="clinic">Clinic</option>
+              <option value="camp">Camp</option>
+              <option value="general">General event</option>
             </select>
+            <div class="hint">Controls roster columns and whether shotgun / tee-time assignment applies.</div>
           </div>
 
           <div class="field">
-            <label class="label" for="holeAssignmentMode">Hole Assignment Mode</label>
-            <select id="holeAssignmentMode">
-              <option value="default">Default Flow</option>
-              <option value="custom">Custom Flow</option>
+            <label class="label" for="registrantSourceMode">Registrant source</label>
+            <select id="registrantSourceMode">
+              <option value="both">Both (registration link + upload)</option>
+              <option value="registration_link">Registration link only</option>
+              <option value="upload">Upload Excel/CSV only</option>
             </select>
-            <div class="hint">
-              Default uses 1A → 2A → 3A ... 18A → 1B → 2B ... Custom lets you define your own order.
+            <div class="hint">Who may add players: public link, organizer import, or both.</div>
+          </div>
+        </div>
+
+        <div class="dash-box" style="margin-top:22px;" id="golfStartAssignmentSection">
+          <h2 class="dash-title">START &amp; ASSIGNMENT (GOLF)</h2>
+
+          <div class="field">
+            <label class="label" for="startType">Tournament start type</label>
+            <select id="startType">
+              <option value="shotgun">Shotgun start</option>
+              <option value="tee_times">Tee times</option>
+            </select>
+            <div class="hint">Shotgun uses starting-hole waves (1A, 2A, …). Tee times assign a clock time per team or group.</div>
+          </div>
+
+          <div id="shotgunHoleAssignmentFields">
+            <div class="field">
+              <label class="label" for="autoAssignEnabled">Auto Assign On Registration</label>
+              <select id="autoAssignEnabled">
+                <option value="on">On</option>
+                <option value="off">Off</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="label" for="holeAssignmentMode">Hole Assignment Mode</label>
+              <select id="holeAssignmentMode">
+                <option value="default">Default Flow</option>
+                <option value="custom">Custom Flow</option>
+              </select>
+              <div class="hint">
+                Default uses 1A → 2A → 3A ... 18A → 1B → 2B ... Custom lets you define your own order.
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="customHoleFlow">Custom Hole Flow</label>
+              <textarea id="customHoleFlow" rows="5" placeholder="1A,2A,3A,4A,5A,6A"></textarea>
+              <div class="hint">
+                Enter comma-separated hole order. Example: 1A,3A,5A,7A,9A,11A
+              </div>
             </div>
           </div>
 
-          <div class="field">
-            <label class="label" for="customHoleFlow">Custom Hole Flow</label>
-            <textarea id="customHoleFlow" rows="5" placeholder="1A,2A,3A,4A,5A,6A"></textarea>
-            <div class="hint">
-              Enter comma-separated hole order. Example: 1A,3A,5A,7A,9A,11A
+          <div id="teeTimesAssignmentFields" class="hidden">
+            <div class="field">
+              <label class="label" for="firstTeeTime">First tee time</label>
+              <input id="firstTeeTime" type="datetime-local" />
+              <div class="hint">Local date and time for the first tee slot.</div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="teeIntervalMinutes">Tee interval (minutes)</label>
+              <input id="teeIntervalMinutes" type="number" min="1" step="1" value="10" />
+            </div>
+
+            <div class="field">
+              <label class="label" for="groupSize">Group size (teams per tee time)</label>
+              <input id="groupSize" type="number" min="1" step="1" value="1" />
+              <div class="hint">Teams share the same clock time until this count is filled, then the next slot adds one interval.</div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="teeStartsDisplay">Tee starts (holes)</label>
+              <input id="teeStartsDisplay" type="text" value="1" readonly style="background:#f0ece4;" />
+              <div class="hint">Currently only hole 1 is supported as a tee start.</div>
+            </div>
+
+            <div class="field">
+              <button class="btn btn-blue" type="button" id="generateTeeTimesBtn">Generate Tee Times</button>
+              <div class="hint">Recomputes tee times for all non-cancelled teams in registration order (oldest first).</div>
             </div>
           </div>
         </div>
@@ -565,11 +644,11 @@
         <button class="btn btn-ghost" id="importRegistrationsBtn" type="button">Import Registrations</button>
 
         <div id="csvImportPanel" class="dash-box hidden" style="margin-top:14px;">
-          <h2 class="dash-title">IMPORT REGISTRATIONS</h2>
+          <h2 class="dash-title">IMPORT REGISTRATIONS (EXCEL / CSV)</h2>
           <div class="field">
             <label class="label" for="csvFileInput">Excel / CSV file</label>
-            <input id="csvFileInput" type="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="min-height:auto;padding:18px;background:#f4f4f4;" />
-            <div class="hint">Upload .xlsx or .csv, map columns, then import into this tournament.</div>
+            <input id="csvFileInput" type="file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="min-height:auto;padding:18px;background:#f4f4f4;" />
+            <div class="hint">Upload .csv, .xlsx, or .xls — map columns below, then preview and import.</div>
           </div>
           <div class="field">
             <label class="label">Detected Headers</label>
@@ -585,24 +664,32 @@
             </div>
           </div>
           <div class="field">
-            <label class="label">Column Mapping</label>
-            <div class="row-2">
-              <div><label class="hint" for="mapTeamName">Team (required)</label><select id="mapTeamName"></select></div>
-              <div><label class="hint" for="mapFirstName">First Name</label><select id="mapFirstName"></select></div>
-              <div><label class="hint" for="mapLastName">Last Name</label><select id="mapLastName"></select></div>
-              <div><label class="hint" for="mapEmail">Email (optional)</label><select id="mapEmail"></select></div>
-              <div><label class="hint" for="mapPhone">Phone (optional)</label><select id="mapPhone"></select></div>
-            </div>
+            <label class="label">Column mapping</label>
+            <div class="hint" style="margin-bottom:8px;">Map spreadsheet columns to fields. Golf tournaments usually require <b>Team</b>; clinics often use <b>Full name</b> or first/last plus <b>Email</b>.</div>
+            <div id="importMappingGrid" class="import-mapping-grid"></div>
           </div>
           <div class="field">
-            <label class="label" for="importMode">Re-import behavior</label>
+            <label class="label" for="importMode">Re-import scope</label>
             <select id="importMode">
-              <option value="merge">Merge (append new imported teams)</option>
-              <option value="overwrite">Overwrite (replace all existing registrations)</option>
+              <option value="merge">Merge (keep existing + import)</option>
+              <option value="overwrite">Overwrite (delete all registrations, then import)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="label" for="importDuplicateMode">Duplicate handling</label>
+            <select id="importDuplicateMode">
+              <option value="add_only">Add new only (skip rows matching existing)</option>
+              <option value="update_matching">Update matching (email → phone → name+session)</option>
+              <option value="skip_duplicates">Skip duplicates (dedupe file by email, then add new only)</option>
             </select>
           </div>
           <button class="btn btn-green" id="runImportBtn" type="button">Preview Import</button>
           <div class="hint" id="csvImportStatus">Load an Excel/CSV file to begin.</div>
+
+          <div id="csvImportResultPanel" class="hidden" style="margin-top:14px;padding:14px 16px;border-radius:14px;border:2px solid #2f7a31;background:#f4faf4;">
+            <div id="csvImportResultTitle" style="font-weight:800;margin-bottom:8px;font-size:16px;"></div>
+            <ul id="csvImportResultList" style="margin:0;padding-left:20px;font-size:14px;line-height:1.45;"></ul>
+          </div>
 
           <div id="csvPreviewPane" class="hidden" style="margin-top:14px;">
             <div class="field">
@@ -611,8 +698,8 @@
               <div id="csvPreviewWarning" class="hint" style="color:#b16a07;"></div>
             </div>
             <div class="csv-preview-wrap">
-              <table class="csv-preview-table">
-                <thead>
+              <table class="csv-preview-table" id="csvPreviewTable">
+                <thead id="csvPreviewHead">
                   <tr>
                     <th>Team Name</th>
                     <th>Players</th>
@@ -657,13 +744,15 @@
 
           <div style="height:10px"></div>
 
-          <div class="field">
-            <label class="label">Registration Link</label>
-            <div id="registrationLinkBox" class="readonly-box">—</div>
-            <div class="hint">Use this link for player or team registration.</div>
-          </div>
+          <div id="registrationLinkShareGroup">
+            <div class="field">
+              <label class="label">Registration Link</label>
+              <div id="registrationLinkBox" class="readonly-box">—</div>
+              <div class="hint">Use this link for player or team registration.</div>
+            </div>
 
-          <button class="btn btn-ghost" id="copyRegistrationBtn" type="button">Copy Registration</button>
+            <button class="btn btn-ghost" id="copyRegistrationBtn" type="button">Copy Registration</button>
+          </div>
 
           <div style="height:16px"></div>
 
@@ -683,7 +772,7 @@
               <div id="rosterQr" class="qr-box"></div>
             </div>
 
-            <div>
+            <div id="registrationQrCell">
               <div class="label">Registration QR</div>
               <div id="registrationQr" class="qr-box"></div>
             </div>
@@ -777,13 +866,19 @@
     getDoc,
     getDocs,
     setDoc,
+    updateDoc,
     writeBatch,
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
   import { firebaseConfig } from "./js/firebase-config.js";
-  import { orgCoursesCollection, tournamentDocRef, tournamentRegistrationsCollection } from "./js/org-paths.js";
+  import {
+    orgCoursesCollection,
+    tournamentDocRef,
+    tournamentRegistrationsCollection,
+    tournamentRegistrationDoc,
+  } from "./js/org-paths.js";
   import {
     resolveOrganizerOrgId,
     readDashboardAuthContext,
@@ -791,6 +886,29 @@
     readOrganizerOrgIdFromUserDoc,
     withFirestoreRetry,
   } from "./js/resolve-organizer-org.js";
+  import {
+    EVENT_TYPE_GOLF_TOURNAMENT,
+    EVENT_CATEGORY_GOLF,
+    normalizeEventCategory,
+    REGISTRANT_SOURCE_MODE_BOTH,
+    REGISTRANT_SOURCE_MODE_LINK,
+    REGISTRANT_SOURCE_MODE_UPLOAD,
+  } from "./js/tournament-fields.js";
+  import {
+    IMPORT_FIELD_KEYS,
+    buildImportRecordsFromMappedRows,
+    indexRegistrationsForMatching,
+    findMatchingRegistration,
+    buildImportRegisterTeamPayload,
+    buildNonGolfRegistrationWritePayload,
+    mergeRegistrationUpdatePayload,
+    mergeGolfRegistrationUpdatePayload,
+    dedupeImportRecordsByEmail,
+    pushImportMatchIndexEntry,
+    DUPLICATE_MODE_ADD_ONLY,
+    DUPLICATE_MODE_UPDATE,
+    DUPLICATE_MODE_SKIP,
+  } from "./js/tournament-import.js";
 
   if (location.protocol === "file:") {
     alert(
@@ -1114,13 +1232,17 @@
   }
 
   function resetImportMappingOptions(headers){
-    const mappingIds = [
-      "mapTeamName","mapFirstName","mapLastName","mapEmail","mapPhone"
-    ];
-    mappingIds.forEach((id) => {
-      const sel = $(id);
-      if (!sel) return;
-      sel.innerHTML = "";
+    const grid = $("importMappingGrid");
+    if (!grid) return;
+    grid.innerHTML = "";
+    IMPORT_FIELD_KEYS.forEach(({ id, label }) => {
+      const wrap = document.createElement("div");
+      wrap.className = "map-cell";
+      const lab = document.createElement("label");
+      lab.setAttribute("for", `map_${id}`);
+      lab.textContent = label;
+      const sel = document.createElement("select");
+      sel.id = `map_${id}`;
       const none = document.createElement("option");
       none.value = "";
       none.textContent = "— Not mapped —";
@@ -1131,21 +1253,42 @@
         opt.textContent = h;
         sel.appendChild(opt);
       });
+      wrap.appendChild(lab);
+      wrap.appendChild(sel);
+      grid.appendChild(wrap);
     });
   }
 
+  function collectImportMappingFromForm(){
+    const o = {};
+    IMPORT_FIELD_KEYS.forEach(({ id }) => {
+      const el = $(`map_${id}`);
+      if (el && el.value) o[id] = el.value;
+    });
+    return o;
+  }
+
   function suggestMapping(headers){
-    const pick = (id, regex) => {
-      const sel = $(id);
+    const pick = (fieldId, regex) => {
+      const sel = $(`map_${fieldId}`);
       if (!sel) return;
       const found = headers.find((h) => regex.test(String(h || "").toLowerCase()));
       if (found) sel.value = found;
     };
-    pick("mapTeamName", /(team|group|foursome|squad)/i);
-    pick("mapFirstName", /(first.*name|fname|player.*1.*first|player.*first)/i);
-    pick("mapLastName", /(last.*name|lname|surname|player.*1.*last|player.*last)/i);
-    pick("mapEmail", /email/i);
-    pick("mapPhone", /(phone|mobile|cell)/i);
+    pick("teamName", /(team|group|foursome|squad|company)/i);
+    pick("fullName", /(full\s*name|display\s*name|participant|name)/i);
+    pick("firstName", /(first\s*name|^fname$|given)/i);
+    pick("lastName", /(last\s*name|^lname$|surname|family)/i);
+    pick("email", /e-?mail|email\s*address/i);
+    pick("phone", /(phone|mobile|cell|tel)/i);
+    pick("playerNames", /(players|roster|names)/i);
+    pick("handicap", /handicap|hcp|index/i);
+    pick("session", /session|class/i);
+    pick("timeSlot", /(time|slot|tee\s*time)/i);
+    pick("group", /(group|foursome|pairing)/i);
+    pick("instructor", /(instructor|coach|pro|teacher)/i);
+    pick("paidStatus", /(paid|payment|status|balance)/i);
+    pick("notes", /(note|comment|special)/i);
   }
 
   function parseCsvFromFile(file){
@@ -1182,24 +1325,16 @@
       const text = await parseCsvFromFile(file);
       return parseCsvText(text);
     }
-    if (lower.endsWith(".xlsx")) {
+    if (lower.endsWith(".xlsx") || lower.endsWith(".xls")) {
       const buffer = await parseExcelFromFile(file);
       return parseSpreadsheetFromArrayBuffer(buffer);
     }
-    throw new Error("Unsupported file type. Please upload .xlsx or .csv.");
+    throw new Error("Unsupported file type. Please upload .csv, .xlsx, or .xls.");
   }
 
   function pickValue(row, key){
     if (!key) return "";
     return String(row?.[key] || "").trim();
-  }
-
-  function playerName(first, last){
-    return `${String(first || "").trim()} ${String(last || "").trim()}`.trim();
-  }
-
-  function normalizeTeamNameForImport(value){
-    return String(value || "").trim().toLowerCase();
   }
 
   function playersPerTeamFromFormat(){
@@ -1221,73 +1356,6 @@
       const values = csvImportHeaders.map((h) => `${h}: ${pickValue(row, h)}`).join(" | ");
       return `<tr><td>${idx + 1}</td><td>${escapeHtml(values)}</td></tr>`;
     }).join("");
-  }
-
-  function buildImportRegistrationsFromMappedRows(mappedRows, mapping){
-    const groupedMap = new Map();
-    let skippedRows = 0;
-    let ignoredBlankRows = 0;
-
-    mappedRows.forEach((r) => {
-      const team = pickValue(r, mapping.teamName);
-      const first = pickValue(r, mapping.firstName);
-      const last = pickValue(r, mapping.lastName);
-      const email = pickValue(r, mapping.email);
-      const phone = pickValue(r, mapping.phone);
-
-      const isBlank = !team && !first && !last && !email && !phone;
-      if (isBlank) {
-        ignoredBlankRows += 1;
-        return;
-      }
-      if (!team) {
-        skippedRows += 1;
-        return;
-      }
-
-      const fullName = playerName(first, last);
-      if (!fullName) {
-        skippedRows += 1;
-        return;
-      }
-
-      if (!groupedMap.has(team)) {
-        groupedMap.set(team, {
-          teamKey: team,
-          captainEmail: "",
-          captainPhone: "",
-          players: []
-        });
-      }
-      const group = groupedMap.get(team);
-      if (!group.captainEmail && email) group.captainEmail = email;
-      if (!group.captainPhone && phone) group.captainPhone = phone;
-      group.players.push(fullName);
-    });
-
-    const regs = [];
-    for (const team of groupedMap.values()) {
-      const seen = new Set();
-      const uniquePlayers = [];
-      team.players.forEach((p) => {
-        const key = String(p || "").trim().toLowerCase();
-        if (!key || seen.has(key)) return;
-        seen.add(key);
-        uniquePlayers.push(String(p).trim());
-      });
-      if (!uniquePlayers.length) continue;
-      regs.push({
-        teamKey: team.teamKey,
-        teamName: team.teamKey,
-        captainName: uniquePlayers[0] || "",
-        captainEmail: team.captainEmail || "",
-        captainPhone: team.captainPhone || "",
-        players: uniquePlayers,
-        playerDetails: uniquePlayers.map((name, idx) => ({ name, isCaptain: idx === 0 }))
-      });
-    }
-
-    return { regs, skippedRows, ignoredBlankRows };
   }
 
   async function clearExistingRegistrations(orgId, tournamentId){
@@ -1315,36 +1383,101 @@
     $("csvPreviewBody").innerHTML = "";
     $("csvPreviewFootnote").textContent = "";
     $("viewRosterAfterImport")?.classList.add("hidden");
+    $("csvImportResultPanel")?.classList.add("hidden");
     if (closePanel) $("csvImportPanel")?.classList.add("hidden");
+  }
+
+  function renderCsvImportResult(ok, detailLines){
+    const panel = $("csvImportResultPanel");
+    const title = $("csvImportResultTitle");
+    const list = $("csvImportResultList");
+    if (!panel || !title || !list) return;
+    const esc = (s) =>
+      String(s || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    panel.classList.remove("hidden");
+    if (ok) {
+      panel.style.borderColor = "#2f7a31";
+      panel.style.background = "#f4faf4";
+      title.textContent = "Import succeeded";
+    } else {
+      panel.style.borderColor = "#b6422d";
+      panel.style.background = "#fff5f3";
+      title.textContent = "Import finished with issues";
+    }
+    const lines = Array.isArray(detailLines) ? detailLines : [];
+    list.innerHTML = lines.map((t) => `<li>${esc(t)}</li>`).join("");
   }
 
   function renderCsvPreview(payload){
     const regs = Array.isArray(payload?.regs) ? payload.regs : [];
+    const cat = String(payload?.eventCategory || EVENT_CATEGORY_GOLF).toLowerCase();
+    const isGolf = cat === EVENT_CATEGORY_GOLF;
     const totalPlayers = regs.reduce((sum, r) => sum + (Array.isArray(r.players) ? r.players.length : 0), 0);
     const formatLabel = String($("formatOfPlay")?.value || "Stroke Play");
     const autoSize = payload?.teamSize || playersPerTeamFromFormat();
-    $("csvPreviewSummary").textContent =
-      `${regs.length} teams ready • ${totalPlayers} players • Format: ${formatLabel} • Team-size assumption: ${autoSize}`;
+    const srcRows = Number(payload?.rowsInSourceFile || 0);
+
+    if (isGolf) {
+      $("csvPreviewSummary").textContent =
+        `${regs.length} team(s) ready • ${totalPlayers} player line(s) • Format: ${formatLabel} • Team-size assumption: ${autoSize} • Source rows: ${srcRows}`;
+    } else {
+      $("csvPreviewSummary").textContent =
+        `${regs.length} registration row(s) • ${totalPlayers} player name(s) • Source rows: ${srcRows}`;
+    }
 
     const avg = regs.length ? (totalPlayers / regs.length) : 0;
     let warning = "";
-    if (!regs.length || !totalPlayers) warning = "Warning: no usable teams/players detected.";
-    else if (avg < 1) warning = "Warning: average players per team is very low.";
-    else if (avg > 4.5) warning = "Warning: average players per team is unusually high.";
+    if (!regs.length || !totalPlayers) warning = "Warning: no usable rows detected for this mapping.";
+    else if (isGolf && avg < 1) warning = "Warning: average players per team is very low.";
+    else if (isGolf && avg > 4.5) warning = "Warning: average players per team is unusually high.";
     $("csvPreviewWarning").textContent = warning;
+
+    const head = $("csvPreviewHead");
+    if (head) {
+      head.innerHTML = isGolf
+        ? `<tr>
+            <th>Team Name</th>
+            <th>Players</th>
+            <th>Captain Email</th>
+            <th>Captain Phone</th>
+          </tr>`
+        : `<tr>
+            <th>Team / label</th>
+            <th>Captain / primary</th>
+            <th>Session</th>
+            <th>Time / group</th>
+            <th>Email</th>
+          </tr>`;
+    }
 
     const top = regs.slice(0, 20);
     const rowsHtml = top.map((r) => {
-      const players = Array.isArray(r.players) ? r.players.join(", ") : "";
+      if (isGolf) {
+        const players = Array.isArray(r.players) ? r.players.join(", ") : "";
+        return `<tr>
+          <td>${escapeHtml(r.teamName || "")}</td>
+          <td>${escapeHtml(players)}</td>
+          <td>${escapeHtml(r.captainEmail || "")}</td>
+          <td>${escapeHtml(r.captainPhone || "")}</td>
+        </tr>`;
+      }
+      const slot = [r.timeSlot, r.groupLabel].filter(Boolean).join(" • ");
       return `<tr>
         <td>${escapeHtml(r.teamName || "")}</td>
-        <td>${escapeHtml(players)}</td>
+        <td>${escapeHtml(r.captainName || "")}</td>
+        <td>${escapeHtml(r.session || "")}</td>
+        <td>${escapeHtml(slot)}</td>
         <td>${escapeHtml(r.captainEmail || "")}</td>
-        <td>${escapeHtml(r.captainPhone || "")}</td>
       </tr>`;
     }).join("");
-    $("csvPreviewBody").innerHTML = rowsHtml || `<tr><td colspan="4">No preview rows.</td></tr>`;
-    $("csvPreviewFootnote").textContent = regs.length > 20 ? `Showing first 20 of ${regs.length} teams.` : "Showing all detected teams.";
+    const colSpan = isGolf ? 4 : 5;
+    $("csvPreviewBody").innerHTML = rowsHtml || `<tr><td colspan="${colSpan}">No preview rows.</td></tr>`;
+    $("csvPreviewFootnote").textContent =
+      regs.length > 20 ? `Showing first 20 of ${regs.length} row(s).` : "Showing all mapped rows.";
     $("csvPreviewPane")?.classList.remove("hidden");
   }
 
@@ -1359,49 +1492,64 @@
       return null;
     }
 
-    const mapping = {
-      teamName: $("mapTeamName")?.value || "",
-      firstName: $("mapFirstName")?.value || "",
-      lastName: $("mapLastName")?.value || "",
-      email: $("mapEmail")?.value || "",
-      phone: $("mapPhone")?.value || ""
-    };
-    if (!mapping.teamName || !mapping.firstName || !mapping.lastName) {
-      showToast("Map Team, First Name, and Last Name");
-      $("csvImportStatus").textContent = "Import blocked: Team, First Name, and Last Name mappings are required.";
+    const mapping = collectImportMappingFromForm();
+    const eventCategory = String($("eventCategory")?.value || EVENT_CATEGORY_GOLF).toLowerCase();
+    const isGolf = eventCategory === EVENT_CATEGORY_GOLF;
+
+    if (isGolf) {
+      if (!mapping.teamName) {
+        showToast("Map a Team column for golf tournaments");
+        $("csvImportStatus").textContent = "Import blocked: map Team for golf events.";
+        return null;
+      }
+      if (!mapping.fullName && (!mapping.firstName || !mapping.lastName)) {
+        showToast("Map Full name or both First and Last name");
+        $("csvImportStatus").textContent = "Import blocked: map name columns.";
+        return null;
+      }
+    } else if (!mapping.fullName && !mapping.email && (!mapping.firstName || !mapping.lastName)) {
+      showToast("Map full name, email, or first/last name");
+      $("csvImportStatus").textContent = "Import blocked: map at least one identity column.";
       return null;
     }
 
     $("csvImportStatus").textContent = "Preparing preview…";
-    const grouped = buildImportRegistrationsFromMappedRows(csvImportRows, mapping);
+    const grouped = buildImportRecordsFromMappedRows(csvImportRows, mapping, eventCategory);
     const regs = grouped.regs;
     if (!regs.length) {
-      $("csvImportStatus").textContent = "No valid player rows found in the mapped file.";
+      $("csvImportStatus").textContent = "No valid rows found for the current mapping.";
       return null;
     }
-    const firstTeamValues = csvImportRows.slice(0, 5).map((row) => pickValue(row, mapping.teamName));
-    console.log("IMPORT mapping debug", {
-      teamColumnHeader: mapping.teamName,
-      emailColumnHeader: mapping.email || "",
-      firstTeamValues,
-    });
+    console.log("IMPORT mapping debug", { eventCategory, mappedFields: Object.keys(mapping) });
 
     return {
       regs,
+      rowsInSourceFile: csvImportRows.length,
       skippedRows: grouped.skippedRows || 0,
       ignoredBlankRows: grouped.ignoredBlankRows || 0,
       mapping,
+      eventCategory,
       importMode: $("importMode")?.value || "merge",
       teamSize: playersPerTeamFromFormat(),
     };
   }
 
+  function getTournamentTemplateForImport(){
+    const courseMeta = getDefaultCourseSelectionMeta();
+    return {
+      tournamentId: state.tournamentId,
+      tournamentName: $("tournamentName")?.value.trim() || "",
+      name: $("tournamentName")?.value.trim() || "",
+      formatOfPlay: $("formatOfPlay")?.value || "",
+      courseId: courseMeta.courseId,
+      defaultCourse: courseMeta.defaultCourse,
+    };
+  }
+
   async function confirmCsvImport(){
-    console.log("Import button tapped");
     if (!csvPreviewPayload || !Array.isArray(csvPreviewPayload.regs) || !csvPreviewPayload.regs.length) {
       showToast("Preview import first");
       $("csvImportStatus").textContent = "Import blocked: preview import first.";
-      console.log("Import failed", "missing preview payload");
       return;
     }
     if (isImportRunning) {
@@ -1416,99 +1564,119 @@
       confirmBtn.disabled = true;
       confirmBtn.textContent = "Importing...";
     }
-    console.log("Import validation passed");
     try {
-      console.log("Import started");
       if (csvPreviewPayload.importMode === "overwrite") {
         statusEl.textContent = "Clearing existing registrations…";
         await clearExistingRegistrations(state.orgId, state.tournamentId);
       }
-      console.log(`Teams grouped: ${csvPreviewPayload.regs.length}`);
+
+      const eventCategory = String(csvPreviewPayload.eventCategory || EVENT_CATEGORY_GOLF).toLowerCase();
+      const isGolf = eventCategory === EVENT_CATEGORY_GOLF;
+      const dupMode = String($("importDuplicateMode")?.value || DUPLICATE_MODE_ADD_ONLY);
+
+      let records = csvPreviewPayload.regs.slice();
+      const rowsFound = records.length;
+      if (dupMode === DUPLICATE_MODE_SKIP) {
+        records = dedupeImportRecordsByEmail(records);
+      }
 
       const existingSnap = await withFirestoreRetry(() =>
         getDocs(tournamentRegistrationsCollection(db, state.orgId, state.tournamentId))
       );
-      const seenTeamNames = new Set();
-      existingSnap.forEach((docSnap) => {
-        const data = docSnap.data() || {};
-        const normalized = normalizeTeamNameForImport(data.teamName || "");
-        if (normalized) seenTeamNames.add(normalized);
-      });
-      console.log(`Existing teams: ${seenTeamNames.size}`);
+      let indexed = indexRegistrationsForMatching(existingSnap);
 
-      statusEl.textContent = "Importing teams through registration pipeline…";
-      let count = 0;
-      let playerCount = 0;
-      let teamFailures = 0;
-      let teamsSkipped = 0;
-      const failureTeams = [];
+      statusEl.textContent = "Importing rows…";
       const handicapOn = String($("handicapEnabled")?.value || "off").toLowerCase() === "on";
-      for (const reg of csvPreviewPayload.regs) {
+      const hp = Number($("handicapPercent")?.value || 100);
+      const tournamentTemplate = getTournamentTemplateForImport();
+
+      let created = 0;
+      let updated = 0;
+      let duplicateSkipped = 0;
+      let errors = 0;
+      const errorSamples = [];
+      let playerLines = 0;
+
+      for (const rec of records) {
         try {
-          const importPlayers = Array.isArray(reg.playerDetails)
-            ? reg.playerDetails.map((p) => {
-                const full = String(p?.name || "").trim();
-                const parts = full.split(/\s+/).filter(Boolean);
-                const firstName = parts[0] || "";
-                const lastName = parts.length > 1 ? parts.slice(1).join(" ") : "";
-                return {
-                  firstName,
-                  lastName,
-                  email: reg.captainEmail || "",
-                };
-              })
-            : [];
-          const teamName = String(reg.teamKey || "").trim();
-          const payload = {
-            tournamentId: state.tournamentId,
-            organizationId: state.orgId,
-            teamName,
-            captainName: reg.captainName,
-            captainEmail: reg.captainEmail,
-            captainPhone: reg.captainPhone,
-            playerDetails: reg.playerDetails,
-            notes: "",
-            handicapEnabled: handicapOn,
-            handicapPercent: handicapOn ? Number($("handicapPercent")?.value || 100) : 0,
-          };
-          console.log("IMPORT registerTeam payload", {
-            teamName,
-            teamKey: reg.teamKey || "",
-            playerCount: importPlayers.length,
-            firstPlayer: importPlayers[0] || null,
-          });
-          if (!teamName) {
-            teamFailures += 1;
-            if (failureTeams.length < 5) failureTeams.push("(missing team)");
+          const match = findMatchingRegistration(rec, indexed);
+          if (match) {
+            if (dupMode === DUPLICATE_MODE_UPDATE) {
+              const ref = tournamentRegistrationDoc(db, state.orgId, state.tournamentId, match.id);
+              const merged = isGolf
+                ? mergeGolfRegistrationUpdatePayload(rec, match.data, handicapOn, hp)
+                : mergeRegistrationUpdatePayload(rec, match.data, handicapOn, hp);
+              await updateDoc(ref, { ...merged, updatedAt: serverTimestamp() });
+              updated += 1;
+            } else {
+              duplicateSkipped += 1;
+            }
             continue;
           }
-          const normalizedTeamName = normalizeTeamNameForImport(teamName);
-          if (!normalizedTeamName || seenTeamNames.has(normalizedTeamName)) {
-            teamsSkipped += 1;
-            continue;
+
+          if (isGolf) {
+            const payload = buildImportRegisterTeamPayload({
+              tournamentId: state.tournamentId,
+              organizationId: state.orgId,
+              reg,
+              handicapOn,
+              handicapPercent: hp,
+            });
+            const result = await registerTeamCallable(payload);
+            const res = result.data || {};
+            const rid = res.registrationId || "";
+            const plain = res.registration || {};
+            created += 1;
+            playerLines += Array.isArray(rec.players) ? rec.players.length : 0;
+            if (rid) {
+              pushImportMatchIndexEntry(indexed, rid, {
+                ...plain,
+                captainEmail: rec.captainEmail || plain.captainEmail,
+                captainPhone: rec.captainPhone || plain.captainPhone,
+                captainName: rec.captainName || plain.captainName,
+                session: rec.session,
+                timeSlot: rec.timeSlot,
+              });
+            }
+          } else {
+            const payload = buildNonGolfRegistrationWritePayload(rec, tournamentTemplate, handicapOn, hp);
+            const newRef = doc(tournamentRegistrationsCollection(db, state.orgId, state.tournamentId));
+            await setDoc(newRef, {
+              ...payload,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            });
+            created += 1;
+            playerLines += Array.isArray(rec.players) ? rec.players.length : 0;
+            pushImportMatchIndexEntry(indexed, newRef.id, payload);
           }
-          seenTeamNames.add(normalizedTeamName);
-          // Reuse the same callable as normal registration so assignment/status/schema stay consistent.
-          await registerTeamCallable(payload);
-          count += 1;
-          playerCount += Array.isArray(reg.players) ? reg.players.length : 0;
         } catch (teamErr) {
-          teamFailures += 1;
-          if (failureTeams.length < 5) failureTeams.push(reg.teamKey || "(untitled team)");
-          console.error("Failed to import team", reg.teamKey, teamErr);
+          errors += 1;
+          if (errorSamples.length < 8) {
+            errorSamples.push(String(rec.teamName || rec.captainName || "(row)"));
+          }
+          console.error("Import row failed", rec, teamErr);
         }
       }
+
       const skippedRows = Number(csvPreviewPayload.skippedRows || 0);
       const ignoredBlankRows = Number(csvPreviewPayload.ignoredBlankRows || 0);
-      const baseMsg = `${count} teams imported successfully (${playerCount} players).`;
-      const skipMsg = skippedRows ? ` Skipped rows: ${skippedRows}.` : "";
-      const blankMsg = ignoredBlankRows ? ` Ignored blank rows: ${ignoredBlankRows}.` : "";
-      const duplicateMsg = teamsSkipped ? ` Teams skipped (duplicates): ${teamsSkipped}.` : "";
-      const failMsg = teamFailures ? ` Team failures: ${teamFailures}${failureTeams.length ? ` (${failureTeams.join(", ")})` : ""}.` : "";
-      statusEl.textContent = `${baseMsg}${skipMsg}${blankMsg}${duplicateMsg}${failMsg}`;
-      console.log(`Teams created: ${count}`);
-      console.log(`Teams skipped: ${teamsSkipped}`);
-      console.log("Import completed");
+      statusEl.textContent = `Done: ${created} created, ${updated} updated, ${duplicateSkipped} duplicates skipped, ${errors} errors.`;
+      const sourceRows = Number(csvPreviewPayload.rowsInSourceFile || rowsFound);
+      const detailLines = [
+        `Rows found in file: ${sourceRows}`,
+        `Rows in import batch: ${rowsFound}`,
+        `Created: ${created}`,
+        `Updated: ${updated}`,
+        `Duplicates skipped: ${duplicateSkipped}`,
+        `Player lines (sum): ${playerLines}`,
+        skippedRows ? `Parse skipped rows: ${skippedRows}` : null,
+        ignoredBlankRows ? `Blank rows ignored: ${ignoredBlankRows}` : null,
+        errors ? `Errors: ${errors}${errorSamples.length ? ` (e.g. ${errorSamples.join(", ")})` : ""}` : null,
+      ].filter(Boolean);
+      const importOk = errors === 0;
+      renderCsvImportResult(importOk, detailLines);
+      showToast(importOk ? "Import finished" : "Import finished with errors — see summary");
       const links = buildLinks(state.orgId, state.tournamentId, state.adminToken);
       const rosterBtn = $("viewRosterAfterImport");
       if (rosterBtn) {
@@ -1517,8 +1685,10 @@
       }
     } catch (err) {
       console.error(err);
-      statusEl.textContent = `Import failed: ${err?.message || err}`;
-      console.log("Import failed", err);
+      const msg = err?.message || String(err);
+      statusEl.textContent = `Import failed: ${msg}`;
+      renderCsvImportResult(false, [`Fatal error: ${msg}`]);
+      showToast("Import failed — see summary");
     } finally {
       isImportRunning = false;
       if (confirmBtn) {
@@ -1596,6 +1766,139 @@
     wrap.classList.toggle("hidden", !is9);
   }
 
+  function syncStartTypeAdminUI(){
+    const st = String($("startType")?.value || "shotgun").toLowerCase();
+    const shotgunEl = $("shotgunHoleAssignmentFields");
+    const teeEl = $("teeTimesAssignmentFields");
+    if (shotgunEl) shotgunEl.classList.toggle("hidden", st !== "shotgun");
+    if (teeEl) teeEl.classList.toggle("hidden", st !== "tee_times");
+  }
+
+  function syncEventCategoryAdminUI(){
+    const cat = String($("eventCategory")?.value || EVENT_CATEGORY_GOLF).toLowerCase();
+    const golf = cat === EVENT_CATEGORY_GOLF;
+    const sec = $("golfStartAssignmentSection");
+    if (sec) sec.classList.toggle("hidden", !golf);
+  }
+
+  function syncRegistrantSourceAdminUI(){
+    const mode = String($("registrantSourceMode")?.value || REGISTRANT_SOURCE_MODE_BOTH).toLowerCase();
+    const regGroup = $("registrationLinkShareGroup");
+    const regQrCell = $("registrationQrCell");
+    const importBtn = $("importRegistrationsBtn");
+    const hideRegLink = mode === REGISTRANT_SOURCE_MODE_UPLOAD;
+    if (regGroup) regGroup.classList.toggle("hidden", hideRegLink);
+    if (regQrCell) regQrCell.classList.toggle("hidden", hideRegLink);
+    if (importBtn) importBtn.classList.toggle("hidden", mode === REGISTRANT_SOURCE_MODE_LINK);
+  }
+
+  function pad2Admin(n){
+    return String(n).padStart(2, "0");
+  }
+
+  /** Same semantics as Cloud Function addMinutesToPlainDateTime (naive wall-clock). */
+  function addMinutesToPlainDateTimeAdmin(dtStr, addMin){
+    const m = String(dtStr || "")
+      .trim()
+      .match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (!m) return "";
+    const y = parseInt(m[1], 10);
+    const mo = parseInt(m[2], 10);
+    const d = parseInt(m[3], 10);
+    const h = parseInt(m[4], 10);
+    const mi = parseInt(m[5], 10);
+    if (![y, mo, d, h, mi].every((x) => Number.isFinite(x))) return "";
+    const ms = Date.UTC(y, mo - 1, d, h, mi, 0) + addMin * 60000;
+    const x = new Date(ms);
+    return `${x.getUTCFullYear()}-${pad2Admin(x.getUTCMonth() + 1)}-${pad2Admin(x.getUTCDate())}T${pad2Admin(
+      x.getUTCHours()
+    )}:${pad2Admin(x.getUTCMinutes())}`;
+  }
+
+  function teeTimeForTeamIndexAdmin(firstStr, intervalMin, groupSize, teamIndexZeroBased){
+    const gs = Math.max(1, parseInt(String(groupSize || "1"), 10) || 1);
+    const iv = Math.max(1, parseInt(String(intervalMin || "10"), 10) || 10);
+    const slot = Math.floor(teamIndexZeroBased / gs);
+    return addMinutesToPlainDateTimeAdmin(firstStr, slot * iv);
+  }
+
+  async function generateTeeTimesForTournament(){
+    if (!state.tournamentId){
+      showToast("Create or load a tournament first");
+      return;
+    }
+    const oid = await ensureOrgUser();
+    if (oid !== state.orgId) state.orgId = oid;
+
+    const first = String($("firstTeeTime")?.value || "").trim();
+    const intervalMin = Math.max(1, Number($("teeIntervalMinutes")?.value) || 10);
+    const groupSize = Math.max(1, parseInt(String($("groupSize")?.value || "1"), 10) || 1);
+
+    if (!first){
+      alert("Set a first tee time before generating.");
+      return;
+    }
+
+    const ok = confirm(
+      "Assign tee times to all non-cancelled teams in registration order (oldest first)?\n\n" +
+        "Existing tee times on those rows will be overwritten."
+    );
+    if (!ok) return;
+
+    try{
+      showToast("Generating tee times…");
+      const snap = await withFirestoreRetry(() =>
+        getDocs(tournamentRegistrationsCollection(db, state.orgId, state.tournamentId))
+      );
+      const startingHole = 1;
+      const rows = snap.docs
+        .map((d) => ({ id: d.id, ...(d.data() || {}) }))
+        .filter((r) => String(r.status || "").toLowerCase() !== "cancelled")
+        .sort((a, b) => {
+          const sa = a.createdAt?.seconds ?? a.createdAt?._seconds ?? 0;
+          const sb = b.createdAt?.seconds ?? b.createdAt?._seconds ?? 0;
+          return sa - sb;
+        });
+
+      if (!rows.length){
+        showToast("No active teams to assign");
+        return;
+      }
+
+      const chunkSize = 400;
+      for (let i = 0; i < rows.length; i += chunkSize){
+        const batch = writeBatch(db);
+        const slice = rows.slice(i, i + chunkSize);
+        slice.forEach((r, j) => {
+          const idx = i + j;
+          const tt = teeTimeForTeamIndexAdmin(first, intervalMin, groupSize, idx);
+          if (!tt){
+            throw new Error("Could not compute tee time.");
+          }
+          const st = String(r.status || "").toLowerCase();
+          const nextStatus = st === "registered" ? "assigned" : st;
+          batch.set(
+            tournamentRegistrationDoc(db, state.orgId, state.tournamentId, r.id),
+            {
+              teeTime: tt,
+              startingHole,
+              assignedHole: "",
+              status: nextStatus,
+              updatedAt: serverTimestamp(),
+            },
+            { merge: true }
+          );
+        });
+        await batch.commit();
+      }
+
+      showToast(`Tee times set for ${rows.length} team(s)`);
+    }catch(err){
+      console.error(err);
+      alert("Generate tee times failed:\n\n" + formatFirestoreErr(err));
+    }
+  }
+
   function getDefaultCourseSelectionMeta() {
     const sel = $("defaultCourse");
     if (!sel) {
@@ -1650,8 +1953,21 @@
       autoAssignEnabled: $("autoAssignEnabled")?.value || "on",
       holeAssignmentMode: $("holeAssignmentMode")?.value || "default",
       customHoleFlow: $("customHoleFlow")?.value.trim() || "",
+      startType: $("startType")?.value || "shotgun",
+      firstTeeTime: $("firstTeeTime")?.value || "",
+      teeIntervalMinutes: (() => {
+        const n = Number($("teeIntervalMinutes")?.value);
+        return Number.isFinite(n) && n > 0 ? Math.floor(n) : 10;
+      })(),
+      groupSize: (() => {
+        const n = parseInt(String($("groupSize")?.value || "1"), 10);
+        return Number.isFinite(n) && n > 0 ? n : 1;
+      })(),
+      teeStarts: [1],
       sponsorMarketingEnabled: $("sponsorMarketingEnabled") ? $("sponsorMarketingEnabled").checked : true,
-      sponsors: state.sponsors
+      sponsors: state.sponsors,
+      eventCategory: String($("eventCategory")?.value || EVENT_CATEGORY_GOLF).toLowerCase(),
+      registrantSourceMode: String($("registrantSourceMode")?.value || REGISTRANT_SOURCE_MODE_BOTH).toLowerCase(),
     };
   }
 
@@ -1698,10 +2014,37 @@
     if($("autoAssignEnabled")) $("autoAssignEnabled").value = data.autoAssignEnabled || "on";
     if($("holeAssignmentMode")) $("holeAssignmentMode").value = data.holeAssignmentMode || "default";
     if($("customHoleFlow")) $("customHoleFlow").value = data.customHoleFlow || "";
+    if ($("startType")) {
+      const st = String(data.startType || "shotgun").toLowerCase();
+      $("startType").value = st === "tee_times" ? "tee_times" : "shotgun";
+    }
+    if ($("firstTeeTime")) $("firstTeeTime").value = data.firstTeeTime || "";
+    if ($("teeIntervalMinutes")) {
+      const n = Number(data.teeIntervalMinutes);
+      $("teeIntervalMinutes").value =
+        Number.isFinite(n) && n > 0 ? String(Math.floor(n)) : "10";
+    }
+    if ($("groupSize")) {
+      const n = parseInt(String(data.groupSize || "1"), 10);
+      $("groupSize").value = Number.isFinite(n) && n > 0 ? String(n) : "1";
+    }
     if($("sponsorMarketingEnabled")) $("sponsorMarketingEnabled").checked = data.sponsorMarketingEnabled !== false;
     state.sponsors = Array.isArray(data.sponsors) ? data.sponsors : [];
     renderSponsorList();
     syncHandicapAdminUI();
+    syncStartTypeAdminUI();
+    {
+      const cat = normalizeEventCategory(data);
+      if ($("eventCategory")) $("eventCategory").value = cat;
+      const rsm = String(data.registrantSourceMode || REGISTRANT_SOURCE_MODE_BOTH).toLowerCase();
+      if ($("registrantSourceMode")) {
+        if (rsm === REGISTRANT_SOURCE_MODE_LINK) $("registrantSourceMode").value = REGISTRANT_SOURCE_MODE_LINK;
+        else if (rsm === REGISTRANT_SOURCE_MODE_UPLOAD) $("registrantSourceMode").value = REGISTRANT_SOURCE_MODE_UPLOAD;
+        else $("registrantSourceMode").value = REGISTRANT_SOURCE_MODE_BOTH;
+      }
+    }
+    syncEventCategoryAdminUI();
+    syncRegistrantSourceAdminUI();
   }
 
   function saveTournamentToLocal(){
@@ -1741,12 +2084,21 @@
       .slice()
       .sort((a, b) => Number(a?.order ?? 999) - Number(b?.order ?? 999))[0] || null;
 
+    const eventCategory = String(data.eventCategory || EVENT_CATEGORY_GOLF).toLowerCase();
+    const eventTypeForDoc =
+      eventCategory === EVENT_CATEGORY_GOLF ? EVENT_TYPE_GOLF_TOURNAMENT : eventCategory;
+    const registrantSourceMode = String(data.registrantSourceMode || REGISTRANT_SOURCE_MODE_BOTH).toLowerCase();
+
     const payload = {
         tournamentId: state.tournamentId,
         organizationId: state.orgId,
         orgId: state.orgId,
         tournamentName: data.tournamentName,
         name: data.tournamentName,
+
+        eventCategory,
+        eventType: eventTypeForDoc,
+        registrantSourceMode,
 
         courseId: String(data.courseId || "").trim(),
         courseName: String(data.courseName || "").trim(),
@@ -1794,6 +2146,25 @@
         longDriveHoles: data.longDriveHoles,
 
         sponsorMarketingEnabled: !!data.sponsorMarketingEnabled,
+
+        assignmentType: data.startType === "tee_times" ? "tee_times" : "shotgun",
+        startType: data.startType === "tee_times" ? "tee_times" : "shotgun",
+        ...(String(data.startType || "shotgun").toLowerCase() === "tee_times"
+          ? {
+              firstTeeTime: String(data.firstTeeTime || "").trim(),
+              teeIntervalMinutes: (() => {
+                const n = Number(data.teeIntervalMinutes);
+                return Number.isFinite(n) && n > 0 ? Math.floor(n) : 10;
+              })(),
+              groupSize: (() => {
+                const n = parseInt(String(data.groupSize || "1"), 10);
+                return Number.isFinite(n) && n > 0 ? n : 1;
+              })(),
+              teeStarts: Array.isArray(data.teeStarts) && data.teeStarts.length
+                ? data.teeStarts.map((x) => Math.max(1, Math.min(18, Math.round(Number(x))))).filter((x) => Number.isFinite(x))
+                : [1],
+            }
+          : {}),
 
         sideGames: {
           skinsEnabled: String(data.sideGame || "").toLowerCase().includes("skins"),
@@ -2348,6 +2719,37 @@
   if (saveChangesBtn) saveChangesBtn.addEventListener("click", saveChanges);
   if (closeTournamentBtn) closeTournamentBtn.addEventListener("click", closeTournament);
 
+  const startTypeEl = $("startType");
+  if (startTypeEl) {
+    startTypeEl.addEventListener("change", () => {
+      syncStartTypeAdminUI();
+      applyLinks();
+    });
+  }
+  const generateTeeTimesBtn = $("generateTeeTimesBtn");
+  if (generateTeeTimesBtn) {
+    generateTeeTimesBtn.addEventListener("click", () => {
+      void generateTeeTimesForTournament();
+    });
+  }
+  syncStartTypeAdminUI();
+  syncEventCategoryAdminUI();
+  syncRegistrantSourceAdminUI();
+
+  const eventCategoryEl = $("eventCategory");
+  if (eventCategoryEl) {
+    eventCategoryEl.addEventListener("change", () => {
+      syncEventCategoryAdminUI();
+    });
+  }
+  const registrantSourceModeEl = $("registrantSourceMode");
+  if (registrantSourceModeEl) {
+    registrantSourceModeEl.addEventListener("change", () => {
+      syncRegistrantSourceAdminUI();
+      applyLinks();
+    });
+  }
+
   if (copyJoinBtn) {
     copyJoinBtn.addEventListener("click", () =>
       copyText($("joinLinkBox").textContent, "✔ Join copied")
@@ -2453,6 +2855,10 @@
     "autoAssignEnabled",
     "holeAssignmentMode",
     "customHoleFlow",
+    "startType",
+    "firstTeeTime",
+    "teeIntervalMinutes",
+    "groupSize",
     "sponsorMarketingEnabled"
   ].forEach(id => {
     const el = $(id);

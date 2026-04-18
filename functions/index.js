@@ -1,11 +1,12 @@
 /**
- * Tournament registration — server-side hole assignment
+ * Tournament registration — server-side assignment
  *
  * registerTeam: Callable HTTPS function that assigns the next available starting hole
- * atomically (Firestore transaction) and creates the registration document.
+ * (shotgun) or tee time (tee_times) atomically in a Firestore transaction and creates
+ * the registration document.
  *
  * This prevents two concurrent clients from reading the same "next hole" on the
- * client and both writing the same assignedHole.
+ * client and both writing the same assignedHole (shotgun), or duplicating tee slots.
  */
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -471,6 +472,73 @@ function pickNextAvailableSlot(sequence, used) {
   return "";
 }
 
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+
+/**
+ * Parses `YYYY-MM-DDTHH:mm` and adds minutes using UTC calendar math so day/month roll over correctly.
+ * Returns the same string format (naive wall-clock, stable for tee sheets).
+ */
+function addMinutesToPlainDateTime(dtStr, addMin) {
+  const m = String(dtStr || "")
+    .trim()
+    .match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!m) return "";
+  const y = parseInt(m[1], 10);
+  const mo = parseInt(m[2], 10);
+  const d = parseInt(m[3], 10);
+  const h = parseInt(m[4], 10);
+  const mi = parseInt(m[5], 10);
+  if (![y, mo, d, h, mi].every((x) => Number.isFinite(x))) return "";
+  const ms = Date.UTC(y, mo - 1, d, h, mi, 0) + addMin * 60000;
+  const x = new Date(ms);
+  return `${x.getUTCFullYear()}-${pad2(x.getUTCMonth() + 1)}-${pad2(x.getUTCDate())}T${pad2(
+    x.getUTCHours()
+  )}:${pad2(x.getUTCMinutes())}`;
+}
+
+function countActiveRegistrations(registrationsSnapshot) {
+  let n = 0;
+  registrationsSnapshot.forEach((docSnap) => {
+    const x = docSnap.data() || {};
+    if (String(x.status || "").toLowerCase() === "cancelled") return;
+    n += 1;
+  });
+  return n;
+}
+
+function resolveStartingHoleFromTournament(tournament) {
+  const ts = tournament && tournament.teeStarts;
+  if (Array.isArray(ts) && ts.length) {
+    const n = Number(ts[0]);
+    if (Number.isFinite(n) && n >= 1 && n <= 18) return Math.round(n);
+  }
+  return 1;
+}
+
+/** Prefer assignmentType; fall back to legacy startType (shotgun default). */
+function resolveAssignmentType(tournament) {
+  const raw = String(tournament?.assignmentType || tournament?.startType || "shotgun").toLowerCase();
+  return raw === "tee_times" ? "tee_times" : "shotgun";
+}
+
+/** Golf vs clinic/camp/general — non-golf events skip hole/tee auto-assignment. */
+function resolveEventCategory(tournament) {
+  const c = String(tournament?.eventCategory || "").trim().toLowerCase();
+  if (c === "clinic" || c === "camp" || c === "general") return c;
+  if (c === "golf_tournament" || c === "golf") return "golf_tournament";
+  const et = String(tournament?.eventType || "").trim().toLowerCase();
+  if (et === "clinic" || et === "camp" || et === "general") return et;
+  return "golf_tournament";
+}
+
+function legacySourceFieldFromRegistrantSource(registrantSource) {
+  const rs = String(registrantSource || "web_registration").toLowerCase();
+  if (rs === "web_registration") return "register-complete";
+  return rs;
+}
+
 /**
  * Validates and sanitizes client-supplied player details (max 6).
  */
@@ -501,8 +569,9 @@ function sanitizePlayerDetails(raw, handicapEnabled) {
 
 /**
  * Builds the registration document fields (same shape as register-complete.html buildRegistrationPayload).
+ * @param {object} assignment assignedHole for shotgun; teeTime + startingHole for tee-time events.
  */
-function buildRegistrationDocument(tournament, tournamentId, clientData, assignedHole) {
+function buildRegistrationDocument(tournament, tournamentId, clientData, assignment = {}) {
   const handicapOn = !!clientData.handicapEnabled;
   const playerDetails = sanitizePlayerDetails(clientData.playerDetails, handicapOn);
   const players = playerDetails.map((p) => p.name);
@@ -516,7 +585,19 @@ function buildRegistrationDocument(tournament, tournamentId, clientData, assigne
     return id;
   })();
 
-  return {
+  const assignedHole = safeText(assignment.assignedHole);
+  const teeTime = safeText(assignment.teeTime);
+  const shRaw = assignment.startingHole;
+  const startingHole =
+    shRaw != null && shRaw !== "" && Number.isFinite(Number(shRaw))
+      ? Math.max(1, Math.min(18, Math.round(Number(shRaw))))
+      : null;
+
+  const isAssigned = !!assignedHole || !!teeTime;
+
+  const registrantSource = safeText(clientData.registrantSource, "web_registration");
+
+  const doc = {
     tournamentId: safeText(tournamentId),
     tournamentName: safeText(t.tournamentName || t.name, ""),
     defaultCourse: safeText(t.defaultCourse, ""),
@@ -532,18 +613,24 @@ function buildRegistrationDocument(tournament, tournamentId, clientData, assigne
     handicapEnabled: handicapOn,
     handicapPercent: handicapOn ? Number(t.handicapPercent || clientData.handicapPercent || 100) : 0,
     notes: safeText(clientData.notes, ""),
-    assignedHole: assignedHole || "",
-    status: assignedHole ? "assigned" : "registered",
-    source: "register-complete",
+    assignedHole,
+    status: isAssigned ? "assigned" : "registered",
+    registrantSource,
+    source: legacySourceFieldFromRegistrantSource(registrantSource),
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
   };
+
+  if (teeTime) doc.teeTime = teeTime;
+  if (startingHole != null) doc.startingHole = startingHole;
+
+  return doc;
 }
 
 /**
  * Same fields as stored on Firestore, without server timestamps (for callable JSON response).
  */
-function buildPlainRegistrationForClient(tournament, tournamentId, clientData, assignedHole) {
+function buildPlainRegistrationForClient(tournament, tournamentId, clientData, assignment = {}) {
   const handicapOn = !!clientData.handicapEnabled;
   const playerDetails = sanitizePlayerDetails(clientData.playerDetails, handicapOn);
   const players = playerDetails.map((p) => p.name);
@@ -556,7 +643,19 @@ function buildPlainRegistrationForClient(tournament, tournamentId, clientData, a
     return id;
   })();
 
-  return {
+  const assignedHole = safeText(assignment.assignedHole);
+  const teeTime = safeText(assignment.teeTime);
+  const shRaw = assignment.startingHole;
+  const startingHole =
+    shRaw != null && shRaw !== "" && Number.isFinite(Number(shRaw))
+      ? Math.max(1, Math.min(18, Math.round(Number(shRaw))))
+      : null;
+
+  const isAssigned = !!assignedHole || !!teeTime;
+
+  const registrantSource = safeText(clientData.registrantSource, "web_registration");
+
+  const plain = {
     tournamentId: safeText(tournamentId),
     tournamentName: safeText(t.tournamentName || t.name, ""),
     defaultCourse: safeText(t.defaultCourse, ""),
@@ -572,10 +671,16 @@ function buildPlainRegistrationForClient(tournament, tournamentId, clientData, a
     handicapEnabled: handicapOn,
     handicapPercent: handicapOn ? Number(t.handicapPercent || clientData.handicapPercent || 100) : 0,
     notes: safeText(clientData.notes, ""),
-    assignedHole: assignedHole || "",
-    status: assignedHole ? "assigned" : "registered",
-    source: "register-complete",
+    assignedHole,
+    status: isAssigned ? "assigned" : "registered",
+    registrantSource,
+    source: legacySourceFieldFromRegistrantSource(registrantSource),
   };
+
+  if (teeTime) plain.teeTime = teeTime;
+  if (startingHole != null) plain.startingHole = startingHole;
+
+  return plain;
 }
 
 /**
@@ -632,18 +737,62 @@ exports.registerTeam = onCall(
       const tournament = tournamentSnap.data() || {};
       const registrationsSnap = await transaction.get(registrationsCol);
 
-      const sequence = getAssignmentSequence(tournament);
-      const used = collectUsedHolesFromSnapshot(registrationsSnap);
+      const eventCategory = resolveEventCategory(tournament);
+      const isGolfEvent = eventCategory === "golf_tournament";
+
+      const assignmentKind = resolveAssignmentType(tournament);
+      const autoOn = String(tournament.autoAssignEnabled || "on").toLowerCase() !== "off";
 
       let assignedHole = "";
-      if (sequence.length > 0) {
-        assignedHole = pickNextAvailableSlot(sequence, used);
-        if (!assignedHole) {
-          throw new HttpsError(
-            "resource-exhausted",
-            "No open starting holes are available for this tournament."
-          );
+      let teeTimeStr = "";
+      let startingHoleNum = null;
+      let assignment = {};
+
+      if (isGolfEvent) {
+        if (assignmentKind === "tee_times") {
+          if (autoOn) {
+            const first = safeText(tournament.firstTeeTime, "");
+            if (!first) {
+              throw new HttpsError(
+                "failed-precondition",
+                "Tournament first tee time is not configured. The organizer must set tee times on the admin page."
+              );
+            }
+            const intervalRaw = Number(tournament.teeIntervalMinutes);
+            const intervalMin = Number.isFinite(intervalRaw) && intervalRaw > 0 ? Math.floor(intervalRaw) : 10;
+            const gs = Math.max(1, parseInt(String(tournament.groupSize || "1"), 10) || 1);
+            const activeCount = countActiveRegistrations(registrationsSnap);
+            const slotIndex = Math.floor(activeCount / gs);
+            teeTimeStr = addMinutesToPlainDateTime(first, slotIndex * intervalMin);
+            if (!teeTimeStr) {
+              throw new HttpsError("failed-precondition", "Invalid first tee time format on the tournament.");
+            }
+            startingHoleNum = resolveStartingHoleFromTournament(tournament);
+            assignment = {
+              assignedHole: "",
+              teeTime: teeTimeStr,
+              startingHole: startingHoleNum,
+            };
+          } else {
+            assignment = {};
+          }
+        } else {
+          const sequence = getAssignmentSequence(tournament);
+          const used = collectUsedHolesFromSnapshot(registrationsSnap);
+
+          if (sequence.length > 0) {
+            assignedHole = pickNextAvailableSlot(sequence, used);
+            if (!assignedHole) {
+              throw new HttpsError(
+                "resource-exhausted",
+                "No open starting holes are available for this tournament."
+              );
+            }
+          }
+          assignment = { assignedHole };
         }
+      } else {
+        assignment = {};
       }
 
       const clientData = {
@@ -655,9 +804,10 @@ exports.registerTeam = onCall(
         notes: data.notes,
         handicapEnabled: data.handicapEnabled,
         handicapPercent: data.handicapPercent,
+        registrantSource: safeText(data.registrantSource, "web_registration"),
       };
 
-      const regPayload = buildRegistrationDocument(tournament, tournamentId, clientData, assignedHole);
+      const regPayload = buildRegistrationDocument(tournament, tournamentId, clientData, assignment);
 
       const newRegRef = registrationsCol.doc();
       transaction.set(newRegRef, regPayload);
@@ -665,12 +815,9 @@ exports.registerTeam = onCall(
       return {
         registrationId: newRegRef.id,
         assignedHole,
-        registration: buildPlainRegistrationForClient(
-          tournament,
-          tournamentId,
-          clientData,
-          assignedHole
-        ),
+        teeTime: teeTimeStr,
+        startingHole: startingHoleNum,
+        registration: buildPlainRegistrationForClient(tournament, tournamentId, clientData, assignment),
       };
     });
 

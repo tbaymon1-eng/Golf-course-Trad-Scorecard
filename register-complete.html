@@ -542,6 +542,11 @@ import {
   tournamentDocRef,
   applyOrgTournamentParams
 } from "./js/org-paths.js";
+    import {
+      normalizeAssignmentType,
+      ASSIGNMENT_TEE_TIMES,
+      REGISTRANT_SOURCE_WEB,
+    } from "./js/tournament-fields.js";
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
       authDomain: "cypresswood-tournaments.firebaseapp.com",
@@ -969,7 +974,16 @@ const params = new URLSearchParams(location.search);
       lines.push("");
       lines.push("Registration confirmed.");
 
-      if(assignedHole){
+      const isTee = normalizeAssignmentType(state.tournament) === ASSIGNMENT_TEE_TIMES;
+      const teeTime = safeText(payload?.teeTime);
+
+      if (isTee && teeTime){
+        lines.push(`Tee time: ${teeTime}`);
+        const sh = payload?.startingHole;
+        if (sh != null && sh !== "" && Number.isFinite(Number(sh))){
+          lines.push(`Starting hole: ${Number(sh)}`);
+        }
+      } else if (assignedHole){
         lines.push(`Starting hole: ${assignedHole}`);
       }
 
@@ -988,7 +1002,11 @@ const params = new URLSearchParams(location.search);
       }
 
       lines.push("");
-      lines.push("Please arrive at your starting hole before the shotgun start. The organizer can still adjust assignments if needed.");
+      if (isTee){
+        lines.push("Please arrive at your assigned tee time. The organizer can still adjust assignments if needed.");
+      } else {
+        lines.push("Please arrive at your starting hole before the shotgun start. The organizer can still adjust assignments if needed.");
+      }
 
       if(scorecardUrl){
         lines.push("");
@@ -1013,6 +1031,26 @@ const params = new URLSearchParams(location.search);
       if(!box) return;
 
       const scorecardUrl = buildScorecardUrl(registrationId);
+      const isTee = normalizeAssignmentType(state.tournament) === ASSIGNMENT_TEE_TIMES;
+      const teeTime = safeText(payload?.teeTime);
+      const teeBody = (() => {
+        if (isTee && teeTime){
+          return `Your tee time is <b>${escapeHtml(teeTime)}</b> (starting hole ${escapeHtml(String(payload?.startingHole != null ? payload.startingHole : 1))}).`;
+        }
+        if (isTee && !teeTime){
+          return `Your team has been added to the roster.`;
+        }
+        if (assignedHole){
+          return `Your starting hole is <b>${escapeHtml(assignedHole)}</b>.`;
+        }
+        return `Your team has been added to the roster.`;
+      })();
+      const teeHint =
+        isTee && teeTime
+          ? "Please arrive at your assigned tee time. The organizer can still adjust assignments if needed."
+          : isTee
+          ? "The organizer will assign or confirm your tee time. Please watch for updates."
+          : "Please arrive at your starting hole before the shotgun start. The organizer can still adjust assignments if needed.";
 
       box.innerHTML = `
         <h2 class="dash-title">THANK YOU FOR REGISTERING</h2>
@@ -1020,10 +1058,10 @@ const params = new URLSearchParams(location.search);
           Your registration has been received successfully.
         </div>
         <div class="fine-print" style="margin-top:14px; font-size:clamp(18px,2.6vw,24px); font-weight:900;">
-          ${assignedHole ? `Your starting hole is <b>${assignedHole}</b>.` : `Your team has been added to the roster.`}
+          ${teeBody}
         </div>
         <div class="fine-print" style="margin-top:10px;">
-          Please arrive at your starting hole before the shotgun start. The organizer can still adjust assignments if needed.
+          ${teeHint}
         </div>
 
         <div style="margin-top:18px; padding:18px 16px; border:3px solid rgba(154,98,23,.34); border-radius:24px; background:rgba(255,255,255,.26); text-align:center;">
@@ -1131,7 +1169,8 @@ const params = new URLSearchParams(location.search);
           playerDetails,
           notes: getVal("notes"),
           handicapEnabled: handicapOn,
-          handicapPercent: handicapOn ? Number(state.tournament?.handicapPercent || 100) : 0
+          handicapPercent: handicapOn ? Number(state.tournament?.handicapPercent || 100) : 0,
+          registrantSource: REGISTRANT_SOURCE_WEB,
         });
 
         const res = result.data || {};
@@ -1153,6 +1192,8 @@ const params = new URLSearchParams(location.search);
 
         if(code === "functions/resource-exhausted" || msg.includes("No open starting holes")){
           userMsg = "No open starting holes are available for this tournament. Please contact the organizer.";
+        }else if(code === "functions/failed-precondition" && msg.includes("first tee time")){
+          userMsg = "This tournament is not configured for tee times yet. Please contact the organizer.";
         }else if(code === "functions/not-found"){
           userMsg = "This tournament could not be found. Check your link and try again.";
         }else if(code === "functions/unauthenticated" || code === "unauthenticated"){

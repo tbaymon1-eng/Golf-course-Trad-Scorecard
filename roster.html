@@ -936,7 +936,7 @@
         </div>
       </div>
 
-      <div class="footerHint">
+      <div class="footerHint" id="rosterFooterHint">
         <b>Registrations</b> are the organizer-managed list. <b>Join link</b> rows are live scorecards from the index page (<code>submissions</code>) and appear when they are not tied to a registration you already have listed. Hole order is <b>1A → 2A → … → 18A → 1B → 2B → …</b>
       </div>
     </div>
@@ -970,14 +970,14 @@
       <div class="summaryRow">
         <div class="pill">Teams: <b id="teamCount">0</b></div>
         <div class="pill">Assigned: <b id="assignedCount">0</b></div>
-        <div class="pill">Next Open Hole: <b id="openSlotHint">—</b></div>
+        <div class="pill"><span id="nextOpenLabel">Next open hole:</span> <b id="openSlotHint">—</b></div>
         <div class="pill">Unique players: <b id="uniqueCount">0</b></div>
       </div>
 
       <div class="toolbar">
         <div class="searchRow">
           <div style="min-width:240px; flex:1 1 320px;">
-            <input id="searchInput" placeholder="Search team, captain, player, or hole…" />
+            <input id="searchInput" placeholder="Search team, captain, player, or assignment…" />
           </div>
 
           <div style="width:180px;">
@@ -994,7 +994,7 @@
         </div>
 
         <div class="actions">
-          <button class="green" id="autoAssignBtn">⚡ Auto Assign Missing Holes</button>
+          <button class="green" id="autoAssignBtn">⚡ Auto Assign Missing</button>
           <button class="primary" id="addTeamBtn">➕ Add Team</button>
           <button type="button" class="btn" id="printPlacardsBtn">🖨 Print Placards</button>
         </div>
@@ -1006,7 +1006,7 @@
             <tr>
               <th style="min-width:230px;">Team</th>
               <th style="min-width:260px;">Players</th>
-              <th style="min-width:90px;">Hole</th>
+              <th style="min-width:90px;" id="rosterAssignmentHeader">Hole</th>
               <th style="min-width:120px;">Status</th>
               <th style="min-width:280px;">Actions</th>
             </tr>
@@ -1041,9 +1041,36 @@
           <input id="teamNameInput" />
         </div>
 
-        <div>
-          <label for="assignedHoleInput" class="fieldLabel">Assigned Hole</label>
+        <div id="assignedHoleFieldWrap">
+          <label for="assignedHoleInput" class="fieldLabel">Assigned hole</label>
           <input id="assignedHoleInput" placeholder="Leave blank for auto" />
+        </div>
+
+        <div id="teeTimeFieldWrap" class="hidden">
+          <label for="teeTimeInput" class="fieldLabel">Tee time</label>
+          <input id="teeTimeInput" type="datetime-local" />
+          <div class="sheetSubtle" style="margin-top:6px;">Leave blank to auto-fill the next slot from tournament settings.</div>
+        </div>
+
+        <div id="clinicAssignmentFieldWrap" class="hidden" style="grid-column:1/-1;">
+          <div class="sheetGrid" style="grid-template-columns:1fr 1fr;">
+            <div>
+              <label for="sessionInput" class="fieldLabel">Session</label>
+              <input id="sessionInput" placeholder="e.g. Morning" />
+            </div>
+            <div>
+              <label for="timeSlotInput" class="fieldLabel">Time slot</label>
+              <input id="timeSlotInput" placeholder="e.g. 9:00 AM" />
+            </div>
+            <div>
+              <label for="groupLabelInput" class="fieldLabel">Group</label>
+              <input id="groupLabelInput" />
+            </div>
+            <div>
+              <label for="instructorInput" class="fieldLabel">Instructor</label>
+              <input id="instructorInput" />
+            </div>
+          </div>
         </div>
 
         <div>
@@ -1242,6 +1269,16 @@
       applyOrgTournamentParams,
     } from "./js/org-paths.js";
     import { resolvePlacardCourseBrand } from "./js/branding-display.js";
+    import {
+      normalizeAssignmentType,
+      ASSIGNMENT_TEE_TIMES,
+      REGISTRANT_SOURCE_ADMIN_MANUAL,
+      isGolfEventCategory,
+      rosterAssignmentColumnTitle,
+      rosterNextOpenLabel,
+      formatRosterAssignmentDisplay,
+      compareRosterAssignmentSort,
+    } from "./js/tournament-fields.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
@@ -1312,6 +1349,17 @@
 
     const teamNameInput = document.getElementById("teamNameInput");
     const assignedHoleInput = document.getElementById("assignedHoleInput");
+    const assignedHoleFieldWrap = document.getElementById("assignedHoleFieldWrap");
+    const teeTimeInput = document.getElementById("teeTimeInput");
+    const teeTimeFieldWrap = document.getElementById("teeTimeFieldWrap");
+    const clinicAssignmentFieldWrap = document.getElementById("clinicAssignmentFieldWrap");
+    const sessionInput = document.getElementById("sessionInput");
+    const timeSlotInput = document.getElementById("timeSlotInput");
+    const groupLabelInput = document.getElementById("groupLabelInput");
+    const instructorInput = document.getElementById("instructorInput");
+    const rosterAssignmentHeader = document.getElementById("rosterAssignmentHeader");
+    const nextOpenLabel = document.getElementById("nextOpenLabel");
+    const rosterFooterHint = document.getElementById("rosterFooterHint");
     const captainNameInput = document.getElementById("captainNameInput");
     const statusInput = document.getElementById("statusInput");
     const playersInput = document.getElementById("playersInput");
@@ -1495,6 +1543,103 @@
       if(A.wave!==B.wave) return A.wave-B.wave;
 
       return A.hole-B.hole;
+    }
+
+    function isTeeTimesTournament(){
+      if (!isGolfEventCategory(tournamentMeta)) return false;
+      return normalizeAssignmentType(tournamentMeta) === ASSIGNMENT_TEE_TIMES;
+    }
+
+    function compareTeeTimeStr(a, b){
+      const sa = String(a || "").trim();
+      const sb = String(b || "").trim();
+      if (!sa && !sb) return 0;
+      if (!sa) return 1;
+      if (!sb) return -1;
+      return sa.localeCompare(sb);
+    }
+
+    function pad2Roster(n){
+      return String(n).padStart(2, "0");
+    }
+
+    function addMinutesToPlainDateTimeRoster(dtStr, addMin){
+      const m = String(dtStr || "")
+        .trim()
+        .match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+      if (!m) return "";
+      const y = parseInt(m[1], 10);
+      const mo = parseInt(m[2], 10);
+      const d = parseInt(m[3], 10);
+      const h = parseInt(m[4], 10);
+      const mi = parseInt(m[5], 10);
+      if (![y, mo, d, h, mi].every((x) => Number.isFinite(x))) return "";
+      const ms = Date.UTC(y, mo - 1, d, h, mi, 0) + addMin * 60000;
+      const x = new Date(ms);
+      return `${x.getUTCFullYear()}-${pad2Roster(x.getUTCMonth() + 1)}-${pad2Roster(x.getUTCDate())}T${pad2Roster(
+        x.getUTCHours()
+      )}:${pad2Roster(x.getUTCMinutes())}`;
+    }
+
+    function teeTimeForTeamIndexRoster(firstStr, intervalMin, groupSize, teamIndexZeroBased){
+      const gs = Math.max(1, parseInt(String(groupSize || "1"), 10) || 1);
+      const iv = Math.max(1, parseInt(String(intervalMin || "10"), 10) || 10);
+      const slot = Math.floor(teamIndexZeroBased / gs);
+      return addMinutesToPlainDateTimeRoster(firstStr, slot * iv);
+    }
+
+    function resolveStartingHoleFromMeta(){
+      const ts = tournamentMeta && tournamentMeta.teeStarts;
+      if (Array.isArray(ts) && ts.length) {
+        const n = Number(ts[0]);
+        if (Number.isFinite(n) && n >= 1 && n <= 18) return Math.round(n);
+      }
+      return 1;
+    }
+
+    function getNextTeeTimeHint(){
+      if (!isTeeTimesTournament() || !tournamentMeta) return "";
+      const first = String(tournamentMeta.firstTeeTime || "").trim();
+      if (!first) return "";
+      const intervalRaw = Number(tournamentMeta.teeIntervalMinutes);
+      const intervalMin = Number.isFinite(intervalRaw) && intervalRaw > 0 ? Math.floor(intervalRaw) : 10;
+      const gs = Math.max(1, parseInt(String(tournamentMeta.groupSize || "1"), 10) || 1);
+      const active = registrations.filter(
+        (r) => normalizeStatus(r.status) !== "cancelled" && String(r.teeTime || "").trim()
+      );
+      const idx = active.length;
+      return teeTimeForTeamIndexRoster(first, intervalMin, gs, idx);
+    }
+
+    function syncRosterAssignmentModeUI(){
+      const golf = isGolfEventCategory(tournamentMeta);
+      const tee = golf && isTeeTimesTournament();
+      if (rosterAssignmentHeader) rosterAssignmentHeader.textContent = rosterAssignmentColumnTitle(tournamentMeta);
+      if (nextOpenLabel) nextOpenLabel.textContent = rosterNextOpenLabel(tournamentMeta);
+      if (rosterFooterHint) {
+        if (!golf) {
+          rosterFooterHint.innerHTML =
+            "<b>Registrations</b> are the organizer-managed list. Assignment shows session, time slot, and group when provided.";
+        } else if (tee) {
+          rosterFooterHint.innerHTML =
+            "<b>Registrations</b> are the organizer-managed list. <b>Join link</b> rows are live scorecards from the index page (<code>submissions</code>). This event uses <b>tee times</b> (sorted by clock time).";
+        } else {
+          rosterFooterHint.innerHTML =
+            "<b>Registrations</b> are the organizer-managed list. <b>Join link</b> rows are live scorecards from the index page (<code>submissions</code>) and appear when they are not tied to a registration you already have listed. Hole order is <b>1A → 2A → … → 18A → 1B → 2B → …</b>";
+        }
+      }
+      if (assignedHoleFieldWrap && teeTimeFieldWrap && clinicAssignmentFieldWrap) {
+        if (!golf) {
+          assignedHoleFieldWrap.classList.add("hidden");
+          teeTimeFieldWrap.classList.add("hidden");
+          clinicAssignmentFieldWrap.classList.remove("hidden");
+        } else {
+          clinicAssignmentFieldWrap.classList.add("hidden");
+          assignedHoleFieldWrap.classList.toggle("hidden", tee);
+          teeTimeFieldWrap.classList.toggle("hidden", !tee);
+        }
+      }
+      if (autoAssignBtn) autoAssignBtn.classList.toggle("hidden", !golf);
     }
 
     /* ---------------------------------------------------- */
@@ -1694,6 +1839,23 @@
     }
 
     function buildPlacardRows(){
+      if (!isGolfEventCategory(tournamentMeta)) {
+        return buildRosterRows()
+          .filter(
+            (r) =>
+              !r.isSubmission &&
+              normalizeStatus(r.status) !== "cancelled"
+          )
+          .sort((a, b) => compareRosterAssignmentSort(a, b, tournamentMeta));
+      }
+      if (isTeeTimesTournament()){
+        return buildRosterRows()
+          .filter(
+            (r) =>
+              normalizeStatus(r.status) !== "cancelled" && !!String(r.teeTime || "").trim()
+          )
+          .sort((a, b) => compareTeeTimeStr(a.teeTime, b.teeTime));
+      }
       return buildRosterRows()
         .filter(r =>
           normalizeStatus(r.status) !== "cancelled" &&
@@ -1705,7 +1867,14 @@
     function placardCardHtml(r, sponsorLogoUrl, watermarkLogoUrl){
       const brand = escapeHtml(placardCourseBrand());
       const eventTitle = escapeHtml(placardTournamentTitle());
-      const hole = escapeHtml(normalizeHoleLabel(r.assignedHole));
+      const tee = isGolfEventCategory(tournamentMeta) && isTeeTimesTournament();
+      const hole = escapeHtml(
+        !isGolfEventCategory(tournamentMeta)
+          ? formatRosterAssignmentDisplay(r, tournamentMeta)
+          : tee
+          ? String(r.teeTime || "").trim()
+          : normalizeHoleLabel(r.assignedHole)
+      );
       const team = escapeHtml(r.teamName || "—");
       const players = normalizePlayers(r.players);
       const sponsorRow = sponsorLogoUrl
@@ -1728,7 +1897,13 @@
             ${sponsorRow}
           </header>
           <div class="pp-hole-wrap">
-            <div class="pp-hole">Starting Hole ${hole}</div>
+            <div class="pp-hole">${
+              !isGolfEventCategory(tournamentMeta)
+                ? "Assignment"
+                : tee
+                ? "Tee time"
+                : "Starting Hole"
+            } ${hole}</div>
           </div>
           <div class="pp-bottom">
             <div class="pp-team pp-teamName">${team}</div>
@@ -1749,7 +1924,13 @@
 
       const rows = buildPlacardRows();
       if (!rows.length){
-        alert("No teams with an assigned hole (non-cancelled) to print.");
+        alert(
+          !isGolfEventCategory(tournamentMeta)
+            ? "No registrations to print yet."
+            : isTeeTimesTournament()
+            ? "No teams with a tee time (non-cancelled) to print."
+            : "No teams with an assigned hole (non-cancelled) to print."
+        );
         return;
       }
 
@@ -1795,9 +1976,24 @@
       });
     }
 
+    function rosterAssignmentLabel(r){
+      if (!isGolfEventCategory(tournamentMeta)) {
+        const d = formatRosterAssignmentDisplay(r, tournamentMeta);
+        return d === "—" ? "Assignment —" : d;
+      }
+      if (isTeeTimesTournament()){
+        const t = String(r.teeTime || "").trim();
+        if (t) return `Tee ${t}`;
+        const h = normalizeHoleLabel(r.assignedHole);
+        if (h) return `Hole ${h}`;
+        return "Tee —";
+      }
+      return `Hole ${r.assignedHole || "—"}`;
+    }
+
     function appendRosterRowTextLines(lines, r){
       if(r.isSubmission){
-        lines.push(`${r.teamName} | Hole ${r.assignedHole || "—"} | ${humanStatus(r.status)} (join link)`);
+        lines.push(`${r.teamName} | ${rosterAssignmentLabel(r)} | ${humanStatus(r.status)} (join link)`);
         normalizePlayers(r.players).forEach(p=>{
           lines.push(`- ${p}`);
         });
@@ -1805,7 +2001,7 @@
         return;
       }
 
-      lines.push(`${r.teamName} | Hole ${r.assignedHole || "—"} | ${humanStatus(r.status)}`);
+      lines.push(`${r.teamName} | ${rosterAssignmentLabel(r)} | ${humanStatus(r.status)}`);
 
       if(r.liveFromSubmission)
         lines.push(`(Live scorecard linked)`);
@@ -1832,7 +2028,13 @@
 
       buildRosterRows()
         .slice()
-        .sort((a,b)=>compareHoleLabels(a.assignedHole,b.assignedHole))
+        .sort((a,b)=>{
+          if (!isGolfEventCategory(tournamentMeta)) {
+            return compareRosterAssignmentSort(a, b, tournamentMeta);
+          }
+          if (isTeeTimesTournament()) return compareTeeTimeStr(a.teeTime, b.teeTime);
+          return compareHoleLabels(a.assignedHole,b.assignedHole);
+        })
         .forEach(r=>appendRosterRowTextLines(lines, r));
 
       return lines.join("\n");
@@ -1885,15 +2087,18 @@
         const ta = norm(a.row.teamName || "").toLowerCase();
         const tb = norm(b.row.teamName || "").toLowerCase();
         if (ta !== tb) return ta.localeCompare(tb);
+        if (isTeeTimesTournament()){
+          return compareTeeTimeStr(a.row.teeTime, b.row.teeTime);
+        }
         return compareHoleLabels(a.row.assignedHole, b.row.assignedHole);
       });
 
       entries.forEach(({ player, row: r })=>{
         lines.push(player);
         if (r.isSubmission){
-          lines.push(`  Team: ${r.teamName} | Hole ${r.assignedHole || "—"} | ${humanStatus(r.status)} (join link)`);
+          lines.push(`  Team: ${r.teamName} | ${rosterAssignmentLabel(r)} | ${humanStatus(r.status)} (join link)`);
         }else{
-          lines.push(`  Team: ${r.teamName} | Hole ${r.assignedHole || "—"} | ${humanStatus(r.status)}`);
+          lines.push(`  Team: ${r.teamName} | ${rosterAssignmentLabel(r)} | ${humanStatus(r.status)}`);
           if (r.liveFromSubmission) lines.push(`  (Live scorecard linked)`);
         }
         lines.push("");
@@ -1921,6 +2126,7 @@
         ).trim();
         if (canon) orgId = canon;
         meta.textContent=`${tournamentMeta.name || "Tournament"} • ${tournamentMeta.date || ""}`;
+        syncRosterAssignmentModeUI();
       }
 
       const joinUrl = new URL("./index.html", window.location.href);
@@ -1950,6 +2156,11 @@
       modalTitle.textContent="Add Team";
       teamNameInput.value="";
       assignedHoleInput.value="";
+      if (teeTimeInput) teeTimeInput.value="";
+      if (sessionInput) sessionInput.value="";
+      if (timeSlotInput) timeSlotInput.value="";
+      if (groupLabelInput) groupLabelInput.value="";
+      if (instructorInput) instructorInput.value="";
       captainNameInput.value="";
       statusInput.value="registered";
       playersInput.value="";
@@ -1958,6 +2169,7 @@
     }
 
     function openAddModal(){
+      syncRosterAssignmentModeUI();
       resetModal();
       openModal();
     }
@@ -1968,10 +2180,16 @@
       const r=registrations.find(x=>x.id===id);
       if(!r) return;
 
+      syncRosterAssignmentModeUI();
       editingId=id;
       modalTitle.textContent="Edit Team";
       teamNameInput.value=r.teamName || "";
       assignedHoleInput.value=r.assignedHole || "";
+      if (teeTimeInput) teeTimeInput.value = String(r.teeTime || "").trim();
+      if (sessionInput) sessionInput.value = String(r.session || "").trim();
+      if (timeSlotInput) timeSlotInput.value = String(r.timeSlot || "").trim();
+      if (groupLabelInput) groupLabelInput.value = String(r.groupLabel || r.group || "").trim();
+      if (instructorInput) instructorInput.value = String(r.instructor || "").trim();
       captainNameInput.value=r.captainName || "";
       statusInput.value=normalizeStatus(r.status);
       playersInput.value=normalizePlayers(r.players).join("\n");
@@ -1983,6 +2201,24 @@
     /* ---------------------------------------------------- */
     /* SAVE / DELETE */
     /* ---------------------------------------------------- */
+
+    function computeAutoTeeTimeForModal(editingId){
+      const first = String(tournamentMeta?.firstTeeTime || "").trim();
+      if (!first) return "";
+      const intervalRaw = Number(tournamentMeta?.teeIntervalMinutes);
+      const intervalMin = Number.isFinite(intervalRaw) && intervalRaw > 0 ? Math.floor(intervalRaw) : 10;
+      const gs = Math.max(1, parseInt(String(tournamentMeta?.groupSize || "1"), 10) || 1);
+      const others = registrations.filter(
+        (r) => normalizeStatus(r.status) !== "cancelled" && r.id !== editingId
+      );
+      const sorted = others.slice().sort((a, b) => {
+        const sa = a.createdAt?.seconds ?? a.createdAt?._seconds ?? 0;
+        const sb = b.createdAt?.seconds ?? b.createdAt?._seconds ?? 0;
+        return sa - sb;
+      });
+      const idx = sorted.length;
+      return teeTimeForTeamIndexRoster(first, intervalMin, gs, idx);
+    }
 
     async function saveTeamFromModal(){
       if(!tournamentId) return;
@@ -2000,6 +2236,79 @@
 
       if(players.length<1 && !captainName){
         alert("Please enter at least one player or captain name.");
+        return;
+      }
+
+      const finalPlayers=normalizePlayers([
+        captainName,
+        ...players
+      ]);
+      const playerDetails = buildPlayerDetailsFromModal(finalPlayers, captainName);
+
+      const ref=editingId
+        ? tournamentRegistrationDoc(db, orgId, tournamentId, editingId)
+        : doc(tournamentRegistrationsCollection(db, orgId, tournamentId));
+
+      if (!isGolfEventCategory(tournamentMeta)){
+        const payload = {
+          teamName,
+          captainName,
+          players: finalPlayers,
+          playerDetails,
+          session: norm(sessionInput?.value || ""),
+          timeSlot: norm(timeSlotInput?.value || ""),
+          groupLabel: norm(groupLabelInput?.value || ""),
+          instructor: norm(instructorInput?.value || ""),
+          assignedHole: "",
+          teeTime: "",
+          status,
+          updatedAt: serverTimestamp()
+        };
+        if (!editingId){
+          payload.createdAt = serverTimestamp();
+          payload.registrantSource = REGISTRANT_SOURCE_ADMIN_MANUAL;
+          payload.source = "admin_manual";
+        }
+        await setDoc(ref, payload, { merge: true });
+        closeModal();
+        return;
+      }
+
+      if (isTeeTimesTournament()){
+        let teeTime = teeTimeInput ? String(teeTimeInput.value || "").trim() : "";
+        if (!teeTime && status !== "cancelled"){
+          teeTime = computeAutoTeeTimeForModal(editingId);
+        }
+        if (!teeTime && status !== "cancelled"){
+          alert("Set a first tee time on the admin page, or enter a tee time.");
+          return;
+        }
+
+        if (status === "registered" && teeTime){
+          status = "assigned";
+        }
+
+        const startingHole = resolveStartingHoleFromMeta();
+        const payload = {
+          teamName,
+          captainName,
+          players: finalPlayers,
+          playerDetails,
+          assignedHole: "",
+          teeTime: teeTime || "",
+          startingHole,
+          status,
+          updatedAt: serverTimestamp()
+        };
+
+        if (!editingId){
+          payload.createdAt = serverTimestamp();
+          payload.registrantSource = REGISTRANT_SOURCE_ADMIN_MANUAL;
+          payload.source = "admin_manual";
+        }
+
+        await setDoc(ref, payload, { merge: true });
+        closeModal();
         return;
       }
 
@@ -2024,16 +2333,6 @@
         status="assigned";
       }
 
-      const finalPlayers=normalizePlayers([
-        captainName,
-        ...players
-      ]);
-      const playerDetails = buildPlayerDetailsFromModal(finalPlayers, captainName);
-
-      const ref=editingId
-        ? tournamentRegistrationDoc(db, orgId, tournamentId, editingId)
-        : doc(tournamentRegistrationsCollection(db, orgId, tournamentId));
-
       const payload={
         teamName,
         captainName,
@@ -2046,6 +2345,8 @@
 
       if(!editingId){
         payload.createdAt=serverTimestamp();
+        payload.registrantSource = REGISTRANT_SOURCE_ADMIN_MANUAL;
+        payload.source = "admin_manual";
       }
 
       await setDoc(ref,payload,{merge:true});
@@ -2075,8 +2376,34 @@
       const r=registrations.find(x=>x.id===id);
       if(!r) return;
 
+      if (!isGolfEventCategory(tournamentMeta)){
+        alert("For clinics and general events, use Edit to change session, time slot, or group.");
+        return;
+      }
+
       if(normalizeStatus(r.status)==="finished"){
         alert("Finished teams should not be moved.");
+        return;
+      }
+
+      if (isTeeTimesTournament()){
+        const entered = prompt(
+          `Enter new tee time for ${r.teamName}\nFormat: YYYY-MM-DDTHH:mm (same as the datetime picker)`,
+          String(r.teeTime || "").trim()
+        );
+        if (entered === null) return;
+        const nextTee = String(entered || "").trim();
+        if (!nextTee || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(nextTee)){
+          alert("Invalid tee time. Use format like 2026-04-17T08:00");
+          return;
+        }
+        await updateDoc(tournamentRegistrationDoc(db, orgId, tournamentId, id), {
+          teeTime: nextTee,
+          startingHole: resolveStartingHoleFromMeta(),
+          assignedHole: "",
+          status: normalizeStatus(r.status) === "registered" ? "assigned" : normalizeStatus(r.status),
+          updatedAt: serverTimestamp()
+        });
         return;
       }
 
@@ -2126,7 +2453,12 @@
       }
 
       if(current==="cancelled"){
-        const restoreStatus=normalizeHoleLabel(r.assignedHole) ? "assigned" : "registered";
+        const hasAssignment = !isGolfEventCategory(tournamentMeta)
+          ? !!(String(r.session || "").trim() || String(r.timeSlot || "").trim() || String(r.groupLabel || r.group || "").trim())
+          : isTeeTimesTournament()
+          ? !!String(r.teeTime || "").trim()
+          : !!normalizeHoleLabel(r.assignedHole);
+        const restoreStatus = hasAssignment ? "assigned" : "registered";
         await updateDoc(tournamentRegistrationDoc(db, orgId, tournamentId, id),{
           status: restoreStatus,
           updatedAt: serverTimestamp()
@@ -2145,6 +2477,65 @@
 
     async function autoAssignMissingHoles(){
       if(!tournamentId) return;
+
+      if (!isGolfEventCategory(tournamentMeta)){
+        alert("Auto-assign holes and tee times applies to golf tournaments only.");
+        return;
+      }
+
+      if (isTeeTimesTournament()){
+        const first = String(tournamentMeta?.firstTeeTime || "").trim();
+        if (!first){
+          alert("Set first tee time, interval, and group size on the admin page first.");
+          return;
+        }
+        const intervalRaw = Number(tournamentMeta?.teeIntervalMinutes);
+        const intervalMin = Number.isFinite(intervalRaw) && intervalRaw > 0 ? Math.floor(intervalRaw) : 10;
+        const gs = Math.max(1, parseInt(String(tournamentMeta?.groupSize || "1"), 10) || 1);
+        const startingHole = resolveStartingHoleFromMeta();
+
+        const unassigned = registrations
+          .filter((r) => normalizeStatus(r.status) !== "cancelled" && !String(r.teeTime || "").trim())
+          .sort((a, b) => {
+            const ta = a.createdAt?.seconds || 0;
+            const tb = b.createdAt?.seconds || 0;
+            return ta - tb;
+          });
+
+        if (!unassigned.length){
+          alert("No missing tee times to assign.");
+          return;
+        }
+
+        const allActiveSorted = registrations
+          .filter((r) => normalizeStatus(r.status) !== "cancelled")
+          .sort((a, b) => {
+            const ta = a.createdAt?.seconds || 0;
+            const tb = b.createdAt?.seconds || 0;
+            return ta - tb;
+          });
+
+        const batch = writeBatch(db);
+        unassigned.forEach((r) => {
+          const idx = allActiveSorted.findIndex((x) => x.id === r.id);
+          const tt = teeTimeForTeamIndexRoster(first, intervalMin, gs, idx >= 0 ? idx : 0);
+          if (!tt) return;
+          batch.set(
+            tournamentRegistrationDoc(db, orgId, tournamentId, r.id),
+            {
+              teeTime: tt,
+              startingHole,
+              assignedHole: "",
+              status: normalizeStatus(r.status) === "registered" ? "assigned" : normalizeStatus(r.status),
+              updatedAt: serverTimestamp()
+            },
+            { merge: true }
+          );
+        });
+
+        await batch.commit();
+        return;
+      }
 
       const unassigned=registrations
         .filter(r => normalizeStatus(r.status)!=="cancelled" && !normalizeHoleLabel(r.assignedHole))
@@ -2371,6 +2762,11 @@
           r.teamName || "",
           r.captainName || "",
           r.assignedHole || "",
+          r.teeTime || "",
+          r.session || "",
+          r.timeSlot || "",
+          r.groupLabel || r.group || "",
+          r.instructor || "",
           status,
           ...(Array.isArray(r.players) ? r.players : [])
         ].join(" ").toLowerCase();
@@ -2424,7 +2820,9 @@
           </td>
 
           <td>
-            <span class="holeBadge">${r.assignedHole || "—"}</span>
+            <span class="holeBadge">${
+              escapeHtml(formatRosterAssignmentDisplay(r, tournamentMeta))
+            }</span>
           </td>
 
           <td>
@@ -2444,7 +2842,11 @@
                   ? `<span class="pill" style="font-size:11px;">Live (Firestore)</span>`
                   : `
               <button class="miniBtn rowEditBtn" data-id="${r.id}">✏️ Edit</button>
-              <button class="miniBtn rowHoleBtn" data-id="${r.id}">⛳ Change Hole</button>
+              ${
+                isGolfEventCategory(tournamentMeta)
+                  ? `<button class="miniBtn rowHoleBtn" data-id="${r.id}">⛳ Change Hole</button>`
+                  : ``
+              }
               <button class="miniBtn rowCancelBtn danger" data-id="${r.id}">
                 ${status==="cancelled" ? "↩ Restore" : "🚫 Cancel"}
               </button>
@@ -2466,6 +2868,12 @@
           if(sa==="cancelled" && sb!=="cancelled") return 1;
           if(sa!=="cancelled" && sb==="cancelled") return -1;
 
+          if (!isGolfEventCategory(tournamentMeta)) {
+            return compareRosterAssignmentSort(a, b, tournamentMeta);
+          }
+          if (isTeeTimesTournament()){
+            return compareTeeTimeStr(a.teeTime, b.teeTime);
+          }
           return compareHoleLabels(a.assignedHole,b.assignedHole);
         });
 
@@ -2475,11 +2883,25 @@
       assignedCountEl.textContent=String(
         registrations.filter(r =>
           normalizeStatus(r.status)!=="cancelled" &&
-          !!normalizeHoleLabel(r.assignedHole)
+          (!isGolfEventCategory(tournamentMeta)
+            ? !!(String(r.session || "").trim() || String(r.timeSlot || "").trim() || String(r.groupLabel || r.group || "").trim() || String(r.instructor || "").trim())
+            : isTeeTimesTournament()
+            ? !!String(r.teeTime || "").trim()
+            : !!normalizeHoleLabel(r.assignedHole))
         ).length +
-        standSubs.filter(s => !!normalizeHoleLabel(s.assignedHole)).length
+        standSubs.filter(s =>
+          !isGolfEventCategory(tournamentMeta)
+            ? false
+            : isTeeTimesTournament()
+            ? !!String(s.teeTime || "").trim()
+            : !!normalizeHoleLabel(s.assignedHole)
+        ).length
       );
-      openSlotHintEl.textContent=getNextAvailableHole() || "Full";
+      openSlotHintEl.textContent = !isGolfEventCategory(tournamentMeta)
+        ? "—"
+        : isTeeTimesTournament()
+        ? getNextTeeTimeHint() || "—"
+        : getNextAvailableHole() || "Full";
       uniqueCountEl.textContent=String(uniquePlayerCount());
 
       tbody.innerHTML=filtered.map(rowHtml).join("");
