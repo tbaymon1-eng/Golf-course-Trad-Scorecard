@@ -573,12 +573,12 @@
           <div class="field">
             <label class="label" for="eventCategory">Event category</label>
             <select id="eventCategory">
-              <option value="golf_tournament">Golf tournament</option>
+              <option value="golf_tournament">Tournament</option>
               <option value="clinic">Clinic</option>
               <option value="camp">Camp</option>
-              <option value="general">General event</option>
+              <option value="general">General Event</option>
             </select>
-            <div class="hint">Controls roster columns and import behavior. For golf, shotgun and tee-time setup appears in <b>Starts &amp; assignments</b> below.</div>
+            <div class="hint">Controls roster columns and import behavior. For <b>Tournament</b> events, shotgun and tee-time setup appears in <b>Starts &amp; assignments</b> below.</div>
           </div>
         </div>
 
@@ -586,8 +586,10 @@
           <header class="setup-section-header">
             <p class="section-phase">How people register</p>
             <h2 class="dash-title">Roster &amp; sign-up</h2>
-            <p class="section-lede">Decide how names get on the list—public link, optional bulk spreadsheet, or both—and who receives confirmations.</p>
+            <p class="section-lede" id="adminRosterSignupLede">Decide how names get on the list—public link, optional bulk spreadsheet, or both—and who receives confirmations.</p>
           </header>
+
+          <div id="adminEventTypeCallout" class="muted-block hidden" style="margin-top:4px;padding:12px 14px;border-radius:12px;border:2px dashed rgba(154,98,23,.45);"></div>
 
           <div class="field">
             <label class="label" for="registrantSourceMode">Registrant source</label>
@@ -599,13 +601,13 @@
             <div class="hint">Who may add players: public link, organizer import, or both.</div>
           </div>
 
-          <div class="field">
-            <label class="label" for="entryMode">Team Setup</label>
+          <div class="field" id="adminTeamEntryModeSection">
+            <label class="label" for="entryMode" id="adminEntryModeLabel">Team Setup</label>
             <select id="entryMode">
               <option value="onsite">On-Site Player Entry</option>
               <option value="pre_event">Pre-Event Registration</option>
             </select>
-            <div class="hint">
+            <div class="hint" id="adminEntryModeHint">
               Choose how participants join this event (on-site vs pre-registration).
             </div>
           </div>
@@ -662,7 +664,7 @@
           </div>
           <div class="field">
             <label class="label">Column mapping</label>
-            <div class="hint" style="margin-bottom:8px;">Map spreadsheet columns to fields. Golf tournaments usually require <b>Team</b>; clinics often use <b>Full name</b> or first/last plus <b>Email</b>.</div>
+            <div class="hint" style="margin-bottom:8px;">Map spreadsheet columns to fields. <b>Tournament</b> events usually require <b>Team</b>; <b>Clinic</b> events often use <b>Full name</b> or first/last plus <b>Email</b>.</div>
             <div id="importMappingGrid" class="import-mapping-grid"></div>
           </div>
           <div class="field">
@@ -720,10 +722,10 @@
           <header class="setup-section-header">
             <p class="section-phase">How it runs</p>
             <h2 class="dash-title">Course, schedule &amp; start</h2>
-            <p class="section-lede">Set date, status (draft / live / closed), and default venue or course when your format uses it. Golf events also use <b>Starts &amp; assignments</b> next.</p>
+            <p class="section-lede" id="adminCourseScheduleLede">Set date, status (draft / live / closed), and default venue or course when your format uses it. <b>Tournament</b> events also use <b>Starts &amp; assignments</b> next.</p>
           </header>
 
-          <div class="field">
+          <div class="field" id="adminDefaultCourseField">
             <label class="label" for="defaultCourse">Default Course</label>
             <select id="defaultCourse">
               <option value="Tradition">Tradition</option>
@@ -748,7 +750,7 @@
 
         <div class="dash-box setup-section" id="golfStartAssignmentSection">
           <header class="setup-section-header">
-            <p class="section-phase">Golf only</p>
+            <p class="section-phase">Tournament only</p>
             <h2 class="dash-title">Starts &amp; assignments</h2>
             <p class="section-lede">Shotgun waves or tee times—assign groups to starting holes or clock times.</p>
           </header>
@@ -756,10 +758,10 @@
           <div class="field">
             <label class="label" for="startType">Tournament start type</label>
             <select id="startType">
-              <option value="shotgun">Shotgun start</option>
-              <option value="tee_times">Tee times</option>
+              <option value="shotgun">Shotgun Start</option>
+              <option value="tee_times">Tee Times</option>
             </select>
-            <div class="hint">Shotgun uses starting-hole waves (1A, 2A, …). Tee times assign a clock time per team or group.</div>
+            <div class="hint">Shotgun uses starting-hole waves (1A, 2A, …). Tee Times assign a clock time per team or group.</div>
           </div>
 
           <div id="shotgunHoleAssignmentFields">
@@ -822,11 +824,11 @@
           </div>
         </div>
 
-        <div class="dash-box setup-section">
+        <div class="dash-box setup-section" id="adminScoringFormatSection">
           <header class="setup-section-header">
             <p class="section-phase">How it’s scored</p>
             <h2 class="dash-title">Format, handicaps &amp; games</h2>
-            <p class="section-lede">Competition format and scoring—primarily for golf. Clinics, camps, or general events can leave unused fields at default.</p>
+            <p class="section-lede" id="adminScoringSectionLede">Competition format and scoring—primarily for golf. Clinics, camps, or general events can leave unused fields at default.</p>
           </header>
 
           <div class="field">
@@ -920,15 +922,18 @@
           <header class="setup-section-header">
             <p class="section-phase">Look &amp; feel</p>
             <h2 class="dash-title">Sponsors &amp; branding</h2>
-            <p class="section-lede">Presenting partners and logos on the scorecard, leaderboard, and registration—kept tasteful for the room.</p>
+            <p class="section-lede" id="adminSponsorSectionLede">
+              Optional sponsor logos and names for marketing and revenue—shown on attendee-facing surfaces for this event type.
+            </p>
           </header>
 
           <div class="field">
             <label class="label" for="sponsorMarketingEnabled" style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
               <input type="checkbox" id="sponsorMarketingEnabled" style="width:22px; height:22px; margin-top:2px; flex-shrink:0;" />
-              <span>Show sponsors on scorecard, leaderboard &amp; registration (hero + ticker when sponsors are added)</span>
+              <span id="adminSponsorMarketingLabel">Show sponsors where this app supports them for your event type (hero + ticker when sponsors are added).</span>
             </label>
-            <div class="hint">Leave off to hide all sponsor branding on player-facing pages.</div>
+            <div class="hint" id="adminSponsorMainHint">Turn off to hide sponsor branding everywhere it is supported for the current event category.</div>
+            <div class="hint" id="adminSponsorTournamentOnlyNote" style="margin-top:6px;"></div>
           </div>
 
           <div class="field">
@@ -1022,7 +1027,7 @@
           <header class="setup-section-header">
             <p class="section-phase">Share</p>
             <h2 class="dash-title">Links &amp; QR codes</h2>
-            <p class="section-lede">Hand these to players and staff—join, live leaderboard, roster, and registration as you configured.</p>
+            <p class="section-lede" id="adminShareSectionLede">Hand these to players and staff—join, live leaderboard, roster, and registration as you configured.</p>
           </header>
 
           <div class="field">
@@ -1032,12 +1037,14 @@
 
           <button class="btn btn-ghost" id="copyJoinBtn" type="button">Copy Join</button>
 
+          <div id="adminShareLeaderboardLinksGroup">
           <div class="field">
             <label class="label">Leaderboard Link</label>
             <div id="leaderboardLinkBox" class="readonly-box">—</div>
           </div>
 
           <button class="btn btn-ghost" id="copyLeaderboardBtn" type="button">Copy Leaderboard</button>
+          </div>
 
           <div class="field">
             <label class="label">Organizer Roster Link</label>
@@ -1052,7 +1059,7 @@
             <div class="field">
               <label class="label">Registration Link</label>
               <div id="registrationLinkBox" class="readonly-box">—</div>
-              <div class="hint">Use this link for player or team registration.</div>
+              <div class="hint" id="adminRegistrationLinkHint">Use this link for player or team registration.</div>
             </div>
 
             <button class="btn btn-ghost" id="copyRegistrationBtn" type="button">Copy Registration</button>
@@ -1066,7 +1073,7 @@
               <div id="joinQr" class="qr-box"></div>
             </div>
 
-            <div>
+            <div id="adminShareLeaderboardQrGroup">
               <div class="label">Leaderboard QR</div>
               <div id="leaderboardQr" class="qr-box"></div>
             </div>
@@ -1135,6 +1142,14 @@
     REGISTRANT_SOURCE_MODE_BOTH,
     REGISTRANT_SOURCE_MODE_LINK,
     REGISTRANT_SOURCE_MODE_UPLOAD,
+    getEventTypeDisplayLabelFromStoredCategory,
+    getEventTypeVisibility,
+    isTournamentEventType,
+    normalizeEventType,
+    REGISTRATION_PAGE_EVENT_TOURNAMENT,
+    REGISTRATION_PAGE_EVENT_CLINIC,
+    REGISTRATION_PAGE_EVENT_CAMP,
+    REGISTRATION_PAGE_EVENT_GENERAL,
   } from "./js/tournament-fields.js";
   import {
     IMPORT_FIELD_KEYS,
@@ -1224,48 +1239,28 @@
    * Uses normalizeEventCategory so legacy/unknown values map safely; default is Create Event.
    */
   function getCreateButtonLabel(eventCategory) {
-    const cat = normalizeEventCategory({ eventCategory: eventCategory ?? "" });
-    if (cat === EVENT_CATEGORY_GOLF) return "Create Tournament";
-    if (cat === EVENT_CATEGORY_CLINIC) return "Create Clinic";
-    if (cat === EVENT_CATEGORY_CAMP) return "Create Camp";
-    if (cat === EVENT_CATEGORY_GENERAL) return "Create Event";
-    return "Create Event";
+    const label = getEventTypeDisplayLabelFromStoredCategory(eventCategory ?? "");
+    return `Create ${label}`;
   }
 
   function createSuccessToastForEventCategory(rawCategory) {
-    const cat = normalizeEventCategory({ eventCategory: rawCategory ?? "" });
-    if (cat === EVENT_CATEGORY_GOLF) return "Tournament created";
-    if (cat === EVENT_CATEGORY_CLINIC) return "Clinic created";
-    if (cat === EVENT_CATEGORY_CAMP) return "Camp created";
-    if (cat === EVENT_CATEGORY_GENERAL) return "Event created";
-    return "Event created";
+    const label = getEventTypeDisplayLabelFromStoredCategory(rawCategory ?? "");
+    return `${label} created`;
   }
 
   function loadedToastForEventCategory(rawCategory) {
-    const cat = normalizeEventCategory({ eventCategory: rawCategory ?? "" });
-    if (cat === EVENT_CATEGORY_GOLF) return "Tournament loaded";
-    if (cat === EVENT_CATEGORY_CLINIC) return "Clinic loaded";
-    if (cat === EVENT_CATEGORY_CAMP) return "Camp loaded";
-    if (cat === EVENT_CATEGORY_GENERAL) return "Event loaded";
-    return "Event loaded";
+    const label = getEventTypeDisplayLabelFromStoredCategory(rawCategory ?? "");
+    return `${label} loaded`;
   }
 
   function closeButtonLabelForEventCategory(rawCategory) {
-    const cat = normalizeEventCategory({ eventCategory: rawCategory ?? "" });
-    if (cat === EVENT_CATEGORY_GOLF) return "Close Tournament";
-    if (cat === EVENT_CATEGORY_CLINIC) return "Close Clinic";
-    if (cat === EVENT_CATEGORY_CAMP) return "Close Camp";
-    if (cat === EVENT_CATEGORY_GENERAL) return "Close Event";
-    return "Close Event";
+    const label = getEventTypeDisplayLabelFromStoredCategory(rawCategory ?? "");
+    return `Close ${label}`;
   }
 
   function closedToastForEventCategory(rawCategory) {
-    const cat = normalizeEventCategory({ eventCategory: rawCategory ?? "" });
-    if (cat === EVENT_CATEGORY_GOLF) return "Tournament closed";
-    if (cat === EVENT_CATEGORY_CLINIC) return "Clinic closed";
-    if (cat === EVENT_CATEGORY_CAMP) return "Camp closed";
-    if (cat === EVENT_CATEGORY_GENERAL) return "Event closed";
-    return "Event closed";
+    const label = getEventTypeDisplayLabelFromStoredCategory(rawCategory ?? "");
+    return `${label} closed`;
   }
 
   function syncCategoryActionLabels() {
@@ -1797,7 +1792,7 @@
 
     if (isGolf) {
       if (!mapping.teamName) {
-        showToast("Map a Team column for golf tournaments");
+        showToast("Map a Team column for Tournament events");
         $("csvImportStatus").textContent = "Import blocked: map Team for golf events.";
         return null;
       }
@@ -2073,10 +2068,174 @@
     if (teeEl) teeEl.classList.toggle("hidden", st !== "tee_times");
   }
 
+  /**
+   * Resolves UI bucket from the Event category control (stored values golf_tournament | clinic | camp | general).
+   * normalizeEventType() prefers eventType on a loaded document; here the select drives the draft until save.
+   */
+  function resolveAdminEventTypeKey() {
+    const cat = String($("eventCategory")?.value || EVENT_CATEGORY_GOLF).toLowerCase();
+    return normalizeEventType({ eventCategory: cat, eventType: cat });
+  }
+
+  /**
+   * Progressive disclosure: hide tournament-only blocks for clinic, camp, and general events.
+   * Logs normalized type + visibility for debugging.
+   */
+  function applyAdminEventTypeVisibility() {
+    const eventTypeKey = resolveAdminEventTypeKey();
+    const vis = getEventTypeVisibility(eventTypeKey);
+    const hidden = [];
+    const shown = [];
+
+    function toggle(id, on, label) {
+      const el = $(id);
+      if (!el) return;
+      el.classList.toggle("hidden", !on);
+      (on ? shown : hidden).push(label);
+    }
+
+    toggle("adminScoringFormatSection", vis.showFormatSection, "format_scoring");
+    toggle("golfStartAssignmentSection", vis.showStartsAssignmentsSection, "starts_assignments");
+    toggle("adminTeamEntryModeSection", vis.showTeamRegistrationOptions, "team_entry_mode");
+    toggle("adminDefaultCourseField", vis.showVenueCourseField, "default_course");
+    toggle("adminShareLeaderboardLinksGroup", vis.showLeaderboardOptions, "leaderboard_links");
+    toggle("adminShareLeaderboardQrGroup", vis.showLeaderboardOptions, "leaderboard_qr");
+
+    const spLede = $("adminSponsorSectionLede");
+    if (spLede) {
+      if (eventTypeKey === REGISTRATION_PAGE_EVENT_TOURNAMENT) {
+        spLede.textContent =
+          "Presenting partners and logos—registration, scorecard, leaderboard, rules sheet, and placards when enabled—kept tasteful for the room.";
+      } else if (eventTypeKey === REGISTRATION_PAGE_EVENT_CLINIC) {
+        spLede.textContent =
+          "Sponsor logos and names for clinics—shown on the registration page, welcome areas, and shared clinic materials where the app displays them.";
+      } else if (eventTypeKey === REGISTRATION_PAGE_EVENT_CAMP) {
+        spLede.textContent =
+          "Sponsor logos and names for camps—shown on the registration page, camp materials, and signage-style surfaces where the app displays them.";
+      } else {
+        spLede.textContent =
+          "Sponsor logos and names for general events—shown on the registration page, event materials, and check-in style displays where the app displays them.";
+      }
+    }
+
+    const spLabel = $("adminSponsorMarketingLabel");
+    if (spLabel) {
+      if (eventTypeKey === REGISTRATION_PAGE_EVENT_TOURNAMENT) {
+        spLabel.textContent =
+          "Show sponsors on the registration page, live leaderboard, in-round scorecard, printed rules sheet, and cart placards (hero + ticker when sponsors are added).";
+      } else if (eventTypeKey === REGISTRATION_PAGE_EVENT_CLINIC) {
+        spLabel.textContent =
+          "Show sponsors on the registration page, welcome screen, and clinic materials (hero + ticker when sponsors are added).";
+      } else if (eventTypeKey === REGISTRATION_PAGE_EVENT_CAMP) {
+        spLabel.textContent =
+          "Show sponsors on the registration page, camp materials, and signage (hero + ticker when sponsors are added).";
+      } else {
+        spLabel.textContent =
+          "Show sponsors on the registration page, event materials, and check-in display (hero + ticker when sponsors are added).";
+      }
+    }
+
+    const spHint = $("adminSponsorMainHint");
+    if (spHint) {
+      spHint.textContent =
+        "Turn off to hide sponsor branding everywhere it is supported for the selected event category. Existing tournament sponsor behavior is unchanged when category is Tournament.";
+    }
+
+    const spTourNote = $("adminSponsorTournamentOnlyNote");
+    if (spTourNote) {
+      if (eventTypeKey === REGISTRATION_PAGE_EVENT_TOURNAMENT) {
+        spTourNote.textContent =
+          "Tournament surfaces: registration hero/ticker, live leaderboard, scorecard, rules sheet print, and placards—same as before.";
+        spTourNote.style.display = "";
+      } else {
+        spTourNote.innerHTML =
+          "<b>Tournament-only (not used for this category):</b> live leaderboard, in-app scorecard, printed rules sheet, and cart placards. If you change Event category to Tournament, sponsors can appear there too.";
+        spTourNote.style.display = "";
+      }
+    }
+
+    const shareLede = $("adminShareSectionLede");
+    if (shareLede) {
+      shareLede.textContent = vis.showLeaderboardOptions
+        ? "Hand these to players and staff—join, live leaderboard, roster, and registration as you configured."
+        : "Hand these to staff and attendees—join, roster, and registration as you configured.";
+    }
+
+    const regHint = $("adminRegistrationLinkHint");
+    if (regHint) {
+      regHint.textContent = vis.showTeamRegistrationOptions
+        ? "Use this link for player or team registration."
+        : "Use this link for attendee registration.";
+    }
+
+    const courseLede = $("adminCourseScheduleLede");
+    if (courseLede) {
+      courseLede.innerHTML = vis.showVenueCourseField
+        ? "Set date, status (draft / live / closed), and default venue or course when your format uses it. <b>Tournament</b> events also use <b>Starts & assignments</b> next."
+        : "Set date and status (draft / live / closed). Venue or course is optional for this event type.";
+    }
+
+    const rosterLede = $("adminRosterSignupLede");
+    if (rosterLede) {
+      rosterLede.textContent = vis.showTeamRegistrationOptions
+        ? "Decide how names get on the list—public link, optional bulk spreadsheet, or both—and who receives confirmations."
+        : "Decide how attendees get on the list—public link, optional bulk spreadsheet, or both—and who receives confirmations.";
+    }
+
+    const entryLabel = $("adminEntryModeLabel");
+    const entryHint = $("adminEntryModeHint");
+    if (entryLabel && entryHint) {
+      if (vis.showTeamRegistrationOptions) {
+        entryLabel.textContent = "Team Setup";
+        entryHint.textContent = "Choose how participants join this event (on-site vs pre-registration).";
+      } else if (eventTypeKey === REGISTRATION_PAGE_EVENT_CLINIC) {
+        entryLabel.textContent = "Check-in style";
+        entryHint.textContent = "Choose whether attendees register ahead of time or sign in on site.";
+      } else if (eventTypeKey === REGISTRATION_PAGE_EVENT_CAMP) {
+        entryLabel.textContent = "Participant signup style";
+        entryHint.textContent = "Choose whether participants enroll ahead of time or sign in on site.";
+      } else {
+        entryLabel.textContent = "Registration style";
+        entryHint.textContent = "Choose whether people register ahead of time or check in on site.";
+      }
+    }
+
+    const scoringLede = $("adminScoringSectionLede");
+    if (scoringLede && vis.showFormatSection) {
+      scoringLede.textContent =
+        "Competition format and scoring—primarily for golf. Clinics, camps, or general events can leave unused fields at default.";
+    }
+
+    const callout = $("adminEventTypeCallout");
+    if (callout) {
+      if (isTournamentEventType(eventTypeKey)) {
+        callout.classList.add("hidden");
+        callout.textContent = "";
+      } else {
+        callout.classList.remove("hidden");
+        if (eventTypeKey === REGISTRATION_PAGE_EVENT_CLINIC) {
+          callout.innerHTML =
+            "<b>Clinic setup</b> — Registration and roster use <b>attendee</b> rows (name, contact, optional session & instructor). Team and scoring tools stay hidden.";
+        } else if (eventTypeKey === REGISTRATION_PAGE_EVENT_CAMP) {
+          callout.innerHTML =
+            "<b>Camp setup</b> — Registration and roster use <b>participant</b> rows with optional session, group, and instructor fields. Golf scoring stays hidden.";
+        } else {
+          callout.innerHTML =
+            "<b>General event</b> — Keep setup simple: date, status, roster source, and a flexible attendee registration form.";
+        }
+      }
+    }
+
+    console.info("[admin] event type visibility applied", {
+      normalizedEventType: eventTypeKey,
+      visibility: vis,
+      hiddenSections: hidden,
+      visibleSections: shown,
+    });
+  }
+
   function syncEventCategoryAdminUI(){
-    const golf = isGolfEventCategory({ eventCategory: $("eventCategory")?.value ?? "" });
-    const sec = $("golfStartAssignmentSection");
-    if (sec) sec.classList.toggle("hidden", !golf);
+    applyAdminEventTypeVisibility();
   }
 
   function syncRegistrantSourceAdminUI(){
@@ -2101,16 +2260,18 @@
 
   function registrantSourceSummary(){
     const v = String($("registrantSourceMode")?.value || REGISTRANT_SOURCE_MODE_BOTH).toLowerCase();
-    if (v === REGISTRANT_SOURCE_MODE_LINK) return "Registration link";
-    if (v === REGISTRANT_SOURCE_MODE_UPLOAD) return "Spreadsheet upload";
-    return "Link + upload";
+    if (v === REGISTRANT_SOURCE_MODE_LINK) return "Registration Link";
+    if (v === REGISTRANT_SOURCE_MODE_UPLOAD) return "Spreadsheet Upload";
+    return "Link + Upload";
   }
 
   function buildAdminSummaryLine(){
     const parts = [];
+    const eventTypeKey = resolveAdminEventTypeKey();
+    const vis = getEventTypeVisibility(eventTypeKey);
     const isGolf = isGolfEventCategory({ eventCategory: $("eventCategory")?.value ?? "" });
 
-    const catLabel = selectOptionText("eventCategory") || "Event";
+    const catLabel = getEventTypeDisplayLabelFromStoredCategory($("eventCategory")?.value ?? "");
     parts.push(catLabel);
 
     const name = String($("tournamentName")?.value || "").trim();
@@ -2118,21 +2279,21 @@
       parts.push(name.length > 40 ? `${name.slice(0, 38)}…` : name);
     }
 
-    if (isGolf) {
+    if (vis.showFormatSection && isGolf) {
       const fmt = String($("formatOfPlay")?.value || "").trim();
       if (fmt) parts.push(fmt);
     }
 
     const course = selectOptionText("defaultCourse");
-    if (course) parts.push(course);
+    if (course && vis.showVenueCourseField) parts.push(course);
 
-    if (isGolf) {
+    if (vis.showStartsAssignmentsSection && isGolf) {
       const st = String($("startType")?.value || "shotgun").toLowerCase();
-      parts.push(st === "tee_times" ? "Tee times" : "Shotgun start");
-    } else {
+      parts.push(st === "tee_times" ? "Tee Times" : "Shotgun Start");
+    } else if (!vis.showTeamRegistrationOptions) {
       const em = String($("entryMode")?.value || "").toLowerCase();
-      if (em === "onsite" || em === "individual" || em === "team_rep") parts.push("On-site entry");
-      else parts.push("Pre-registration");
+      if (em === "onsite" || em === "individual" || em === "team_rep") parts.push("On-Site Entry");
+      else parts.push("Pre-Registration");
     }
 
     parts.push(registrantSourceSummary());

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Roster (Organizer)</title>
+  <title>Roster</title>
 
   <meta name="theme-color" content="#0d2a55" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Barlow:wght@500;600;700;800&family=Playfair+Display:wght@600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
@@ -318,6 +318,8 @@
     }
 
     .modal.show{ display:flex; }
+
+    .hidden{ display:none !important; }
 
     .sheet{
       width:min(760px,100%);
@@ -922,7 +924,7 @@
     <div class="top">
       <div class="topRow">
         <div>
-          <h1 id="title">Tournament Roster</h1>
+          <h1 id="title">Roster</h1>
           <div class="meta" id="meta">Loading…</div>
         </div>
 
@@ -933,6 +935,7 @@
           <button type="button" class="btn" id="rulesSheetBtn">📄 Rules Sheet</button>
           <a class="btn" id="leaderBtn" href="./leaderboard.html">🏆 Leaderboard</a>
           <a class="btn" id="joinBtn" href="./index.html">👥 Join</a>
+          <button type="button" class="btn hidden" id="printAttendanceBtn">🖨 Print Sign-In Sheet</button>
         </div>
       </div>
 
@@ -968,10 +971,10 @@
       </div>
 
       <div class="summaryRow">
-        <div class="pill">Teams: <b id="teamCount">0</b></div>
-        <div class="pill">Assigned: <b id="assignedCount">0</b></div>
-        <div class="pill"><span id="nextOpenLabel">Next open hole:</span> <b id="openSlotHint">—</b></div>
-        <div class="pill">Unique players: <b id="uniqueCount">0</b></div>
+        <div class="pill"><span id="pillCollectionLabel">Teams</span>: <b id="teamCount">0</b></div>
+        <div class="pill"><span id="pillAssignedLabel">Assigned</span>: <b id="assignedCount">0</b></div>
+        <div class="pill" id="nextOpenPillWrap"><span id="nextOpenLabel">Next open hole:</span> <b id="openSlotHint">—</b></div>
+        <div class="pill"><span id="pillUniqueLabel">Unique players</span>: <b id="uniqueCount">0</b></div>
       </div>
 
       <div class="toolbar">
@@ -1004,11 +1007,11 @@
         <table>
           <thead>
             <tr>
-              <th style="min-width:230px;">Team</th>
-              <th style="min-width:260px;">Players</th>
+              <th style="min-width:230px;" id="thTeamCol">Team</th>
+              <th style="min-width:260px;" id="thPlayersCol">Players</th>
               <th style="min-width:90px;" id="rosterAssignmentHeader">Hole</th>
-              <th style="min-width:120px;">Status</th>
-              <th style="min-width:280px;">Actions</th>
+              <th style="min-width:120px;" id="thStatusCol">Status</th>
+              <th style="min-width:280px;" id="thActionsCol">Actions</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -1053,7 +1056,7 @@
         </div>
 
         <div id="clinicAssignmentFieldWrap" class="hidden" style="grid-column:1/-1;">
-          <div class="sheetGrid" style="grid-template-columns:1fr 1fr;">
+          <div id="rosterSessionTimeRow" class="sheetGrid" style="grid-template-columns:1fr 1fr;">
             <div>
               <label for="sessionInput" class="fieldLabel">Session</label>
               <input id="sessionInput" placeholder="e.g. Morning" />
@@ -1062,11 +1065,13 @@
               <label for="timeSlotInput" class="fieldLabel">Time slot</label>
               <input id="timeSlotInput" placeholder="e.g. 9:00 AM" />
             </div>
+          </div>
+          <div class="sheetGrid" style="grid-template-columns:1fr 1fr; margin-top:8px;">
             <div>
               <label for="groupLabelInput" class="fieldLabel">Group</label>
               <input id="groupLabelInput" />
             </div>
-            <div>
+            <div id="rosterModalInstructorWrap">
               <label for="instructorInput" class="fieldLabel">Instructor</label>
               <input id="instructorInput" />
             </div>
@@ -1150,7 +1155,7 @@
       <div class="sheetHdr">
         <div>
           <p class="sheetTitle">Rules Sheet</p>
-          <div class="sheetSubtle">
+          <div class="sheetSubtle" id="rulesSheetModalLede">
             Editable tournament welcome/rules sheet with auto-filled join and leaderboard links and QR codes.
           </div>
         </div>
@@ -1244,6 +1249,11 @@
   <div id="rulesPrintHost" aria-hidden="true"></div>
 
   <script type="module">
+    /**
+     * Organizer roster reads the same `tournaments/{id}` event document as admin/register-complete.
+     * `rosterPageEventType` comes from resolveRosterPageEventTypeFromDocument (eventType → eventCategory → defaults).
+     * ROSTER_PAGE_UI in tournament-fields.js controls labels, columns, and which tournament-only tools are shown.
+     */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getFirestore,
@@ -1278,6 +1288,13 @@
       rosterNextOpenLabel,
       formatRosterAssignmentDisplay,
       compareRosterAssignmentSort,
+      resolveRosterPageEventTypeFromDocument,
+      getRosterPageUiConfig,
+      getEventTypeVisibility,
+      REGISTRATION_PAGE_EVENT_TOURNAMENT,
+      REGISTRATION_PAGE_EVENT_CLINIC,
+      REGISTRATION_PAGE_EVENT_CAMP,
+      REGISTRATION_PAGE_EVENT_GENERAL,
     } from "./js/tournament-fields.js";
 
     const firebaseConfig = {
@@ -1310,6 +1327,7 @@
 
     const leaderBtn = document.getElementById("leaderBtn");
     const joinBtn = document.getElementById("joinBtn");
+    const printAttendanceBtn = document.getElementById("printAttendanceBtn");
 
     const refreshBtn = document.getElementById("refreshBtn");
     const copyBtn = document.getElementById("copyBtn");
@@ -1328,6 +1346,14 @@
     const assignedCountEl = document.getElementById("assignedCount");
     const openSlotHintEl = document.getElementById("openSlotHint");
     const uniqueCountEl = document.getElementById("uniqueCount");
+    const pillCollectionLabel = document.getElementById("pillCollectionLabel");
+    const pillAssignedLabel = document.getElementById("pillAssignedLabel");
+    const pillUniqueLabel = document.getElementById("pillUniqueLabel");
+    const nextOpenPillWrap = document.getElementById("nextOpenPillWrap");
+    const thTeamCol = document.getElementById("thTeamCol");
+    const thPlayersCol = document.getElementById("thPlayersCol");
+    const thStatusCol = document.getElementById("thStatusCol");
+    const thActionsCol = document.getElementById("thActionsCol");
 
     const tbody = document.getElementById("tbody");
     const emptyState = document.getElementById("emptyState");
@@ -1405,6 +1431,86 @@
     /* ---------------------------------------------------- */
 
     let tournamentMeta = null;
+    /** tournament | clinic | camp | event — from event document (eventType / eventCategory) */
+    let rosterPageEventType = REGISTRATION_PAGE_EVENT_TOURNAMENT;
+
+    function getRosterUi(){
+      return getRosterPageUiConfig(rosterPageEventType);
+    }
+
+    /**
+     * Applies centralized ROSTER_PAGE_UI: titles, column labels, which golf-only tools show, and status filter options.
+     * eventType on the Firestore event doc is the source of truth (see resolveRosterPageEventTypeFromDocument).
+     */
+    function applyRosterShell(){
+      const ui = getRosterUi();
+      document.title = ui.pageTitle;
+      if (title) title.textContent = String(ui.heading || "Roster").toUpperCase();
+      if (searchInput) searchInput.placeholder = ui.searchPlaceholder || "";
+      if (pillCollectionLabel) pillCollectionLabel.textContent = ui.collectionLabel || "Teams";
+      if (pillAssignedLabel) pillAssignedLabel.textContent = ui.assignedPillLabel || "Assigned";
+      if (pillUniqueLabel) pillUniqueLabel.textContent = ui.uniqueCountLabel || "Unique players";
+      if (nextOpenPillWrap) nextOpenPillWrap.classList.toggle("hidden", !ui.showNextSlotPill);
+      if (thTeamCol) thTeamCol.textContent = ui.teamColumnLabel || "Team";
+      if (thPlayersCol) thPlayersCol.textContent = ui.playersColumnLabel || "Players";
+      if (thStatusCol) thStatusCol.textContent = "Status";
+      if (thActionsCol) thActionsCol.textContent = "Actions";
+      if (leaderBtn) leaderBtn.classList.toggle("hidden", !ui.showLeaderboardActions);
+      if (rulesSheetBtn) rulesSheetBtn.classList.toggle("hidden", !ui.showRulesSheetPrint);
+      if (printPlacardsBtn) printPlacardsBtn.classList.toggle("hidden", !ui.showPrintPlacards);
+      if (joinBtn) joinBtn.classList.toggle("hidden", !ui.showJoinLinkAction);
+      if (printAttendanceBtn) {
+        printAttendanceBtn.classList.toggle("hidden", !ui.showPrintAttendance);
+        printAttendanceBtn.textContent = ui.printAttendanceLabel || "🖨 Print";
+      }
+      if (alertOrganizerBox) alertOrganizerBox.style.display = ui.showAlertOrganizer ? "block" : "none";
+      populateStatusFilter();
+      if (copyBtn) copyBtn.textContent = ui.copyRosterLabel || "📋 Copy";
+      if (copyAlphaBtn) copyAlphaBtn.textContent = ui.copyAlphaLabel || "📋 Copy Alpha";
+      if (addTeamBtn) addTeamBtn.textContent = ui.addEntryLabel || "➕ Add";
+      if (saveTeamBtn) saveTeamBtn.textContent = ui.saveEntryButtonLabel || "💾 Save";
+      if (statusInput) {
+        statusInput.innerHTML = "";
+        (ui.statusFilterOptions || [])
+          .filter((o) => o.value !== "all")
+          .forEach((o) => {
+            const opt = document.createElement("option");
+            opt.value = o.value;
+            opt.textContent = o.label;
+            statusInput.appendChild(opt);
+          });
+      }
+      const vis = ui.visibility || getEventTypeVisibility(rosterPageEventType);
+      console.info("[roster] UI shell", {
+        rosterPageEventType,
+        normalizedEventType: rosterPageEventType,
+        visibility: vis,
+        pageTitle: ui.pageTitle,
+        showLeaderboard: ui.showLeaderboardActions,
+        showScoringColumns: ui.showScoringColumns,
+        showPrintPlacards: ui.showPrintPlacards,
+        showPrintAttendance: ui.showPrintAttendance,
+        hiddenSections: Object.entries(vis)
+          .filter(([, v]) => v === false)
+          .map(([k]) => k),
+        visibleSections: Object.entries(vis)
+          .filter(([, v]) => v === true)
+          .map(([k]) => k),
+      });
+    }
+
+    function populateStatusFilter(){
+      const ui = getRosterUi();
+      const opts = ui.statusFilterOptions || [];
+      if (!statusFilter || !opts.length) return;
+      statusFilter.innerHTML = "";
+      opts.forEach((o) => {
+        const opt = document.createElement("option");
+        opt.value = o.value;
+        opt.textContent = o.label;
+        statusFilter.appendChild(opt);
+      });
+    }
     let scoreEditDeviceId = "";
     let scoreEditPlayerCount = 0;
     let selectedRegistrationId = "";
@@ -1491,20 +1597,37 @@
     }
 
     function normalizeStatus(v){
-      const s=String(v||"").toLowerCase();
-
-      if(["registered","assigned","checked_in","scoring","finished","cancelled"].includes(s))
-        return s;
-
+      const s = String(v || "").toLowerCase();
+      const known = [
+        "registered",
+        "assigned",
+        "checked_in",
+        "scoring",
+        "finished",
+        "cancelled",
+        "confirmed",
+        "attended",
+        "no_show",
+      ];
+      if (known.includes(s)) return s;
       return "registered";
     }
 
     function humanStatus(v){
-      const s=normalizeStatus(v);
-
-      if(s==="checked_in") return "Checked In";
-
-      return s.charAt(0).toUpperCase()+s.slice(1);
+      const s = normalizeStatus(v);
+      const map = {
+        registered: "Registered",
+        assigned: "Assigned",
+        checked_in: "Checked In",
+        scoring: "Scoring",
+        finished: "Finished",
+        cancelled: "Cancelled",
+        confirmed: "Confirmed",
+        attended: "Attended",
+        no_show: "No-show",
+      };
+      if (map[s]) return map[s];
+      return s.charAt(0).toUpperCase() + s.slice(1);
     }
 
     /* ---------------------------------------------------- */
@@ -1616,10 +1739,30 @@
       const tee = golf && isTeeTimesTournament();
       if (rosterAssignmentHeader) rosterAssignmentHeader.textContent = rosterAssignmentColumnTitle(tournamentMeta);
       if (nextOpenLabel) nextOpenLabel.textContent = rosterNextOpenLabel(tournamentMeta);
+      const uiEarly = getRosterUi();
+      const visEarly = uiEarly.visibility || getEventTypeVisibility(rosterPageEventType);
+      const stRow = document.getElementById("rosterSessionTimeRow");
+      const insWrap = document.getElementById("rosterModalInstructorWrap");
+      if (!golf && stRow && insWrap) {
+        stRow.classList.toggle("hidden", !uiEarly.showSessionFields);
+        insWrap.classList.toggle("hidden", !uiEarly.showInstructorFields);
+      }
+
       if (rosterFooterHint) {
         if (!golf) {
-          rosterFooterHint.innerHTML =
-            "<b>Registrations</b> are the organizer-managed list. Assignment shows session, time slot, and group when provided.";
+          if (rosterPageEventType === REGISTRATION_PAGE_EVENT_CLINIC) {
+            rosterFooterHint.innerHTML =
+              "<b>Registrations</b> are the organizer-managed attendee list. Columns can include session, time slot, group, and instructor when provided.";
+          } else if (rosterPageEventType === REGISTRATION_PAGE_EVENT_CAMP) {
+            rosterFooterHint.innerHTML =
+              "<b>Registrations</b> are the organizer-managed participant list. Columns can include session, group, and instructor when provided.";
+          } else if (rosterPageEventType === REGISTRATION_PAGE_EVENT_GENERAL) {
+            rosterFooterHint.innerHTML =
+              "<b>Registrations</b> are the organizer-managed list. Use contact and notes fields to track registrants.";
+          } else {
+            rosterFooterHint.innerHTML =
+              "<b>Registrations</b> are the organizer-managed list. Assignment shows session, time slot, and group when provided.";
+          }
         } else if (tee) {
           rosterFooterHint.innerHTML =
             "<b>Registrations</b> are the organizer-managed list. <b>Join link</b> rows are live scorecards from the index page (<code>submissions</code>). This event uses <b>tee times</b> (sorted by clock time).";
@@ -1639,7 +1782,18 @@
           teeTimeFieldWrap.classList.toggle("hidden", !tee);
         }
       }
-      if (autoAssignBtn) autoAssignBtn.classList.toggle("hidden", !golf);
+      if (autoAssignBtn) autoAssignBtn.classList.toggle("hidden", !golf || !uiEarly.showStartingHole);
+
+      const rulesLede = document.getElementById("rulesSheetModalLede");
+      if (rulesLede) {
+        if (visEarly.showRulesSheetPrint) {
+          rulesLede.textContent =
+            "Editable tournament welcome/rules sheet with auto-filled join and leaderboard links and QR codes.";
+        } else {
+          rulesLede.textContent =
+            "Rules-style handouts are hidden for this event type. Use Print Sign-In / Attendance from the toolbar when available.";
+        }
+      }
     }
 
     /* ---------------------------------------------------- */
@@ -1976,6 +2130,67 @@
       });
     }
 
+    /** Attendance / sign-in style printout for clinic, camp, and general events (not tournament placards). */
+    function printAttendanceSheet(){
+      const ui = getRosterUi();
+      const rows = buildRosterRows().filter(
+        (r) => !r.isSubmission && normalizeStatus(r.status) !== "cancelled"
+      );
+      if (!rows.length){
+        alert("Nothing to print yet.");
+        return;
+      }
+      const title = escapeHtml(placardTournamentTitle());
+      const date = escapeHtml(norm(tournamentMeta?.eventDate || tournamentMeta?.date || ""));
+      const thead = ui.showContactInTable
+        ? "<tr><th>Group / name</th><th>Email</th><th>Phone</th><th>Session / time</th><th>Status</th><th>Notes</th></tr>"
+        : "<tr><th>Team</th><th>Participants</th><th>Assignment</th><th>Status</th></tr>";
+
+      const body = rows
+        .map((r) => {
+          const nm = escapeHtml(norm(r.teamName || r.captainName || "—"));
+          const pl = escapeHtml(normalizePlayers(r.players).join(", ") || "—");
+          const as = escapeHtml(formatRosterAssignmentDisplay(r, tournamentMeta));
+          const st = escapeHtml(humanStatus(normalizeStatus(r.status)));
+          const notes = escapeHtml(String(r.notes || "").slice(0, 200));
+          if (ui.showContactInTable) {
+            return `<tr><td>${nm}</td><td>${escapeHtml(r.captainEmail || "")}</td><td>${escapeHtml(
+              r.captainPhone || ""
+            )}</td><td>${as}</td><td>${st}</td><td>${notes}</td></tr>`;
+          }
+          return `<tr><td>${nm}</td><td>${pl}</td><td>${as}</td><td>${st}</td></tr>`;
+        })
+        .join("");
+
+      const w = window.open("", "_blank");
+      if (!w) {
+        alert("Pop-up blocked — allow pop-ups to print.");
+        return;
+      }
+      w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
+    <style>
+      body{font-family:system-ui,sans-serif;padding:16px;color:#111;}
+      h1{font-size:18px;margin:0 0 8px;}
+      .sub{color:#444;font-size:13px;margin-bottom:14px;}
+      table{width:100%;border-collapse:collapse;font-size:12px;}
+      th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top;}
+      th{background:#f0f0f0;}
+    </style></head><body>
+    <h1>${title}</h1>
+    <div class="sub">${date}</div>
+    <table><thead>${thead}</thead><tbody>${body}</tbody></table>
+    </body></html>`);
+      w.document.close();
+      w.focus();
+      try {
+        w.print();
+      } catch (e) {
+        console.error(e);
+      }
+      w.close();
+      console.info("[roster] printed attendance sheet", { rows: rows.length, ui: rosterPageEventType });
+    }
+
     function rosterAssignmentLabel(r){
       if (!isGolfEventCategory(tournamentMeta)) {
         const d = formatRosterAssignmentDisplay(r, tournamentMeta);
@@ -2018,11 +2233,14 @@
 
     function registrationsToText(){
       const lines=[];
+      const ui = getRosterUi();
+      const eventTitle = norm(
+        tournamentMeta?.tournamentName || tournamentMeta?.name || tournamentMeta?.eventTitle || "Event"
+      );
+      lines.push(`${ui.heading || "Roster"}: ${eventTitle}`);
 
-      lines.push(`Tournament: ${(tournamentMeta?.name || "Tournament")}`);
-
-      if(tournamentMeta?.date)
-        lines.push(`Date: ${tournamentMeta.date}`);
+      if(tournamentMeta?.date || tournamentMeta?.eventDate)
+        lines.push(`Date: ${tournamentMeta.eventDate || tournamentMeta.date}`);
 
       lines.push("");
 
@@ -2063,11 +2281,14 @@
 
     function registrationsToTextAlpha(){
       const lines=[];
+      const ui = getRosterUi();
+      const eventTitle = norm(
+        tournamentMeta?.tournamentName || tournamentMeta?.name || tournamentMeta?.eventTitle || "Event"
+      );
+      lines.push(`${ui.heading || "Roster"}: ${eventTitle}`);
 
-      lines.push(`Tournament: ${(tournamentMeta?.name || "Tournament")}`);
-
-      if(tournamentMeta?.date)
-        lines.push(`Date: ${tournamentMeta.date}`);
+      if(tournamentMeta?.date || tournamentMeta?.eventDate)
+        lines.push(`Date: ${tournamentMeta.eventDate || tournamentMeta.date}`);
 
       lines.push("Sort: Alphabetical by player (A–Z)");
       lines.push("");
@@ -2125,7 +2346,19 @@
           tournamentMeta.organizationId || tournamentMeta.orgId || ""
         ).trim();
         if (canon) orgId = canon;
-        meta.textContent=`${tournamentMeta.name || "Tournament"} • ${tournamentMeta.date || ""}`;
+        rosterPageEventType = resolveRosterPageEventTypeFromDocument(tournamentMeta);
+        applyRosterShell();
+        const displayName = norm(
+          tournamentMeta.tournamentName || tournamentMeta.name || tournamentMeta.eventTitle || "Event"
+        );
+        const displayDate = norm(tournamentMeta.eventDate || tournamentMeta.date || "");
+        meta.textContent = displayDate ? `${displayName} • ${displayDate}` : displayName;
+        console.info("[roster] event document", {
+          eventTypeField: tournamentMeta.eventType,
+          eventCategoryField: tournamentMeta.eventCategory,
+          rosterPageEventType,
+          rosterUi: getRosterUi(),
+        });
         syncRosterAssignmentModeUI();
       }
 
@@ -2153,7 +2386,7 @@
 
     function resetModal(){
       editingId=null;
-      modalTitle.textContent="Add Team";
+      modalTitle.textContent = getRosterUi().modalAddTitle || "Add";
       teamNameInput.value="";
       assignedHoleInput.value="";
       if (teeTimeInput) teeTimeInput.value="";
@@ -2182,7 +2415,7 @@
 
       syncRosterAssignmentModeUI();
       editingId=id;
-      modalTitle.textContent="Edit Team";
+      modalTitle.textContent = getRosterUi().modalEditTitle || "Edit";
       teamNameInput.value=r.teamName || "";
       assignedHoleInput.value=r.assignedHole || "";
       if (teeTimeInput) teeTimeInput.value = String(r.teeTime || "").trim();
@@ -2479,7 +2712,7 @@
       if(!tournamentId) return;
 
       if (!isGolfEventCategory(tournamentMeta)){
-        alert("Auto-assign holes and tee times applies to golf tournaments only.");
+        alert("Auto-assign holes and tee times applies to Tournament events only.");
         return;
       }
 
@@ -2761,12 +2994,15 @@
         const hay=[
           r.teamName || "",
           r.captainName || "",
+          r.captainEmail || "",
+          r.captainPhone || "",
           r.assignedHole || "",
           r.teeTime || "",
           r.session || "",
           r.timeSlot || "",
           r.groupLabel || r.group || "",
           r.instructor || "",
+          r.notes || "",
           status,
           ...(Array.isArray(r.players) ? r.players : [])
         ].join(" ").toLowerCase();
@@ -2776,9 +3012,12 @@
     }
 
     function rowHtml(r){
-      const status=normalizeStatus(r.status);
-      const players=normalizePlayers(r.players);
-      const captain=norm(r.captainName || "");
+      const ui = getRosterUi();
+      const status = normalizeStatus(r.status);
+      const players = normalizePlayers(r.players);
+      const captain = norm(r.captainName || "");
+      const em = norm(r.captainEmail || "");
+      const ph = norm(r.captainPhone || "");
       const subNote = r.isSubmission
         ? `<div class="captainLine" style="opacity:.85;">Join link scorecard</div>`
         : r.liveFromSubmission
@@ -2788,12 +3027,20 @@
       const joinRegId = r.isSubmission ? norm(r.registrationId || "") : norm(r.id || "");
       const teamJoinUrl = buildTeamJoinUrl(joinRegId);
       const teamJoinHref = teamJoinUrl ? escapeHtml(teamJoinUrl) : "";
+      const showJoinCard = !!teamJoinHref && ui.showJoinLinkAction;
+      const hcpOn =
+        ui.showHandicapInTable &&
+        String(tournamentMeta?.handicapEnabled || "").toLowerCase() === "on";
+
+      const captainLabel = ui.showTeams ? "Captain" : "Primary";
 
       return `
         <tr data-id="${r.id}" ${r.isSubmission ? `data-submission="1"` : ""}>
           <td>
-            <div class="teamName">${r.teamName || "—"}</div>
-            ${captain ? `<div class="captainLine">Captain: ${captain}</div>` : ``}
+            <div class="teamName">${escapeHtml(r.teamName || "—")}</div>
+            ${captain ? `<div class="captainLine">${captainLabel}: ${escapeHtml(captain)}</div>` : ``}
+            ${ui.showContactInTable && em ? `<div class="captainLine" style="opacity:.9;">${escapeHtml(em)}</div>` : ``}
+            ${ui.showContactInTable && ph ? `<div class="captainLine" style="opacity:.9;">${escapeHtml(ph)}</div>` : ``}
             ${subNote}
           </td>
 
@@ -2808,13 +3055,14 @@
                           )
                         : null;
 
-                      const handicapText = detail
-                        ? ` <span style="opacity:.78;">(HCP: ${Number(detail.handicap || 0)})</span>`
-                        : "";
+                      const handicapText =
+                        detail && hcpOn
+                          ? ` <span style="opacity:.78;">(HCP: ${Number(detail.handicap || 0)})</span>`
+                          : "";
 
-                      return `<div class="playerItem">${p}${handicapText}</div>`;
+                      return `<div class="playerItem">${escapeHtml(p)}${handicapText}</div>`;
                     }).join("")
-                  : `<div class="captainLine">No players listed</div>`
+                  : `<div class="captainLine">No ${escapeHtml((ui.entityLabel || "players").toLowerCase())} yet</div>`
               }
             </div>
           </td>
@@ -2832,18 +3080,22 @@
           <td>
             <div class="rowActions">
               ${
-                teamJoinHref
+                showJoinCard
                   ? `<a class="miniBtn" href="${teamJoinHref}" target="_blank" rel="noopener">📱 Team card</a>`
                   : ``
               }
-              <button type="button" class="miniBtn rowScorecardBtn" data-row-id="${r.id}">📊 Edit Scorecard</button>
+              ${
+                ui.showScoringColumns
+                  ? `<button type="button" class="miniBtn rowScorecardBtn" data-row-id="${r.id}">📊 Edit Scorecard</button>`
+                  : ``
+              }
               ${
                 r.isSubmission
                   ? `<span class="pill" style="font-size:11px;">Live (Firestore)</span>`
                   : `
               <button class="miniBtn rowEditBtn" data-id="${r.id}">✏️ Edit</button>
               ${
-                isGolfEventCategory(tournamentMeta)
+                isGolfEventCategory(tournamentMeta) && ui.showStartingHole
                   ? `<button class="miniBtn rowHoleBtn" data-id="${r.id}">⛳ Change Hole</button>`
                   : ``
               }
@@ -2906,7 +3158,10 @@
 
       tbody.innerHTML=filtered.map(rowHtml).join("");
       emptyState.style.display=filtered.length ? "none" : "block";
-      textOut.textContent=registrationsToText() || "No teams yet.";
+      if (!filtered.length) {
+        emptyState.textContent = getRosterUi().emptyState || "No rows yet.";
+      }
+      textOut.textContent=registrationsToText() || getRosterUi().emptyState || "No rows yet.";
 
       tbody.querySelectorAll(".rowEditBtn").forEach(btn=>{
         btn.addEventListener("click",()=>{
@@ -3430,7 +3685,7 @@
       try{
         await navigator.clipboard.writeText(textOut.textContent || "");
         copyBtn.textContent="✅ Copied";
-        setTimeout(()=>copyBtn.textContent="📋 Copy Roster",900);
+        setTimeout(()=>{ copyBtn.textContent = getRosterUi().copyRosterLabel || "📋 Copy"; },900);
       }catch(e){
         alert("Copy blocked. Select the text and copy manually.");
       }
@@ -3440,7 +3695,7 @@
       try{
         await navigator.clipboard.writeText(registrationsToTextAlpha() || "");
         copyAlphaBtn.textContent="✅ Copied";
-        setTimeout(()=>copyAlphaBtn.textContent="📋 Copy Alpha List",900);
+        setTimeout(()=>{ copyAlphaBtn.textContent = getRosterUi().copyAlphaLabel || "📋 Copy Alpha"; },900);
       }catch(e){
         alert("Copy blocked. Select the text in the box and copy manually.");
       }
@@ -3459,6 +3714,7 @@
     deleteTeamBtn.addEventListener("click", deleteEditingTeam);
     autoAssignBtn.addEventListener("click", autoAssignMissingHoles);
     if (printPlacardsBtn) printPlacardsBtn.addEventListener("click", startPlacardPrintMode);
+    if (printAttendanceBtn) printAttendanceBtn.addEventListener("click", printAttendanceSheet);
 
     teamModal.addEventListener("click",(e)=>{
       if(e.target===teamModal) closeModal();
@@ -3509,6 +3765,7 @@
     /* BOOT */
     /* ---------------------------------------------------- */
 
+    applyRosterShell();
     await loadTournamentMeta();
     selectedRegistrationId = loadSelectedRegistrationId();
 
@@ -3545,14 +3802,26 @@
             id: d.id,
             teamName: norm(x.teamName || x.group || ""),
             captainName: norm(x.captainName || ""),
+            captainEmail: norm(x.captainEmail || ""),
+            captainPhone: norm(x.captainPhone || ""),
             players: rawPlayers,
             playerDetails,
             assignedHole: normalizeHoleLabel(x.assignedHole || x.startHole || ""),
+            teeTime: norm(x.teeTime || ""),
+            session: norm(x.session || ""),
+            timeSlot: norm(x.timeSlot || ""),
+            groupLabel: norm(x.groupLabel || x.group || ""),
+            instructor: norm(x.instructor || ""),
+            notes: String(x.notes || "").trim(),
             status: normalizeStatus(x.status || "registered"),
             createdAt: x.createdAt || null,
             updatedAt: x.updatedAt || null
           });
         });
+
+        if (registrations.length) {
+          console.info("[roster] registration row shape (sample keys)", Object.keys(registrations[0]));
+        }
 
         render();
 

@@ -30,6 +30,7 @@
     .item-title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 6px; }
     .item h2 { margin: 0; font-size: 1.15rem; }
     .archived-badge { font-size: 0.72rem; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; background: rgba(108,100,92,.25); color: #4a433c; padding: 4px 10px; border-radius: 999px; border: 2px solid rgba(108,100,92,.4); }
+    .event-type-badge { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; background: rgba(18, 53, 111, 0.1); color: var(--blue); padding: 4px 10px; border-radius: 999px; border: 2px solid rgba(18, 53, 111, 0.35); }
     .item .sub { color: #5f5851; font-size: 0.9rem; margin-bottom: 10px; }
     .links { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
     .links a { font-size: 0.88rem; font-weight: 800; color: var(--blue); }
@@ -200,6 +201,7 @@
       isOfflineLikeFirestoreError,
     } from "./js/resolve-organizer-org.js";
     import { buildPublicCourseScorecardUrl } from "./js/public-course-links.js";
+    import { getEventTypeDisplayLabelFromStoredCategory } from "./js/tournament-fields.js";
 
     const DASHBOARD_ADMIN_ORG_KEY = "dashboardAdminOrgId";
     const ADMIN_LAST_TOURNAMENT_KEY = "tournament_admin_last_id_v1";
@@ -650,6 +652,13 @@
       const h2 = document.createElement("h2");
       h2.textContent = r.name;
       titleRow.appendChild(h2);
+      const typeBadge = document.createElement("span");
+      typeBadge.className = "event-type-badge";
+      typeBadge.textContent = getEventTypeDisplayLabelFromStoredCategory({
+        eventCategory: r.eventCategory,
+        eventType: r.eventType,
+      });
+      titleRow.appendChild(typeBadge);
       if (r.archived) {
         const badge = document.createElement("span");
         badge.className = "archived-badge";
@@ -727,7 +736,15 @@
         const name = t.tournamentName || t.name || d.id;
         const date = t.eventDate || t.date || "";
         const links = tournamentLinks(oid, d.id);
-        rows.push({ id: d.id, name, date, links, archived });
+        rows.push({
+          id: d.id,
+          name,
+          date,
+          links,
+          archived,
+          eventCategory: t.eventCategory,
+          eventType: t.eventType,
+        });
       });
       rows.sort((a, b) => String(b.id).localeCompare(String(a.id)));
 

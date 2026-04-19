@@ -535,7 +535,7 @@ function resolveEventCategory(tournament) {
 
 function legacySourceFieldFromRegistrantSource(registrantSource) {
   const rs = String(registrantSource || "web_registration").toLowerCase();
-  if (rs === "web_registration") return "register-complete";
+  if (rs === "web_registration" || rs === "direct_registration") return "register-complete";
   return rs;
 }
 
@@ -596,6 +596,11 @@ function buildRegistrationDocument(tournament, tournamentId, clientData, assignm
   const isAssigned = !!assignedHole || !!teeTime;
 
   const registrantSource = safeText(clientData.registrantSource, "web_registration");
+  const acRaw = Number(clientData.attendeeCount);
+  const attendeeCount =
+    clientData.attendeeCount != null && clientData.attendeeCount !== "" && Number.isFinite(acRaw) && acRaw >= 0
+      ? Math.floor(acRaw)
+      : null;
 
   const doc = {
     tournamentId: safeText(tournamentId),
@@ -613,6 +618,12 @@ function buildRegistrationDocument(tournament, tournamentId, clientData, assignm
     handicapEnabled: handicapOn,
     handicapPercent: handicapOn ? Number(t.handicapPercent || clientData.handicapPercent || 100) : 0,
     notes: safeText(clientData.notes, ""),
+    session: safeText(clientData.session, ""),
+    timeSlot: safeText(clientData.timeSlot, ""),
+    instructor: safeText(clientData.instructor, ""),
+    groupLabel: safeText(clientData.groupLabel, ""),
+    registrationUiEventType: safeText(clientData.registrationUiEventType, ""),
+    attendeeCount,
     assignedHole,
     status: isAssigned ? "assigned" : "registered",
     registrantSource,
@@ -654,6 +665,11 @@ function buildPlainRegistrationForClient(tournament, tournamentId, clientData, a
   const isAssigned = !!assignedHole || !!teeTime;
 
   const registrantSource = safeText(clientData.registrantSource, "web_registration");
+  const acRaw2 = Number(clientData.attendeeCount);
+  const attendeeCountPlain =
+    clientData.attendeeCount != null && clientData.attendeeCount !== "" && Number.isFinite(acRaw2) && acRaw2 >= 0
+      ? Math.floor(acRaw2)
+      : null;
 
   const plain = {
     tournamentId: safeText(tournamentId),
@@ -671,6 +687,12 @@ function buildPlainRegistrationForClient(tournament, tournamentId, clientData, a
     handicapEnabled: handicapOn,
     handicapPercent: handicapOn ? Number(t.handicapPercent || clientData.handicapPercent || 100) : 0,
     notes: safeText(clientData.notes, ""),
+    session: safeText(clientData.session, ""),
+    timeSlot: safeText(clientData.timeSlot, ""),
+    instructor: safeText(clientData.instructor, ""),
+    groupLabel: safeText(clientData.groupLabel, ""),
+    registrationUiEventType: safeText(clientData.registrationUiEventType, ""),
+    attendeeCount: attendeeCountPlain,
     assignedHole,
     status: isAssigned ? "assigned" : "registered",
     registrantSource,
@@ -805,6 +827,12 @@ exports.registerTeam = onCall(
         handicapEnabled: data.handicapEnabled,
         handicapPercent: data.handicapPercent,
         registrantSource: safeText(data.registrantSource, "web_registration"),
+        session: data.session,
+        timeSlot: data.timeSlot,
+        instructor: data.instructor,
+        groupLabel: data.groupLabel,
+        registrationUiEventType: data.registrationUiEventType,
+        attendeeCount: data.attendeeCount,
       };
 
       const regPayload = buildRegistrationDocument(tournament, tournamentId, clientData, assignment);

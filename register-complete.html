@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Tournament Registration</title>
+  <title>Event registration</title>
 
   <meta name="theme-color" content="#d9d1c2" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -397,7 +397,7 @@
           <div class="course-logo-wrap hidden" id="courseLogoWrap">
             <img id="courseLogoImg" alt="Course logo">
           </div>
-          <div class="course-brand-name" id="courseBrandName">Golf Tournament</div>
+          <div class="course-brand-name" id="courseBrandName">Tournament</div>
         </div>
 
         <h1 class="event-title" id="eventTitle">TOURNAMENT REGISTRATION</h1>
@@ -418,9 +418,11 @@
       <section class="content">
         <div class="notice hidden" id="topNotice"></div>
 
-        <div class="dash-box">
-          <h2 class="dash-title">TEAM REGISTRATION</h2>
+        <div class="dash-box" id="registrationFormRoot">
+          <h2 class="dash-title" id="registrationFormHeading">TEAM REGISTRATION</h2>
+          <p class="hint" id="registrationFormLede" style="margin-top:-6px;"></p>
 
+          <div id="teamFlowRoot">
           <div class="field">
             <label class="label" for="teamName">Team / Company Name</label>
             <input id="teamName" type="text" />
@@ -505,11 +507,53 @@
             <label class="label" for="notes">Notes</label>
             <textarea id="notes"></textarea>
           </div>
+          </div>
 
-          <button class="btn btn-green" id="submitRegistrationBtn" type="button">Submit Registration</button>
+          <div id="attendeeFlowRoot" class="hidden">
+            <div class="field">
+              <label class="label" for="attendeeFullName">Full name</label>
+              <input id="attendeeFullName" type="text" autocomplete="name" />
+            </div>
+            <div class="field">
+              <label class="label" for="attendeeFirstName">First name</label>
+              <input id="attendeeFirstName" type="text" autocomplete="given-name" />
+            </div>
+            <div class="field">
+              <label class="label" for="attendeeLastName">Last name</label>
+              <input id="attendeeLastName" type="text" autocomplete="family-name" />
+            </div>
+            <div class="field">
+              <label class="label" for="attendeeEmail">Email</label>
+              <input id="attendeeEmail" type="email" autocomplete="email" />
+            </div>
+            <div class="field">
+              <label class="label" for="attendeePhone">Phone</label>
+              <input id="attendeePhone" type="tel" autocomplete="tel" />
+            </div>
+            <div id="attendeeSessionFieldsWrap">
+            <div class="field">
+              <label class="label" for="attendeeSession">Session (optional)</label>
+              <input id="attendeeSession" type="text" placeholder="e.g. Morning session" />
+            </div>
+            <div class="field">
+              <label class="label" for="attendeeTimeSlot">Time preference (optional)</label>
+              <input id="attendeeTimeSlot" type="text" placeholder="e.g. 9:00 AM" />
+            </div>
+            </div>
+            <div class="field hidden" id="attendeeInstructorFieldWrap">
+              <label class="label" for="attendeeInstructor">Instructor (optional)</label>
+              <input id="attendeeInstructor" type="text" placeholder="e.g. Teaching pro name" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label class="label" for="attendeeNotes">Notes (optional)</label>
+              <textarea id="attendeeNotes"></textarea>
+            </div>
+          </div>
+
+          <button class="btn btn-green" id="submitRegistrationBtn" type="button" disabled>Submit Registration</button>
 
           <div class="fine-print" id="submitMessage">
-            Your registration will be saved for this tournament.
+            Loading event…
           </div>
         </div>
       </section>
@@ -529,6 +573,12 @@
   </div>
 
 <script type="module">
+    /**
+     * Public registration: loads the event document first, resolves `registrationPageEventType`
+     * (tournament vs clinic/camp/general) via resolveRegistrationPageEventTypeFromDocument, then
+     * shows either the team/golf roster form or the attendee form. Submit always uses the callable
+     * `registerTeam` with a normalized payload (direct_registration + registrationUiEventType).
+     */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getFirestore,
@@ -545,7 +595,11 @@ import {
     import {
       normalizeAssignmentType,
       ASSIGNMENT_TEE_TIMES,
-      REGISTRANT_SOURCE_WEB,
+      REGISTRANT_SOURCE_DIRECT_REGISTRATION,
+      resolveRegistrationPageEventTypeFromDocument,
+      getRegistrationPageUiConfig,
+      getEventTypeVisibility,
+      REGISTRATION_PAGE_EVENT_TOURNAMENT,
     } from "./js/tournament-fields.js";
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
@@ -561,9 +615,16 @@ import {
     const auth = getAuth(app);
     await auth.authStateReady();
 
-if (!auth.currentUser) {
-  console.log("No user — NOT forcing anonymous login");
-}
+    try {
+      if (!auth.currentUser) {
+        const cred = await signInAnonymously(auth);
+        console.info("[registration] anonymous auth ready", { uid: cred?.user?.uid || "(none)" });
+      } else {
+        console.info("[registration] existing auth session", { uid: auth.currentUser.uid });
+      }
+    } catch (authErr) {
+      console.error("[registration] anonymous sign-in failed — submit will be blocked until auth works", authErr);
+    }
 
     const db = getFirestore(app);
     const functions = getFunctions(app, "us-central1");
@@ -574,10 +635,101 @@ const params = new URLSearchParams(location.search);
     const parsed = parseOrgTournamentFromSearch(params);
 
     const state = {
-  orgId: parsed.orgId,
-  tournamentId: parsed.tournamentId,
-  tournament: null
-};
+      orgId: parsed.orgId,
+      tournamentId: parsed.tournamentId,
+      tournament: null,
+      /** idle | loading | ready — ready means fetch settled (tournament may still be null) */
+      tournamentLoadStatus: "idle",
+      /** tournament | clinic | camp | event — driven by loaded event document */
+      registrationPageEventType: REGISTRATION_PAGE_EVENT_TOURNAMENT,
+    };
+
+    function getActiveUiConfig(){
+      return getRegistrationPageUiConfig(state.registrationPageEventType);
+    }
+
+    /**
+     * Event document drives registration mode: team roster vs single-attendee fields.
+     * Updates headings, copy, and which field groups are visible.
+     */
+    function applyRegistrationShell(){
+      const ui = getActiveUiConfig();
+      const vis = getEventTypeVisibility(state.registrationPageEventType);
+      document.title = ui.pageTitle;
+      const headEl = $("registrationFormHeading");
+      if (headEl) headEl.textContent = String(ui.heading || "").toUpperCase();
+      const lede = $("registrationFormLede");
+      if (lede) lede.textContent = ui.helperText || "";
+      const teamRoot = $("teamFlowRoot");
+      const attRoot = $("attendeeFlowRoot");
+      const useTeam = !!ui.useTeamFlow;
+      if (teamRoot) teamRoot.classList.toggle("hidden", !useTeam);
+      if (attRoot) attRoot.classList.toggle("hidden", useTeam);
+
+      const sessWrap = $("attendeeSessionFieldsWrap");
+      if (sessWrap) sessWrap.classList.toggle("hidden", !ui.showAttendeeSessionFields);
+      const instWrap = $("attendeeInstructorFieldWrap");
+      if (instWrap) instWrap.classList.toggle("hidden", !ui.showAttendeeInstructorField);
+
+      const btn = $("submitRegistrationBtn");
+      if (btn && state.tournamentLoadStatus === "ready" && state.tournament) {
+        btn.textContent = ui.submitLabel;
+      }
+      const fp = $("submitMessage");
+      if (fp && state.tournamentLoadStatus === "ready" && state.tournament) {
+        fp.textContent = ui.finePrint;
+      }
+      console.info("[registration] UI config applied", {
+        registrationPageEventType: state.registrationPageEventType,
+        normalizedEventType: state.registrationPageEventType,
+        visibility: vis,
+        useTeamFlow: ui.useTeamFlow,
+        pageTitle: ui.pageTitle,
+        attendeeSessionVisible: !!ui.showAttendeeSessionFields,
+        attendeeInstructorVisible: !!ui.showAttendeeInstructorField,
+      });
+    }
+
+    function syncSubmitEnabled(){
+      const btn = $("submitRegistrationBtn");
+      const msg = $("submitMessage");
+      if (!btn) return;
+      const authReady = !!auth.currentUser;
+      const docReady = state.tournamentLoadStatus === "ready" && !!state.tournament;
+      let blockReason = "";
+      if (!authReady) blockReason = "not_signed_in";
+      else if (state.tournamentLoadStatus === "loading") blockReason = "event_still_loading";
+      else if (!state.tournamentId) blockReason = "missing_event_id";
+      else if (state.tournamentLoadStatus === "ready" && !state.tournament) blockReason = "event_doc_missing";
+      else if (!docReady) blockReason = "event_not_ready";
+      btn.disabled = !authReady || !docReady;
+      if (blockReason && blockReason !== "event_still_loading") {
+        console.info("[registration] submit disabled:", blockReason, {
+          authReady,
+          loadStatus: state.tournamentLoadStatus,
+          hasTournament: !!state.tournament,
+        });
+      }
+      if (msg && state.tournamentLoadStatus === "ready" && !state.tournament && state.tournamentId) {
+        msg.textContent =
+          "This event could not be loaded. Ask the organizer to confirm the registration link (and org id).";
+      }
+    }
+
+    function collectAttendeeDisplayName(){
+      const full = getVal("attendeeFullName");
+      const fn = getVal("attendeeFirstName");
+      const ln = getVal("attendeeLastName");
+      const combined = [fn, ln].filter(Boolean).join(" ").trim();
+      return safeText(full || combined, "");
+    }
+
+    function attendeeFormHasMinimum(){
+      const name = collectAttendeeDisplayName();
+      const email = safeText(getVal("attendeeEmail"), "");
+      const phone = safeText(getVal("attendeePhone"), "");
+      return !!(name || email || phone);
+    }
 
     function showToast(msg){
       const el = $("toast");
@@ -740,7 +892,7 @@ const params = new URLSearchParams(location.search);
     function renderCourseBrand(tournament){
       const courseName = safeText(
         tournament?.courseName || tournament?.defaultCourse,
-        "Golf Tournament"
+        "Tournament"
       );
       const customLogo = safeText(
         tournament?.courseLogoUrl ||
@@ -751,7 +903,7 @@ const params = new URLSearchParams(location.search);
       const branding = getCourseBranding(courseName);
       const logoUrl = normalizeUrl(customLogo || branding.logoUrl || "");
 
-      $("courseBrandName").textContent = branding.brandName || courseName || "Golf Tournament";
+      $("courseBrandName").textContent = branding.brandName || courseName || "Tournament";
 
       if(logoUrl){
         $("courseLogoImg").src = logoUrl;
@@ -816,15 +968,26 @@ const params = new URLSearchParams(location.search);
     }
 
     function renderEventHeader(tournament){
-      const title = safeText(tournament?.tournamentName || tournament?.name, "TOURNAMENT REGISTRATION");
+      const ui = getActiveUiConfig();
+      const title = safeText(tournament?.tournamentName || tournament?.name, ui.pageTitle.toUpperCase());
       const date  = safeText(tournament?.eventDate || tournament?.date, "");
       const course = safeText(tournament?.defaultCourse, "");
       const format = safeText(tournament?.formatOfPlay, "");
 
       $("eventTitle").textContent = title;
 
-      const parts = [date, course, format].filter(Boolean);
-      $("eventMeta").textContent = parts.length ? parts.join(" • ") : "Team and player registration";
+      const parts = [date, course];
+      if (ui.useTeamFlow && format) parts.push(format);
+      const metaDefault = ui.useTeamFlow
+        ? "Team and player registration"
+        : state.registrationPageEventType === "clinic"
+          ? "Attendee registration — session & instructor options may apply"
+          : state.registrationPageEventType === "camp"
+            ? "Participant registration — session & group options may apply"
+            : state.registrationPageEventType === "event"
+              ? "Attendee registration"
+              : "Participant registration";
+      $("eventMeta").textContent = parts.filter(Boolean).length ? parts.filter(Boolean).join(" • ") : metaDefault;
 
       renderCourseBrand(tournament);
       renderSponsorHero(tournament);
@@ -832,9 +995,16 @@ const params = new URLSearchParams(location.search);
     }
 
     function renderMissingTournamentState(message){
-      $("eventTitle").textContent = "TOURNAMENT REGISTRATION";
-      $("eventMeta").textContent = "Team and player registration";
-      $("courseBrandName").textContent = "Golf Tournament";
+      const ui = getActiveUiConfig();
+      $("eventTitle").textContent = safeText(ui.pageTitle, "EVENT REGISTRATION").toUpperCase();
+      $("eventMeta").textContent = ui.useTeamFlow
+        ? "Team and player registration"
+        : state.registrationPageEventType === "clinic"
+          ? "Attendee registration"
+          : state.registrationPageEventType === "camp"
+            ? "Participant registration"
+            : "Attendee registration";
+      $("courseBrandName").textContent = "Tournament";
       setVisible($("courseLogoWrap"), false);
       setVisible($("sponsorHeroWrap"), false);
       hideRegSponsorTicker();
@@ -847,31 +1017,54 @@ const params = new URLSearchParams(location.search);
     }
 
     async function loadTournament(){
+      state.tournamentLoadStatus = "loading";
+      const msgEl = $("submitMessage");
+      if (msgEl) msgEl.textContent = "Loading event…";
+      syncSubmitEnabled();
+
       if(!state.tournamentId){
         state.tournament = null;
+        state.tournamentLoadStatus = "ready";
         setHandicapVisibility(false);
-        renderMissingTournamentState("This registration link is missing a tournament id.");
+        renderMissingTournamentState("This registration link is missing an event id.");
+        applyRegistrationShell();
+        syncSubmitEnabled();
+        console.warn("[registration] load skipped: missing tournament id in URL");
         return;
       }
 
       try{
-        const snap = await getDoc(
-  tournamentDocRef(db, state.orgId, state.tournamentId)
-);
+        const ref = tournamentDocRef(db, state.orgId, state.tournamentId);
+        console.info("[registration] loading event document", { path: ref.path, orgId: state.orgId || "(legacy)", tournamentId: state.tournamentId });
+        const snap = await getDoc(ref);
 
         if(!snap.exists()){
           state.tournament = null;
+          state.tournamentLoadStatus = "ready";
           setHandicapVisibility(false);
-          renderMissingTournamentState("This registration page is ready. Tournament details will appear when available.");
+          renderMissingTournamentState("This event was not found. Check the link or try again later.");
+          applyRegistrationShell();
+          syncSubmitEnabled();
+          console.warn("[registration] event document missing", { tournamentId: state.tournamentId });
           return;
         }
 
         state.tournament = snap.data() || {};
+        state.tournamentLoadStatus = "ready";
         const canonOrg = String(
           state.tournament.organizationId || state.tournament.orgId || ""
         ).trim();
         if (canonOrg) state.orgId = canonOrg;
-        setHandicapVisibility(isHandicapEnabled());
+
+        state.registrationPageEventType = resolveRegistrationPageEventTypeFromDocument(state.tournament);
+        console.info("[registration] event loaded", {
+          eventTypeField: state.tournament.eventType,
+          eventCategoryField: state.tournament.eventCategory,
+          registrationPageEventType: state.registrationPageEventType,
+        });
+
+        applyRegistrationShell();
+        setHandicapVisibility(isHandicapEnabled() && getActiveUiConfig().showHandicapFields);
         renderEventHeader(state.tournament);
 
         const topNotice = $("topNotice");
@@ -879,12 +1072,20 @@ const params = new URLSearchParams(location.search);
           topNotice.textContent = "";
           topNotice.classList.add("hidden");
         }
+        console.info("[registration] form schema", {
+          mode: getActiveUiConfig().useTeamFlow ? "team" : "attendee",
+          schema: getActiveUiConfig().useTeamFlow ? "tournament_players" : "attendee_contact",
+          visibility: getEventTypeVisibility(state.registrationPageEventType),
+        });
       }catch(err){
-        console.error(err);
+        console.error("[registration] event load failed", err);
         state.tournament = null;
+        state.tournamentLoadStatus = "ready";
         setHandicapVisibility(false);
-        renderMissingTournamentState("Unable to load tournament details right now.");
+        renderMissingTournamentState("Unable to load event details right now.");
+        applyRegistrationShell();
       }
+      syncSubmitEnabled();
     }
 
     function getVal(id){
@@ -953,12 +1154,35 @@ const params = new URLSearchParams(location.search);
     }
 
     function buildShareText(payload, assignedHole, scorecardUrl){
-      const tournamentName = safeText(payload?.tournamentName || state.tournament?.tournamentName || state.tournament?.name, "Tournament Registration");
+      const tournamentName = safeText(payload?.tournamentName || state.tournament?.tournamentName || state.tournament?.name, "Event");
       const courseName = safeText(payload?.defaultCourse || state.tournament?.defaultCourse);
       const formatName = safeText(payload?.formatOfPlay || state.tournament?.formatOfPlay);
       const eventDate = safeText(state.tournament?.eventDate || state.tournament?.date);
       const teamName = safeText(payload?.teamName);
       const captainName = safeText(payload?.captainName);
+      const email = safeText(payload?.captainEmail);
+      const phone = safeText(payload?.captainPhone);
+      const sess = safeText(payload?.session);
+      const slot = safeText(payload?.timeSlot);
+
+      if (state.registrationPageEventType !== REGISTRATION_PAGE_EVENT_TOURNAMENT) {
+        const lines = [];
+        if (tournamentName) lines.push(tournamentName);
+        const metaLine = [eventDate, courseName].filter(Boolean).join(" • ");
+        if (metaLine) lines.push(metaLine);
+        lines.push("");
+        lines.push("Registration confirmed.");
+        if (captainName) lines.push(`Name: ${captainName}`);
+        if (email) lines.push(`Email: ${email}`);
+        if (phone) lines.push(`Phone: ${phone}`);
+        if (sess) lines.push(`Session: ${sess}`);
+        if (slot) lines.push(`Time: ${slot}`);
+        const ins = safeText(payload?.instructor);
+        if (ins) lines.push(`Instructor: ${ins}`);
+        lines.push("");
+        lines.push("The organizer may follow up with more details.");
+        return lines.join("\n");
+      }
 
       const playerNames = Array.isArray(payload?.players)
         ? payload.players.map(x => safeText(x)).filter(Boolean)
@@ -1027,8 +1251,51 @@ const params = new URLSearchParams(location.search);
     }
 
     function renderRegistrationComplete(payload, assignedHole, registrationId){
-      const box = document.querySelector(".dash-box");
+      const box = $("registrationFormRoot");
       if(!box) return;
+
+      const ui = getActiveUiConfig();
+      const successMsg = ui.successMessage || "Registration submitted successfully.";
+
+      if (state.registrationPageEventType !== REGISTRATION_PAGE_EVENT_TOURNAMENT) {
+        box.innerHTML = `
+          <h2 class="dash-title">THANK YOU</h2>
+          <div class="notice" style="margin-top:12px;">${escapeHtml(successMsg)}</div>
+          <div class="fine-print" style="margin-top:14px;">The organizer has your registration and may follow up with details.</div>
+          <div style="margin-top:18px; text-align:center;">
+            <button type="button" id="shareRegistrationBtn" class="btn btn-green" style="max-width:420px; margin:0 auto;">Save / Share confirmation</button>
+          </div>
+          <div id="completePanelStatus" style="margin-top:12px; min-height:22px; color:#2f7a31; font-size:clamp(14px, 2vw, 17px); font-weight:800; text-align:center;"></div>
+        `;
+        const shareBtn = $("shareRegistrationBtn");
+        const statusEl = $("completePanelStatus");
+        if (shareBtn) {
+          shareBtn.addEventListener("click", async () => {
+            const text = buildShareText(payload, "", "");
+            try {
+              if (navigator.share) {
+                await navigator.share({ title: ui.pageTitle, text });
+                if (statusEl) statusEl.textContent = "Shared.";
+                return;
+              }
+              const copied = await copyText(text);
+              if (statusEl) {
+                statusEl.textContent = copied
+                  ? "Confirmation copied. You can paste and send it."
+                  : "Copy is not available on this device.";
+              }
+            } catch (err) {
+              if (String(err?.name) === "AbortError") {
+                if (statusEl) statusEl.textContent = "";
+                return;
+              }
+              console.error(err);
+              if (statusEl) statusEl.textContent = "Unable to share right now. Please try again.";
+            }
+          });
+        }
+        return;
+      }
 
       const scorecardUrl = buildScorecardUrl(registrationId);
       const isTee = normalizeAssignmentType(state.tournament) === ASSIGNMENT_TEE_TIMES;
@@ -1055,7 +1322,7 @@ const params = new URLSearchParams(location.search);
       box.innerHTML = `
         <h2 class="dash-title">THANK YOU FOR REGISTERING</h2>
         <div class="notice" style="margin-top:12px;">
-          Your registration has been received successfully.
+          ${escapeHtml(successMsg)}
         </div>
         <div class="fine-print" style="margin-top:14px; font-size:clamp(18px,2.6vw,24px); font-weight:900;">
           ${teeBody}
@@ -1125,53 +1392,125 @@ const params = new URLSearchParams(location.search);
     }
 
     async function handleSubmit(){
-      if(!state.tournamentId){
-        $("submitMessage").textContent = "This registration link is missing a tournament id.";
-        showToast("Missing tournament id");
+      if (!auth.currentUser) {
+        console.warn("[registration] submit blocked: user not authenticated");
+        $("submitMessage").textContent = "Signing you in… please wait a moment and try again.";
+        showToast("Signing in…");
+        try {
+          await signInAnonymously(auth);
+          syncSubmitEnabled();
+        } catch (e) {
+          console.error(e);
+        }
         return;
       }
 
-      const hasAnyValue = [
-        getVal("teamName"),
-        getVal("captainName"),
-        getVal("player2"),
-        getVal("player3"),
-        getVal("player4"),
-        getVal("player5"),
-        getVal("player6"),
-        getVal("captainEmail"),
-        getVal("captainPhone"),
-        getVal("notes")
-      ].some(Boolean);
+      if(!state.tournamentId){
+        $("submitMessage").textContent = "This registration link is missing an event id.";
+        showToast("Missing event id");
+        return;
+      }
+
+      if (state.tournamentLoadStatus !== "ready" || !state.tournament) {
+        console.warn("[registration] submit blocked: event not ready", state.tournamentLoadStatus);
+        $("submitMessage").textContent = "Still loading this event. Please wait.";
+        return;
+      }
+
+      const ui = getActiveUiConfig();
+      let hasAnyValue = false;
+      if (ui.useTeamFlow) {
+        hasAnyValue = [
+          getVal("teamName"),
+          getVal("captainName"),
+          getVal("player2"),
+          getVal("player3"),
+          getVal("player4"),
+          getVal("player5"),
+          getVal("player6"),
+          getVal("captainEmail"),
+          getVal("captainPhone"),
+          getVal("notes")
+        ].some(Boolean);
+      } else {
+        hasAnyValue = attendeeFormHasMinimum();
+      }
 
       if(!hasAnyValue){
-        $("submitMessage").textContent = "Please enter at least one name, team, or contact detail before submitting.";
-        showToast("Add some info first");
+        $("submitMessage").textContent = ui.useTeamFlow
+          ? "Please enter at least one name, team, or contact detail before submitting."
+          : "Please enter your name and at least an email or phone number.";
+        showToast("Add required info");
+        console.info("[registration] validation failed: empty form for mode", ui.useTeamFlow ? "team" : "attendee");
         return;
       }
 
       const btn = $("submitRegistrationBtn");
       if (!btn) return;
       btn.disabled = true;
-      btn.textContent = "Submitting...";
+      btn.textContent = "Submitting…";
 
       try{
-        const playerDetails = buildPlayerObjects();
-        const handicapOn = isHandicapEnabled();
+        const handicapOn = ui.useTeamFlow && isHandicapEnabled();
+        const playerDetails = ui.useTeamFlow
+          ? buildPlayerObjects()
+          : (() => {
+              const name = collectAttendeeDisplayName();
+              return name ? [{ name, isCaptain: true }] : [];
+            })();
 
-        const result = await registerTeamCallable({
+        const basePayload = {
           tournamentId: state.tournamentId,
           organizationId: state.orgId,
-          teamName: getVal("teamName"),
-          captainName: getVal("captainName"),
-          captainEmail: getVal("captainEmail"),
-          captainPhone: getVal("captainPhone"),
-          playerDetails,
-          notes: getVal("notes"),
+          registrantSource: REGISTRANT_SOURCE_DIRECT_REGISTRATION,
+          registrationUiEventType: state.registrationPageEventType,
           handicapEnabled: handicapOn,
           handicapPercent: handicapOn ? Number(state.tournament?.handicapPercent || 100) : 0,
-          registrantSource: REGISTRANT_SOURCE_WEB,
+        };
+
+        let callPayload;
+        if (ui.useTeamFlow) {
+          callPayload = {
+            ...basePayload,
+            teamName: getVal("teamName"),
+            captainName: getVal("captainName"),
+            captainEmail: getVal("captainEmail"),
+            captainPhone: getVal("captainPhone"),
+            playerDetails,
+            notes: getVal("notes"),
+            attendeeCount: playerDetails.length,
+          };
+        } else {
+          const displayName = collectAttendeeDisplayName();
+          const email = getVal("attendeeEmail");
+          const phone = getVal("attendeePhone");
+          const session = getVal("attendeeSession");
+          const timeSlot = getVal("attendeeTimeSlot");
+          const noteText = getVal("attendeeNotes");
+          const instructor = getVal("attendeeInstructor");
+          callPayload = {
+            ...basePayload,
+            teamName: "",
+            captainName: displayName,
+            captainEmail: email,
+            captainPhone: phone,
+            playerDetails,
+            notes: noteText,
+            session,
+            timeSlot,
+            instructor,
+            attendeeCount: displayName || email || phone ? 1 : 0,
+          };
+        }
+
+        console.info("[registration] submitting payload", {
+          mode: ui.useTeamFlow ? "team" : "attendee",
+          registrationPageEventType: state.registrationPageEventType,
+          keys: Object.keys(callPayload),
+          attendeeCount: callPayload.attendeeCount,
         });
+
+        const result = await registerTeamCallable(callPayload);
 
         const res = result.data || {};
         const registrationId = res.registrationId || "";
@@ -1182,10 +1521,12 @@ const params = new URLSearchParams(location.search);
           throw new Error("Invalid response from registration service.");
         }
 
+        console.info("[registration] normalized registration doc (client view)", payload);
+
         renderRegistrationComplete(payload, assignedHole, registrationId);
-        showToast("Registration submitted");
+        showToast(ui.successMessage || "Registration submitted");
       }catch(err){
-        console.error(err);
+        console.error("[registration] submit error", err);
         let userMsg = "There was a problem submitting your registration. Please try again.";
         const code = err?.code || "";
         const msg = String(err?.message || err || "");
@@ -1195,9 +1536,9 @@ const params = new URLSearchParams(location.search);
         }else if(code === "functions/failed-precondition" && msg.includes("first tee time")){
           userMsg = "This tournament is not configured for tee times yet. Please contact the organizer.";
         }else if(code === "functions/not-found"){
-          userMsg = "This tournament could not be found. Check your link and try again.";
+          userMsg = "This event could not be found. Check your link and try again.";
         }else if(code === "functions/unauthenticated" || code === "unauthenticated"){
-          userMsg = "Please wait for the page to finish loading, then try again.";
+          userMsg = "Could not verify your session. Please refresh the page and try again.";
         }else if(msg && msg.length < 220){
           userMsg = msg;
         }
@@ -1206,7 +1547,7 @@ const params = new URLSearchParams(location.search);
         showToast("Submission failed");
         alert("Submission failed: " + userMsg);
         btn.disabled = false;
-        btn.textContent = "Submit Registration";
+        btn.textContent = getActiveUiConfig().submitLabel;
       }
     }
 
@@ -1225,6 +1566,8 @@ const params = new URLSearchParams(location.search);
 
     (async function init(){
       setHandicapVisibility(false);
+      applyRegistrationShell();
+      syncSubmitEnabled();
       await loadTournament();
     })();
   </script>
