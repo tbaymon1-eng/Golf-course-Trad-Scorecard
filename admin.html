@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Tournament Admin</title>
+  <title>Event admin · Setup</title>
 
   <meta name="theme-color" content="#d9d1c2" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -102,6 +102,8 @@
       font-size:clamp(18px, 2.6vw, 28px);
       color:#1f1b18;
       letter-spacing:.01em;
+      overflow-wrap:anywhere;
+      word-wrap:break-word;
     }
 
     .hint{
@@ -170,6 +172,8 @@
       background-size:10px 10px, 10px 10px;
       background-repeat:no-repeat;
       padding-right:56px;
+      white-space:normal;
+      overflow-wrap:anywhere;
     }
 
     .grid{
@@ -186,10 +190,164 @@
       background:rgba(255,255,255,.22);
     }
 
+    .setup-section{
+      margin-top:22px;
+    }
+
+    .dash-box .dash-box{
+      margin-top:14px;
+    }
+
+    .setup-section-header{
+      margin:0 0 18px;
+      padding:0 0 14px;
+      border-bottom:1px solid rgba(154,98,23,.28);
+    }
+
+    .section-phase{
+      margin:0 0 8px;
+      font-family:"Barlow", system-ui, sans-serif;
+      font-size:clamp(11px, 1.5vw, 13px);
+      font-weight:800;
+      letter-spacing:.2em;
+      text-transform:uppercase;
+      color:#7a6a58;
+    }
+
+    .section-lede{
+      margin:10px 0 0;
+      max-width:52ch;
+      font-size:clamp(15px, 2.1vw, 19px);
+      line-height:1.38;
+      font-weight:600;
+      color:#5f5851;
+    }
+
+    .setup-section-header .dash-title{
+      margin-bottom:0;
+    }
+
     .dash-title{
       font-size:clamp(24px, 3.6vw, 42px);
       margin-bottom:14px;
       font-weight:900;
+    }
+
+    .dash-subtitle{
+      margin:0 0 12px;
+      font-family:"Cinzel", serif;
+      font-size:clamp(18px, 2.6vw, 26px);
+      font-weight:800;
+      letter-spacing:.02em;
+      color:#2e2a28;
+    }
+
+    .action-stack{
+      margin-top:26px;
+      padding:20px 18px 22px;
+      border-radius:28px;
+      border:3px solid rgba(154,98,23,.5);
+      background:linear-gradient(165deg, rgba(255,255,255,.35), rgba(255,255,255,.12));
+      box-shadow:0 6px 20px rgba(47,42,38,.06);
+    }
+
+    .action-stack .setup-section-header{
+      border-bottom-color:rgba(154,98,23,.2);
+    }
+
+    #createTournamentBtn{
+      text-wrap: balance;
+    }
+
+    .admin-live-summary{
+      margin:0 0 18px;
+      padding:12px 16px 14px;
+      border-radius:22px;
+      border:2px solid rgba(154,98,23,.34);
+      background:linear-gradient(175deg, rgba(255,255,255,.4), rgba(255,255,255,.12));
+      box-shadow:0 4px 14px rgba(47,42,38,.07);
+    }
+
+    .admin-live-summary-eyebrow{
+      display:block;
+      margin:0 0 6px;
+      font-family:"Barlow", system-ui, sans-serif;
+      font-size:clamp(10px, 1.4vw, 12px);
+      font-weight:800;
+      letter-spacing:.2em;
+      text-transform:uppercase;
+      color:#7a6a58;
+    }
+
+    .admin-live-summary-text{
+      margin:0;
+      font-family:"Barlow", system-ui, sans-serif;
+      font-size:clamp(15px, 2.35vw, 20px);
+      font-weight:700;
+      line-height:1.38;
+      color:#2a2622;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+    }
+
+    .import-trigger-block{
+      margin-top:22px;
+    }
+
+    .import-callout{
+      padding:16px 18px 18px;
+      border-radius:24px;
+      border:2px solid rgba(154,98,23,.28);
+      background:linear-gradient(165deg, rgba(255,255,255,.42), rgba(255,255,255,.16));
+      box-shadow:0 4px 14px rgba(47,42,38,.05);
+    }
+
+    .import-callout-kicker{
+      margin:0 0 8px;
+      font-family:"Barlow", system-ui, sans-serif;
+      font-size:clamp(11px, 1.5vw, 12px);
+      font-weight:800;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#8a7d6e;
+    }
+
+    .import-callout-title{
+      margin:0;
+      font-family:"Cinzel", serif;
+      font-size:clamp(19px, 2.8vw, 28px);
+      font-weight:800;
+      letter-spacing:.02em;
+      color:#2a2622;
+      line-height:1.15;
+    }
+
+    .import-callout-note{
+      margin:10px 0 14px;
+      font-size:clamp(14px, 2vw, 17px);
+      line-height:1.35;
+      font-weight:600;
+      color:#6c645c;
+      max-width:46ch;
+    }
+
+    .btn-import-launch{
+      min-height:68px;
+      font-size:clamp(19px, 3.1vw, 30px);
+      font-weight:800;
+    }
+
+    .import-panel-outer{
+      margin-top:18px;
+      padding:14px 12px 16px;
+      border-radius:28px;
+      background:rgba(47,42,38,.035);
+      border:1px solid rgba(154,98,23,.22);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.4);
+    }
+
+    .import-panel-outer .import-panel-inner{
+      margin:0;
     }
 
     .btn{
@@ -207,6 +365,8 @@
       box-shadow:none;
       -webkit-tap-highlight-color:transparent;
       touch-action:manipulation;
+      overflow-wrap:anywhere;
+      line-height:1.15;
     }
     .btn[disabled]{
       opacity:.65;
@@ -227,6 +387,7 @@
     .readonly-box{
       width:100%;
       min-height:72px;
+      min-width:0;
       padding:18px 24px;
       border-radius:24px;
       border:4px solid #c9c9c9;
@@ -237,6 +398,8 @@
       display:flex;
       align-items:center;
       overflow:auto;
+      overflow-wrap:anywhere;
+      word-break:break-word;
     }
 
     .qr-box{
@@ -334,6 +497,9 @@
       grid-template-columns:1fr;
       gap:18px;
     }
+    .row-2 > div{
+      min-width:0;
+    }
     .csv-preview-wrap{
       overflow:auto;
       border:3px solid var(--line-soft);
@@ -376,170 +542,33 @@
   <div class="page">
     <div class="main-card">
       <section class="hero">
-        <h1>ADMIN TOURNAMENT<br>SETUP</h1>
-        <p>Create or load a tournament, then share the Join QR + Live Leaderboard QR (and Organizer Roster QR).</p>
+        <h1>ADMIN EVENT<br>SETUP</h1>
+        <p>Move top to bottom—what it is, who signs up, how the day runs, how it’s scored, and how it looks—then publish and share your links and QR codes.</p>
       </section>
 
       <section class="content">
-        <div id="adminLoadingBanner" class="admin-loading-banner" role="status" aria-live="polite" hidden>Loading tournament…</div>
+        <div id="adminLoadingBanner" class="admin-loading-banner" role="status" aria-live="polite" hidden>Loading event…</div>
         <p id="adminRestoreHint" class="muted-block hidden" style="margin-bottom:14px"></p>
         <p id="adminFreshStartHint" class="muted-block hidden" style="margin-bottom:14px">
-          Create a new tournament below, or paste an existing tournament ID and tap <b>Load Existing</b>.
+          Create a new event below, or paste an existing event ID and tap <b>Load Existing</b>.
         </p>
 
-        <div class="field">
-          <label class="label" for="tournamentName">Tournament Name</label>
-          <input id="tournamentName" type="text" placeholder="Saturday Club Classic" />
+        <div id="adminLiveSummary" class="admin-live-summary" role="region" aria-label="Current setup summary">
+          <span class="admin-live-summary-eyebrow">At a glance</span>
+          <p id="adminLiveSummaryText" class="admin-live-summary-text" aria-live="polite">—</p>
         </div>
 
-        <div class="field">
-          <label class="label" for="defaultCourse">Default Course</label>
-          <select id="defaultCourse">
-            <option value="Tradition">Tradition</option>
-            <option value="Cypress">Cypress</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label class="label" for="formatOfPlay">Format of Play</label>
-          <select id="formatOfPlay">
-            <option value="Stroke Play">Stroke Play</option>
-            <option value="Scramble">Scramble</option>
-            <option value="Best Ball">Best Ball</option>
-            <option value="Modified Stableford">Modified Stableford</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label class="label" for="roundHoles">Holes to Play</label>
-          <select id="roundHoles">
-            <option value="18">18 holes</option>
-            <option value="9">9 holes</option>
-          </select>
-        </div>
-
-        <div class="field" id="nineSideField">
-          <label class="label" for="nineSide">Which 9 holes</label>
-          <select id="nineSide">
-            <option value="front">Front nine (holes 1–9)</option>
-            <option value="back">Back nine (holes 10–18)</option>
-          </select>
-          <div class="hint">Used when “9 holes” is selected above.</div>
-        </div>
-
-        <div class="field">
-          <label class="label" for="entryMode">Team Setup</label>
-          <select id="entryMode">
-            <option value="onsite">On-Site Player Entry</option>
-            <option value="pre_event">Pre-Event Registration</option>
-          </select>
-          <div class="hint">
-            Choose how players will enter the tournament.
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="label" for="sideGame">Side Game</label>
-          <select id="sideGame">
-            <option value="None">None</option>
-            <option value="Skins">Skins</option>
-            <option value="Skins + Team">Skins + Team</option>
-          </select>
-          <div class="hint">If enabled, the leaderboard can show a Leaderboard / Skins toggle.</div>
-        </div>
-
-        <div class="field">
-          <label class="label" for="eventDate">Date (optional)</label>
-          <input id="eventDate" type="date" />
-        </div>
-
-        <div class="field">
-          <label class="label" for="organizerName">Organizer Name</label>
-          <input id="organizerName" type="text" placeholder="Organizer name">
-        </div>
-
-        <div class="field">
-          <label class="label" for="organizerEmail">Organizer Email</label>
-          <input id="organizerEmail" type="email" placeholder="organizer@email.com">
-        </div>
-
-        <div class="field">
-          <label class="label">
-            <input id="confirmationEnabled" type="checkbox" checked>
-            Send registration confirmation emails
-          </label>
-        </div>
-
-        <div class="field">
-          <label class="label" for="status">Status</label>
-          <select id="status">
-            <option value="open">Open (Live)</option>
-            <option value="draft">Draft</option>
-            <option value="closed">Closed</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label class="label" for="handicapEnabled">Enable Handicap Scoring</label>
-          <select id="handicapEnabled">
-            <option value="off">Off</option>
-            <option value="on">On</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label class="label" for="handicapPercent">Handicap %</label>
-          <input id="handicapPercent" type="number" placeholder="100" min="0" max="100" />
-          <div class="hint">Example: 100 = full handicap, 80 = 80%, 60 = 60%</div>
-        </div>
-
-        <div class="field">
-          <label class="label" for="tournamentId">Tournament ID (for Load Existing)</label>
-          <input id="tournamentId" type="text" placeholder="paste tournament id here" />
-        </div>
-
-        <div class="field">
-          <label class="label" for="adminToken">Admin Token (auto)</label>
-          <input id="adminToken" type="text" placeholder="auto-generated" readonly />
-          <div class="hint">Keep this private. It’s a simple gate for admin edits.</div>
-        </div>
-
-        <div class="dash-box">
-          <h2 class="dash-title">ADDITIONAL SIDE GAMES</h2>
+        <div class="dash-box setup-section">
+          <header class="setup-section-header">
+            <p class="section-phase">What you’re creating</p>
+            <h2 class="dash-title">Name &amp; event type</h2>
+            <p class="section-lede">Start with a clear title and the kind of gathering—this shapes the roster and what players see.</p>
+          </header>
 
           <div class="field">
-            <label class="label" for="closestToPinEnabled">Closest to the Pin</label>
-            <select id="closestToPinEnabled">
-              <option value="off">Off</option>
-              <option value="on">On</option>
-            </select>
-            <div class="hint">Turn Closest to the Pin on or off for this tournament.</div>
+            <label class="label" for="tournamentName">Event name</label>
+            <input id="tournamentName" type="text" placeholder="Saturday Club Classic" />
           </div>
-
-          <div class="field">
-            <label class="label" for="closestToPinHoles">Closest to the Pin Holes</label>
-            <input id="closestToPinHoles" type="text" placeholder="5,8,12,17" />
-            <div class="hint">Comma-separated hole numbers. Example: 5,8,12,17</div>
-          </div>
-
-          <div class="field">
-            <label class="label" for="longDriveEnabled">Long Drive</label>
-            <select id="longDriveEnabled">
-              <option value="off">Off</option>
-              <option value="on">On</option>
-            </select>
-            <div class="hint">Turn Long Drive on or off for this tournament.</div>
-          </div>
-
-          <div class="field">
-            <label class="label" for="longDriveHoles">Long Drive Holes</label>
-            <input id="longDriveHoles" type="text" placeholder="2,9,14" />
-            <div class="hint">Comma-separated hole numbers. Example: 2,9,14</div>
-          </div>
-        </div>
-
-        <div class="dash-box" style="margin-top:22px;">
-          <h2 class="dash-title">EVENT TYPE &amp; REGISTRATION</h2>
 
           <div class="field">
             <label class="label" for="eventCategory">Event category</label>
@@ -549,8 +578,16 @@
               <option value="camp">Camp</option>
               <option value="general">General event</option>
             </select>
-            <div class="hint">Controls roster columns and whether shotgun / tee-time assignment applies.</div>
+            <div class="hint">Controls roster columns and import behavior. For golf, shotgun and tee-time setup appears in <b>Starts &amp; assignments</b> below.</div>
           </div>
+        </div>
+
+        <div class="dash-box setup-section">
+          <header class="setup-section-header">
+            <p class="section-phase">How people register</p>
+            <h2 class="dash-title">Roster &amp; sign-up</h2>
+            <p class="section-lede">Decide how names get on the list—public link, optional bulk spreadsheet, or both—and who receives confirmations.</p>
+          </header>
 
           <div class="field">
             <label class="label" for="registrantSourceMode">Registrant source</label>
@@ -561,90 +598,50 @@
             </select>
             <div class="hint">Who may add players: public link, organizer import, or both.</div>
           </div>
-        </div>
-
-        <div class="dash-box" style="margin-top:22px;" id="golfStartAssignmentSection">
-          <h2 class="dash-title">START &amp; ASSIGNMENT (GOLF)</h2>
 
           <div class="field">
-            <label class="label" for="startType">Tournament start type</label>
-            <select id="startType">
-              <option value="shotgun">Shotgun start</option>
-              <option value="tee_times">Tee times</option>
+            <label class="label" for="entryMode">Team Setup</label>
+            <select id="entryMode">
+              <option value="onsite">On-Site Player Entry</option>
+              <option value="pre_event">Pre-Event Registration</option>
             </select>
-            <div class="hint">Shotgun uses starting-hole waves (1A, 2A, …). Tee times assign a clock time per team or group.</div>
-          </div>
-
-          <div id="shotgunHoleAssignmentFields">
-            <div class="field">
-              <label class="label" for="autoAssignEnabled">Auto Assign On Registration</label>
-              <select id="autoAssignEnabled">
-                <option value="on">On</option>
-                <option value="off">Off</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label class="label" for="holeAssignmentMode">Hole Assignment Mode</label>
-              <select id="holeAssignmentMode">
-                <option value="default">Default Flow</option>
-                <option value="custom">Custom Flow</option>
-              </select>
-              <div class="hint">
-                Default uses 1A → 2A → 3A ... 18A → 1B → 2B ... Custom lets you define your own order.
-              </div>
-            </div>
-
-            <div class="field">
-              <label class="label" for="customHoleFlow">Custom Hole Flow</label>
-              <textarea id="customHoleFlow" rows="5" placeholder="1A,2A,3A,4A,5A,6A"></textarea>
-              <div class="hint">
-                Enter comma-separated hole order. Example: 1A,3A,5A,7A,9A,11A
-              </div>
+            <div class="hint">
+              Choose how participants join this event (on-site vs pre-registration).
             </div>
           </div>
 
-          <div id="teeTimesAssignmentFields" class="hidden">
-            <div class="field">
-              <label class="label" for="firstTeeTime">First tee time</label>
-              <input id="firstTeeTime" type="datetime-local" />
-              <div class="hint">Local date and time for the first tee slot.</div>
-            </div>
+          <div class="field">
+            <label class="label" for="organizerName">Organizer Name</label>
+            <input id="organizerName" type="text" placeholder="Organizer name">
+          </div>
 
-            <div class="field">
-              <label class="label" for="teeIntervalMinutes">Tee interval (minutes)</label>
-              <input id="teeIntervalMinutes" type="number" min="1" step="1" value="10" />
-            </div>
+          <div class="field">
+            <label class="label" for="organizerEmail">Organizer Email</label>
+            <input id="organizerEmail" type="email" placeholder="organizer@email.com">
+          </div>
 
-            <div class="field">
-              <label class="label" for="groupSize">Group size (teams per tee time)</label>
-              <input id="groupSize" type="number" min="1" step="1" value="1" />
-              <div class="hint">Teams share the same clock time until this count is filled, then the next slot adds one interval.</div>
-            </div>
+          <div class="field">
+            <label class="label">
+              <input id="confirmationEnabled" type="checkbox" checked>
+              Send registration confirmation emails
+            </label>
+          </div>
 
-            <div class="field">
-              <label class="label" for="teeStartsDisplay">Tee starts (holes)</label>
-              <input id="teeStartsDisplay" type="text" value="1" readonly style="background:#f0ece4;" />
-              <div class="hint">Currently only hole 1 is supported as a tee start.</div>
-            </div>
-
-            <div class="field">
-              <button class="btn btn-blue" type="button" id="generateTeeTimesBtn">Generate Tee Times</button>
-              <div class="hint">Recomputes tee times for all non-cancelled teams in registration order (oldest first).</div>
-            </div>
+          <div class="import-trigger-block import-callout" id="importTriggerBlock">
+            <p class="import-callout-kicker">Power tool · optional</p>
+            <p class="import-callout-title">Import registrations (optional)</p>
+            <p class="import-callout-note">Bulk-add from Excel or CSV when your source settings allow uploads. Column mapping and preview open here—nothing to fill until you choose to.</p>
+            <button class="btn btn-ghost btn-import-launch" id="importRegistrationsBtn" type="button">Open spreadsheet import</button>
           </div>
         </div>
 
-        <div style="height:18px"></div>
-
-        <button class="btn btn-green" id="createTournamentBtn" type="button">Create Tournament</button>
-        <button class="btn btn-blue" id="loadTournamentBtn" type="button">Load Existing (by ID)</button>
-        <button class="btn btn-ghost" id="saveChangesBtn" type="button">Save Changes</button>
-        <button class="btn btn-red" id="closeTournamentBtn" type="button">Close Tournament</button>
-        <button class="btn btn-ghost" id="importRegistrationsBtn" type="button">Import Registrations</button>
-
-        <div id="csvImportPanel" class="dash-box hidden" style="margin-top:14px;">
-          <h2 class="dash-title">IMPORT REGISTRATIONS (EXCEL / CSV)</h2>
+        <div id="csvImportPanel" class="import-panel-outer hidden" style="margin-top:14px;">
+          <div class="dash-box import-panel-inner">
+          <header class="setup-section-header">
+            <p class="section-phase">Spreadsheet import</p>
+            <h2 class="dash-title">Import from Excel or CSV</h2>
+            <p class="section-lede">Upload a file, match columns to roster fields, preview rows, then import. You can close this and return anytime.</p>
+          </header>
           <div class="field">
             <label class="label" for="csvFileInput">Excel / CSV file</label>
             <input id="csvFileInput" type="file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="min-height:auto;padding:18px;background:#f4f4f4;" />
@@ -716,10 +713,317 @@
             <button class="btn btn-red" id="cancelImportBtn" type="button">Cancel</button>
             <a class="btn btn-blue hidden" id="viewRosterAfterImport" href="#" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;margin-left:8px;">View Roster</a>
           </div>
+          </div>
         </div>
 
-        <div class="dash-box">
-          <h2 class="dash-title">SHARE LINKS & QR CODES</h2>
+        <div class="dash-box setup-section">
+          <header class="setup-section-header">
+            <p class="section-phase">How it runs</p>
+            <h2 class="dash-title">Course, schedule &amp; start</h2>
+            <p class="section-lede">Set date, status (draft / live / closed), and default venue or course when your format uses it. Golf events also use <b>Starts &amp; assignments</b> next.</p>
+          </header>
+
+          <div class="field">
+            <label class="label" for="defaultCourse">Default Course</label>
+            <select id="defaultCourse">
+              <option value="Tradition">Tradition</option>
+              <option value="Cypress">Cypress</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="eventDate">Date (optional)</label>
+            <input id="eventDate" type="date" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="status">Status</label>
+            <select id="status">
+              <option value="open">Open (Live)</option>
+              <option value="draft">Draft</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="dash-box setup-section" id="golfStartAssignmentSection">
+          <header class="setup-section-header">
+            <p class="section-phase">Golf only</p>
+            <h2 class="dash-title">Starts &amp; assignments</h2>
+            <p class="section-lede">Shotgun waves or tee times—assign groups to starting holes or clock times.</p>
+          </header>
+
+          <div class="field">
+            <label class="label" for="startType">Tournament start type</label>
+            <select id="startType">
+              <option value="shotgun">Shotgun start</option>
+              <option value="tee_times">Tee times</option>
+            </select>
+            <div class="hint">Shotgun uses starting-hole waves (1A, 2A, …). Tee times assign a clock time per team or group.</div>
+          </div>
+
+          <div id="shotgunHoleAssignmentFields">
+            <div class="field">
+              <label class="label" for="autoAssignEnabled">Auto Assign On Registration</label>
+              <select id="autoAssignEnabled">
+                <option value="on">On</option>
+                <option value="off">Off</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="label" for="holeAssignmentMode">Hole Assignment Mode</label>
+              <select id="holeAssignmentMode">
+                <option value="default">Default Flow</option>
+                <option value="custom">Custom Flow</option>
+              </select>
+              <div class="hint">
+                Default uses 1A → 2A → 3A ... 18A → 1B → 2B ... Custom lets you define your own order.
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="customHoleFlow">Custom Hole Flow</label>
+              <textarea id="customHoleFlow" rows="5" placeholder="1A,2A,3A,4A,5A,6A"></textarea>
+              <div class="hint">
+                Enter comma-separated hole order. Example: 1A,3A,5A,7A,9A,11A
+              </div>
+            </div>
+          </div>
+
+          <div id="teeTimesAssignmentFields" class="hidden">
+            <div class="field">
+              <label class="label" for="firstTeeTime">First tee time</label>
+              <input id="firstTeeTime" type="datetime-local" />
+              <div class="hint">Local date and time for the first tee slot.</div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="teeIntervalMinutes">Tee interval (minutes)</label>
+              <input id="teeIntervalMinutes" type="number" min="1" step="1" value="10" />
+            </div>
+
+            <div class="field">
+              <label class="label" for="groupSize">Group size (teams per tee time)</label>
+              <input id="groupSize" type="number" min="1" step="1" value="1" />
+              <div class="hint">Teams share the same clock time until this count is filled, then the next slot adds one interval.</div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="teeStartsDisplay">Tee starts (holes)</label>
+              <input id="teeStartsDisplay" type="text" value="1" readonly style="background:#f0ece4;" />
+              <div class="hint">Currently only hole 1 is supported as a tee start.</div>
+            </div>
+
+            <div class="field">
+              <button class="btn btn-blue" type="button" id="generateTeeTimesBtn">Generate Tee Times</button>
+              <div class="hint">Recomputes tee times for all non-cancelled teams in registration order (oldest first).</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-box setup-section">
+          <header class="setup-section-header">
+            <p class="section-phase">How it’s scored</p>
+            <h2 class="dash-title">Format, handicaps &amp; games</h2>
+            <p class="section-lede">Competition format and scoring—primarily for golf. Clinics, camps, or general events can leave unused fields at default.</p>
+          </header>
+
+          <div class="field">
+            <label class="label" for="formatOfPlay">Format of Play</label>
+            <select id="formatOfPlay">
+              <option value="Stroke Play">Stroke Play</option>
+              <option value="Scramble">Scramble</option>
+              <option value="Best Ball">Best Ball</option>
+              <option value="Modified Stableford">Modified Stableford</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="roundHoles">Holes to Play</label>
+            <select id="roundHoles">
+              <option value="18">18 holes</option>
+              <option value="9">9 holes</option>
+            </select>
+          </div>
+
+          <div class="field" id="nineSideField">
+            <label class="label" for="nineSide">Which 9 holes</label>
+            <select id="nineSide">
+              <option value="front">Front nine (holes 1–9)</option>
+              <option value="back">Back nine (holes 10–18)</option>
+            </select>
+            <div class="hint">Used when “9 holes” is selected above.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="sideGame">Side Game</label>
+            <select id="sideGame">
+              <option value="None">None</option>
+              <option value="Skins">Skins</option>
+              <option value="Skins + Team">Skins + Team</option>
+            </select>
+            <div class="hint">If enabled, the leaderboard can show a Leaderboard / Skins toggle.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="handicapEnabled">Enable Handicap Scoring</label>
+            <select id="handicapEnabled">
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="handicapPercent">Handicap %</label>
+            <input id="handicapPercent" type="number" placeholder="100" min="0" max="100" />
+            <div class="hint">Example: 100 = full handicap, 80 = 80%, 60 = 60%</div>
+          </div>
+
+          <div class="dash-box">
+            <h3 class="dash-subtitle">Additional side games</h3>
+            <p class="section-lede" style="margin-bottom:14px;">Closest-to-the-pin and long-drive contests—set holes when you want them in play.</p>
+
+            <div class="field">
+              <label class="label" for="closestToPinEnabled">Closest to the Pin</label>
+              <select id="closestToPinEnabled">
+                <option value="off">Off</option>
+                <option value="on">On</option>
+              </select>
+              <div class="hint">Turn Closest to the Pin on or off for this event.</div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="closestToPinHoles">Closest to the Pin Holes</label>
+              <input id="closestToPinHoles" type="text" placeholder="5,8,12,17" />
+              <div class="hint">Comma-separated hole numbers. Example: 5,8,12,17</div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="longDriveEnabled">Long Drive</label>
+              <select id="longDriveEnabled">
+                <option value="off">Off</option>
+                <option value="on">On</option>
+              </select>
+              <div class="hint">Turn Long Drive on or off for this event.</div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="longDriveHoles">Long Drive Holes</label>
+              <input id="longDriveHoles" type="text" placeholder="2,9,14" />
+              <div class="hint">Comma-separated hole numbers. Example: 2,9,14</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-box setup-section">
+          <header class="setup-section-header">
+            <p class="section-phase">Look &amp; feel</p>
+            <h2 class="dash-title">Sponsors &amp; branding</h2>
+            <p class="section-lede">Presenting partners and logos on the scorecard, leaderboard, and registration—kept tasteful for the room.</p>
+          </header>
+
+          <div class="field">
+            <label class="label" for="sponsorMarketingEnabled" style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+              <input type="checkbox" id="sponsorMarketingEnabled" style="width:22px; height:22px; margin-top:2px; flex-shrink:0;" />
+              <span>Show sponsors on scorecard, leaderboard &amp; registration (hero + ticker when sponsors are added)</span>
+            </label>
+            <div class="hint">Leave off to hide all sponsor branding on player-facing pages.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorTier">Sponsor Tier</label>
+            <select id="sponsorTier">
+              <option value="presenting">Presenting</option>
+              <option value="title">Title</option>
+              <option value="gold">Gold</option>
+              <option value="silver">Silver</option>
+              <option value="bronze">Bronze</option>
+              <option value="supporting">Supporting</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorOrder">Sponsor Order (lower shows first)</label>
+            <input id="sponsorOrder" type="number" placeholder="1" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorName">Sponsor Name</label>
+            <input id="sponsorName" type="text" placeholder="Acme Roofing" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorWebsite">Sponsor Website (optional)</label>
+            <input id="sponsorWebsite" type="url" placeholder="https://example.com" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorLogoFile">Sponsor Logo (Upload PNG/JPG) (optional)</label>
+            <input
+              id="sponsorLogoFile"
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              style="min-height:auto;padding:18px;background:#f4f4f4;"
+            />
+            <div class="hint">Photos are resized and compressed automatically so they fit Firestore storage limits. You can also paste a hosted logo URL below instead.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="sponsorLogoUrl">Sponsor Logo URL (optional)</label>
+            <input id="sponsorLogoUrl" type="url" placeholder="https://..." />
+          </div>
+
+          <div class="field">
+            <span class="pill" id="sponsorEmptyPill">No sponsors yet</span>
+          </div>
+
+          <button class="btn btn-green" id="addSponsorBtn" type="button">Add Sponsor</button>
+          <button class="btn btn-ghost" id="clearSponsorFormBtn" type="button">Clear Sponsor Form</button>
+
+          <div id="sponsorList" class="sponsor-list">
+            <div class="muted-block" id="sponsorListEmpty">No sponsors added yet.</div>
+          </div>
+        </div>
+
+        <div class="dash-box setup-section">
+          <header class="setup-section-header">
+            <p class="section-phase">Access &amp; IDs</p>
+            <h2 class="dash-title">Event ID &amp; admin token</h2>
+            <p class="section-lede">Paste an ID to load something you’ve already set up, or keep the token private—it unlocks organizer tools for this event.</p>
+          </header>
+
+          <div class="field">
+            <label class="label" for="tournamentId">Event ID (for Load Existing)</label>
+            <input id="tournamentId" type="text" placeholder="paste event id here" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="adminToken">Admin Token (auto)</label>
+            <input id="adminToken" type="text" placeholder="auto-generated" readonly />
+            <div class="hint">Keep this private. It’s a simple gate for admin edits.</div>
+          </div>
+        </div>
+
+        <div class="action-stack">
+          <header class="setup-section-header">
+            <p class="section-phase">Publish</p>
+            <h2 class="dash-title">Create, load, or save</h2>
+            <p class="section-lede">When the setup above looks right, create a new event or load one you’ve already saved—then share links below.</p>
+          </header>
+
+          <button class="btn btn-blue" id="loadTournamentBtn" type="button">Load Existing (by ID)</button>
+          <button class="btn btn-ghost" id="saveChangesBtn" type="button">Save Changes</button>
+          <button class="btn btn-red" id="closeTournamentBtn" type="button">Close Event</button>
+          <button class="btn btn-green" id="createTournamentBtn" type="button">Create Tournament</button>
+        </div>
+
+        <div class="dash-box setup-section">
+          <header class="setup-section-header">
+            <p class="section-phase">Share</p>
+            <h2 class="dash-title">Links &amp; QR codes</h2>
+            <p class="section-lede">Hand these to players and staff—join, live leaderboard, roster, and registration as you configured.</p>
+          </header>
 
           <div class="field">
             <label class="label">Join Link</label>
@@ -784,72 +1088,6 @@
             Tip: after you create or load, tap Copy and you’ll see “✔ Copied” + a toast.
           </div>
         </div>
-
-        <div class="dash-box" style="margin-top:22px;">
-          <h2 class="dash-title">SPONSORS (ENTERPRISE)</h2>
-
-          <div class="field">
-            <label class="label" for="sponsorMarketingEnabled" style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
-              <input type="checkbox" id="sponsorMarketingEnabled" style="width:22px; height:22px; margin-top:2px; flex-shrink:0;" />
-              <span>Show sponsors on scorecard, leaderboard &amp; registration (hero + ticker when sponsors are added)</span>
-            </label>
-            <div class="hint">Leave off to hide all sponsor branding on player-facing pages.</div>
-          </div>
-
-          <div class="field">
-            <label class="label" for="sponsorTier">Sponsor Tier</label>
-            <select id="sponsorTier">
-              <option value="presenting">Presenting</option>
-              <option value="title">Title</option>
-              <option value="gold">Gold</option>
-              <option value="silver">Silver</option>
-              <option value="bronze">Bronze</option>
-              <option value="supporting">Supporting</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label class="label" for="sponsorOrder">Sponsor Order (lower shows first)</label>
-            <input id="sponsorOrder" type="number" placeholder="1" />
-          </div>
-
-          <div class="field">
-            <label class="label" for="sponsorName">Sponsor Name</label>
-            <input id="sponsorName" type="text" placeholder="Acme Roofing" />
-          </div>
-
-          <div class="field">
-            <label class="label" for="sponsorWebsite">Sponsor Website (optional)</label>
-            <input id="sponsorWebsite" type="url" placeholder="https://example.com" />
-          </div>
-
-          <div class="field">
-            <label class="label" for="sponsorLogoFile">Sponsor Logo (Upload PNG/JPG) (optional)</label>
-            <input
-              id="sponsorLogoFile"
-              type="file"
-              accept="image/png,image/jpeg,image/jpg,image/webp"
-              style="min-height:auto;padding:18px;background:#f4f4f4;"
-            />
-            <div class="hint">Photos are resized and compressed automatically so they fit Firestore storage limits. You can also paste a hosted logo URL below instead.</div>
-          </div>
-
-          <div class="field">
-            <label class="label" for="sponsorLogoUrl">Sponsor Logo URL (optional)</label>
-            <input id="sponsorLogoUrl" type="url" placeholder="https://..." />
-          </div>
-
-          <div class="field">
-            <span class="pill" id="sponsorEmptyPill">No sponsors yet</span>
-          </div>
-
-          <button class="btn btn-green" id="addSponsorBtn" type="button">Add Sponsor</button>
-          <button class="btn btn-ghost" id="clearSponsorFormBtn" type="button">Clear Sponsor Form</button>
-
-          <div id="sponsorList" class="sponsor-list">
-            <div class="muted-block" id="sponsorListEmpty">No sponsors added yet.</div>
-          </div>
-        </div>
       </section>
     </div>
   </div>
@@ -889,7 +1127,11 @@
   import {
     EVENT_TYPE_GOLF_TOURNAMENT,
     EVENT_CATEGORY_GOLF,
+    EVENT_CATEGORY_CLINIC,
+    EVENT_CATEGORY_CAMP,
+    EVENT_CATEGORY_GENERAL,
     normalizeEventCategory,
+    isGolfEventCategory,
     REGISTRANT_SOURCE_MODE_BOTH,
     REGISTRANT_SOURCE_MODE_LINK,
     REGISTRANT_SOURCE_MODE_UPLOAD,
@@ -976,6 +1218,63 @@
   }
 
   const $ = (id) => document.getElementById(id);
+
+  /**
+   * Primary create button label from event category (select value or saved doc field).
+   * Uses normalizeEventCategory so legacy/unknown values map safely; default is Create Event.
+   */
+  function getCreateButtonLabel(eventCategory) {
+    const cat = normalizeEventCategory({ eventCategory: eventCategory ?? "" });
+    if (cat === EVENT_CATEGORY_GOLF) return "Create Tournament";
+    if (cat === EVENT_CATEGORY_CLINIC) return "Create Clinic";
+    if (cat === EVENT_CATEGORY_CAMP) return "Create Camp";
+    if (cat === EVENT_CATEGORY_GENERAL) return "Create Event";
+    return "Create Event";
+  }
+
+  function createSuccessToastForEventCategory(rawCategory) {
+    const cat = normalizeEventCategory({ eventCategory: rawCategory ?? "" });
+    if (cat === EVENT_CATEGORY_GOLF) return "Tournament created";
+    if (cat === EVENT_CATEGORY_CLINIC) return "Clinic created";
+    if (cat === EVENT_CATEGORY_CAMP) return "Camp created";
+    if (cat === EVENT_CATEGORY_GENERAL) return "Event created";
+    return "Event created";
+  }
+
+  function loadedToastForEventCategory(rawCategory) {
+    const cat = normalizeEventCategory({ eventCategory: rawCategory ?? "" });
+    if (cat === EVENT_CATEGORY_GOLF) return "Tournament loaded";
+    if (cat === EVENT_CATEGORY_CLINIC) return "Clinic loaded";
+    if (cat === EVENT_CATEGORY_CAMP) return "Camp loaded";
+    if (cat === EVENT_CATEGORY_GENERAL) return "Event loaded";
+    return "Event loaded";
+  }
+
+  function closeButtonLabelForEventCategory(rawCategory) {
+    const cat = normalizeEventCategory({ eventCategory: rawCategory ?? "" });
+    if (cat === EVENT_CATEGORY_GOLF) return "Close Tournament";
+    if (cat === EVENT_CATEGORY_CLINIC) return "Close Clinic";
+    if (cat === EVENT_CATEGORY_CAMP) return "Close Camp";
+    if (cat === EVENT_CATEGORY_GENERAL) return "Close Event";
+    return "Close Event";
+  }
+
+  function closedToastForEventCategory(rawCategory) {
+    const cat = normalizeEventCategory({ eventCategory: rawCategory ?? "" });
+    if (cat === EVENT_CATEGORY_GOLF) return "Tournament closed";
+    if (cat === EVENT_CATEGORY_CLINIC) return "Clinic closed";
+    if (cat === EVENT_CATEGORY_CAMP) return "Camp closed";
+    if (cat === EVENT_CATEGORY_GENERAL) return "Event closed";
+    return "Event closed";
+  }
+
+  function syncCategoryActionLabels() {
+    const cat = $("eventCategory")?.value;
+    const createEl = $("createTournamentBtn");
+    if (createEl) createEl.textContent = getCreateButtonLabel(cat);
+    const closeEl = $("closeTournamentBtn");
+    if (closeEl) closeEl.textContent = closeButtonLabelForEventCategory(cat);
+  }
 
   const state = {
     orgId: "",
@@ -1077,7 +1376,7 @@
       rh.classList.toggle("hidden", !show);
       if (show) {
         rh.textContent =
-          "Restored your last tournament from this device. Links are ready below.";
+          "Restored your last event from this device. Links are ready below.";
       }
     }
     if (fh) {
@@ -1483,7 +1782,7 @@
 
   function buildImportPreviewPayload(){
     if (!state.tournamentId) {
-      showToast("Create or load a tournament first");
+      showToast("Create or load an event first");
       return null;
     }
     if (!csvImportRows.length) {
@@ -1775,8 +2074,7 @@
   }
 
   function syncEventCategoryAdminUI(){
-    const cat = String($("eventCategory")?.value || EVENT_CATEGORY_GOLF).toLowerCase();
-    const golf = cat === EVENT_CATEGORY_GOLF;
+    const golf = isGolfEventCategory({ eventCategory: $("eventCategory")?.value ?? "" });
     const sec = $("golfStartAssignmentSection");
     if (sec) sec.classList.toggle("hidden", !golf);
   }
@@ -1785,11 +2083,68 @@
     const mode = String($("registrantSourceMode")?.value || REGISTRANT_SOURCE_MODE_BOTH).toLowerCase();
     const regGroup = $("registrationLinkShareGroup");
     const regQrCell = $("registrationQrCell");
-    const importBtn = $("importRegistrationsBtn");
+    const importBlock = $("importTriggerBlock");
     const hideRegLink = mode === REGISTRANT_SOURCE_MODE_UPLOAD;
+    const hideImportUi = mode === REGISTRANT_SOURCE_MODE_LINK;
     if (regGroup) regGroup.classList.toggle("hidden", hideRegLink);
     if (regQrCell) regQrCell.classList.toggle("hidden", hideRegLink);
-    if (importBtn) importBtn.classList.toggle("hidden", mode === REGISTRANT_SOURCE_MODE_LINK);
+    if (importBlock) importBlock.classList.toggle("hidden", hideImportUi);
+    if (hideImportUi) clearCsvPreview(true);
+  }
+
+  function selectOptionText(id){
+    const el = $(id);
+    if (!el || el.tagName !== "SELECT") return "";
+    const opt = el.options[el.selectedIndex];
+    return opt ? String(opt.textContent || "").trim() : "";
+  }
+
+  function registrantSourceSummary(){
+    const v = String($("registrantSourceMode")?.value || REGISTRANT_SOURCE_MODE_BOTH).toLowerCase();
+    if (v === REGISTRANT_SOURCE_MODE_LINK) return "Registration link";
+    if (v === REGISTRANT_SOURCE_MODE_UPLOAD) return "Spreadsheet upload";
+    return "Link + upload";
+  }
+
+  function buildAdminSummaryLine(){
+    const parts = [];
+    const isGolf = isGolfEventCategory({ eventCategory: $("eventCategory")?.value ?? "" });
+
+    const catLabel = selectOptionText("eventCategory") || "Event";
+    parts.push(catLabel);
+
+    const name = String($("tournamentName")?.value || "").trim();
+    if (name) {
+      parts.push(name.length > 40 ? `${name.slice(0, 38)}…` : name);
+    }
+
+    if (isGolf) {
+      const fmt = String($("formatOfPlay")?.value || "").trim();
+      if (fmt) parts.push(fmt);
+    }
+
+    const course = selectOptionText("defaultCourse");
+    if (course) parts.push(course);
+
+    if (isGolf) {
+      const st = String($("startType")?.value || "shotgun").toLowerCase();
+      parts.push(st === "tee_times" ? "Tee times" : "Shotgun start");
+    } else {
+      const em = String($("entryMode")?.value || "").toLowerCase();
+      if (em === "onsite" || em === "individual" || em === "team_rep") parts.push("On-site entry");
+      else parts.push("Pre-registration");
+    }
+
+    parts.push(registrantSourceSummary());
+
+    return parts.join(" · ");
+  }
+
+  function updateAdminSummary(){
+    const out = $("adminLiveSummaryText");
+    if (!out) return;
+    const line = String(buildAdminSummaryLine() || "").trim();
+    out.textContent = line || "—";
   }
 
   function pad2Admin(n){
@@ -1824,7 +2179,7 @@
 
   async function generateTeeTimesForTournament(){
     if (!state.tournamentId){
-      showToast("Create or load a tournament first");
+      showToast("Create or load an event first");
       return;
     }
     const oid = await ensureOrgUser();
@@ -2045,11 +2400,13 @@
     }
     syncEventCategoryAdminUI();
     syncRegistrantSourceAdminUI();
+    syncCategoryActionLabels();
+    updateAdminSummary();
   }
 
   function saveTournamentToLocal(){
     if(!state.tournamentId){
-      showToast("Create or load a tournament first");
+      showToast("Create or load an event first");
       return;
     }
     const data = collectForm();
@@ -2068,7 +2425,7 @@
 
   async function saveTournamentToFirebase(){
     if(!state.tournamentId){
-      showToast("Create or load a tournament first");
+      showToast("Create or load an event first");
       return;
     }
 
@@ -2280,6 +2637,7 @@
     const preferred = String(preferredCourseId || "").trim();
     if (!oid) {
       restoreBuiltinDefaultCourseOptions();
+      updateAdminSummary();
       return { activeCount: 0 };
     }
 
@@ -2328,6 +2686,7 @@
 
     if (!rows.length) {
       restoreBuiltinDefaultCourseOptions();
+      updateAdminSummary();
       return { activeCount: 0 };
     }
 
@@ -2339,6 +2698,7 @@
       sel.appendChild(opt);
     }
     sel.value = rows.some((r) => r.id === preferred) ? preferred : rows[0].id;
+    updateAdminSummary();
     return { activeCount: rows.length };
   }
 
@@ -2358,7 +2718,7 @@
   }
 
   /**
-   * Sets Default Course from tournament data. Prefers courseId (Firestore doc id), then legacy fields.
+   * Sets Default Course from saved event data. Prefers courseId (Firestore doc id), then legacy fields.
    */
   function setDefaultCourseFromFormData(data) {
     const cid = String(data.courseId || "").trim();
@@ -2401,7 +2761,7 @@
     }
   }
 
-  /** Firestore documents max ~1MB; logos are stored as data URLs inside the tournament doc. */
+  /** Firestore documents max ~1MB; logos are stored as data URLs inside the event document. */
   const MAX_SPONSOR_DATA_URL_CHARS = 280000;
 
   function loadImageFromFile(file){
@@ -2556,7 +2916,7 @@
     ) {
       return (
         msg +
-        "\n\nThis usually means the tournament record is too large for Firestore (about 1MB max). Large sponsor images are the usual cause. Remove or replace sponsor logos, use hosted logo URLs instead of uploads, or re-add logos so they can be compressed (new uploads are resized automatically)."
+        "\n\nThis usually means the saved event is too large for Firestore (about 1MB max). Large sponsor images are the usual cause. Remove or replace sponsor logos, use hosted logo URLs instead of uploads, or re-add logos so they can be compressed (new uploads are resized automatically)."
       );
     }
     return code ? `${code}: ${msg}` : msg;
@@ -2580,17 +2940,17 @@
       syncAdminUrlWithTournamentId(state.tournamentId);
 
       applyLinks();
-      showToast("Tournament created");
+      showToast(createSuccessToastForEventCategory($("eventCategory")?.value));
     }catch(err){
-      console.error("Create tournament failed:", err);
-      alert("Create tournament failed:\n\n" + formatFirestoreErr(err));
+      console.error("Create event failed:", err);
+      alert("Could not create:\n\n" + formatFirestoreErr(err));
     }
   }
 
   async function loadTournament(){
     const id = $("tournamentId").value.trim();
     if(!id){
-      showToast("Enter a tournament ID");
+      showToast("Enter an event ID");
       return;
     }
 
@@ -2601,7 +2961,7 @@
     }
 
     if(!data){
-      showToast("No tournament found for that ID");
+      showToast("No saved event found for that ID");
       return;
     }
 
@@ -2611,12 +2971,12 @@
     persistLastTournamentId(state.orgId, id);
     syncAdminUrlWithTournamentId(id);
     applyLinks();
-    showToast("Tournament loaded");
+    showToast(loadedToastForEventCategory($("eventCategory")?.value));
   }
 
   async function saveChanges(){
     if(!state.tournamentId){
-      showToast("Create or load a tournament first");
+      showToast("Create or load an event first");
       return;
     }
 
@@ -2635,9 +2995,9 @@
       await saveTournamentToFirebase();
       persistLastTournamentId(state.orgId, state.tournamentId);
       applyLinks();
-      showToast("Tournament closed");
+      showToast(closedToastForEventCategory($("eventCategory")?.value));
     }else{
-      showToast("Tournament marked closed");
+      showToast("Status set to closed");
     }
   }
 
@@ -2735,11 +3095,15 @@
   syncStartTypeAdminUI();
   syncEventCategoryAdminUI();
   syncRegistrantSourceAdminUI();
+  syncCategoryActionLabels();
+  updateAdminSummary();
 
   const eventCategoryEl = $("eventCategory");
   if (eventCategoryEl) {
     eventCategoryEl.addEventListener("change", () => {
       syncEventCategoryAdminUI();
+      syncCategoryActionLabels();
+      updateAdminSummary();
     });
   }
   const registrantSourceModeEl = $("registrantSourceMode");
@@ -2867,6 +3231,22 @@
       el.addEventListener("change", applyLinks);
     }
   });
+
+  [
+    "eventCategory",
+    "tournamentName",
+    "defaultCourse",
+    "formatOfPlay",
+    "entryMode",
+    "registrantSourceMode",
+    "startType",
+  ].forEach((id) => {
+    const el = $(id);
+    if (!el) return;
+    const fn = () => updateAdminSummary();
+    el.addEventListener("input", fn);
+    el.addEventListener("change", fn);
+  });
 onAuthStateChanged(auth, async (user) => {
   const loadingEl = $("adminLoadingBanner");
 
@@ -2974,6 +3354,7 @@ onAuthStateChanged(auth, async (user) => {
     if (loadingEl) loadingEl.hidden = true;
     adminBootstrapping = false;
     applyLinks();
+    updateAdminSummary();
     updateAdminUiHints(fromUrl, fromStorageUsed, Boolean(state.tournamentId));
   }
 });
@@ -2987,6 +3368,7 @@ onAuthStateChanged(auth, async (user) => {
       state.tournamentId = tid;
       state.adminToken = tok;
       applyLinks();
+      updateAdminSummary();
     }
   });
   
