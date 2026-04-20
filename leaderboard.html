@@ -53,6 +53,7 @@
       --lb-body-bg: #78756e;
       --lb-overlay-top: rgba(45,44,42,0.25);
       --lb-overlay-radial: rgba(120,115,105,0.12);
+      --lb-bg-image: url("./assets/cypresswood_header.png");
     }
 
     @media (min-width: 820px){
@@ -70,7 +71,7 @@
       margin:0;
       color: var(--ink);
       font-family: Georgia, 'Times New Roman', serif;
-      background-image: none;
+      background-image: var(--lb-bg-image, url("./assets/cypresswood_header.png"));
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -1333,6 +1334,11 @@
   const courseHeaderMini = document.getElementById("courseHeaderMini");
   const clubNameEl = document.getElementById("clubName");
   const sheetEl = document.querySelector(".sheet");
+  if (courseHeaderMini) {
+    courseHeaderMini.addEventListener("error", () => {
+      setLeaderboardBackgroundImage(PLACEHOLDER_COURSE_HEADER_IMAGE);
+    });
+  }
 
   const sponsorHero = document.getElementById("sponsorHero");
   const sponsorHeroLogo = document.getElementById("sponsorHeroLogo");
@@ -1456,6 +1462,13 @@
     return "https://" + s;
   }
 
+  function setLeaderboardBackgroundImage(url){
+    const fallback = PLACEHOLDER_COURSE_HEADER_IMAGE || "./assets/cypresswood_header.png";
+    const raw = String(url || "").trim() || fallback;
+    const safe = raw.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    document.documentElement.style.setProperty("--lb-bg-image", `url("${safe}")`);
+  }
+
   function tsToText(ts){
     try{
       const d = ts?.toDate ? ts.toDate() : null;
@@ -1504,6 +1517,7 @@
       fromCourse ||
       resolveScorecardHeaderImageForDoc(cid, null, null) ||
       PLACEHOLDER_COURSE_HEADER_IMAGE;
+    setLeaderboardBackgroundImage(courseHeaderMini.src);
     courseHeaderMini.alt = `${c.clubName || "Course"} · header`;
     clubNameEl.textContent = c.clubName || "Golf Club";
 

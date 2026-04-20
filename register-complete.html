@@ -1153,6 +1153,39 @@ const params = new URLSearchParams(location.search);
       return url.toString();
     }
 
+    function formatUsTeeTimeDisplay(value){
+      const raw = safeText(value);
+      if (!raw) return "";
+      let dt = null;
+      const localMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/);
+      if (localMatch) {
+        const y = Number(localMatch[1]);
+        const mo = Number(localMatch[2]);
+        const d = Number(localMatch[3]);
+        const h = Number(localMatch[4]);
+        const mi = Number(localMatch[5]);
+        if ([y, mo, d, h, mi].every(Number.isFinite)) {
+          dt = new Date(y, mo - 1, d, h, mi, 0, 0);
+        }
+      }
+      if (!dt) {
+        const parsed = new Date(raw);
+        if (!Number.isNaN(parsed.getTime())) dt = parsed;
+      }
+      if (!dt) return raw;
+      const datePart = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }).format(dt);
+      const timePart = new Intl.DateTimeFormat("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }).format(dt);
+      return `${datePart} at ${timePart}`;
+    }
+
     function buildShareText(payload, assignedHole, scorecardUrl){
       const tournamentName = safeText(payload?.tournamentName || state.tournament?.tournamentName || state.tournament?.name, "Event");
       const courseName = safeText(payload?.defaultCourse || state.tournament?.defaultCourse);
@@ -1200,9 +1233,10 @@ const params = new URLSearchParams(location.search);
 
       const isTee = normalizeAssignmentType(state.tournament) === ASSIGNMENT_TEE_TIMES;
       const teeTime = safeText(payload?.teeTime);
+      const teeTimeDisplay = formatUsTeeTimeDisplay(teeTime);
 
       if (isTee && teeTime){
-        lines.push(`Tee time: ${teeTime}`);
+        lines.push(`Tee time: ${teeTimeDisplay || teeTime}`);
         const sh = payload?.startingHole;
         if (sh != null && sh !== "" && Number.isFinite(Number(sh))){
           lines.push(`Starting hole: ${Number(sh)}`);
@@ -1300,9 +1334,10 @@ const params = new URLSearchParams(location.search);
       const scorecardUrl = buildScorecardUrl(registrationId);
       const isTee = normalizeAssignmentType(state.tournament) === ASSIGNMENT_TEE_TIMES;
       const teeTime = safeText(payload?.teeTime);
+      const teeTimeDisplay = formatUsTeeTimeDisplay(teeTime);
       const teeBody = (() => {
         if (isTee && teeTime){
-          return `Your tee time is <b>${escapeHtml(teeTime)}</b> (starting hole ${escapeHtml(String(payload?.startingHole != null ? payload.startingHole : 1))}).`;
+          return `Your tee time is <b>${escapeHtml(teeTimeDisplay || teeTime)}</b> (starting hole ${escapeHtml(String(payload?.startingHole != null ? payload.startingHole : 1))}).`;
         }
         if (isTee && !teeTime){
           return `Your team has been added to the roster.`;

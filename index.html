@@ -1475,6 +1475,39 @@ function normalizeStartHole(raw){
   return { label: `${holeNum}${suffix}`, holeNum };
 }
 
+function formatUsTeeTimeDisplay(value){
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  let dt = null;
+  const localMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/);
+  if (localMatch) {
+    const y = Number(localMatch[1]);
+    const mo = Number(localMatch[2]);
+    const d = Number(localMatch[3]);
+    const h = Number(localMatch[4]);
+    const mi = Number(localMatch[5]);
+    if ([y, mo, d, h, mi].every(Number.isFinite)) {
+      dt = new Date(y, mo - 1, d, h, mi, 0, 0);
+    }
+  }
+  if (!dt) {
+    const parsed = new Date(raw);
+    if (!Number.isNaN(parsed.getTime())) dt = parsed;
+  }
+  if (!dt) return raw;
+  const datePart = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(dt);
+  const timePart = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(dt);
+  return `${datePart} at ${timePart}`;
+}
+
 function orgPart(){
   return organizationId ? `_o_${organizationId}` : "";
 }
@@ -2988,7 +3021,7 @@ function renderTeamPicker(){
     <div class="team-hole-badge">
       ${escapeHtml(
         tournamentStartType === ASSIGNMENT_TEE_TIMES
-          ? (team.teeTime || "—")
+          ? (formatUsTeeTimeDisplay(team.teeTime) || "—")
           : (team.assignedHole || "—")
       )}
     </div>
@@ -3067,7 +3100,7 @@ function applyRegistrationSelection(reg){
   joinScreen.style.display = "block";
   joinMeta.textContent =
     tournamentStartType === ASSIGNMENT_TEE_TIMES
-      ? `Confirm Team: ${reg.teamName || "Team"} • Tee time ${reg.teeTime || "—"} • Hole ${startLbl}`
+      ? `Confirm Team: ${reg.teamName || "Team"} • Tee time ${formatUsTeeTimeDisplay(reg.teeTime) || "—"} • Hole ${startLbl}`
       : `Confirm Team: ${reg.teamName || "Team"} • Start Hole ${reg.assignedHole || "—"}`;
   updateJoinScreenForEntryMode();
 }

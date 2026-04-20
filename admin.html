@@ -531,6 +531,50 @@
       z-index:2;
       pointer-events:auto;
     }
+    .import-result-panel{
+      margin-top:14px;
+      padding:14px 16px;
+      border-radius:14px;
+      border:2px solid #2f7a31;
+      background:#f4faf4;
+    }
+    .import-result-summary{
+      margin:4px 0 0;
+      font-size:14px;
+      line-height:1.45;
+      font-weight:700;
+      color:#2a2622;
+    }
+    .import-result-issues{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:2px solid rgba(182,66,45,.35);
+      background:#fff;
+    }
+    .import-result-issues h4{
+      margin:0 0 8px;
+      font-size:15px;
+      line-height:1.2;
+      color:#7a1f12;
+    }
+    .import-result-issue-list{
+      margin:0;
+      padding-left:18px;
+      font-size:14px;
+      line-height:1.4;
+      color:#42251f;
+    }
+    .import-warning-actions{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+    .import-warning-actions .btn{
+      min-height:64px;
+      font-size:clamp(18px,2.8vw,28px);
+      margin-top:0;
+    }
 
     @media (min-width:760px){
       .content{ padding:26px; }
@@ -632,7 +676,7 @@
           <div class="import-trigger-block import-callout" id="importTriggerBlock">
             <p class="import-callout-kicker">Power tool · optional</p>
             <p class="import-callout-title">Import registrations (optional)</p>
-            <p class="import-callout-note">Bulk-add from Excel or CSV when your source settings allow uploads. Column mapping and preview open here—nothing to fill until you choose to.</p>
+            <p class="import-callout-note">Bulk-add from Excel or CSV when your source settings allow uploads. Spreadsheet setup and preview open here—nothing to fill until you choose to.</p>
             <button class="btn btn-ghost btn-import-launch" id="importRegistrationsBtn" type="button">Open spreadsheet import</button>
           </div>
         </div>
@@ -647,7 +691,7 @@
           <div class="field">
             <label class="label" for="csvFileInput">Excel / CSV file</label>
             <input id="csvFileInput" type="file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="min-height:auto;padding:18px;background:#f4f4f4;" />
-            <div class="hint">Upload .csv, .xlsx, or .xls — map columns below, then preview and import.</div>
+            <div class="hint">Upload .csv, .xlsx, or .xls — match your spreadsheet setup below, then preview and import.</div>
           </div>
           <div class="field">
             <label class="label">Detected Headers</label>
@@ -663,8 +707,8 @@
             </div>
           </div>
           <div class="field">
-            <label class="label">Column mapping</label>
-            <div class="hint" style="margin-bottom:8px;">Map spreadsheet columns to fields. <b>Tournament</b> events usually require <b>Team</b>; <b>Clinic</b> events often use <b>Full name</b> or first/last plus <b>Email</b>.</div>
+            <label class="label">Spreadsheet setup</label>
+            <div class="hint" style="margin-bottom:8px;">Match your spreadsheet columns to registration fields. <b>Tournament</b> events usually require <b>Team</b>; <b>Clinic</b> events often use <b>Full name</b> or first/last plus <b>Email</b>.</div>
             <div id="importMappingGrid" class="import-mapping-grid"></div>
           </div>
           <div class="field">
@@ -684,10 +728,23 @@
           </div>
           <button class="btn btn-green" id="runImportBtn" type="button">Preview Import</button>
           <div class="hint" id="csvImportStatus">Load an Excel/CSV file to begin.</div>
+          <div id="csvSetupWarningPanel" class="import-result-issues hidden" style="margin-top:10px;">
+            <p id="csvSetupWarningMessage" class="import-result-summary" style="margin-top:0;">We found some setup issues. You can fix them now or continue and review later.</p>
+            <ul id="csvSetupWarningList" class="import-result-issue-list"></ul>
+            <div class="import-warning-actions">
+              <button class="btn btn-ghost" id="reviewSetupWarningBtn" type="button">Review Setup</button>
+              <button class="btn btn-red" id="importAnywayBtn" type="button">Import Anyway</button>
+            </div>
+          </div>
 
-          <div id="csvImportResultPanel" class="hidden" style="margin-top:14px;padding:14px 16px;border-radius:14px;border:2px solid #2f7a31;background:#f4faf4;">
+          <div id="csvImportResultPanel" class="import-result-panel hidden">
             <div id="csvImportResultTitle" style="font-weight:800;margin-bottom:8px;font-size:16px;"></div>
             <ul id="csvImportResultList" style="margin:0;padding-left:20px;font-size:14px;line-height:1.45;"></ul>
+            <p id="csvImportResultSummary" class="import-result-summary hidden"></p>
+            <div id="csvImportIssuePanel" class="import-result-issues hidden">
+              <h4>Review Issues</h4>
+              <ul id="csvImportIssueList" class="import-result-issue-list"></ul>
+            </div>
           </div>
 
           <div id="csvPreviewPane" class="hidden" style="margin-top:14px;">
@@ -711,7 +768,7 @@
             </div>
             <div class="hint" id="csvPreviewFootnote" style="margin-top:8px;"></div>
             <button class="btn btn-green" id="confirmImportBtn" type="button">Import</button>
-            <button class="btn btn-ghost" id="backToMappingBtn" type="button">Back to Mapping</button>
+            <button class="btn btn-ghost" id="backToMappingBtn" type="button">Review Setup</button>
             <button class="btn btn-red" id="cancelImportBtn" type="button">Cancel</button>
             <a class="btn btn-blue hidden" id="viewRosterAfterImport" href="#" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;margin-left:8px;">View Roster</a>
           </div>
@@ -1154,6 +1211,7 @@
   import {
     IMPORT_FIELD_KEYS,
     buildImportRecordsFromMappedRows,
+    validateImportMappingSelections,
     indexRegistrationsForMatching,
     findMatchingRegistration,
     buildImportRegisterTeamPayload,
@@ -1539,7 +1597,7 @@
       sel.id = `map_${id}`;
       const none = document.createElement("option");
       none.value = "";
-      none.textContent = "— Not mapped —";
+      none.textContent = "— Not matched yet —";
       sel.appendChild(none);
       headers.forEach((h) => {
         const opt = document.createElement("option");
@@ -1678,14 +1736,22 @@
     $("csvPreviewFootnote").textContent = "";
     $("viewRosterAfterImport")?.classList.add("hidden");
     $("csvImportResultPanel")?.classList.add("hidden");
+    $("csvImportResultSummary")?.classList.add("hidden");
+    $("csvImportIssuePanel")?.classList.add("hidden");
+    if ($("csvImportIssueList")) $("csvImportIssueList").innerHTML = "";
+    $("csvSetupWarningPanel")?.classList.add("hidden");
+    if ($("csvSetupWarningList")) $("csvSetupWarningList").innerHTML = "";
     if (closePanel) $("csvImportPanel")?.classList.add("hidden");
   }
 
-  function renderCsvImportResult(ok, detailLines){
+  function renderCsvImportResult({ ok = true, titleText = "", detailLines = [], summaryText = "", issues = [] } = {}){
     const panel = $("csvImportResultPanel");
     const title = $("csvImportResultTitle");
     const list = $("csvImportResultList");
-    if (!panel || !title || !list) return;
+    const summary = $("csvImportResultSummary");
+    const issuePanel = $("csvImportIssuePanel");
+    const issueList = $("csvImportIssueList");
+    if (!panel || !title || !list || !summary || !issuePanel || !issueList) return;
     const esc = (s) =>
       String(s || "")
         .replace(/&/g, "&amp;")
@@ -1696,14 +1762,125 @@
     if (ok) {
       panel.style.borderColor = "#2f7a31";
       panel.style.background = "#f4faf4";
-      title.textContent = "Import succeeded";
+      title.textContent = titleText || "Import completed";
     } else {
       panel.style.borderColor = "#b6422d";
       panel.style.background = "#fff5f3";
-      title.textContent = "Import finished with issues";
+      title.textContent = titleText || "Import needs attention";
     }
     const lines = Array.isArray(detailLines) ? detailLines : [];
+    const issueLines = Array.isArray(issues) ? issues : [];
     list.innerHTML = lines.map((t) => `<li>${esc(t)}</li>`).join("");
+    if (summaryText) {
+      summary.textContent = summaryText;
+      summary.classList.remove("hidden");
+    } else {
+      summary.textContent = "";
+      summary.classList.add("hidden");
+    }
+    if (issueLines.length) {
+      issuePanel.classList.remove("hidden");
+      issueList.innerHTML = issueLines.map((t) => `<li>${esc(t)}</li>`).join("");
+    } else {
+      issuePanel.classList.add("hidden");
+      issueList.innerHTML = "";
+    }
+  }
+
+  function getImportIssueRowLabel(rec){
+    const rows = Array.isArray(rec?._sourceRows)
+      ? rec._sourceRows.filter((n) => Number.isFinite(Number(n))).map((n) => Number(n))
+      : [];
+    if (!rows.length) return "Row unknown";
+    if (rows.length === 1) return `Row ${rows[0]}`;
+    const shown = rows.slice(0, 3).join(", ");
+    return rows.length > 3 ? `Rows ${shown}, ...` : `Rows ${shown}`;
+  }
+
+  function getImportIssueReason(err){
+    const raw = String(err?.message || err || "").trim();
+    if (!raw) return "Could not import this row";
+    if (/permission|insufficient/i.test(raw)) return "You do not have permission to import this row";
+    if (/missing|required/i.test(raw)) return "Required details are missing";
+    if (/network|timeout|unavailable/i.test(raw)) return "Network issue while saving this row";
+    return raw;
+  }
+
+  function buildImportFallbackGolfRecord(rec, reason, rowLabel){
+    const base = rec && typeof rec === "object" ? { ...rec } : {};
+    const firstPlayer = Array.isArray(base.players)
+      ? base.players.map((p) => String(p || "").trim()).find(Boolean)
+      : "";
+    const fallbackCaptain =
+      String(base.captainName || "").trim() ||
+      firstPlayer ||
+      String(base.teamName || "").trim() ||
+      `Imported player ${rowLabel || ""}`.trim();
+    const fallbackTeam =
+      String(base.teamName || "").trim() ||
+      fallbackCaptain ||
+      `Imported Team ${rowLabel || ""}`.trim();
+    const players = Array.isArray(base.players)
+      ? base.players.map((p) => String(p || "").trim()).filter(Boolean)
+      : [];
+    if (!players.length && fallbackCaptain) players.push(fallbackCaptain);
+    const playerDetails = Array.isArray(base.playerDetails)
+      ? base.playerDetails
+          .map((p) => ({
+            name: String(p?.name || "").trim(),
+            isCaptain: !!p?.isCaptain,
+            handicap: p?.handicap,
+          }))
+          .filter((p) => p.name)
+      : [];
+    if (!playerDetails.length && players.length) {
+      players.forEach((name, idx) => {
+        playerDetails.push({ name, isCaptain: idx === 0 });
+      });
+    }
+    const mergedIssues = Array.from(
+      new Set([
+        ...(Array.isArray(base.importIssues) ? base.importIssues : []),
+        `Import retry after row issue: ${reason}`,
+      ])
+    ).slice(0, 30);
+    return {
+      ...base,
+      teamName: fallbackTeam,
+      captainName: fallbackCaptain,
+      players,
+      playerDetails,
+      importStatus: "warning",
+      importIssues: mergedIssues,
+    };
+  }
+
+  function showSetupWarningPanel(issues){
+    const list = Array.isArray(issues) ? issues.filter(Boolean) : [];
+    const warningList = $("csvSetupWarningList");
+    const warningPanel = $("csvSetupWarningPanel");
+    const esc = (s) =>
+      String(s || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    $("csvImportStatus").textContent = "We found setup issues. Review setup or import anyway.";
+    if (warningList) {
+      warningList.innerHTML = list.map((t) => `<li>${esc(t)}</li>`).join("");
+    }
+    warningPanel?.classList.remove("hidden");
+    showToast("Setup issues found");
+  }
+
+  function hideSetupWarningPanel(){
+    $("csvSetupWarningPanel")?.classList.add("hidden");
+  }
+
+  function hasReadableImportRows(rows){
+    return Array.isArray(rows) && rows.some((row) =>
+      Object.values(row || {}).some((v) => String(v || "").trim())
+    );
   }
 
   function renderCsvPreview(payload){
@@ -1725,7 +1902,7 @@
 
     const avg = regs.length ? (totalPlayers / regs.length) : 0;
     let warning = "";
-    if (!regs.length || !totalPlayers) warning = "Warning: no usable rows detected for this mapping.";
+    if (!regs.length || !totalPlayers) warning = "Warning: no usable rows detected for this setup.";
     else if (isGolf && avg < 1) warning = "Warning: average players per team is very low.";
     else if (isGolf && avg > 4.5) warning = "Warning: average players per team is unusually high.";
     $("csvPreviewWarning").textContent = warning;
@@ -1771,47 +1948,37 @@
     const colSpan = isGolf ? 4 : 5;
     $("csvPreviewBody").innerHTML = rowsHtml || `<tr><td colspan="${colSpan}">No preview rows.</td></tr>`;
     $("csvPreviewFootnote").textContent =
-      regs.length > 20 ? `Showing first 20 of ${regs.length} row(s).` : "Showing all mapped rows.";
+      regs.length > 20 ? `Showing first 20 of ${regs.length} row(s).` : "Showing all matched rows.";
     $("csvPreviewPane")?.classList.remove("hidden");
   }
 
-  function buildImportPreviewPayload(){
+  function buildImportPreviewPayload({ allowSetupWarnings = false } = {}){
     if (!state.tournamentId) {
       showToast("Create or load an event first");
       return null;
     }
-    if (!csvImportRows.length) {
+    if (!csvImportRows.length || !hasReadableImportRows(csvImportRows)) {
       showToast("Upload an Excel/CSV file first");
-      $("csvImportStatus").textContent = "Import blocked: upload an Excel/CSV file first.";
+      $("csvImportStatus").textContent = "Import blocked: upload a readable Excel/CSV file first.";
       return null;
     }
 
     const mapping = collectImportMappingFromForm();
     const eventCategory = String($("eventCategory")?.value || EVENT_CATEGORY_GOLF).toLowerCase();
-    const isGolf = eventCategory === EVENT_CATEGORY_GOLF;
 
-    if (isGolf) {
-      if (!mapping.teamName) {
-        showToast("Map a Team column for Tournament events");
-        $("csvImportStatus").textContent = "Import blocked: map Team for golf events.";
-        return null;
-      }
-      if (!mapping.fullName && (!mapping.firstName || !mapping.lastName)) {
-        showToast("Map Full name or both First and Last name");
-        $("csvImportStatus").textContent = "Import blocked: map name columns.";
-        return null;
-      }
-    } else if (!mapping.fullName && !mapping.email && (!mapping.firstName || !mapping.lastName)) {
-      showToast("Map full name, email, or first/last name");
-      $("csvImportStatus").textContent = "Import blocked: map at least one identity column.";
+    const setupCheck = validateImportMappingSelections(mapping, eventCategory);
+    const setupIssues = Array.isArray(setupCheck.issues) ? setupCheck.issues : [];
+    if (setupIssues.length && !allowSetupWarnings) {
+      showSetupWarningPanel(setupIssues);
       return null;
     }
 
+    hideSetupWarningPanel();
     $("csvImportStatus").textContent = "Preparing preview…";
     const grouped = buildImportRecordsFromMappedRows(csvImportRows, mapping, eventCategory);
     const regs = grouped.regs;
     if (!regs.length) {
-      $("csvImportStatus").textContent = "No valid rows found for the current mapping.";
+      $("csvImportStatus").textContent = "Import blocked: file is unreadable after parsing.";
       return null;
     }
     console.log("IMPORT mapping debug", { eventCategory, mappedFields: Object.keys(mapping) });
@@ -1823,6 +1990,8 @@
       ignoredBlankRows: grouped.ignoredBlankRows || 0,
       mapping,
       eventCategory,
+      warningMode: setupIssues.length > 0,
+      setupIssues: setupIssues.slice(0, 20),
       importMode: $("importMode")?.value || "merge",
       teamSize: playersPerTeamFromFormat(),
     };
@@ -1830,6 +1999,7 @@
 
   function getTournamentTemplateForImport(){
     const courseMeta = getDefaultCourseSelectionMeta();
+    const eventCategory = String($("eventCategory")?.value || EVENT_CATEGORY_GOLF).toLowerCase();
     return {
       tournamentId: state.tournamentId,
       tournamentName: $("tournamentName")?.value.trim() || "",
@@ -1837,6 +2007,7 @@
       formatOfPlay: $("formatOfPlay")?.value || "",
       courseId: courseMeta.courseId,
       defaultCourse: courseMeta.defaultCourse,
+      eventCategory,
     };
   }
 
@@ -1888,20 +2059,66 @@
       let updated = 0;
       let duplicateSkipped = 0;
       let errors = 0;
+      let warningTagged = 0;
       const errorSamples = [];
       let playerLines = 0;
+      let recoveredWithFallback = 0;
 
+      const issueRows = [];
+      const createGolfImportRegistration = async (recForWrite) => {
+        const payload = buildImportRegisterTeamPayload({
+          tournamentId: state.tournamentId,
+          organizationId: state.orgId,
+          reg: recForWrite,
+          handicapOn,
+          handicapPercent: hp,
+        });
+        const result = await registerTeamCallable(payload);
+        const res = result.data || {};
+        const rid = res.registrationId || "";
+        const plain = res.registration || {};
+        created += 1;
+        playerLines += Array.isArray(recForWrite.players) ? recForWrite.players.length : 0;
+        if (recForWrite.importStatus === "warning") warningTagged += 1;
+        if (rid) {
+          if (recForWrite.importStatus === "warning") {
+            const ref = tournamentRegistrationDoc(db, state.orgId, state.tournamentId, rid);
+            await updateDoc(ref, {
+              importStatus: "warning",
+              importIssues: recForWrite.importIssues || [],
+              updatedAt: serverTimestamp(),
+            });
+          }
+          pushImportMatchIndexEntry(indexed, rid, {
+            ...plain,
+            captainEmail: recForWrite.captainEmail || plain.captainEmail,
+            captainPhone: recForWrite.captainPhone || plain.captainPhone,
+            captainName: recForWrite.captainName || plain.captainName,
+            session: recForWrite.session,
+            timeSlot: recForWrite.timeSlot,
+          });
+        }
+      };
       for (const rec of records) {
+        const baseSetupIssues = Array.isArray(csvPreviewPayload.setupIssues) ? csvPreviewPayload.setupIssues : [];
+        const recSetupIssues = Array.isArray(rec?._importIssues) ? rec._importIssues : [];
+        const mergedImportIssues = Array.from(new Set([...baseSetupIssues, ...recSetupIssues])).slice(0, 30);
+        const recForWrite = {
+          ...rec,
+          importStatus: mergedImportIssues.length ? "warning" : "",
+          importIssues: mergedImportIssues,
+        };
         try {
-          const match = findMatchingRegistration(rec, indexed);
+          const match = findMatchingRegistration(recForWrite, indexed);
           if (match) {
             if (dupMode === DUPLICATE_MODE_UPDATE) {
               const ref = tournamentRegistrationDoc(db, state.orgId, state.tournamentId, match.id);
               const merged = isGolf
-                ? mergeGolfRegistrationUpdatePayload(rec, match.data, handicapOn, hp)
-                : mergeRegistrationUpdatePayload(rec, match.data, handicapOn, hp);
+                ? mergeGolfRegistrationUpdatePayload(recForWrite, match.data, handicapOn, hp)
+                : mergeRegistrationUpdatePayload(recForWrite, match.data, handicapOn, hp);
               await updateDoc(ref, { ...merged, updatedAt: serverTimestamp() });
               updated += 1;
+              if (recForWrite.importStatus === "warning") warningTagged += 1;
             } else {
               duplicateSkipped += 1;
             }
@@ -1909,31 +2126,9 @@
           }
 
           if (isGolf) {
-            const payload = buildImportRegisterTeamPayload({
-              tournamentId: state.tournamentId,
-              organizationId: state.orgId,
-              reg,
-              handicapOn,
-              handicapPercent: hp,
-            });
-            const result = await registerTeamCallable(payload);
-            const res = result.data || {};
-            const rid = res.registrationId || "";
-            const plain = res.registration || {};
-            created += 1;
-            playerLines += Array.isArray(rec.players) ? rec.players.length : 0;
-            if (rid) {
-              pushImportMatchIndexEntry(indexed, rid, {
-                ...plain,
-                captainEmail: rec.captainEmail || plain.captainEmail,
-                captainPhone: rec.captainPhone || plain.captainPhone,
-                captainName: rec.captainName || plain.captainName,
-                session: rec.session,
-                timeSlot: rec.timeSlot,
-              });
-            }
+            await createGolfImportRegistration(recForWrite);
           } else {
-            const payload = buildNonGolfRegistrationWritePayload(rec, tournamentTemplate, handicapOn, hp);
+            const payload = buildNonGolfRegistrationWritePayload(recForWrite, tournamentTemplate, handicapOn, hp);
             const newRef = doc(tournamentRegistrationsCollection(db, state.orgId, state.tournamentId));
             await setDoc(newRef, {
               ...payload,
@@ -1941,36 +2136,125 @@
               updatedAt: serverTimestamp(),
             });
             created += 1;
-            playerLines += Array.isArray(rec.players) ? rec.players.length : 0;
+            playerLines += Array.isArray(recForWrite.players) ? recForWrite.players.length : 0;
+            if (recForWrite.importStatus === "warning") warningTagged += 1;
             pushImportMatchIndexEntry(indexed, newRef.id, payload);
           }
         } catch (teamErr) {
-          errors += 1;
-          if (errorSamples.length < 8) {
-            errorSamples.push(String(rec.teamName || rec.captainName || "(row)"));
+          const rowLabel = getImportIssueRowLabel(rec);
+          const reason = getImportIssueReason(teamErr);
+          try {
+            if (isGolf) {
+              const retryRec = buildImportFallbackGolfRecord(recForWrite, reason, rowLabel);
+              await createGolfImportRegistration(retryRec);
+              recoveredWithFallback += 1;
+              if (issueRows.length < 14) {
+                issueRows.push(`${rowLabel}: ${reason}. Assignment retried through team registration logic.`);
+              }
+            } else {
+              const fallbackPayload = buildNonGolfRegistrationWritePayload(recForWrite, tournamentTemplate, handicapOn, hp);
+              const fallbackRef = doc(tournamentRegistrationsCollection(db, state.orgId, state.tournamentId));
+              await setDoc(fallbackRef, {
+                ...fallbackPayload,
+                eventCategory,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                importStatus: "warning",
+                importIssues: Array.from(new Set([...(fallbackPayload.importIssues || []), `Row fallback write: ${reason}`])).slice(0, 30),
+              });
+              created += 1;
+              warningTagged += 1;
+              recoveredWithFallback += 1;
+              playerLines += Array.isArray(recForWrite.players) ? recForWrite.players.length : 0;
+              pushImportMatchIndexEntry(indexed, fallbackRef.id, fallbackPayload);
+              if (issueRows.length < 14) issueRows.push(`${rowLabel}: ${reason}. Saved with fallback warning data.`);
+            }
+          } catch (fallbackErr) {
+            if (isGolf) {
+              try {
+                const fallbackRec = {
+                  ...buildImportFallbackGolfRecord(recForWrite, getImportIssueReason(fallbackErr), rowLabel),
+                  teeTime: "",
+                  assignedHole: "",
+                };
+                const fallbackPayload = buildNonGolfRegistrationWritePayload(
+                  fallbackRec,
+                  { ...tournamentTemplate, eventCategory },
+                  handicapOn,
+                  hp
+                );
+                const fallbackRef = doc(tournamentRegistrationsCollection(db, state.orgId, state.tournamentId));
+                await setDoc(fallbackRef, {
+                  ...fallbackPayload,
+                  eventCategory,
+                  createdAt: serverTimestamp(),
+                  updatedAt: serverTimestamp(),
+                  importStatus: "warning",
+                  importIssues: Array.from(
+                    new Set([...(fallbackPayload.importIssues || []), "Assignment logic failed. Saved as unassigned for review."])
+                  ).slice(0, 30),
+                });
+                created += 1;
+                warningTagged += 1;
+                recoveredWithFallback += 1;
+                playerLines += Array.isArray(fallbackRec.players) ? fallbackRec.players.length : 0;
+                pushImportMatchIndexEntry(indexed, fallbackRef.id, fallbackPayload);
+                if (issueRows.length < 14) {
+                  issueRows.push(`${rowLabel}: Assignment failed after retry. Saved as unassigned for review.`);
+                }
+              } catch (finalErr) {
+                errors += 1;
+                if (issueRows.length < 14) issueRows.push(`${rowLabel}: ${getImportIssueReason(finalErr)}`);
+                if (errorSamples.length < 8) errorSamples.push(rowLabel);
+                console.error("Import row failed after golf fallback", rec, finalErr);
+              }
+            } else {
+              errors += 1;
+              if (issueRows.length < 14) issueRows.push(`${rowLabel}: ${getImportIssueReason(fallbackErr)}`);
+              if (errorSamples.length < 8) errorSamples.push(rowLabel);
+              console.error("Import row failed after fallback", rec, fallbackErr);
+            }
           }
-          console.error("Import row failed", rec, teamErr);
         }
       }
 
       const skippedRows = Number(csvPreviewPayload.skippedRows || 0);
       const ignoredBlankRows = Number(csvPreviewPayload.ignoredBlankRows || 0);
-      statusEl.textContent = `Done: ${created} created, ${updated} updated, ${duplicateSkipped} duplicates skipped, ${errors} errors.`;
+      const importedRows = created + updated;
+      const rowsNeedingReview = errors + warningTagged;
+      statusEl.textContent = rowsNeedingReview
+        ? `${importedRows} rows imported successfully. ${rowsNeedingReview} rows need review.`
+        : `${importedRows} rows imported successfully.`;
       const sourceRows = Number(csvPreviewPayload.rowsInSourceFile || rowsFound);
+      const setupIssuesForSummary = Array.isArray(csvPreviewPayload.setupIssues) ? csvPreviewPayload.setupIssues : [];
       const detailLines = [
         `Rows found in file: ${sourceRows}`,
         `Rows in import batch: ${rowsFound}`,
-        `Created: ${created}`,
-        `Updated: ${updated}`,
+        `${created} row(s) created`,
+        `${updated} row(s) updated`,
         `Duplicates skipped: ${duplicateSkipped}`,
         `Player lines (sum): ${playerLines}`,
+        warningTagged ? `${warningTagged} row(s) tagged with warning status` : null,
+        recoveredWithFallback ? `${recoveredWithFallback} row(s) saved through fallback writes` : null,
         skippedRows ? `Parse skipped rows: ${skippedRows}` : null,
         ignoredBlankRows ? `Blank rows ignored: ${ignoredBlankRows}` : null,
-        errors ? `Errors: ${errors}${errorSamples.length ? ` (e.g. ${errorSamples.join(", ")})` : ""}` : null,
+        errors ? `${errors} row(s) need review${errorSamples.length ? ` (e.g. ${errorSamples.join(", ")})` : ""}` : null,
       ].filter(Boolean);
+      const allIssueLines = [
+        ...setupIssuesForSummary.map((x) => `Setup warning: ${x}`),
+        ...issueRows,
+      ].slice(0, 20);
       const importOk = errors === 0;
-      renderCsvImportResult(importOk, detailLines);
-      showToast(importOk ? "Import finished" : "Import finished with errors — see summary");
+      renderCsvImportResult({
+        ok: importOk,
+        titleText: importOk ? "Import completed" : "Import completed with issues",
+        detailLines,
+        summaryText: rowsNeedingReview
+          ? `${importedRows} rows imported successfully • ${rowsNeedingReview} rows need review`
+          : `${importedRows} rows imported successfully`,
+        issues: allIssueLines,
+      });
+      showToast(rowsNeedingReview ? "Import finished — review warnings and issues" : "Import finished");
       const links = buildLinks(state.orgId, state.tournamentId, state.adminToken);
       const rosterBtn = $("viewRosterAfterImport");
       if (rosterBtn) {
@@ -1981,7 +2265,13 @@
       console.error(err);
       const msg = err?.message || String(err);
       statusEl.textContent = `Import failed: ${msg}`;
-      renderCsvImportResult(false, [`Fatal error: ${msg}`]);
+      renderCsvImportResult({
+        ok: false,
+        titleText: "Import failed",
+        detailLines: [`Fatal error: ${msg}`],
+        summaryText: "No rows were imported. Review the issue below.",
+        issues: [],
+      });
       showToast("Import failed — see summary");
     } finally {
       isImportRunning = false;
@@ -1992,13 +2282,19 @@
     }
   }
 
-  async function runCsvImport(){
+  async function runCsvImport({ allowSetupWarnings = false, autoImport = false } = {}){
     clearCsvPreview(false);
-    const payload = buildImportPreviewPayload();
+    const payload = buildImportPreviewPayload({ allowSetupWarnings });
     if (!payload) return;
     csvPreviewPayload = payload;
     renderCsvPreview(payload);
-    $("csvImportStatus").textContent = "Preview ready. Click Import to create registrations.";
+    $("csvImportStatus").textContent = payload.warningMode
+      ? "Preview ready in warning mode. Import will continue and flag rows for review."
+      : "Preview ready. If this setup looks right, tap Import.";
+    if (autoImport) {
+      $("csvImportStatus").textContent = "Importing in warning mode…";
+      await confirmCsvImport();
+    }
   }
 
   function drawRealQr(elId, text){
@@ -3231,6 +3527,8 @@
   const importRegistrationsBtn = $("importRegistrationsBtn");
   const csvFileInput = $("csvFileInput");
   const runImportBtn = $("runImportBtn");
+  const reviewSetupWarningBtn = $("reviewSetupWarningBtn");
+  const importAnywayBtn = $("importAnywayBtn");
   const confirmImportBtn = $("confirmImportBtn");
   const backToMappingBtn = $("backToMappingBtn");
   const cancelImportBtn = $("cancelImportBtn");
@@ -3327,14 +3625,24 @@
         renderSourceRowPreview(csvImportRows);
         resetImportMappingOptions(csvImportHeaders);
         suggestMapping(csvImportHeaders);
-        $("csvImportStatus").textContent = `Loaded ${csvImportRows.length} data rows. Map columns, then preview import.`;
+        $("csvImportStatus").textContent = `Loaded ${csvImportRows.length} data rows. Match your spreadsheet setup, then preview import.`;
       } catch (err) {
         console.error(err);
         $("csvImportStatus").textContent = `Could not parse file: ${err?.message || err}`;
       }
     });
   }
-  if (runImportBtn) runImportBtn.addEventListener("click", runCsvImport);
+  if (runImportBtn) runImportBtn.addEventListener("click", () => {
+    void runCsvImport({ allowSetupWarnings: false });
+  });
+  if (reviewSetupWarningBtn) reviewSetupWarningBtn.addEventListener("click", () => {
+    hideSetupWarningPanel();
+    $("csvImportStatus").textContent = "Review setup. Adjust matches, then preview again.";
+  });
+  if (importAnywayBtn) importAnywayBtn.addEventListener("click", () => {
+    hideSetupWarningPanel();
+    void runCsvImport({ allowSetupWarnings: true, autoImport: true });
+  });
   if (confirmImportBtn) {
     const triggerImport = (ev) => {
       if (ev?.type === "touchend") ev.preventDefault();
@@ -3348,7 +3656,7 @@
   }
   if (backToMappingBtn) backToMappingBtn.addEventListener("click", () => {
     $("csvPreviewPane")?.classList.add("hidden");
-    $("csvImportStatus").textContent = "Back to mapping. Adjust fields, then run preview again.";
+    $("csvImportStatus").textContent = "Review setup. Adjust matches, then run preview again.";
   });
   if (cancelImportBtn) cancelImportBtn.addEventListener("click", () => {
     clearCsvPreview(true);
