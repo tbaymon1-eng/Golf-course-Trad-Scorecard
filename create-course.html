@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="ops-typography">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -336,6 +336,7 @@
       border-radius: 18px;
     }
   </style>
+  <link rel="stylesheet" href="./css/operations-typography.css" />
 </head>
 <body>
   <header class="page-header">
@@ -499,6 +500,8 @@
         if (orgId) {
           sessionStorage.setItem(SEL_ORG, orgId);
           localStorage.setItem(SEL_ORG, orgId);
+          sessionStorage.setItem("orgId", orgId);
+          sessionStorage.setItem("activeOrgId", orgId);
         }
         if (courseId) {
           sessionStorage.setItem(SEL_COURSE, courseId);
@@ -509,7 +512,9 @@
 
     function sessionOrgFromDashboard() {
       try {
-        return String(sessionStorage.getItem("orgId") || "").trim();
+        return String(
+          sessionStorage.getItem("activeOrgId") || sessionStorage.getItem("orgId") || ""
+        ).trim();
       } catch (_e) {
         return "";
       }

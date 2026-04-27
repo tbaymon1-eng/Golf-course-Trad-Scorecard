@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="ops-typography">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -50,27 +50,88 @@
       background: rgba(18, 53, 111, 0.08);
     }
     .platform-admin-bar.is-visible { display: block; }
-    .platform-admin-bar .platform-kicker {
+    .org-member-bar {
+      display: none;
+      margin-bottom: 20px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 3px solid rgba(47, 122, 49, 0.45);
+      background: rgba(47, 122, 49, 0.08);
+    }
+    .org-member-bar.is-visible { display: block; }
+    .org-member-bar .org-member-kicker {
       font-size: 0.72rem;
       font-weight: 900;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--blue);
+      color: var(--green);
       margin-bottom: 8px;
     }
-    .platform-admin-bar label { display: block; font-weight: 800; font-size: 0.9rem; margin-bottom: 6px; }
-    .platform-admin-bar select {
+    .org-member-bar label { display: block; font-weight: 800; font-size: 0.9rem; margin-bottom: 6px; }
+    .org-member-bar select {
       width: 100%;
       max-width: 100%;
       padding: 10px 12px;
       border-radius: 12px;
       border: 2px solid var(--line);
       font-family: inherit;
-      font-size: 1rem;
+      font-size: max(16px, 0.95rem);
       font-weight: 600;
       background: rgba(255,255,255,.85);
     }
-    .btn-course-delete { background: #8e2c1d; color: #fff; border: none; }
+    .platform-admin-bar .platform-kicker {
+      font-size: 0.72rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 10px;
+    }
+    .platform-active-name-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      margin-bottom: 10px;
+    }
+    .platform-active-account-name {
+      font-family: Cinzel, serif;
+      font-size: clamp(1.05rem, 2.6vw, 1.25rem);
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+    .workspace-badge {
+      font-size: 0.68rem;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(255,255,255,0.55);
+      border: 2px solid rgba(18, 53, 111, 0.35);
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+    .platform-select-label { display: block; font-weight: 800; font-size: 0.9rem; margin-bottom: 6px; }
+    .platform-org-select {
+      width: 100%;
+      max-width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 2px solid var(--line);
+      font-family: inherit;
+      /* min 16px on mobile avoids iOS focus zoom on select */
+      font-size: max(16px, 0.95rem);
+      font-weight: 600;
+      background: rgba(255,255,255,.85);
+    }
+    .platform-switcher-helper {
+      margin: 10px 0 0 0;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #5f5851;
+      line-height: 1.4;
+    }
     .btn-course-delete:hover { filter: brightness(0.95); }
     .modal-backdrop {
       position: fixed;
@@ -95,23 +156,68 @@
     .modal p { margin: 0 0 12px; color: #4b4641; line-height: 1.42; }
     .modal .err { margin: 8px 0 10px; min-height: 1.25em; }
     .modal-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-    .platform-admin-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .platform-admin-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .platform-admin-actions--row { margin-top: 14px; }
+    @media (max-width: 520px) {
+      .platform-admin-actions--row { flex-direction: column; align-items: stretch; }
+      .platform-admin-actions--row .btn { text-align: center; justify-content: center; }
+    }
+    .new-course-account-panel {
+      margin-top: 32px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      border: 2px dashed rgba(154,98,23,.45);
+      background: rgba(255,255,255,.2);
+    }
+    .new-course-account-panel[hidden] { display: none !important; }
+    .new-course-account-panel .section-heading { margin-top: 0; }
+    .new-course-form { margin: 12px 0 0; max-width: 100%; }
+    .new-course-form label { display: block; font-weight: 800; font-size: 0.9rem; margin-bottom: 6px; }
+    .new-course-form input[type="text"] {
+      width: 100%;
+      max-width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 2px solid var(--line);
+      font-family: inherit;
+      font-size: max(16px, 0.95rem);
+      font-weight: 600;
+      background: rgba(255,255,255,.9);
+    }
+    .new-course-form .new-course-form-actions { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .new-course-signup-hint { margin-top: 16px; padding-top: 12px; border-top: 2px solid rgba(154,98,23,.3); }
+    .btn-course-delete { background: #8e2c1d; color: #fff; border: none; }
     .btn-org-delete { background: #7e2317; color: #fff; border: none; }
     .btn-org-delete:hover { filter: brightness(0.95); }
     .readonly-box { border: 2px solid rgba(154,98,23,.4); border-radius: 10px; padding: 10px 12px; background: rgba(255,255,255,.65); word-break: break-all; font-size: 0.92rem; }
     .qr-box { min-height: 228px; display:flex; align-items:center; justify-content:center; background:#fff; border:2px dashed rgba(154,98,23,.45); border-radius:10px; margin: 10px 0 0; }
   </style>
+  <link rel="stylesheet" href="./css/operations-typography.css" />
 </head>
 <body>
   <div class="wrap">
     <h1 id="titleHeading">Tournament dashboard</h1>
     <div id="platformAdminBar" class="platform-admin-bar" aria-live="polite">
       <div class="platform-kicker">Platform admin</div>
-      <label for="orgSwitcher">View organization</label>
-      <select id="orgSwitcher"></select>
-      <div class="platform-admin-actions">
-        <button type="button" class="btn btn-sm btn-org-delete" id="deleteOrgBtn">Delete Organization</button>
+      <div class="platform-active-name-row">
+        <span id="platformActiveAccountName" class="platform-active-account-name" aria-live="polite">—</span>
+        <span class="workspace-badge" id="platformWorkspaceBadge">Current workspace</span>
       </div>
+      <label class="platform-select-label" for="orgSwitcher">Active account</label>
+      <select id="orgSwitcher" class="platform-org-select"></select>
+      <p class="platform-switcher-helper" id="platformSwitcherHelper">
+        Courses, tournaments, links, and QR codes below belong to this account.
+      </p>
+      <div class="platform-admin-actions platform-admin-actions--row">
+        <button type="button" class="btn btn-sm btn-blue" id="newCourseAccountBtn" title="Scroll to create a new course or club account while signed in">+ New course account</button>
+        <a class="btn btn-sm btn-ghost" id="manageAccountBtn" href="./admin.html">Manage selected account</a>
+        <button type="button" class="btn btn-sm btn-org-delete" id="deleteOrgBtn">Delete organization</button>
+      </div>
+    </div>
+    <div id="orgMemberBar" class="org-member-bar" aria-live="polite">
+      <div class="org-member-kicker">Your organizations</div>
+      <label for="orgMemberSwitcher">Active organization</label>
+      <select id="orgMemberSwitcher"></select>
     </div>
     <p class="meta" id="orgLine"></p>
     <div class="toolbar">
@@ -129,6 +235,33 @@
 
     <h2 class="section-heading section-heading--spaced" id="tournamentsSectionTitle">Your tournaments</h2>
     <div id="listHost" class="list"></div>
+
+    <section id="newCourseAccountSection" class="new-course-account-panel" hidden aria-labelledby="newCourseAccountHeading">
+      <h2 class="section-heading" id="newCourseAccountHeading">Add another course account</h2>
+      <p class="meta" id="newCourseAccountIntro" style="margin-bottom:0;">
+        Create a new course or club under your current login. This uses the same server step as first-time setup—no new email or password.
+      </p>
+      <form id="platformNewOrgForm" class="new-course-form" novalidate>
+        <label for="platformNewOrgName">Organization / course account name</label>
+        <input
+          id="platformNewOrgName"
+          name="courseName"
+          type="text"
+          required
+          maxlength="200"
+          autocomplete="organization"
+          placeholder="e.g. your club or course display name"
+        />
+        <div class="new-course-form-actions">
+          <button type="submit" class="btn" id="platformCreateOrgBtn">Create account</button>
+        </div>
+        <div id="newCourseAccountFormErr" class="err" style="margin-top:8px;"></div>
+        <p id="newCourseAccountFormStatus" class="meta" role="status" aria-live="polite" style="margin-top:8px;min-height:0;"></p>
+      </form>
+      <p class="meta new-course-signup-hint" id="newUserSignupHint">
+        New to the platform and need a login? <a href="./signup.html#first-time-organizer">Sign up — first-time organizer</a> (separate from adding an account while signed in here).
+      </p>
+    </section>
   </div>
 
   <div id="courseDeleteModalBackdrop" class="modal-backdrop" aria-hidden="true">
@@ -187,6 +320,7 @@
     import { firebaseConfig } from "./js/firebase-config.js";
     import {
       applyOrgTournamentParams,
+      buildTournamentIndexJoinUrl,
       orgCoursesCollection,
       organizationsCollection,
       orgTournamentsCollection,
@@ -199,18 +333,34 @@
       isPlatformAdminRole,
       withFirestoreRetry,
       isOfflineLikeFirestoreError,
+      buildMergedUserOrgStateClient,
+      persistSessionActiveOrgId,
     } from "./js/resolve-organizer-org.js";
     import { buildPublicCourseScorecardUrl } from "./js/public-course-links.js";
     import { getEventTypeDisplayLabelFromStoredCategory } from "./js/tournament-fields.js";
 
     const DASHBOARD_ADMIN_ORG_KEY = "dashboardAdminOrgId";
+    const DASHBOARD_MEMBER_ORG_KEY = "dashboardActiveOrgId";
     const ADMIN_LAST_TOURNAMENT_KEY = "tournament_admin_last_id_v1";
+    const ADMIN_CLEAR_KEYS = [
+      "currentTournamentId",
+      "tournamentId",
+      "adminTournamentId",
+      "adminToken",
+      "generatedLinks",
+      "lastTournamentId",
+      "selectedTournamentId",
+    ];
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const deleteTournamentCallable = httpsCallable(getFunctions(app, "us-central1"), "deleteTournament");
-    const deleteOrganizationCallable = httpsCallable(getFunctions(app, "us-central1"), "deleteOrganization");
+    const functions = getFunctions(app, "us-central1");
+    const deleteTournamentCallable = httpsCallable(functions, "deleteTournament");
+    const deleteOrganizationCallable = httpsCallable(functions, "deleteOrganization");
+    const setActiveOrganization = httpsCallable(functions, "setActiveOrganization");
+    /** Matches setupOrganization in functions/index.js: request.data.courseName */
+    const setupOrganizationCallable = httpsCallable(functions, "setupOrganization");
 
     const $ = (id) => document.getElementById(id);
 
@@ -221,6 +371,10 @@
     let canDeleteOrganizations = false;
     let pendingOrgDelete = null;
     let pendingCourseQr = null;
+    /** Set when the signed-in user is a platform admin; used by the create-org form. */
+    let sessionPlatformAdmin = false;
+    /** Updated each time the platform admin branch runs; re-renders the active org UI. */
+    let applyPlatformFromSwitcher = async () => {};
 
     function baseDir() {
       const path = window.location.pathname;
@@ -236,7 +390,13 @@
         return url.toString();
       };
       return {
-        scorecard: u("index.html"),
+        scorecard: buildTournamentIndexJoinUrl(
+          window.location.href,
+          orgId,
+          tId,
+          "",
+          { log: true }
+        ),
         leaderboard: u("leaderboard.html"),
         roster: u("roster.html"),
         register: u("register-complete.html"),
@@ -249,6 +409,20 @@
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;");
+    }
+
+    function setPlatformSectionTitlesFromOrgName(displayName) {
+      const n = String(displayName || "").trim();
+      const c = $("coursesSectionTitle");
+      const t = $("tournamentsSectionTitle");
+      if (!c || !t) return;
+      if (n) {
+        c.textContent = `Courses for ${n}`;
+        t.textContent = `Tournaments for ${n}`;
+      } else {
+        c.textContent = "Courses (selected account)";
+        t.textContent = "Tournaments (selected account)";
+      }
     }
 
     async function copyText(text) {
@@ -445,11 +619,15 @@
       } catch (_e) {}
       await Promise.all([renderCourses(active[0].id), renderList(active[0].id)]);
       $("adminBtn").href = `./admin.html?orgId=${encodeURIComponent(active[0].id)}`;
+      const manage = $("manageAccountBtn");
+      if (manage) manage.href = `./admin.html?orgId=${encodeURIComponent(active[0].id)}`;
       const oSnap = await withFirestoreRetry(() => getDoc(doc(db, "organizations", active[0].id)));
       const oName = oSnap.exists() ? String(oSnap.data()?.name || "").trim() : "";
-      $("orgLine").textContent = oName
-        ? `Platform admin · ${oName}`
-        : `Platform admin · Selected organization`;
+      const nameEl = $("platformActiveAccountName");
+      if (nameEl) nameEl.textContent = oName || active[0].id || "—";
+      setPlatformSectionTitlesFromOrgName(oName);
+      const orgLineEl = $("orgLine");
+      if (orgLineEl) orgLineEl.textContent = "";
     }
 
     async function softDeleteCourse(orgId, courseRow) {
@@ -537,6 +715,48 @@
         localStorage.setItem("selectedOrgId", orgId);
         localStorage.setItem("selectedCourseId", courseId);
       } catch (_e) {}
+    }
+
+    function clearAdminBuilderDraftState() {
+      const removeKey = (store, key) => {
+        try { store.removeItem(key); } catch (_e) {}
+      };
+      const clearKnown = (store) => {
+        ADMIN_CLEAR_KEYS.forEach((k) => removeKey(store, k));
+      };
+      clearKnown(sessionStorage);
+      clearKnown(localStorage);
+      try {
+        for (let i = localStorage.length - 1; i >= 0; i -= 1) {
+          const k = String(localStorage.key(i) || "");
+          if (
+            k.startsWith("tournament_admin_") ||
+            k.startsWith(`${ADMIN_LAST_TOURNAMENT_KEY}_`) ||
+            k.startsWith("createTournamentDraft") ||
+            k.startsWith("adminDraft") ||
+            k.startsWith("tournamentDraft")
+          ) {
+            localStorage.removeItem(k);
+          }
+        }
+      } catch (_e) {}
+      try {
+        for (let i = sessionStorage.length - 1; i >= 0; i -= 1) {
+          const k = String(sessionStorage.key(i) || "");
+          if (
+            k.startsWith("createTournamentDraft") ||
+            k.startsWith("adminDraft") ||
+            k.startsWith("tournamentDraft")
+          ) {
+            sessionStorage.removeItem(k);
+          }
+        }
+      } catch (_e) {}
+    }
+
+    function cleanAdminHrefForOrg(orgId) {
+      const oid = String(orgId || "").trim();
+      return `./admin.html?orgId=${encodeURIComponent(oid)}`;
     }
 
     function renderCourseCard(orgId, row) {
@@ -781,9 +1001,97 @@
       }
     });
 
+    const newCourseAccountBtn = $("newCourseAccountBtn");
+    if (newCourseAccountBtn) {
+      newCourseAccountBtn.addEventListener("click", (ev) => {
+        const sec = $("newCourseAccountSection");
+        if (sec && !sec.hidden) {
+          ev.preventDefault();
+          try {
+            sec.scrollIntoView({ behavior: "smooth", block: "start" });
+          } catch (_e) {
+            sec.scrollIntoView();
+          }
+          window.setTimeout(() => {
+            $("platformNewOrgName")?.focus();
+          }, 350);
+        }
+        ev.preventDefault();
+      });
+    }
+
+    async function handlePlatformNewOrgSubmit(e) {
+      e.preventDefault();
+      const errBox = $("newCourseAccountFormErr");
+      const status = $("newCourseAccountFormStatus");
+      if (errBox) errBox.textContent = "";
+      if (status) status.textContent = "";
+      if (!sessionPlatformAdmin) {
+        if (errBox) {
+          errBox.textContent = "This form is for platform administrators. Use Sign up if you need a new login.";
+        }
+        return;
+      }
+      const nameIn = $("platformNewOrgName");
+      const name = String(nameIn?.value || "").trim();
+      if (!name) {
+        if (errBox) errBox.textContent = "Enter a course or organization name.";
+        return;
+      }
+      const u = auth.currentUser;
+      if (!u) {
+        if (errBox) errBox.textContent = "You must be signed in.";
+        return;
+      }
+      const btn = $("platformCreateOrgBtn");
+      if (btn) btn.disabled = true;
+      try {
+        await u.getIdToken(true);
+        const res = await setupOrganizationCallable({ courseName: name });
+        const data = res?.data != null ? res.data : {};
+        const newId = String(data.orgId || "").trim();
+        if (!newId) {
+          throw new Error("The server did not return an organization id.");
+        }
+        const orgSwitcher = $("orgSwitcher");
+        const orgOptions = await listActiveOrganizations();
+        if (orgSwitcher) {
+          orgSwitcher.innerHTML = "";
+          for (const o of orgOptions) {
+            const opt = document.createElement("option");
+            opt.value = o.id;
+            opt.textContent = o.label;
+            orgSwitcher.appendChild(opt);
+          }
+          orgSwitcher.value = newId;
+        }
+        try {
+          sessionStorage.setItem(DASHBOARD_ADMIN_ORG_KEY, newId);
+        } catch (_e) {}
+        await applyPlatformFromSwitcher();
+        if (nameIn) nameIn.value = "";
+        if (status) {
+          status.textContent = "Course account created. The dashboard is now on that account.";
+        }
+      } catch (err) {
+        console.error(err);
+        const msg = String(err?.message || err || "Could not create organization.");
+        if (errBox) errBox.textContent = msg;
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    const platformNewOrgForm = $("platformNewOrgForm");
+    if (platformNewOrgForm) {
+      platformNewOrgForm.addEventListener("submit", handlePlatformNewOrgSubmit);
+    }
+
     onAuthStateChanged(auth, async (user) => {
       const errEl = $("err");
       errEl.textContent = "";
+      sessionPlatformAdmin = false;
+      applyPlatformFromSwitcher = async () => {};
       if (!user) {
         console.info("[dashboard] redirect to login (no user)");
         window.location.href = "./login.html?next=" + encodeURIComponent("./dashboard.html");
@@ -812,8 +1120,8 @@
 
         if (platformAdmin) {
           platformBar.classList.add("is-visible");
-          $("coursesSectionTitle").textContent = "Courses (selected organization)";
-          $("tournamentsSectionTitle").textContent = "Tournaments (selected organization)";
+          const nca = $("newCourseAccountSection");
+          if (nca) nca.hidden = false;
 
           let orgOptions;
           try {
@@ -826,6 +1134,7 @@
           if (!orgOptions.length) {
             errEl.textContent = "No active organizations found.";
             orgSwitcher.innerHTML = "";
+            if (nca) nca.hidden = true;
             return;
           }
 
@@ -852,23 +1161,34 @@
             errEl.textContent = "";
             try {
               sessionStorage.setItem(DASHBOARD_ADMIN_ORG_KEY, v);
-              sessionStorage.setItem("orgId", v);
             } catch (_e) {}
-            let oName = "";
+            persistSessionActiveOrgId(v);
             try {
-              const oSnap = await withFirestoreRetry(() => getDoc(doc(db, "organizations", v)));
-              oName = oSnap.exists() ? String(oSnap.data()?.name || "").trim() : "";
+              await setActiveOrganization({ orgId: v });
             } catch (e) {
-              console.warn("[dashboard] org name read failed", e);
+              console.info(
+                "[dashboard] setActiveOrganization optional (platform may view orgs without membership):",
+                e?.code || e
+              );
             }
-            $("orgLine").textContent = oName
-              ? `Platform admin · ${oName}`
-              : `Platform admin · Selected organization`;
+            const opt = orgSwitcher.options[orgSwitcher.selectedIndex];
+            let oName = opt ? String(opt.textContent || "").trim() : "";
+            if (!oName) {
+              try {
+                const oSnap = await withFirestoreRetry(() => getDoc(doc(db, "organizations", v)));
+                oName = oSnap.exists() ? String(oSnap.data()?.name || "").trim() : "";
+              } catch (e) {
+                console.warn("[dashboard] org name read failed", e);
+              }
+            }
+            const nameEl = $("platformActiveAccountName");
+            if (nameEl) nameEl.textContent = oName || v || "—";
+            setPlatformSectionTitlesFromOrgName(oName);
+            const orgLineEl = $("orgLine");
+            if (orgLineEl) orgLineEl.textContent = "";
+            const manage = $("manageAccountBtn");
+            if (manage) manage.href = `./admin.html?orgId=${encodeURIComponent(v)}`;
             $("adminBtn").href = `./admin.html?orgId=${encodeURIComponent(v)}`;
-            try {
-              sessionStorage.setItem("selectedOrgId", v);
-              localStorage.setItem("selectedOrgId", v);
-            } catch (_e) {}
             try {
               await user.getIdToken(true);
               await Promise.all([renderCourses(v), renderList(v)]);
@@ -880,6 +1200,8 @@
             }
           };
 
+          applyPlatformFromSwitcher = applyPlatformOrg;
+          sessionPlatformAdmin = true;
           orgSwitcher.onchange = () => applyPlatformOrg();
           await applyPlatformOrg();
           return;
@@ -888,6 +1210,8 @@
         platformBar.classList.remove("is-visible");
         canDeleteCourses = false;
         canDeleteOrganizations = false;
+        const ncaOff = $("newCourseAccountSection");
+        if (ncaOff) ncaOff.hidden = true;
         $("coursesSectionTitle").textContent = "Your courses";
         $("tournamentsSectionTitle").textContent = "Your tournaments";
 
@@ -901,15 +1225,113 @@
           return;
         }
 
+        const memberBar = $("orgMemberBar");
+        const orgMemberSwitcher = $("orgMemberSwitcher");
+        let memberOrgIds = [];
         try {
-          sessionStorage.setItem("orgId", scopedOrgId);
+          const uref = await withFirestoreRetry(() => getDoc(doc(db, "users", user.uid)));
+          if (uref.exists()) {
+            memberOrgIds = buildMergedUserOrgStateClient(uref.data() || {}).orgIds || [];
+          }
+        } catch (e) {
+          console.warn("[dashboard] users org list read failed", e);
+        }
+
+        let workOrgId = scopedOrgId;
+        if (memberBar && orgMemberSwitcher && memberOrgIds.length > 1) {
+          memberBar.classList.add("is-visible");
+          orgMemberSwitcher.innerHTML = "";
+          for (const oid of memberOrgIds) {
+            const opt = document.createElement("option");
+            opt.value = oid;
+            let label = oid;
+            try {
+              const oSnap = await withFirestoreRetry(() => getDoc(doc(db, "organizations", oid)));
+              if (oSnap.exists()) {
+                const nm = String(oSnap.data()?.name || "").trim();
+                if (nm) label = nm;
+              }
+            } catch (e) {
+              console.warn("[dashboard] org name for switcher", e);
+            }
+            opt.textContent = label;
+            orgMemberSwitcher.appendChild(opt);
+          }
+          let savedPick = "";
+          try {
+            savedPick = String(
+              sessionStorage.getItem(DASHBOARD_MEMBER_ORG_KEY) ||
+                sessionStorage.getItem("activeOrgId") ||
+                sessionStorage.getItem("orgId") ||
+                ""
+            ).trim();
+          } catch (_e) {}
+          const inList = (x) => memberOrgIds.includes(x);
+          if (savedPick && inList(savedPick)) {
+            workOrgId = savedPick;
+          } else if (inList(scopedOrgId)) {
+            workOrgId = scopedOrgId;
+          } else {
+            workOrgId = memberOrgIds[0];
+          }
+          orgMemberSwitcher.value = workOrgId;
+          if (workOrgId !== scopedOrgId && inList(workOrgId)) {
+            try {
+              await setActiveOrganization({ orgId: workOrgId });
+              await user.getIdToken(true);
+            } catch (e) {
+              console.warn("[dashboard] setActiveOrganization initial sync; using profile org", e);
+              workOrgId = scopedOrgId;
+              if (inList(workOrgId)) orgMemberSwitcher.value = workOrgId;
+            }
+          }
+          orgMemberSwitcher.onchange = async () => {
+            const v = String(orgMemberSwitcher.value || "").trim();
+            if (!v) return;
+            errEl.textContent = "";
+            try {
+              await setActiveOrganization({ orgId: v });
+            } catch (e) {
+              console.error(e);
+              errEl.textContent = e?.message || "Could not switch organization.";
+              return;
+            }
+            try {
+              sessionStorage.setItem(DASHBOARD_MEMBER_ORG_KEY, v);
+            } catch (_e) {}
+            persistSessionActiveOrgId(v);
+            try {
+              await user.getIdToken(true);
+            } catch (_e) {}
+            let oName2 = "";
+            try {
+              const oSn = await withFirestoreRetry(() => getDoc(doc(db, "organizations", v)));
+              oName2 = oSn.exists() ? String(oSn.data()?.name || "").trim() : "";
+            } catch (e) {
+              console.warn(e);
+            }
+            $("orgLine").textContent = oName2 || "Your organization";
+            $("adminBtn").href = `./admin.html?orgId=${encodeURIComponent(v)}`;
+            try {
+              await Promise.all([renderCourses(v), renderList(v)]);
+            } catch (e) {
+              console.error(e);
+              errEl.textContent = isOfflineLikeFirestoreError(e)
+                ? "Can't load data while offline. Try again when your connection is stable."
+                : e?.message || "Could not load courses or tournaments.";
+            }
+          };
+        } else if (memberBar) {
+          memberBar.classList.remove("is-visible");
+        }
+
+        try {
+          persistSessionActiveOrgId(workOrgId);
         } catch (_e) {}
 
         let orgName = "";
         try {
-          const oSnap = await withFirestoreRetry(() =>
-            getDoc(doc(db, "organizations", scopedOrgId))
-          );
+          const oSnap = await withFirestoreRetry(() => getDoc(doc(db, "organizations", workOrgId)));
           const oData = oSnap.exists() ? (oSnap.data() || {}) : null;
           if (oData && oData.active === false) {
             errEl.textContent = "This organization is inactive.";
@@ -927,15 +1349,15 @@
         }
         $("orgLine").textContent = orgName ? orgName : "Your organization";
 
-        $("adminBtn").href = `./admin.html?orgId=${encodeURIComponent(scopedOrgId)}`;
+        $("adminBtn").href = `./admin.html?orgId=${encodeURIComponent(workOrgId)}`;
         try {
-          sessionStorage.setItem("selectedOrgId", scopedOrgId);
-          localStorage.setItem("selectedOrgId", scopedOrgId);
+          sessionStorage.setItem("selectedOrgId", workOrgId);
+          localStorage.setItem("selectedOrgId", workOrgId);
         } catch (_e) {}
 
         try {
           await user.getIdToken(true);
-          await Promise.all([renderCourses(scopedOrgId), renderList(scopedOrgId)]);
+          await Promise.all([renderCourses(workOrgId), renderList(workOrgId)]);
         } catch (e) {
           console.error(e);
           errEl.textContent = isOfflineLikeFirestoreError(e)
@@ -974,6 +1396,37 @@
       const url = String(pendingCourseQr?.url || "");
       if (!url) return;
       await copyText(url);
+    });
+    $("adminBtn").addEventListener("click", (ev) => {
+      ev.preventDefault();
+      const href = String($("adminBtn")?.href || "");
+      let selectedOrgId = "";
+      try {
+        const u = new URL(href || window.location.href, window.location.href);
+        selectedOrgId = String(
+          u.searchParams.get("orgId") ||
+          u.searchParams.get("organizationId") ||
+          u.searchParams.get("org") ||
+          ""
+        ).trim();
+      } catch (_e) {}
+      if (!selectedOrgId) {
+        try {
+          selectedOrgId = String(
+            sessionStorage.getItem("selectedOrgId") ||
+            localStorage.getItem("selectedOrgId") ||
+            sessionStorage.getItem("orgId") ||
+            ""
+          ).trim();
+        } catch (_e) {}
+      }
+      clearAdminBuilderDraftState();
+      const cleanHref = cleanAdminHrefForOrg(selectedOrgId);
+      console.info("[dashboard] main admin button clicked: starting clean tournament builder", {
+        selectedOrgId: selectedOrgId || "(none)",
+        href: cleanHref,
+      });
+      window.location.href = cleanHref;
     });
     $("courseQrCloseBtn").addEventListener("click", closeCourseQrModal);
     $("courseQrModalBackdrop").addEventListener("click", (ev) => {

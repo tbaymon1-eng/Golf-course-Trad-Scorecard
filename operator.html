@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Operator Guide</title>
+  <meta name="theme-color" content="#d9d1c2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Barlow:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#d9d1c2;
+      --card:#f3eee3;
+      --card-soft:#f8f4ec;
+      --ink:#2f2a26;
+      --muted:#5f5851;
+      --line:#9a6217;
+      --blue:#12356f;
+      --blue-soft:#eaf0fb;
+      --green:#2f7a31;
+      --green-soft:#eaf6ea;
+      --ghost:#ece4d3;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--ink);
+      font-family:"Barlow",system-ui,sans-serif;
+      padding:14px;
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      background:var(--card);
+      border:3px solid rgba(154,98,23,.5);
+      border-radius:24px;
+      padding:16px;
+      box-shadow:0 14px 30px rgba(47,42,38,.08);
+    }
+    .hero{
+      background:linear-gradient(165deg,#fff, #f3ece0);
+      border:2px solid rgba(154,98,23,.26);
+      border-radius:20px;
+      padding:14px;
+    }
+    .kicker{
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    h1{
+      margin:8px 0 4px;
+      font-family:"Cinzel",serif;
+      font-size:clamp(26px,5vw,42px);
+      line-height:1.05;
+    }
+    .meta{
+      margin:0;
+      color:var(--muted);
+      font-weight:700;
+    }
+    .meta + .meta{ margin-top:4px; }
+    .badge{
+      display:inline-block;
+      margin-top:10px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(18,53,111,.08);
+      border:2px solid rgba(18,53,111,.3);
+      color:var(--blue);
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+    .intro{
+      margin-top:12px;
+      background:var(--card-soft);
+      border:2px solid rgba(154,98,23,.24);
+      border-radius:16px;
+      padding:12px;
+    }
+    .intro h2{
+      margin:0 0 6px;
+      font-family:"Cinzel",serif;
+      font-size:18px;
+    }
+    .intro p{
+      margin:0;
+      color:var(--muted);
+      font-weight:700;
+      line-height:1.35;
+    }
+    .actions{
+      margin-top:14px;
+      display:grid;
+      gap:10px;
+      grid-template-columns:1fr;
+    }
+    .action-card{
+      background:#fff;
+      border:2px solid rgba(18,53,111,.2);
+      border-radius:16px;
+      padding:10px;
+    }
+    .action-card--score{
+      border-color:rgba(47,122,49,.32);
+      background:var(--green-soft);
+    }
+    .btn{
+      display:block;
+      width:100%;
+      text-align:center;
+      text-decoration:none;
+      border:none;
+      border-radius:14px;
+      padding:14px 12px;
+      font-size:18px;
+      font-weight:800;
+      cursor:pointer;
+      color:#fff;
+      background:var(--blue);
+    }
+    .btn-green{ background:var(--green); }
+    .btn-advanced{
+      background:#6b4d1f;
+      color:#fff;
+    }
+    .btn-ghost{
+      background:var(--ghost);
+      color:var(--ink);
+      border:2px solid rgba(154,98,23,.45);
+    }
+    .helper{
+      margin:8px 2px 0;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:700;
+      line-height:1.35;
+      text-align:left;
+    }
+    .section{
+      margin-top:16px;
+      padding-top:14px;
+      border-top:1px solid rgba(154,98,23,.3);
+    }
+    .section h2{
+      margin:0 0 8px;
+      font-family:"Cinzel",serif;
+      font-size:20px;
+    }
+    .secondary{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+    .advanced{
+      background:var(--blue-soft);
+      border:2px solid rgba(18,53,111,.2);
+      border-radius:16px;
+      padding:12px;
+    }
+    .advanced p{
+      margin:0 0 10px;
+      color:#33435f;
+      font-weight:700;
+    }
+    .raw{
+      display:grid;
+      gap:8px;
+    }
+    .raw-item{
+      background:rgba(255,255,255,.75);
+      border:1px solid rgba(154,98,23,.25);
+      border-radius:10px;
+      padding:10px;
+      word-break:break-all;
+      font-size:13px;
+    }
+    .raw-item b{
+      display:block;
+      margin-bottom:4px;
+    }
+    .qr-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+      gap:10px;
+    }
+    .qr-cell{
+      background:#fff;
+      border:2px solid rgba(154,98,23,.3);
+      border-radius:10px;
+      padding:8px;
+      text-align:center;
+      font-weight:700;
+      font-size:13px;
+    }
+    .qr-box{
+      margin:8px auto 0;
+      width:132px;
+      min-height:132px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:2px dashed rgba(154,98,23,.35);
+      border-radius:8px;
+      background:#fff;
+    }
+    #status{
+      margin-top:8px;
+      color:var(--muted);
+      font-weight:700;
+      font-size:13px;
+    }
+    @media (min-width:760px){
+      .wrap{ padding:20px; }
+      .actions{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+      .action-card--score{
+        grid-column:span 2;
+      }
+      .secondary{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+    }
+    @media print{
+      body{ background:#fff; padding:0; }
+      .wrap{ border:none; padding:0; max-width:none; }
+      .no-print{ display:none !important; }
+      .section{ border-top:none; margin-top:10px; padding-top:0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div class="kicker">Today’s Operator Guide</div>
+      <h1 id="eventName">Operator Guide</h1>
+      <p class="meta" id="brandLine">Loading event…</p>
+      <p class="meta" id="dateLine"></p>
+      <div class="badge" id="eventTypeBadge">Event</div>
+    </header>
+    <p id="status"></p>
+
+    <section class="intro">
+      <h2>Run the event from here</h2>
+      <p>Use this page to run the event from one place.</p>
+    </section>
+
+    <div class="actions">
+      <div class="action-card action-card--score">
+        <a id="scorecardBtn" class="btn btn-green" href="#" target="_blank" rel="noopener">Scorecard Entry</a>
+        <p class="helper">Players enter scores here.</p>
+      </div>
+      <div class="action-card">
+        <a id="leaderboardBtn" class="btn" href="#" target="_blank" rel="noopener">Live Leaderboard</a>
+        <p class="helper">Display live results.</p>
+      </div>
+      <div class="action-card">
+        <a id="rosterBtn" class="btn" href="#" target="_blank" rel="noopener">Organizer Roster</a>
+        <p class="helper">Manage teams, check-in, pairings, and rules sheets.</p>
+      </div>
+      <div class="action-card">
+        <a id="registrationBtn" class="btn" href="#" target="_blank" rel="noopener">Registration Page</a>
+        <p class="helper">Share with players who still need to register.</p>
+      </div>
+    </div>
+
+    <div class="section no-print">
+      <h2>Secondary Actions</h2>
+      <div class="secondary">
+        <button id="copyAllBtn" class="btn btn-ghost" type="button">Copy All Links</button>
+        <button id="printQrBtn" class="btn btn-ghost" type="button">Print QR Sheet</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Advanced Setup</h2>
+      <div class="advanced">
+        <p>Need full setup controls or tournament configuration changes?</p>
+        <a id="adminBtn" class="btn btn-advanced" href="#" target="_blank" rel="noopener">Admin</a>
+      </div>
+    </div>
+
+    <div class="section" id="qrSection">
+      <h2>QR Sheet</h2>
+      <div class="qr-grid">
+        <div class="qr-cell">Scorecard Entry<div id="qrScorecard" class="qr-box"></div></div>
+        <div class="qr-cell">Leaderboard<div id="qrLeaderboard" class="qr-box"></div></div>
+        <div class="qr-cell">Organizer Roster<div id="qrRoster" class="qr-box"></div></div>
+        <div class="qr-cell">Registration<div id="qrRegistration" class="qr-box"></div></div>
+        <div class="qr-cell">Admin<div id="qrAdmin" class="qr-box"></div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Backup Raw Links</h2>
+      <div class="raw">
+        <div class="raw-item"><b>Scorecard Entry</b><span id="rawScorecard">—</span></div>
+        <div class="raw-item"><b>Leaderboard</b><span id="rawLeaderboard">—</span></div>
+        <div class="raw-item"><b>Organizer Roster</b><span id="rawRoster">—</span></div>
+        <div class="raw-item"><b>Registration</b><span id="rawRegistration">—</span></div>
+        <div class="raw-item"><b>Admin</b><span id="rawAdmin">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+    import { applyOrgTournamentParams, buildTournamentIndexJoinUrl, tournamentDocRef, courseDocRef } from "./js/org-paths.js";
+    import { getEventTypeDisplayLabelFromStoredCategory } from "./js/tournament-fields.js";
+
+    const $ = (id) => document.getElementById(id);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    if (!auth.currentUser) {
+      await signInAnonymously(auth);
+    }
+    const db = getFirestore(app);
+    const params = new URLSearchParams(location.search);
+    const tournamentId = String(params.get("id") || params.get("t") || params.get("tournamentId") || "").trim();
+    const orgId = String(params.get("org") || params.get("orgId") || params.get("organizationId") || "").trim();
+    const tokenFromUrl = String(params.get("admin") || "").trim();
+
+    function baseRoot() {
+      const path = window.location.pathname;
+      const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
+      return `${window.location.origin}${dir}`;
+    }
+
+    function makeUrl(page, extra = {}) {
+      const url = new URL(page, baseRoot());
+      applyOrgTournamentParams(url, orgId, tournamentId);
+      for (const [k, v] of Object.entries(extra)) {
+        if (String(v || "").trim()) url.searchParams.set(k, String(v).trim());
+      }
+      return url.toString();
+    }
+
+    function drawQr(hostId, text) {
+      const host = $(hostId);
+      if (!host) return;
+      host.innerHTML = "";
+      if (!text) {
+        host.textContent = "—";
+        return;
+      }
+      new QRCode(host, {
+        text,
+        width: 120,
+        height: 120,
+        correctLevel: QRCode.CorrectLevel.M,
+      });
+    }
+
+    function setLink(id, href) {
+      const a = $(id);
+      if (!a) return;
+      a.href = href || "#";
+      a.setAttribute("aria-disabled", href ? "false" : "true");
+    }
+
+    async function copyAllLinks(links) {
+      const lines = [
+        `Scorecard Entry: ${links.scorecard}`,
+        `Leaderboard: ${links.leaderboard}`,
+        `Organizer Roster: ${links.roster}`,
+        `Registration: ${links.registration}`,
+        `Admin: ${links.admin}`,
+      ].join("\n");
+      try {
+        await navigator.clipboard.writeText(lines);
+        $("status").textContent = "Copied all links.";
+      } catch (_e) {
+        $("status").textContent = "Could not copy links.";
+      }
+    }
+
+    if (!tournamentId) {
+      $("status").textContent = "Missing tournament id in URL.";
+      throw new Error("Missing tournament id");
+    }
+
+    const snap = await getDoc(tournamentDocRef(db, orgId, tournamentId));
+    if (!snap.exists()) {
+      $("status").textContent = "Tournament not found.";
+      throw new Error("Tournament not found");
+    }
+    const t = snap.data() || {};
+    const eventName = String(t.tournamentName || t.name || "Event").trim();
+    const date = String(t.eventDate || t.date || "").trim();
+    const eventTypeLabel = getEventTypeDisplayLabelFromStoredCategory({
+      eventCategory: t.eventCategory,
+      eventType: t.eventType,
+    });
+
+    let brandBits = [];
+    try {
+      if (orgId) {
+        const orgSnap = await getDoc(doc(db, "organizations", orgId));
+        if (orgSnap.exists()) {
+          const oName = String(orgSnap.data()?.name || "").trim();
+          if (oName) brandBits.push(oName);
+        }
+      }
+      const cid = String(t.courseId || "").trim();
+      if (cid && orgId) {
+        const cSnap = await getDoc(courseDocRef(db, orgId, cid));
+        if (cSnap.exists()) {
+          const cName = String(cSnap.data()?.name || "").trim();
+          if (cName) brandBits.push(cName);
+        }
+      }
+    } catch (_e) {}
+
+    const adminToken = String(tokenFromUrl || t.adminToken || "").trim();
+    const links = {
+      scorecard: buildTournamentIndexJoinUrl(window.location.href, orgId, tournamentId, "", { log: false }),
+      leaderboard: makeUrl("leaderboard.html"),
+      roster: makeUrl("roster.html", adminToken ? { admin: adminToken } : {}),
+      registration: makeUrl("register-complete.html"),
+      admin: makeUrl("admin.html", adminToken ? { admin: adminToken } : {}),
+    };
+
+    $("eventName").textContent = eventName;
+    $("brandLine").textContent = brandBits.join(" • ") || "Operator links ready";
+    $("dateLine").textContent = date ? `Event Date: ${date}` : "";
+    $("eventTypeBadge").textContent = eventTypeLabel || "Event";
+
+    setLink("scorecardBtn", links.scorecard);
+    setLink("leaderboardBtn", links.leaderboard);
+    setLink("rosterBtn", links.roster);
+    setLink("registrationBtn", links.registration);
+    setLink("adminBtn", links.admin);
+
+    $("rawScorecard").textContent = links.scorecard;
+    $("rawLeaderboard").textContent = links.leaderboard;
+    $("rawRoster").textContent = links.roster;
+    $("rawRegistration").textContent = links.registration;
+    $("rawAdmin").textContent = links.admin;
+
+    drawQr("qrScorecard", links.scorecard);
+    drawQr("qrLeaderboard", links.leaderboard);
+    drawQr("qrRoster", links.roster);
+    drawQr("qrRegistration", links.registration);
+    drawQr("qrAdmin", links.admin);
+
+    $("copyAllBtn").addEventListener("click", () => void copyAllLinks(links));
+    $("printQrBtn").addEventListener("click", () => window.print());
+    $("status").textContent = "Operator guide ready.";
+  </script>
+</body>
+</html>

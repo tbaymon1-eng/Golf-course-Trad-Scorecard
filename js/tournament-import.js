@@ -97,10 +97,10 @@ export function validateImportMappingSelections(mapping, eventCategory) {
     const hasPlayerName = NAME_FIELD_IDS.some((id) => uniq.includes(id));
 
     if (hasPlayerName && hasTeam) {
-      pushUniqueIssue(issues, "Player name is currently matched to TeamName");
+      pushUniqueIssue(issues, "A player name column is mapped to the same column as the team name");
     }
     if (hasTeam && hasEmail) {
-      pushUniqueIssue(issues, "Team name is currently matched to Email");
+      pushUniqueIssue(issues, "The team name column is mapped to the same column as email");
     }
     if (hasFirst && hasLast) {
       pushUniqueIssue(issues, "First name and last name are currently matched to the same spreadsheet column");

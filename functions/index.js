@@ -27,7 +27,7 @@ function safeText(value, fallback = "") {
   return String(value || fallback || "").trim();
 }
 
-/** Match client js/resolve-organizer-org.js: orgId or organizationId; skip empty orgId string. */
+/** Match client js/resolve-organizer-org.js: legacy orgId or organizationId; skip empty orgId string. */
 function orgIdFromUserSnapData(data) {
   if (!data) return "";
   const candidates = [data.orgId, data.organizationId];
@@ -44,6 +44,65 @@ function orgIdFromUserSnapData(data) {
     }
   }
   return "";
+}
+
+function isPlatformGlobalRoleValue(role) {
+  const r = String(role || "")
+    .trim()
+    .toLowerCase();
+  return r === "super_admin" || r === "support_admin";
+}
+
+function normalizeOrgIdsArrayOnly(raw) {
+  if (raw == null) return [];
+  if (!Array.isArray(raw)) return [];
+  return [...new Set(raw.map((x) => safeText(x)).filter(Boolean))];
+}
+
+/**
+ * Merges legacy orgId, orgIds[], activeOrgId, roleByOrg. Keeps in sync with js/resolve-organizer-org.js.
+ */
+function buildMergedUserOrgState(data) {
+  const d = data || {};
+  const legacy = orgIdFromUserSnapData(d);
+  const fromList = normalizeOrgIdsArrayOnly(d.orgIds);
+  const orgIds = [...new Set([...fromList, ...(legacy ? [legacy] : [])])];
+  let roleByOrg = {};
+  if (d.roleByOrg && typeof d.roleByOrg === "object" && !Array.isArray(d.roleByOrg)) {
+    roleByOrg = { ...d.roleByOrg };
+  }
+  const topRole = String(d.role || "")
+    .trim()
+    .toLowerCase();
+  for (const id of orgIds) {
+    if (roleByOrg[id]) continue;
+    if (id === legacy && topRole) {
+      roleByOrg[id] = isPlatformGlobalRoleValue(topRole) ? "admin" : topRole;
+    } else {
+      roleByOrg[id] = "admin";
+    }
+  }
+  let active = safeText(d.activeOrgId);
+  if (orgIds.length) {
+    if (!active || !orgIds.includes(active)) {
+      [active] = orgIds;
+    }
+  } else {
+    active = "";
+  }
+  return {
+    orgIds,
+    roleByOrg,
+    activeOrgId: active,
+    effectiveOrgId: orgIds.length ? active : legacy || "",
+    legacyOrg: legacy,
+  };
+}
+
+function userIsMemberOfOrgData(data, orgId) {
+  const o = safeText(orgId);
+  if (!o) return false;
+  return buildMergedUserOrgState(data).orgIds.includes(o);
 }
 
 /** Lowercase, trim, collapse spaces to hyphens, strip characters outside a-z0-9-. */
@@ -151,16 +210,26 @@ exports.setupOrganization = onCall(
       try {
         out = await db.runTransaction(async (tx) => {
           const userSnap = await tx.get(userRef);
-
-          if (userSnap.exists) {
-           const existingOrgId = orgIdFromUserSnapData(userSnap.data());
-            if (existingOrgId) {
-              return { orgId: existingOrgId, alreadySetup: true };
-            }
+          const prev = userSnap.exists ? userSnap.data() || {} : {};
+          const hadAnyOrg = buildMergedUserOrgState(prev).orgIds.length > 0;
+          const topRole = String(prev.role || "")
+            .trim()
+            .toLowerCase();
+          let nextRole;
+          if (userSnap.exists && isPlatformGlobalRoleValue(topRole)) {
+            nextRole = prev.role;
+          } else if (userSnap.exists && safeText(prev.role)) {
+            nextRole = prev.role;
+          } else {
+            nextRole = "admin";
           }
 
           const orgRef = db.collection("organizations").doc();
-          const orgId = orgRef.id;
+          const newOrgId = orgRef.id;
+          const m = buildMergedUserOrgState(prev);
+          const nextIds = [...new Set([...m.orgIds, newOrgId])];
+          const nextRoleByOrg = { ...m.roleByOrg, [newOrgId]: "admin" };
+          const nextActive = newOrgId;
 
           tx.set(orgRef, {
             name: courseName,
@@ -168,19 +237,21 @@ exports.setupOrganization = onCall(
             createdAt: FieldValue.serverTimestamp(),
           });
 
-          tx.set(
-            userRef,
-            {
-              orgId,
-              email,
-              role: "admin",
-              createdAt: FieldValue.serverTimestamp(),
-              updatedAt: FieldValue.serverTimestamp(),
-            },
-            { merge: true }
-          );
+          const payload = {
+            orgIds: nextIds,
+            activeOrgId: nextActive,
+            roleByOrg: nextRoleByOrg,
+            orgId: nextActive,
+            email: email || safeText(prev.email),
+            role: nextRole,
+            updatedAt: FieldValue.serverTimestamp(),
+          };
+          if (!userSnap.exists) {
+            payload.createdAt = FieldValue.serverTimestamp();
+          }
+          tx.set(userRef, payload, { merge: true });
 
-          return { orgId, alreadySetup: false };
+          return { orgId: newOrgId, alreadySetup: hadAnyOrg };
         });
 
         logSetup("after_transaction", {
@@ -235,11 +306,31 @@ exports.repairUserProfile = onCall(
 
     const userRef = db.collection("users").doc(uid);
     const userSnap = await userRef.get();
-    if (userSnap.exists) {
-      const existing = orgIdFromUserSnapData(userSnap.data());
-      if (existing) {
-        return { orgId: existing, repaired: false };
+    const raw = userSnap.exists ? userSnap.data() || {} : {};
+    const merged = buildMergedUserOrgState(raw);
+    if (merged.orgIds.length) {
+      const needsMultiShape =
+        !Array.isArray(raw.orgIds) ||
+        raw.orgIds.length === 0 ||
+        !safeText(raw.activeOrgId) ||
+        !raw.roleByOrg ||
+        typeof raw.roleByOrg !== "object" ||
+        Array.isArray(raw.roleByOrg) ||
+        safeText(raw.orgId) !== merged.activeOrgId;
+      if (needsMultiShape) {
+        await userRef.set(
+          {
+            orgIds: merged.orgIds,
+            activeOrgId: merged.activeOrgId,
+            roleByOrg: merged.roleByOrg,
+            orgId: merged.activeOrgId,
+            email: email || safeText(raw.email) || request.auth.token?.email,
+            updatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true }
+        );
       }
+      return { orgId: merged.effectiveOrgId, repaired: false };
     }
 
     let orgId = requestedOrgId;
@@ -255,7 +346,7 @@ exports.repairUserProfile = onCall(
       if (q.size > 1) {
         throw new HttpsError(
           "failed-precondition",
-          "Multiple organizations are owned by this account. Contact support or pass a specific organization id."
+          "You own several organizations. Pass orgId, or use the organization switcher in the app, so your profile can be linked."
         );
       }
       orgId = q.docs[0].id;
@@ -273,10 +364,16 @@ exports.repairUserProfile = onCall(
       }
     }
 
+    const rb = { ...merged.roleByOrg, [orgId]: "admin" };
+    const nextIds = [...new Set([...merged.orgIds, orgId])];
+    const active = orgId;
     const payload = {
-      orgId,
-      email,
-      role: "admin",
+      orgIds: nextIds,
+      activeOrgId: active,
+      roleByOrg: rb,
+      orgId: active,
+      email: email || safeText(raw.email) || request.auth.token?.email,
+      role: safeText(raw.role) || "admin",
       updatedAt: FieldValue.serverTimestamp(),
     };
     if (!userSnap.exists) {
@@ -286,6 +383,66 @@ exports.repairUserProfile = onCall(
     await userRef.set(payload, { merge: true });
 
     return { orgId, repaired: true };
+  }
+);
+
+/**
+ * Sets users/{uid}.activeOrgId (and orgId mirror) to an organization the user belongs to.
+ * Client may call this after the session org switcher changes.
+ */
+exports.setActiveOrganization = onCall(
+  {
+    region: "us-central1",
+    cors: true,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+    const uid = request.auth.uid;
+    const want = safeText((request.data || {}).orgId);
+    if (!want) {
+      throw new HttpsError("invalid-argument", "orgId is required.");
+    }
+    const userRef = db.collection("users").doc(uid);
+    const userSnap = await userRef.get();
+    if (!userSnap.exists) {
+      throw new HttpsError("failed-precondition", "User profile not found.");
+    }
+    const d = userSnap.data() || {};
+    if (userIsMemberOfOrgData(d, want)) {
+      await userRef.set(
+        {
+          activeOrgId: want,
+          orgId: want,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+      return { ok: true, orgId: want };
+    }
+    const orgSnap = await db.collection("organizations").doc(want).get();
+    if (!orgSnap.exists) {
+      throw new HttpsError("not-found", "Organization not found.");
+    }
+    if (safeText(orgSnap.data()?.ownerUid) === uid) {
+      const m = buildMergedUserOrgState(d);
+      const nextIds = [...new Set([...m.orgIds, want])];
+      const nextRoleByOrg = { ...m.roleByOrg, [want]: m.roleByOrg[want] || "admin" };
+      await userRef.set(
+        {
+          orgIds: nextIds,
+          roleByOrg: nextRoleByOrg,
+          activeOrgId: want,
+          orgId: want,
+          email: safeText(d.email) || request.auth?.token?.email,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+      return { ok: true, orgId: want };
+    }
+    throw new HttpsError("permission-denied", "Not a member of that organization.");
   }
 );
 
@@ -321,15 +478,7 @@ exports.staffSignupWithInvite = onCall(
 
     const userRef = db.collection("users").doc(uid);
     const userSnap = await userRef.get();
-    if (userSnap.exists) {
-      const existingOrg = orgIdFromUserSnapData(userSnap.data());
-      if (existingOrg) {
-        throw new HttpsError(
-          "already-exists",
-          "This account is already linked to an organization. Sign in instead."
-        );
-      }
-    }
+    const prevData = userSnap.exists ? userSnap.data() || {} : {};
 
     const q = await db.collection("organizations").where("slug", "==", slug).limit(2).get();
     if (q.empty) {
@@ -359,11 +508,34 @@ exports.staffSignupWithInvite = onCall(
       throw new HttpsError("permission-denied", "Invalid invite code.");
     }
 
+    const targetId = orgDoc.id;
+    const m0 = buildMergedUserOrgState(prevData);
+    if (m0.orgIds.includes(targetId)) {
+      throw new HttpsError(
+        "already-exists",
+        "This account is already linked to that organization. Sign in instead."
+      );
+    }
+
+    const nextIds = [...new Set([...m0.orgIds, targetId])];
+    const nextRoleByOrg = { ...m0.roleByOrg, [targetId]: "staff" };
+    const top = String(prevData.role || "")
+      .trim()
+      .toLowerCase();
+    const nextTopRole = isPlatformGlobalRoleValue(top)
+      ? prevData.role
+      : userSnap.exists && safeText(prevData.role)
+        ? prevData.role
+        : "staff";
+
     const payload = {
       displayName,
       email,
-      orgId: orgDoc.id,
-      role: "admin",
+      orgIds: nextIds,
+      activeOrgId: targetId,
+      roleByOrg: nextRoleByOrg,
+      orgId: targetId,
+      role: nextTopRole,
       active: true,
       updatedAt: FieldValue.serverTimestamp(),
     };
@@ -373,7 +545,7 @@ exports.staffSignupWithInvite = onCall(
 
     await userRef.set(payload, { merge: true });
 
-    return { orgId: orgDoc.id, ok: true };
+    return { orgId: targetId, ok: true };
   }
 );
 
@@ -539,6 +711,71 @@ function legacySourceFieldFromRegistrantSource(registrantSource) {
   return rs;
 }
 
+function clampIntServer(n, lo, hi) {
+  const x = Math.floor(Number(n));
+  if (!Number.isFinite(x)) return lo;
+  return Math.max(lo, Math.min(hi, x));
+}
+
+/** Mirrors client js/tournament-fields.js defaults (kept inline so deploy stays self-contained). */
+function resolveRegistrationStructureServer(tournament) {
+  const raw = safeText(tournament?.registrationStructure, "").toLowerCase();
+  if (raw === "single" || raw === "team" || raw === "multi_individual") return raw;
+  const cat =
+    safeText(tournament?.eventCategory, "").toLowerCase() ||
+    safeText(tournament?.eventType, "").toLowerCase();
+  if (cat === "clinic" || cat === "camp" || cat === "general") return "single";
+  return "team";
+}
+
+function resolveParticipantCountModeServer(tournament) {
+  const m = safeText(tournament?.participantCountMode, "flex").toLowerCase();
+  return m === "fixed" ? "fixed" : "flex";
+}
+
+function resolveParticipantSizingRulesServer(tournament) {
+  const rs = resolveRegistrationStructureServer(tournament);
+  const mode = resolveParticipantCountModeServer(tournament);
+  if (rs === "single") {
+    return { min: 1, max: 1, mode: "fixed" };
+  }
+  if (rs === "team") {
+    let minP = clampIntServer(tournament?.minParticipantsPerRegistration, 1, 6);
+    let maxP = clampIntServer(tournament?.maxParticipantsPerRegistration, 1, 6);
+    let defP = clampIntServer(tournament?.defaultParticipantsPerRegistration, 1, 6);
+    if (mode === "fixed") {
+      const fs = clampIntServer(defP || maxP || minP || 4, 1, 6);
+      minP = maxP = fs;
+    } else {
+      if (maxP < minP) maxP = minP;
+      defP = clampIntServer(defP || 4, minP, maxP);
+    }
+    return { min: minP, max: maxP, mode };
+  }
+  let minP =
+    tournament?.minParticipantsPerRegistration != null
+      ? clampIntServer(tournament.minParticipantsPerRegistration, 1, 20)
+      : 1;
+  let maxP =
+    tournament?.maxParticipantsPerRegistration != null
+      ? clampIntServer(tournament.maxParticipantsPerRegistration, minP, 20)
+      : 6;
+  if (maxP < minP) maxP = minP;
+  return { min: minP, max: maxP, mode };
+}
+
+function resolveScoringStructureServer(tournament) {
+  const raw = safeText(tournament?.scoringType || tournament?.scoringStructure, "").toLowerCase();
+  if (raw === "individual" || raw === "team" || raw === "none") return raw;
+  const cat =
+    safeText(tournament?.eventCategory, "").toLowerCase() ||
+    safeText(tournament?.eventType, "").toLowerCase();
+  if (cat === "clinic" || cat === "camp" || cat === "general") return "none";
+  const fmt = safeText(tournament?.formatOfPlay || tournament?.format, "").toLowerCase();
+  if (fmt.includes("scramble") || fmt.includes("best")) return "team";
+  return "individual";
+}
+
 /**
  * Validates and sanitizes client-supplied player details (max 6).
  */
@@ -602,6 +839,11 @@ function buildRegistrationDocument(tournament, tournamentId, clientData, assignm
       ? Math.floor(acRaw)
       : null;
 
+  const registrationStructure = resolveRegistrationStructureServer(t);
+  const scoringStructure = resolveScoringStructureServer(t);
+  const participantCountMode = resolveParticipantCountModeServer(t);
+  const sizing = resolveParticipantSizingRulesServer(t);
+
   const doc = {
     tournamentId: safeText(tournamentId),
     tournamentName: safeText(t.tournamentName || t.name, ""),
@@ -609,6 +851,11 @@ function buildRegistrationDocument(tournament, tournamentId, clientData, assignm
     courseId: resolvedCourseId,
     formatOfPlay: safeText(t.formatOfPlay, ""),
     format: String(t.formatOfPlay || "").trim().toLowerCase(),
+    registrationStructure,
+    scoringStructure,
+    participantCountMode,
+    minParticipantsPerRegistration: sizing.min,
+    maxParticipantsPerRegistration: sizing.max,
     teamName: safeText(clientData.teamName, ""),
     captainName: safeText(clientData.captainName, ""),
     captainEmail: safeText(clientData.captainEmail, ""),
@@ -671,6 +918,11 @@ function buildPlainRegistrationForClient(tournament, tournamentId, clientData, a
       ? Math.floor(acRaw2)
       : null;
 
+  const registrationStructure = resolveRegistrationStructureServer(t);
+  const scoringStructure = resolveScoringStructureServer(t);
+  const participantCountMode = resolveParticipantCountModeServer(t);
+  const sizing = resolveParticipantSizingRulesServer(t);
+
   const plain = {
     tournamentId: safeText(tournamentId),
     tournamentName: safeText(t.tournamentName || t.name, ""),
@@ -678,6 +930,11 @@ function buildPlainRegistrationForClient(tournament, tournamentId, clientData, a
     courseId: resolvedCourseId,
     formatOfPlay: safeText(t.formatOfPlay, ""),
     format: String(t.formatOfPlay || "").trim().toLowerCase(),
+    registrationStructure,
+    scoringStructure,
+    participantCountMode,
+    minParticipantsPerRegistration: sizing.min,
+    maxParticipantsPerRegistration: sizing.max,
     teamName: safeText(clientData.teamName, ""),
     captainName: safeText(clientData.captainName, ""),
     captainEmail: safeText(clientData.captainEmail, ""),
@@ -835,9 +1092,24 @@ exports.registerTeam = onCall(
         attendeeCount: data.attendeeCount,
       };
 
-      const regPayload = buildRegistrationDocument(tournament, tournamentId, clientData, assignment);
+      const handicapOnReg = !!clientData.handicapEnabled;
+      const sizedPlayers = sanitizePlayerDetails(clientData.playerDetails, handicapOnReg);
+      const sizing = resolveParticipantSizingRulesServer(tournament);
+      const skipSizing = sizedPlayers.length === 0 && !isGolfEvent;
+      if (
+        !skipSizing &&
+        (sizedPlayers.length < sizing.min || sizedPlayers.length > sizing.max)
+      ) {
+        throw new HttpsError(
+          "invalid-argument",
+          `Please enter between ${sizing.min} and ${sizing.max} named participant(s) for this event.`
+        );
+      }
 
       const newRegRef = registrationsCol.doc();
+      const regPayload = buildRegistrationDocument(tournament, tournamentId, clientData, assignment);
+      regPayload.registrationGroupId = newRegRef.id;
+
       transaction.set(newRegRef, regPayload);
 
       return {
@@ -1127,12 +1399,11 @@ exports.extractScorecardData = onCall(
     if (orgId) {
       const userSnap = await db.collection("users").doc(req.auth.uid).get();
       const userData = userSnap.exists ? userSnap.data() || {} : {};
-      const userOrgId = safeText(userData.orgId || userData.organizationId);
       const role = String(userData.role || "")
         .trim()
         .toLowerCase();
       const isPlatformAdmin = role === "super_admin" || role === "support_admin";
-      if (userOrgId !== orgId && !isPlatformAdmin) {
+      if (!userIsMemberOfOrgData(userData, orgId) && !isPlatformAdmin) {
         throw new HttpsError(
           "permission-denied",
           "Organization does not match your signed-in account."
@@ -1199,7 +1470,6 @@ exports.deleteTournament = onCall(
 
     const userSnap = await db.collection("users").doc(request.auth.uid).get();
     const userData = userSnap.exists ? userSnap.data() || {} : {};
-    const userOrgId = safeText(userData.orgId || userData.organizationId);
     const role = String(userData.role || "")
       .trim()
       .toLowerCase();
@@ -1211,7 +1481,7 @@ exports.deleteTournament = onCall(
     }
     const orgOwnerUid = safeText(orgSnap.data()?.ownerUid);
     const isOrgOwner = !!orgOwnerUid && orgOwnerUid === request.auth.uid;
-    const isOrgMember = !!userOrgId && userOrgId === orgId;
+    const isOrgMember = userIsMemberOfOrgData(userData, orgId);
 
     if (!isOrgMember && !isOrgOwner && !isPlatformAdmin) {
       throw new HttpsError("permission-denied", "You can only delete tournaments in your organization.");
@@ -1286,17 +1556,19 @@ exports.deleteOrganization = onCall(
     const coursesCol = orgRef.collection("courses");
     const tournamentsCol = orgRef.collection("tournaments");
 
-    const [coursesSnap, tournamentsSnap, usersByOrgIdSnap, usersByOrganizationIdSnap] =
+    const [coursesSnap, tournamentsSnap, usersByOrgIdSnap, usersByOrganizationIdSnap, usersByOrgIdsArr] =
       await Promise.all([
         coursesCol.get(),
         tournamentsCol.get(),
         db.collection("users").where("orgId", "==", orgId).get(),
         db.collection("users").where("organizationId", "==", orgId).get(),
+        db.collection("users").where("orgIds", "array-contains", orgId).get(),
       ]);
 
     const userIds = new Set();
     usersByOrgIdSnap.forEach((d) => userIds.add(d.id));
     usersByOrganizationIdSnap.forEach((d) => userIds.add(d.id));
+    usersByOrgIdsArr.forEach((d) => userIds.add(d.id));
 
     const counts = {
       courses: coursesSnap.size,

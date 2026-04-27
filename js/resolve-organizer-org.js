@@ -1,10 +1,10 @@
 /**
- * Resolves organizations/{orgId} for the signed-in organizer via users/{uid},
- * and repairs users/{uid} via the repairUserProfile Cloud Function when the doc
- * is missing but orgId can be inferred (sessionStorage or organization ownerUid).
+ * Resolves organizations/{orgId} for the signed-in organizer via users/{uid}
+ * (orgIds, activeOrgId, roleByOrg; legacy orgId/organizationId migrated the same
+ * way as in Cloud Functions), and repairs users/{uid} via repairUserProfile when
+ * the doc is missing but orgs can be inferred (sessionStorage or organization ownerUid).
  *
- * Staff accounts: repair({}) may throw (not org owner). After repair we re-read users/{uid}
- * (cache-first getDoc + retry) so a valid orgId on the profile still succeeds.
+ * Staff: repair({}) may throw if not an org owner. Re-reads users/{uid} after repair.
  */
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -43,7 +43,7 @@ export async function withFirestoreRetry(operation) {
 
 function sessionStorageOrgIdFallback() {
   try {
-    return String(sessionStorage.getItem("orgId") || "").trim();
+    return String(sessionStorage.getItem("activeOrgId") || sessionStorage.getItem("orgId") || "").trim();
   } catch (_e) {
     return "";
   }
@@ -70,8 +70,8 @@ function normalizeOrgIdValue(raw) {
   return s;
 }
 
-/** Prefer orgId, then organizationId; treat empty-string orgId as missing so the other field can win. */
-function orgIdFromUserSnap(data) {
+/** Legacy single orgId / organizationId (pre–multi-org schema). */
+function legacyOrgIdFromUserData(data) {
   const d = data || {};
   const candidates = [d.orgId, d.organizationId];
   for (const c of candidates) {
@@ -80,6 +80,65 @@ function orgIdFromUserSnap(data) {
   }
   return "";
 }
+
+function normalizeOrgIdsArrayOnly(raw) {
+  if (raw == null) return [];
+  if (!Array.isArray(raw)) return [];
+  return [...new Set(raw.map((x) => normalizeOrgIdValue(x)).filter(Boolean))];
+}
+
+function isPlatformGlobalRoleValue(role) {
+  const r = String(role || "")
+    .trim()
+    .toLowerCase();
+  return r === "super_admin" || r === "support_admin";
+}
+
+/**
+ * Merges orgIds, activeOrgId, roleByOrg with legacy orgId — matches functions/index.js buildMergedUserOrgState.
+ */
+export function buildMergedUserOrgStateClient(data) {
+  const d = data || {};
+  const legacy = legacyOrgIdFromUserData(d);
+  const fromList = normalizeOrgIdsArrayOnly(d.orgIds);
+  const orgIds = [...new Set([...fromList, ...(legacy ? [legacy] : [])])];
+  let roleByOrg = {};
+  if (d.roleByOrg && typeof d.roleByOrg === "object" && !Array.isArray(d.roleByOrg)) {
+    roleByOrg = { ...d.roleByOrg };
+  }
+  const topRole = String(d.role || "")
+    .trim()
+    .toLowerCase();
+  for (const id of orgIds) {
+    if (roleByOrg[id]) continue;
+    if (id === legacy && topRole) {
+      roleByOrg[id] = isPlatformGlobalRoleValue(topRole) ? "admin" : topRole;
+    } else {
+      roleByOrg[id] = "admin";
+    }
+  }
+  let active = String(d.activeOrgId || "").trim();
+  if (orgIds.length) {
+    if (!active || !orgIds.includes(active)) {
+      [active] = orgIds;
+    }
+  } else {
+    active = "";
+  }
+  return {
+    orgIds,
+    roleByOrg,
+    activeOrgId: active,
+    effectiveOrgId: orgIds.length ? active : legacy || "",
+    legacyOrg: legacy,
+  };
+}
+
+/** Effective “current” org for the signed-in organizer (active or first in orgIds, else legacy). */
+export function getEffectiveOrganizerOrgIdFromUserData(data) {
+  return buildMergedUserOrgStateClient(data).effectiveOrgId;
+}
+
 
 /** Lowercase role string for comparisons. */
 export function normalizeUserRole(raw) {
@@ -92,8 +151,26 @@ export function isPlatformAdminRole(role) {
   return r === "super_admin" || r === "support_admin";
 }
 
+/** Persist the active org for this tab (mirrors orgId for legacy call sites). */
+export function persistSessionActiveOrgId(orgId) {
+  const o = String(orgId || "").trim();
+  if (!o) return;
+  try {
+    sessionStorage.setItem("orgId", o);
+  } catch (_e) {}
+  try {
+    sessionStorage.setItem("activeOrgId", o);
+  } catch (_e) {}
+  try {
+    sessionStorage.setItem("selectedOrgId", o);
+  } catch (_e) {}
+  try {
+    localStorage.setItem("selectedOrgId", o);
+  } catch (_e) {}
+}
+
 /**
- * Single read of users/{uid} for dashboard: role + orgId.
+ * Single read of users/{uid} for dashboard: role + orgId (effective active org).
  * Org fallback matches readOrganizerOrgIdFromUserDoc (sessionStorage only when user doc is missing / read fails).
  */
 export async function readDashboardAuthContext(db, uid) {
@@ -103,8 +180,13 @@ export async function readDashboardAuthContext(db, uid) {
     const exists = typeof snap.exists === "function" ? snap.exists() : !!snap.exists;
     if (exists) {
       const data = snap.data() || {};
-      role = normalizeUserRole(data.role);
-      const oid = orgIdFromUserSnap(data);
+      const globalRole = normalizeUserRole(data.role);
+      const oid = getEffectiveOrganizerOrgIdFromUserData(data);
+      if (isPlatformAdminRole(globalRole)) {
+        return { role: globalRole, orgId: oid };
+      }
+      const perOrg = oid && data.roleByOrg && data.roleByOrg[oid] ? data.roleByOrg[oid] : data.role;
+      role = normalizeUserRole(perOrg);
       if (oid) return { role, orgId: oid };
       return { role, orgId: "" };
     }
@@ -129,7 +211,7 @@ export async function readOrganizerOrgIdFromUserDoc(db, uid) {
   const trySnap = (snap) => {
     const exists = typeof snap.exists === "function" ? snap.exists() : !!snap.exists;
     if (!exists) return "";
-    return orgIdFromUserSnap(snap.data());
+    return getEffectiveOrganizerOrgIdFromUserData(snap.data());
   };
 
   try {
@@ -165,11 +247,14 @@ export async function resolveOrganizerOrgId(app, auth, db) {
   const tryReturnFromSnap = (uSnap, label) => {
     const exists = typeof uSnap.exists === "function" ? uSnap.exists() : !!uSnap.exists;
     const data = exists ? uSnap.data() || {} : null;
-    const oid = data ? orgIdFromUserSnap(data) : "";
+    const oid = data ? getEffectiveOrganizerOrgIdFromUserData(data) : "";
     const active = data?.active;
+    const m = data ? buildMergedUserOrgStateClient(data) : null;
     console.info("[resolveOrganizerOrgId]", label, {
       docExists: exists,
       orgId: oid || "(empty)",
+      orgIds: m ? m.orgIds : [],
+      activeOrgId: m ? m.activeOrgId : "",
       active: active === undefined ? "(undefined)" : active,
       role: data?.role ?? "(none)",
       keys: data ? Object.keys(data) : [],
@@ -177,7 +262,7 @@ export async function resolveOrganizerOrgId(app, auth, db) {
 
     if (oid) {
       try {
-        sessionStorage.setItem("orgId", oid);
+        persistSessionActiveOrgId(oid);
       } catch (_e) {}
       return { ok: true, orgId: oid };
     }
@@ -240,7 +325,7 @@ export async function resolveOrganizerOrgId(app, auth, db) {
   const fb = sessionStorageOrgIdFallback();
   if (fb) {
     try {
-      sessionStorage.setItem("orgId", fb);
+      persistSessionActiveOrgId(fb);
     } catch (_e) {}
     return { ok: true, orgId: fb };
   }
@@ -248,7 +333,9 @@ export async function resolveOrganizerOrgId(app, auth, db) {
   const docExists =
     uSnap && (typeof uSnap.exists === "function" ? uSnap.exists() : uSnap.exists);
   const userData = docExists ? uSnap.data() || {} : null;
-  const hasOrg = userData ? !!orgIdFromUserSnap(userData) : false;
+  const hasOrg = userData
+    ? buildMergedUserOrgStateClient(userData).orgIds.length > 0
+    : false;
   console.info("[resolveOrganizerOrgId] profile has no orgId — using uid fallback. docExists:", !!docExists, "hasOrg:", hasOrg);
 
   return { ok: true, orgId: user.uid || "" };

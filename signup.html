@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="ops-typography">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -46,6 +46,7 @@
     details.org-first { margin-top: 22px; padding-top: 18px; border-top: 2px dashed rgba(154,98,23,.35); }
     details.org-first summary { cursor: pointer; font-weight: 800; color: var(--blue); margin-bottom: 12px; }
   </style>
+  <link rel="stylesheet" href="./css/operations-typography.css" />
 </head>
 <body>
   <div class="card">
@@ -76,7 +77,7 @@
       <div id="staffStatus" class="status" role="status" aria-live="polite"></div>
     </form>
 
-    <details class="org-first">
+    <details class="org-first" id="first-time-organizer">
       <summary>First-time organizer — create a new organization</summary>
       <p style="margin-top:12px;">
         Use this only when your golf course does <strong>not</strong> have an organizer account yet.
@@ -114,6 +115,11 @@
     const staffSignupWithInvite = httpsCallable(functions, "staffSignupWithInvite");
 
     const $ = (id) => document.getElementById(id);
+
+    if (location.hash === "#first-time-organizer") {
+      const d = document.getElementById("first-time-organizer");
+      if (d) d.open = true;
+    }
 
     function setStatus(el, message, kind) {
       if (!el) return;
@@ -230,6 +236,9 @@
       const res = await setupOrganization({ courseName });
       const orgId = await parseOrgIdFromCallableResult(res);
       sessionStorage.setItem("orgId", orgId);
+      try {
+        sessionStorage.setItem("activeOrgId", orgId);
+      } catch (_e) {}
       setStatus($("o_status"), "Success! Redirecting…", "success");
       window.setTimeout(() => {
         window.location.href = "./create-course.html";
@@ -251,6 +260,9 @@
         throw new Error("Server did not return orgId.");
       }
       sessionStorage.setItem("orgId", orgId);
+      try {
+        sessionStorage.setItem("activeOrgId", orgId);
+      } catch (_e) {}
       setStatus($("staffStatus"), "Success! Redirecting…", "success");
       window.setTimeout(() => {
         window.location.href = "./dashboard.html";

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="ops-typography">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
@@ -182,6 +182,137 @@
       margin-top: 10px;
     }
 
+    .playGroupToolbar,
+    .playGroupToolbar * {
+      overflow: visible !important;
+      z-index: auto;
+    }
+    .playGroupToolbar{
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 2px dashed rgba(202,162,74,.35);
+      background: rgba(0,0,0,.12);
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      align-items:center;
+    }
+    .playGroupToolbar .pgLabel{
+      font-weight: 1000;
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.88);
+    }
+    .playGroupToolbar select{
+      max-width: 280px;
+    }
+
+    /* Tee times view dropdown: native control, focus, strong option contrast on desktop */
+    #playGroupViewMode {
+      appearance: auto !important;
+      -webkit-appearance: auto !important;
+      -moz-appearance: auto !important;
+      cursor: pointer;
+      color: #ffffff !important;
+      background: rgba(80, 95, 125, 0.95) !important;
+    }
+    #playGroupViewMode option {
+      color: #111827 !important;
+      background: #ffffff !important;
+    }
+    #playGroupViewMode option:checked,
+    #playGroupViewMode option:hover {
+      color: #111827 !important;
+      background: #dbe4f0 !important;
+    }
+    #playGroupViewMode:focus {
+      outline: 2px solid rgba(255,255,255,0.4);
+    }
+    .playGroupBulkBar{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(47,107,47,.2);
+      border: 2px solid rgba(184,255,184,.22);
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .playGroupBulkBar .pgHint{
+      font-size: 13px;
+      font-weight: 800;
+      color: rgba(255,255,255,.9);
+      margin-right: 8px;
+      flex: 1 1 200px;
+    }
+    .pgPartCb{
+      width: 18px;
+      height: 18px;
+      accent-color: #caa24a;
+    }
+
+    tr.pgSectionHead td{
+      background: rgba(0,0,0,.22);
+      border-bottom: 1px solid rgba(202,162,74,.32);
+    }
+    tr.pgSectionHead--unassigned td{
+      border-color: rgba(255,255,255,.14);
+    }
+    .pgSectionHeadBlock{
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 4px 2px 4px 8px;
+      border-left: 3px solid rgba(202,162,74,.9);
+    }
+    .pgSectionTimeLine{
+      font-size: 13px;
+      font-weight: 900;
+      color: rgba(255,255,255,.9);
+    }
+    .pgSectionNameLine{
+      font-size: 15px;
+      font-weight: 1000;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      font-family: "Cinzel", Georgia, serif;
+      color: rgba(255,255,255,.96);
+    }
+    .pgSectionMeta,
+    .pgSectionNotes{
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255,255,255,.72);
+      line-height: 1.35;
+    }
+    tr.pgClusterMemberRow td:first-child{
+      box-shadow: inset 3px 0 0 rgba(202,162,74,.55);
+    }
+    tr.pgClusterMemberRow:hover td{ background: rgba(255,255,255,.05); }
+    tr.pgClusterMemberRow .pgPartCb{ margin-left: 4px; }
+    .pgClusterDash{
+      opacity: 0.5;
+    }
+
+    .pairingsToast{
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      padding: 10px 18px;
+      border-radius: 12px;
+      background: rgba(20, 35, 60, 0.95);
+      color: #fff;
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    }
+
     .searchRow{
       display:flex;
       gap:10px;
@@ -300,6 +431,22 @@
       flex-wrap:wrap;
     }
 
+    .rosterTeamJoinWrap{
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      max-width: min(100%, 380px);
+    }
+    a.rosterTeamJoinA{
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.25;
+      word-break: break-all;
+      color: rgba(255,255,255,.95) !important;
+      text-decoration: underline;
+    }
+
     .miniBtn{
       padding: 8px 10px;
       font-size: 12px;
@@ -320,6 +467,35 @@
     .modal.show{ display:flex; }
 
     .hidden{ display:none !important; }
+
+    .printPreviewSheet{
+      width: min(900px, 100%);
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .printPreviewFrameWrap{
+      flex: 1 1 auto;
+      min-height: 280px;
+      max-height: 70vh;
+      background: #e2e2e2;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.2);
+    }
+    .printPreviewFrameWrap iframe{
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 320px;
+      border: 0;
+      background: #fff;
+    }
+    #pairingsPrintPreviewModal,
+    #placardsPrintPreviewModal{
+      align-items: center;
+      justify-content: center;
+    }
 
     .sheet{
       width:min(760px,100%);
@@ -680,8 +856,8 @@
     #placardPrintHost{
       display: none;
       background: #fff;
-      color: #1f1f1f;
-      font-family: "Libre Baskerville", Georgia, "Times New Roman", serif;
+      color: #111;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -707,175 +883,102 @@
       box-sizing: border-box;
     }
 
+    /* One placard per page in preview; card-style layout (no flex overlap) */
     #placardPrintHost .pp-printPage{
-      page-break-after: always;
       box-sizing: border-box;
       width: 100%;
-      min-height: calc(100vh - 32px);
-      display: flex;
-      flex-direction: column;
-      gap: 0.14in;
-      justify-content: center;
+      max-width: 8.5in;
+      margin: 0 auto 1rem;
+      min-height: 0;
     }
 
     #placardPrintHost .pp-printPage:last-child{
-      page-break-after: auto;
+      margin-bottom: 0;
     }
 
-    #placardPrintHost .pp-printPage--single{
-      justify-content: center;
-    }
-
-    #placardPrintHost .pp-printPage--single .pp-placard{
-      flex: 0 0 auto;
-      height: 4.15in;
-      max-height: calc(50vh - 0.2in);
-    }
-
-    #placardPrintHost .pp-placard{
-      flex: 1 1 0;
-      min-height: 0;
+    #placardPrintHost .cart-placard{
+      width: 7.5in;
+      min-height: 3.5in;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 0.28in 0.3in;
+      border: 1px solid #222;
       box-sizing: border-box;
-      border: 1px solid #d6d1c4;
       background: #fff;
-      padding: 0.3in 0.36in 0.3in;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: #1f1f1f;
+      color: #111;
       position: relative;
       overflow: hidden;
     }
 
-    #placardPrintHost .pp-placard::before{
-      content: "";
-      position: absolute;
-      inset: 12%;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-size: contain;
-      opacity: 0.05;
-      pointer-events: none;
-      z-index: 0;
-      display: none;
+    #placardPrintHost .cart-placard-header{
+      text-align: center;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 0.2in;
+      margin-bottom: 0.2in;
     }
 
-    #placardPrintHost .pp-placard.pp-placard--watermark::before{
-      display: block;
-      background-image: var(--pp-watermark-url);
+    #placardPrintHost .cart-placard-header-row{
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 0.2in;
+      flex-wrap: wrap;
     }
 
-    #placardPrintHost .pp-placard > *{
-      position: relative;
-      z-index: 1;
+    #placardPrintHost .cart-placard-header-logo{
+      max-height: 0.38in;
+      max-width: 1.1in;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      opacity: 0.9;
     }
 
-    #placardPrintHost .pp-top{
-      flex-shrink: 0;
-      width: 100%;
-      padding-bottom: 0.12in;
-      margin-bottom: 0.16in;
-      border-bottom: 1px solid #d6d1c4;
-    }
-
-    #placardPrintHost .pp-brand{
-      font-family: "Cinzel", Georgia, serif;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.26em;
-      text-transform: uppercase;
-      line-height: 1.25;
-      color: #4a4a4a;
-    }
-
-    #placardPrintHost .pp-event{
-      font-family: "Cinzel", Georgia, serif;
+    #placardPrintHost .cart-placard-header-text{
       font-size: 13px;
       font-weight: 700;
-      line-height: 1.35;
-      letter-spacing: 0.03em;
-      margin-top: 0.08in;
-      max-width: 100%;
+      line-height: 1.3;
+      max-width: 6.2in;
       word-wrap: break-word;
-      color: #2f4a3f;
     }
 
-    #placardPrintHost .pp-sponsor{
-      margin-top: 0.09in;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 0;
-    }
-
-    #placardPrintHost .pp-sponsor img{
-      max-height: 0.3in;
-      max-width: 55%;
-      width: auto;
-      object-fit: contain;
-      filter: grayscale(100%);
-      opacity: 0.82;
-    }
-
-    #placardPrintHost .pp-hole-wrap{
-      flex: 0 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 0.16in;
-      width: 100%;
-    }
-
-    #placardPrintHost .pp-hole{
-      font-family: "Playfair Display", Georgia, serif;
-      font-size: 22px;
-      font-style: italic;
-      font-weight: 600;
+    #placardPrintHost .cart-placard-team{
+      font-size: 28px;
+      font-weight: 800;
       line-height: 1.2;
-      letter-spacing: 0.02em;
-      margin: 0;
-      color: #4a4a4a;
-    }
-
-    #placardPrintHost .pp-bottom{
-      flex-shrink: 0;
-      width: 100%;
-      padding-top: 0.08in;
-      border-top: 1px solid #d6d1c4;
-    }
-
-    #placardPrintHost .pp-teamName{
-      font-family: "Playfair Display", Georgia, serif;
-      font-size: 34px;
-      font-weight: 700;
-      line-height: 1.1;
-      margin: 0.08in 0 0.12in;
-      letter-spacing: 0.01em;
-      max-width: 100%;
+      text-align: center;
+      margin: 0 0 0.18in;
       word-wrap: break-word;
-      color: #1f1f1f;
     }
 
-    #placardPrintHost .pp-players{
-      width: 100%;
-      max-width: 5.2in;
-      margin: 0 auto;
-      font-family: "Libre Baskerville", Georgia, serif;
-      font-size: 14px;
-      font-weight: 400;
-      line-height: 1.56;
-      color: #1f1f1f;
+    #placardPrintHost .cart-placard-time{
+      font-size: 18px;
+      font-style: italic;
+      text-align: center;
+      line-height: 1.3;
+      margin: 0 0 0.2in;
     }
 
-    #placardPrintHost .pp-player{ margin: 0.12em 0; }
-    #placardPrintHost .pp-player--muted{ opacity: 0.55; }
+    #placardPrintHost .cart-placard-players{
+      font-size: 16px;
+      text-align: center;
+      line-height: 1.45;
+    }
+
+    #placardPrintHost .cart-placard-player{
+      margin: 0.1em 0;
+    }
+
+    #placardPrintHost .cart-placard-player--muted{
+      opacity: 0.55;
+    }
 
     @media print{
-      @page { size: letter landscape; margin: 0.28in; }
+      @page { size: letter; margin: 0.5in; }
       body.placardPrintActive{
         background: #fff !important;
+        color: #000 !important;
       }
       body.placardPrintActive .wrap,
       body.placardPrintActive #teamModal{
@@ -885,9 +988,66 @@
         display: block !important;
         padding: 0 !important;
         min-height: 0 !important;
+        background: #fff !important;
+        color: #000 !important;
       }
       #placardPrintHost .pp-printPage{
+        page-break-after: always;
         min-height: 0;
+        margin: 0 auto;
+        max-width: 8.5in;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      #placardPrintHost .pp-printPage:last-child{
+        page-break-after: auto;
+      }
+      #placardPrintHost .cart-placard{
+        width: 7.5in;
+        min-height: 3.5in;
+        margin: 0 auto 0.25in;
+        padding: 0.25in;
+        border: 1px solid #222;
+        box-sizing: border-box;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        position: relative;
+        overflow: hidden;
+        background: #fff !important;
+        color: #000 !important;
+        max-width: 100%;
+      }
+      #placardPrintHost .cart-placard *{
+        color: #000 !important;
+        position: static !important;
+        transform: none !important;
+      }
+      #placardPrintHost .cart-placard-header,
+      #placardPrintHost .cart-placard-team,
+      #placardPrintHost .cart-placard-time,
+      #placardPrintHost .cart-placard-players{
+        display: block;
+        margin-bottom: 8px;
+        line-height: 1.25;
+      }
+      #placardPrintHost .cart-placard-team{
+        font-size: 28px;
+        font-weight: 800;
+        text-align: center;
+      }
+      #placardPrintHost .cart-placard-time{
+        font-size: 20px;
+        font-style: italic;
+        text-align: center;
+      }
+      #placardPrintHost .cart-placard-players{
+        font-size: 16px;
+        text-align: center;
+      }
+      #placardPrintHost .cart-placard-header-row{
+        flex-direction: row !important;
+        justify-content: center !important;
+        align-items: center !important;
       }
 
       body.rulesPrintActive .wrap,
@@ -910,13 +1070,9 @@
         border-radius:0 !important;
         padding:0 !important;
       }
-
-      @page{
-        size: letter portrait;
-        margin: 0.45in;
-      }
     }
   </style>
+  <link rel="stylesheet" href="./css/operations-typography.css" />
 </head>
 
 <body>
@@ -934,20 +1090,20 @@
           <button type="button" class="btn" id="copyAlphaBtn">📋 Copy Alpha List</button>
           <button type="button" class="btn" id="rulesSheetBtn">📄 Rules Sheet</button>
           <a class="btn" id="leaderBtn" href="./leaderboard.html">🏆 Leaderboard</a>
-          <a class="btn" id="joinBtn" href="./index.html">👥 Join</a>
+          <a class="btn" id="joinBtn" href="./index.html">Join event</a>
           <button type="button" class="btn hidden" id="printAttendanceBtn">🖨 Print Sign-In Sheet</button>
         </div>
       </div>
 
       <div class="footerHint" id="rosterFooterHint">
-        <b>Registrations</b> are the organizer-managed list. <b>Join link</b> rows are live scorecards from the index page (<code>submissions</code>) and appear when they are not tied to a registration you already have listed. Hole order is <b>1A → 2A → … → 18A → 1B → 2B → …</b>
+        <b>Who is signed up</b> is your organizer list. <b>Live scorecard</b> rows come from the join page when someone is scoring but is not linked to a row you already have here. Hole order is <b>1A → 2A → … → 18A → 1B → 2B → …</b>
       </div>
     </div>
 
     <div class="panel">
       <div class="alertOrganizer" id="alertOrganizerBox" style="display:none;">
         <h2 class="alertOrganizerTitle">Organizer alert</h2>
-        <p class="alertOrganizerHint">Broadcasts to <code>tournaments/{tournamentId}/alerts/live</code> for live apps to read.</p>
+        <p class="alertOrganizerHint">Shows on the live scorecard and leaderboard for everyone following this event.</p>
 
         <div class="fieldSp">
           <label for="alertMessage" class="fieldLabel">Message</label>
@@ -1000,13 +1156,40 @@
           <button class="green" id="autoAssignBtn">⚡ Auto Assign Missing</button>
           <button class="primary" id="addTeamBtn">➕ Add Team</button>
           <button type="button" class="btn" id="printPlacardsBtn">🖨 Print Placards</button>
+          <button type="button" class="btn" id="copyPairingsBtn">Copy Pairings</button>
+          <button type="button" class="btn" id="printPairingsBtn">Print Pairings</button>
+          <button type="button" class="btn" id="sortByTeeTimeBtn" title="Order groups by tee time (earliest first)">Sort by Tee Time</button>
         </div>
+      </div>
+
+      <div id="playGroupToolbar" class="playGroupToolbar">
+        <span class="pgLabel" id="playGroupToolbarTitle">Tee times &amp; pairings (optional)</span>
+        <select id="playGroupViewMode" style="width:auto; min-width:220px;">
+          <option value="off">One row per sign-up (default)</option>
+          <option value="all">Everyone (individual list)</option>
+          <option value="unassigned">Unassigned players</option>
+          <option value="grouped">Grouped players</option>
+          <option value="by_group">By group / time</option>
+        </select>
+        <span id="playGroupToolbarHint" class="footerHint" style="margin:0; flex:1 1 240px;"></span>
+      </div>
+      <div id="playGroupBulkBar" class="playGroupBulkBar hidden">
+        <span class="pgHint" id="playGroupBulkHint">0 selected</span>
+        <button type="button" class="miniBtn" id="pgSelectAllBtn">Select all</button>
+        <button type="button" class="miniBtn" id="pgClearSelectBtn">Clear</button>
+        <button type="button" class="miniBtn green" id="pgCreateGroupBtn">Create Group</button>
+        <button type="button" class="miniBtn" id="pgAddToGroupBtn">Add to Group</button>
+        <button type="button" class="miniBtn" id="pgMoveGroupBtn">Move to Different Group</button>
+        <button type="button" class="miniBtn" id="pgRemoveFromGroupBtn">Remove from Group</button>
+        <button type="button" class="miniBtn" id="pgAssignTeeBtn">Assign Tee Time</button>
+        <button type="button" class="miniBtn" id="pgClearTeeBtn">Clear Tee Time</button>
+        <button type="button" class="miniBtn danger" id="pgDeleteEmptyGroupsBtn">Delete Empty Group</button>
       </div>
 
       <div class="tableWrap">
         <table>
-          <thead>
-            <tr>
+          <thead id="rosterThead">
+            <tr id="rosterHeaderRow">
               <th style="min-width:230px;" id="thTeamCol">Team</th>
               <th style="min-width:260px;" id="thPlayersCol">Players</th>
               <th style="min-width:90px;" id="rosterAssignmentHeader">Hole</th>
@@ -1134,6 +1317,58 @@
     </div>
   </div>
 
+  <div class="modal" id="playGroupModal">
+    <div class="sheet">
+      <div class="sheetHdr">
+        <div>
+          <p id="playGroupModalTitle" class="sheetTitle">Play group</p>
+          <div class="sheetSubtle" id="playGroupModalSub">
+            Operational grouping only — does not change registration or scoring.
+          </div>
+        </div>
+        <button type="button" id="playGroupModalCloseBtn" class="miniBtn">✕ Close</button>
+      </div>
+      <div class="sheetGrid">
+        <div id="pgRowPlayGroupName">
+          <label for="pgGroupNameInput" class="fieldLabel">Group name</label>
+          <input id="pgGroupNameInput" placeholder="e.g. Morning wave A" />
+        </div>
+        <div id="pgRowPlayGroupNumber">
+          <label for="pgGroupNumberInput" class="fieldLabel">Group number</label>
+          <input id="pgGroupNumberInput" type="number" min="1" step="1" />
+        </div>
+        <div id="pgRowPlayGroupType">
+          <label for="pgGroupTypeInput" class="fieldLabel">Group type</label>
+          <select id="pgGroupTypeInput">
+            <option value="tee_time">Tee time</option>
+            <option value="pairing">Pairing</option>
+            <option value="clinic_group">Clinic group</option>
+            <option value="general">General</option>
+          </select>
+        </div>
+        <div id="pgTargetGroupWrap" class="hidden" style="grid-column:1/-1;">
+          <label for="pgTargetGroupSelect" class="fieldLabel">Target group</label>
+          <select id="pgTargetGroupSelect"></select>
+        </div>
+        <div id="pgRowPlayGroupTee">
+          <label for="pgTeeTimeInput" class="fieldLabel" id="pgTeeTimeLabel">Tee time</label>
+          <input id="pgTeeTimeInput" type="datetime-local" />
+        </div>
+        <div id="pgRowPlayGroupStart">
+          <label for="pgStartingHoleInput" class="fieldLabel" id="pgStartingHoleLabel">Starting hole</label>
+          <input id="pgStartingHoleInput" placeholder="e.g. 1A" />
+        </div>
+        <div id="pgRowPlayGroupNotes" style="grid-column:1/-1;">
+          <label for="pgNotesInput" class="fieldLabel">Notes</label>
+          <textarea id="pgNotesInput" rows="3" placeholder="Optional notes for staff"></textarea>
+        </div>
+      </div>
+      <div class="sheetActions">
+        <button type="button" id="playGroupModalSaveBtn" class="green">💾 Save</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal" id="scorecardModal">
     <div class="sheet scorecardSheet">
       <div class="sheetHdr">
@@ -1248,6 +1483,46 @@
 
   <div id="rulesPrintHost" aria-hidden="true"></div>
 
+  <div id="pairingsToast" class="pairingsToast hidden" role="status" aria-live="polite"></div>
+
+  <div class="modal" id="pairingsPrintPreviewModal" aria-hidden="true">
+    <div class="sheet printPreviewSheet">
+      <div class="sheetHdr">
+        <div>
+          <p class="sheetTitle">Print pairings</p>
+          <div class="sheetSubtle" style="color: rgba(255,255,255,.78);">Preview matches what will print (white page, black text). Use Print to open the system dialog.</div>
+        </div>
+        <button type="button" class="miniBtn" id="closePairingsPrintPreviewBtn">Close</button>
+      </div>
+      <div class="printPreviewFrameWrap">
+        <iframe id="pairingsPrintPreviewFrame" title="Pairings print preview"></iframe>
+      </div>
+      <div class="sheetActions" style="margin-top: 12px;">
+        <button type="button" class="primary" id="pairingsPrintPreviewPrintBtn">Print</button>
+        <button type="button" class="miniBtn" id="closePairingsPrintPreviewBtn2">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="placardsPrintPreviewModal" aria-hidden="true">
+    <div class="sheet printPreviewSheet">
+      <div class="sheetHdr">
+        <div>
+          <p class="sheetTitle">Print placards</p>
+          <div class="sheetSubtle" style="color: rgba(255,255,255,.78);">One cart placard per page. Preview matches the printed output.</div>
+        </div>
+        <button type="button" class="miniBtn" id="closePlacardsPrintPreviewBtn">Close</button>
+      </div>
+      <div class="printPreviewFrameWrap">
+        <iframe id="placardsPrintPreviewFrame" title="Placards print preview"></iframe>
+      </div>
+      <div class="sheetActions" style="margin-top: 12px;">
+        <button type="button" class="primary" id="placardsPrintPreviewPrintBtn">Print</button>
+        <button type="button" class="miniBtn" id="closePlacardsPrintPreviewBtn2">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     /**
      * Organizer roster reads the same `tournaments/{id}` event document as admin/register-complete.
@@ -1259,7 +1534,9 @@
       getFirestore,
       doc,
       getDoc,
+      getDocs,
       setDoc,
+      addDoc,
       updateDoc,
       deleteDoc,
       onSnapshot,
@@ -1273,10 +1550,13 @@
       tournamentDocRef,
       tournamentRegistrationsCollection,
       tournamentRegistrationDoc,
+      tournamentPlayGroupsCollection,
+      tournamentPlayGroupDoc,
       tournamentSubmissionsDoc,
       tournamentSubmissionsCollection,
       tournamentAlertsLiveRef,
       applyOrgTournamentParams,
+      buildTournamentIndexJoinUrl,
     } from "./js/org-paths.js";
     import { resolvePlacardCourseBrand } from "./js/branding-display.js";
     import {
@@ -1289,13 +1569,25 @@
       formatRosterAssignmentDisplay,
       compareRosterAssignmentSort,
       resolveRosterPageEventTypeFromDocument,
-      getRosterPageUiConfig,
+      getRosterPageUiConfigForTournament,
       getEventTypeVisibility,
       REGISTRATION_PAGE_EVENT_TOURNAMENT,
       REGISTRATION_PAGE_EVENT_CLINIC,
       REGISTRATION_PAGE_EVENT_CAMP,
       REGISTRATION_PAGE_EVENT_GENERAL,
     } from "./js/tournament-fields.js";
+    import {
+      makeParticipantKey,
+      expandAllParticipants,
+      computeParticipantToGroupMap,
+      filterParticipantsByViewMode,
+      nextPlayGroupNumber,
+      getRosterPlayGroupUiConfig,
+      buildPlayGroupCreatePayload,
+      participantIdsAfterRemovingKeys,
+      mergeParticipantKeysUnique,
+    } from "./js/play-groups.js";
+    import { formatTime } from "./js/time-format.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBX2ycbIGEyQh-XgeOXtuhkyBT2XZvsHls",
@@ -1336,9 +1628,20 @@
     const autoAssignBtn = document.getElementById("autoAssignBtn");
     const addTeamBtn = document.getElementById("addTeamBtn");
     const printPlacardsBtn = document.getElementById("printPlacardsBtn");
-    const placardPrintHost = document.getElementById("placardPrintHost");
-    const placardPrintPages = document.getElementById("placardPrintPages");
-
+    const copyPairingsBtn = document.getElementById("copyPairingsBtn");
+    const printPairingsBtn = document.getElementById("printPairingsBtn");
+    const sortByTeeTimeBtn = document.getElementById("sortByTeeTimeBtn");
+    const pairingsToast = document.getElementById("pairingsToast");
+    const pairingsPrintPreviewModal = document.getElementById("pairingsPrintPreviewModal");
+    const pairingsPrintPreviewFrame = document.getElementById("pairingsPrintPreviewFrame");
+    const closePairingsPrintPreviewBtn = document.getElementById("closePairingsPrintPreviewBtn");
+    const closePairingsPrintPreviewBtn2 = document.getElementById("closePairingsPrintPreviewBtn2");
+    const pairingsPrintPreviewPrintBtn = document.getElementById("pairingsPrintPreviewPrintBtn");
+    const placardsPrintPreviewModal = document.getElementById("placardsPrintPreviewModal");
+    const placardsPrintPreviewFrame = document.getElementById("placardsPrintPreviewFrame");
+    const closePlacardsPrintPreviewBtn = document.getElementById("closePlacardsPrintPreviewBtn");
+    const closePlacardsPrintPreviewBtn2 = document.getElementById("closePlacardsPrintPreviewBtn2");
+    const placardsPrintPreviewPrintBtn = document.getElementById("placardsPrintPreviewPrintBtn");
     const searchInput = document.getElementById("searchInput");
     const statusFilter = document.getElementById("statusFilter");
 
@@ -1435,7 +1738,7 @@
     let rosterPageEventType = REGISTRATION_PAGE_EVENT_TOURNAMENT;
 
     function getRosterUi(){
-      return getRosterPageUiConfig(rosterPageEventType);
+      return getRosterPageUiConfigForTournament(rosterPageEventType, tournamentMeta || {});
     }
 
     /**
@@ -1458,6 +1761,9 @@
       if (leaderBtn) leaderBtn.classList.toggle("hidden", !ui.showLeaderboardActions);
       if (rulesSheetBtn) rulesSheetBtn.classList.toggle("hidden", !ui.showRulesSheetPrint);
       if (printPlacardsBtn) printPlacardsBtn.classList.toggle("hidden", !ui.showPrintPlacards);
+      if (copyPairingsBtn) copyPairingsBtn.classList.toggle("hidden", !ui.showPrintPlacards);
+      if (printPairingsBtn) printPairingsBtn.classList.toggle("hidden", !ui.showPrintPlacards);
+      if (sortByTeeTimeBtn) sortByTeeTimeBtn.classList.toggle("hidden", !ui.showPrintPlacards);
       if (joinBtn) joinBtn.classList.toggle("hidden", !ui.showJoinLinkAction);
       if (printAttendanceBtn) {
         printAttendanceBtn.classList.toggle("hidden", !ui.showPrintAttendance);
@@ -1520,12 +1826,64 @@
     let editingId = null;
     let rulesSheetData = null;
 
+    /** Operational play groups from `tournaments/.../playGroups` (not registration or scoring). */
+    let playGroups = [];
+    let playGroupViewMode = "off";
+    let playGroupViewModePopulatedFromReg = false;
+    const selectedParticipantKeys = new Set();
+    let rosterHeaderRowDefaultHtml = "";
+    /** create | add | move | tee */
+    let playGroupModalContext = "create";
+    let playGroupLegacyMigrationDone = false;
+
     /* ---------------------------------------------------- */
     /* HELPERS */
     /* ---------------------------------------------------- */
 
     function norm(v){
       return String(v || "").trim().replace(/\s+/g," ");
+    }
+
+    function getGroupTeeTimeValue(group) {
+      if (!group) return "";
+      return group.groupTeeTime || group.teeTime || group.startTime || group.time || "";
+    }
+
+    function getGroupTeeTimeMs(group) {
+      const raw = getGroupTeeTimeValue(group);
+      if (!raw) return Number.POSITIVE_INFINITY;
+
+      const parsed = new Date(raw).getTime();
+      return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
+    }
+
+    function sortPlayGroupsByTeeTime(groups) {
+      return [...(groups || [])].sort((a, b) => {
+        const diff = getGroupTeeTimeMs(a) - getGroupTeeTimeMs(b);
+        if (diff !== 0) return diff;
+
+        const aName = String(a.name || a.groupName || "").toLowerCase();
+        const bName = String(b.name || b.groupName || "").toLowerCase();
+        return aName.localeCompare(bName);
+      });
+    }
+
+    /**
+     * Grouped / by-group roster views: unassigned last, then group tee time (not per-player sign-up time), then name.
+     */
+    function sortParticipantsForRosterGroupedView(list, participantToGroup) {
+      const map = participantToGroup || new Map();
+      return [...(list || [])].sort((a, b) => {
+        const ga = map.get(a.participantKey);
+        const gb = map.get(b.participantKey);
+        const unA = ga ? 0 : 1;
+        const unB = gb ? 0 : 1;
+        if (unA !== unB) return unA - unB;
+        const ta = getGroupTeeTimeMs(ga);
+        const tb = getGroupTeeTimeMs(gb);
+        if (ta !== tb) return ta - tb;
+        return String(ga?.groupName || "").localeCompare(String(gb?.groupName || ""), undefined, { sensitivity: "base" });
+      });
     }
 
     function normalizePlayers(arr){
@@ -1752,23 +2110,23 @@
         if (!golf) {
           if (rosterPageEventType === REGISTRATION_PAGE_EVENT_CLINIC) {
             rosterFooterHint.innerHTML =
-              "<b>Registrations</b> are the organizer-managed attendee list. Columns can include session, time slot, group, and instructor when provided.";
+              "<b>Who is signed up</b> is your attendee list. Columns can include session, time slot, group, and instructor when you collect them.";
           } else if (rosterPageEventType === REGISTRATION_PAGE_EVENT_CAMP) {
             rosterFooterHint.innerHTML =
-              "<b>Registrations</b> are the organizer-managed participant list. Columns can include session, group, and instructor when provided.";
+              "<b>Who is signed up</b> is your participant list. Columns can include session, group, and instructor when you collect them.";
           } else if (rosterPageEventType === REGISTRATION_PAGE_EVENT_GENERAL) {
             rosterFooterHint.innerHTML =
-              "<b>Registrations</b> are the organizer-managed list. Use contact and notes fields to track registrants.";
+              "<b>Who is signed up</b> is your main list. Use contact and notes to keep details straight.";
           } else {
             rosterFooterHint.innerHTML =
-              "<b>Registrations</b> are the organizer-managed list. Assignment shows session, time slot, and group when provided.";
+              "<b>Who is signed up</b> is your main list. Assignment shows session, time slot, and group when you collect them.";
           }
         } else if (tee) {
           rosterFooterHint.innerHTML =
-            "<b>Registrations</b> are the organizer-managed list. <b>Join link</b> rows are live scorecards from the index page (<code>submissions</code>). This event uses <b>tee times</b> (sorted by clock time).";
+            "<b>Who is signed up</b> is your organizer list. <b>Live scorecard</b> rows come from the join page. This event uses <b>tee times</b> (sorted by clock time).";
         } else {
           rosterFooterHint.innerHTML =
-            "<b>Registrations</b> are the organizer-managed list. <b>Join link</b> rows are live scorecards from the index page (<code>submissions</code>) and appear when they are not tied to a registration you already have listed. Hole order is <b>1A → 2A → … → 18A → 1B → 2B → …</b>";
+            "<b>Who is signed up</b> is your organizer list. <b>Live scorecard</b> rows come from the join page when someone is scoring but is not linked to a row you already have here. Hole order is <b>1A → 2A → … → 18A → 1B → 2B → …</b>";
         }
       }
       if (assignedHoleFieldWrap && teeTimeFieldWrap && clinicAssignmentFieldWrap) {
@@ -1945,18 +2303,6 @@
       }
     }
 
-    function tournamentSponsorLogoUrlForPrint(){
-      const m = tournamentMeta;
-      if (!m) return "";
-      const direct = norm(m.sponsorLogo || m.sponsorLogoUrl || "");
-      if (direct) return resolvePrintAssetUrl(direct);
-      const arr = Array.isArray(m.sponsors) ? m.sponsors : [];
-      const s = arr[0];
-      if (!s) return "";
-      const logo = norm(s.logoUrl || s.logo || s.sponsorLogo || s.sponsorLogoUrl || "");
-      return logo ? resolvePrintAssetUrl(logo) : "";
-    }
-
     function tournamentPlacardWatermarkLogoUrl(){
       const m = tournamentMeta;
       if (!m) return "";
@@ -1975,13 +2321,6 @@
       return "";
     }
 
-    function cssBackgroundUrlToken(rawUrl){
-      const u = String(rawUrl || "").trim();
-      if (!u) return "";
-      const safe = u.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-      return `url("${safe}")`;
-    }
-
     function placardCourseBrand(){
       return resolvePlacardCourseBrand(tournamentMeta);
     }
@@ -1990,6 +2329,20 @@
       const m = tournamentMeta;
       if (!m) return "Tournament";
       return norm(m.tournamentName || m.name || m.eventTitle || "Tournament");
+    }
+
+    function buildPlacardTimeLineText(r) {
+      if (!isGolfEventCategory(tournamentMeta)) {
+        const a = formatRosterAssignmentDisplay(r, tournamentMeta);
+        return a ? `Assignment: ${a}` : "Event details: —";
+      }
+      if (isTeeTimesTournament()) {
+        const raw = String(r.teeTime || "").trim();
+        if (!raw) return "Tee time: —";
+        return `Tee time ${formatTime(raw) || "—"}`;
+      }
+      const h = normalizeHoleLabel(r.assignedHole);
+      return h ? `Starting hole ${h}` : "Starting hole: —";
     }
 
     function buildPlacardRows(){
@@ -2018,66 +2371,111 @@
         .sort((a, b) => compareHoleLabels(a.assignedHole, b.assignedHole));
     }
 
-    function placardCardHtml(r, sponsorLogoUrl, watermarkLogoUrl){
-      const brand = escapeHtml(placardCourseBrand());
-      const eventTitle = escapeHtml(placardTournamentTitle());
-      const tee = isGolfEventCategory(tournamentMeta) && isTeeTimesTournament();
-      const hole = escapeHtml(
-        !isGolfEventCategory(tournamentMeta)
-          ? formatRosterAssignmentDisplay(r, tournamentMeta)
-          : tee
-          ? String(r.teeTime || "").trim()
-          : normalizeHoleLabel(r.assignedHole)
+    function placardCardHtml(r, _sponsorLogoUrl, headerLogoUrl){
+      const courseAndEvent = escapeHtml(
+        `${placardCourseBrand()} — ${placardTournamentTitle()}`.replace(/\s+—\s+—/g, " — ").trim()
       );
       const team = escapeHtml(r.teamName || "—");
+      const timeLine = escapeHtml(buildPlacardTimeLineText(r));
       const players = normalizePlayers(r.players);
-      const sponsorRow = sponsorLogoUrl
-        ? `<div class="pp-sponsor"><img src="${escapeHtml(sponsorLogoUrl)}" alt="" /></div>`
-        : "";
       const playerLines = players.length
-        ? players.map(p => `<div class="pp-player">${escapeHtml(p)}</div>`).join("")
-        : `<div class="pp-player pp-player--muted">—</div>`;
-      const watermarkToken = cssBackgroundUrlToken(watermarkLogoUrl);
-      const watermarkClass = watermarkToken ? " pp-placard--watermark" : "";
-      const watermarkStyle = watermarkToken
-        ? ` style="--pp-watermark-url:${escapeHtml(watermarkToken)};"`
+        ? players.map((p) => `<div class="cart-placard-player">${escapeHtml(p)}</div>`).join("")
+        : `<div class="cart-placard-player cart-placard-player--muted">—</div>`;
+      const logo = String(headerLogoUrl || "").trim();
+      const logoRow = logo
+        ? `<img class="cart-placard-header-logo" src="${escapeHtml(logo)}" alt="" />`
         : "";
 
       return `
-        <div class="pp-placard${watermarkClass}"${watermarkStyle}>
-          <header class="pp-top">
-            <div class="pp-brand">${brand}</div>
-            <div class="pp-event">${eventTitle}</div>
-            ${sponsorRow}
-          </header>
-          <div class="pp-hole-wrap">
-            <div class="pp-hole">${
-              !isGolfEventCategory(tournamentMeta)
-                ? "Assignment"
-                : tee
-                ? "Tee time"
-                : "Starting Hole"
-            } ${hole}</div>
+        <div class="cart-placard">
+          <div class="cart-placard-header">
+            <div class="cart-placard-header-row">
+              ${logoRow}
+              <div class="cart-placard-header-text">${courseAndEvent}</div>
+            </div>
           </div>
-          <div class="pp-bottom">
-            <div class="pp-team pp-teamName">${team}</div>
-            <div class="pp-players">${playerLines}</div>
-          </div>
+          <div class="cart-placard-team">${team}</div>
+          <div class="cart-placard-time">${timeLine}</div>
+          <div class="cart-placard-players">${playerLines}</div>
         </div>`;
     }
 
-    function startPlacardPrintMode(){
-      if (!tournamentId){
+    const PLACARD_PREVIEW_STYLES = `
+@page { size: letter; margin: 0.5in; }
+* { box-sizing: border-box; }
+body{
+  margin:0; padding:16px;
+  background: #fff; color: #111;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.pp-printPage{
+  box-sizing: border-box; width: 100%; max-width: 8.5in; margin: 0 auto 1rem; min-height: 0;
+}
+.pp-printPage:last-child{ margin-bottom: 0; }
+.cart-placard{
+  width: 7.5in; min-height: 3.5in; max-width: 100%; margin: 0 auto;
+  padding: 0.28in 0.3in; border: 1px solid #222; background: #fff; color: #111;
+  position: relative; overflow: hidden;
+}
+.cart-placard-header{ text-align: center; border-bottom: 1px solid #ccc; padding-bottom: 0.2in; margin-bottom: 0.2in; }
+.cart-placard-header-row{ display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 0.2in; flex-wrap: wrap; }
+.cart-placard-header-logo{ max-height: 0.38in; max-width: 1.1in; width: auto; height: auto; object-fit: contain; opacity: 0.9; }
+.cart-placard-header-text{ font-size: 13px; font-weight: 700; line-height: 1.3; max-width: 6.2in; word-wrap: break-word; }
+.cart-placard-team{ font-size: 28px; font-weight: 800; line-height: 1.2; text-align: center; margin: 0 0 0.18in; word-wrap: break-word; }
+.cart-placard-time{ font-size: 18px; font-style: italic; text-align: center; line-height: 1.3; margin: 0 0 0.2in; }
+.cart-placard-players{ font-size: 16px; text-align: center; line-height: 1.45; }
+.cart-placard-player{ margin: 0.1em 0; }
+.cart-placard-player--muted{ opacity: 0.55; }
+@media print {
+  @page { size: letter; margin: 0.5in; }
+  body { margin:0; padding:0; }
+  .pp-printPage{ page-break-after: always; min-height:0; margin:0 auto; max-width:8.5in; break-inside: avoid; page-break-inside: avoid; }
+  .pp-printPage:last-child{ page-break-after: auto; }
+  .cart-placard{ width:7.5in; min-height:3.5in; margin:0 auto 0.25in; padding:0.25in; page-break-inside: avoid; break-inside: avoid; background: #fff !important; color: #000 !important; }
+  .cart-placard *{ color: #000 !important; position: static !important; transform: none !important; }
+  .cart-placard-header, .cart-placard-team, .cart-placard-time, .cart-placard-players{ display: block; margin-bottom: 8px; line-height: 1.25; }
+  .cart-placard-team{ font-size: 28px; font-weight: 800; text-align: center; }
+  .cart-placard-time{ font-size: 20px; font-style: italic; text-align: center; }
+  .cart-placard-players{ font-size: 16px; text-align: center; }
+  .cart-placard-header-row{ flex-direction: row !important; justify-content: center !important; align-items: center !important; }
+}
+`;
+
+    function buildPlacardPreviewDocumentHtml() {
+      const headerLogoUrl = tournamentPlacardWatermarkLogoUrl();
+      const rows = buildPlacardRows();
+      const bodyInner = rows
+        .map((r) => `<div class="pp-printPage">${placardCardHtml(r, "", headerLogoUrl)}</div>`)
+        .join("");
+      return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Placards</title>
+  <style>${PLACARD_PREVIEW_STYLES}</style>
+</head>
+<body>
+${bodyInner}
+</body>
+</html>`;
+    }
+
+    function closePlacardsPrintPreviewModal() {
+      if (placardsPrintPreviewModal) placardsPrintPreviewModal.classList.remove("show");
+      if (placardsPrintPreviewModal) placardsPrintPreviewModal.setAttribute("aria-hidden", "true");
+      if (placardsPrintPreviewFrame) placardsPrintPreviewFrame.srcdoc = "";
+    }
+
+    function openPlacardPrintPreview() {
+      if (!tournamentId) {
         alert("Missing tournament id.");
         return;
       }
 
-      if (!placardPrintPages){
-        return;
-      }
-
       const rows = buildPlacardRows();
-      if (!rows.length){
+      if (!rows.length) {
         alert(
           !isGolfEventCategory(tournamentMeta)
             ? "No registrations to print yet."
@@ -2088,46 +2486,21 @@
         return;
       }
 
-      const sponsorLogoUrl = tournamentSponsorLogoUrlForPrint();
-      const watermarkLogoUrl = tournamentPlacardWatermarkLogoUrl();
-      const chunks = [];
-
-      for (let i = 0; i < rows.length; i += 2){
-        const a = rows[i];
-        const b = rows[i + 1];
-
-        if (!b && rows.length % 2 === 1){
-          chunks.push(`<div class="pp-printPage pp-printPage--single">${placardCardHtml(a, sponsorLogoUrl, watermarkLogoUrl)}</div>`);
-        } else {
-          chunks.push(
-            `<div class="pp-printPage">${placardCardHtml(a, sponsorLogoUrl, watermarkLogoUrl)}${placardCardHtml(b, sponsorLogoUrl, watermarkLogoUrl)}</div>`
-          );
-        }
+      if (!placardsPrintPreviewFrame || !placardsPrintPreviewModal) {
+        return;
       }
+      placardsPrintPreviewFrame.srcdoc = buildPlacardPreviewDocumentHtml();
+      placardsPrintPreviewModal.classList.add("show");
+      placardsPrintPreviewModal.setAttribute("aria-hidden", "false");
+    }
 
-      placardPrintPages.innerHTML = chunks.join("");
-      if (placardPrintHost) placardPrintHost.setAttribute("aria-hidden", "false");
-      document.body.classList.add("placardPrintActive");
-      window.scrollTo(0, 0);
-
-      const restore = () => {
-        document.body.classList.remove("placardPrintActive");
-        placardPrintPages.innerHTML = "";
-        if (placardPrintHost) placardPrintHost.setAttribute("aria-hidden", "true");
-      };
-
-      window.addEventListener("afterprint", restore, { once: true });
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          try{
-            window.print();
-          }catch(e){
-            console.error(e);
-            restore();
-          }
-        });
-      });
+    function printPlacardsFromPreview() {
+      try {
+        const w = placardsPrintPreviewFrame && placardsPrintPreviewFrame.contentWindow;
+        if (w) w.print();
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     /** Attendance / sign-in style printout for clinic, camp, and general events (not tournament placards). */
@@ -2198,7 +2571,7 @@
       }
       if (isTeeTimesTournament()){
         const t = String(r.teeTime || "").trim();
-        if (t) return `Tee ${t}`;
+        if (t) return `Tee ${formatTime(t) || "—"}`;
         const h = normalizeHoleLabel(r.assignedHole);
         if (h) return `Hole ${h}`;
         return "Tee —";
@@ -2206,9 +2579,18 @@
       return `Hole ${r.assignedHole || "—"}`;
     }
 
+    function teamScorecardUrlLineForRow(r){
+      const joinRegId = r.isSubmission ? norm(r.registrationId || "") : norm(r.id || "");
+      if (!joinRegId) return null;
+      const u = buildTeamJoinUrl(joinRegId, { log: false });
+      return u || null;
+    }
+
     function appendRosterRowTextLines(lines, r){
       if(r.isSubmission){
         lines.push(`${r.teamName} | ${rosterAssignmentLabel(r)} | ${humanStatus(r.status)} (join link)`);
+        const tj = teamScorecardUrlLineForRow(r);
+        if (tj) lines.push(`Team scorecard link: ${tj}`);
         normalizePlayers(r.players).forEach(p=>{
           lines.push(`- ${p}`);
         });
@@ -2217,6 +2599,8 @@
       }
 
       lines.push(`${r.teamName} | ${rosterAssignmentLabel(r)} | ${humanStatus(r.status)}`);
+      const tj = teamScorecardUrlLineForRow(r);
+      if (tj) lines.push(`Team scorecard link: ${tj}`);
 
       if(r.liveFromSubmission)
         lines.push(`(Live scorecard linked)`);
@@ -2318,8 +2702,12 @@
         lines.push(player);
         if (r.isSubmission){
           lines.push(`  Team: ${r.teamName} | ${rosterAssignmentLabel(r)} | ${humanStatus(r.status)} (join link)`);
+          const tj = teamScorecardUrlLineForRow(r);
+          if (tj) lines.push(`  ${tj}`);
         }else{
           lines.push(`  Team: ${r.teamName} | ${rosterAssignmentLabel(r)} | ${humanStatus(r.status)}`);
+          const tj = teamScorecardUrlLineForRow(r);
+          if (tj) lines.push(`  Team scorecard link: ${tj}`);
           if (r.liveFromSubmission) lines.push(`  (Live scorecard linked)`);
         }
         lines.push("");
@@ -2331,6 +2719,47 @@
     /* ---------------------------------------------------- */
     /* LOAD TOURNAMENT META */
     /* ---------------------------------------------------- */
+
+    /**
+     * Old tournaments may have `playGroups` only under the top-level `tournaments/{id}/playGroups` path
+     * while the event document carries `organizationId`. Copy those docs to the org path (same id) so
+     * index.html, leaderboard, and rules that read the canonical path all see the same data. Does not
+     * delete the legacy subcollection.
+     */
+    async function migratePlayGroupsFromLegacyToOrgPath() {
+      if (playGroupLegacyMigrationDone) return;
+      playGroupLegacyMigrationDone = true;
+      if (!tournamentId) return;
+      const canon = String(orgId || "").trim();
+      if (!canon) return;
+      try {
+        const orgCol = tournamentPlayGroupsCollection(db, canon, tournamentId);
+        const orgSnap = await getDocs(query(orgCol));
+        if (!orgSnap.empty) return;
+        const legCol = tournamentPlayGroupsCollection(db, "", tournamentId);
+        const legSnap = await getDocs(query(legCol));
+        if (legSnap.empty) return;
+        const all = legSnap.docs;
+        const CHUNK = 400;
+        for (let i = 0; i < all.length; i += CHUNK) {
+          const batch = writeBatch(db);
+          const slice = all.slice(i, i + CHUNK);
+          for (const d of slice) {
+            const ref = tournamentPlayGroupDoc(db, canon, tournamentId, d.id);
+            batch.set(ref, d.data(), { merge: true });
+          }
+          await batch.commit();
+        }
+        console.info("[roster] playGroups: migrated from legacy to org path (same index.html shape)", {
+          orgId: canon,
+          tournamentId,
+          count: all.length,
+          path: `organizations/${canon}/tournaments/${tournamentId}/playGroups`,
+        });
+      } catch (e) {
+        console.warn("[roster] playGroups: legacy → org migration failed (non-fatal)", e);
+      }
+    }
 
     async function loadTournamentMeta(){
       if(!tournamentId){
@@ -2360,11 +2789,16 @@
           rosterUi: getRosterUi(),
         });
         syncRosterAssignmentModeUI();
+        syncPlayGroupToolbarHint();
       }
 
-      const joinUrl = new URL("./index.html", window.location.href);
-      applyOrgTournamentParams(joinUrl, orgId, tournamentId);
-      joinBtn.href = joinUrl.toString();
+      joinBtn.href = buildTournamentIndexJoinUrl(
+        window.location.href,
+        orgId,
+        tournamentId,
+        "",
+        { log: true }
+      );
       const leaderUrl = new URL("./leaderboard.html", window.location.href);
       applyOrgTournamentParams(leaderUrl, orgId, tournamentId);
       leaderBtn.href = leaderUrl.toString();
@@ -2976,6 +3410,733 @@
     }
 
     /* ---------------------------------------------------- */
+    /* PLAY GROUPS (operational only) */
+    /* ---------------------------------------------------- */
+
+    const playGroupViewModeEl = document.getElementById("playGroupViewMode");
+    const playGroupToolbarHint = document.getElementById("playGroupToolbarHint");
+    const playGroupBulkBar = document.getElementById("playGroupBulkBar");
+    const playGroupBulkHint = document.getElementById("playGroupBulkHint");
+    const rosterHeaderRowEl = document.getElementById("rosterHeaderRow");
+    const playGroupModal = document.getElementById("playGroupModal");
+    const playGroupModalTitle = document.getElementById("playGroupModalTitle");
+    const playGroupModalSub = document.getElementById("playGroupModalSub");
+    const playGroupModalCloseBtn = document.getElementById("playGroupModalCloseBtn");
+    const playGroupModalSaveBtn = document.getElementById("playGroupModalSaveBtn");
+    const pgGroupNameInput = document.getElementById("pgGroupNameInput");
+    const pgGroupNumberInput = document.getElementById("pgGroupNumberInput");
+    const pgGroupTypeInput = document.getElementById("pgGroupTypeInput");
+    const pgTargetGroupWrap = document.getElementById("pgTargetGroupWrap");
+    const pgTargetGroupSelect = document.getElementById("pgTargetGroupSelect");
+    const pgTeeTimeInput = document.getElementById("pgTeeTimeInput");
+    const pgStartingHoleInput = document.getElementById("pgStartingHoleInput");
+    const pgNotesInput = document.getElementById("pgNotesInput");
+    const pgSelectAllBtn = document.getElementById("pgSelectAllBtn");
+    const pgClearSelectBtn = document.getElementById("pgClearSelectBtn");
+    const pgCreateGroupBtn = document.getElementById("pgCreateGroupBtn");
+    const pgAddToGroupBtn = document.getElementById("pgAddToGroupBtn");
+    const pgMoveGroupBtn = document.getElementById("pgMoveGroupBtn");
+    const pgRemoveFromGroupBtn = document.getElementById("pgRemoveFromGroupBtn");
+    const pgAssignTeeBtn = document.getElementById("pgAssignTeeBtn");
+    const pgClearTeeBtn = document.getElementById("pgClearTeeBtn");
+    const pgDeleteEmptyGroupsBtn = document.getElementById("pgDeleteEmptyGroupsBtn");
+
+    function syncPlayGroupViewModeLabels(){
+      const pgUi = getRosterPlayGroupUiConfig(getRosterUi(), isGolfEventCategory(tournamentMeta));
+      const sel = document.getElementById("playGroupViewMode");
+      if (!sel) return;
+      const setOpt = (val, text) => {
+        const o = sel.querySelector(`option[value="${val}"]`);
+        if (o) o.textContent = text;
+      };
+      setOpt("off", "One row per sign-up (default)");
+      setOpt("all", `All ${pgUi.entityPlural || "Players"}`);
+      setOpt("unassigned", pgUi.unassignedLabel);
+      setOpt("grouped", pgUi.groupedLabel);
+      setOpt("by_group", isGolfEventCategory(tournamentMeta) ? "By group / tee time" : "By group / time");
+    }
+
+    /** Ensure #playGroupViewMode always has the full option set (values: off, all, unassigned, grouped, by_group). */
+    function populatePlayGroupViewMode() {
+      const select = document.getElementById("playGroupViewMode");
+      if (!select) return;
+      const previous = String(select.value || playGroupViewMode || "off").trim() || "off";
+      const allowed = new Set(["off", "all", "unassigned", "grouped", "by_group"]);
+      select.innerHTML = `
+        <option value="off">One row per sign-up (default)</option>
+        <option value="all">All players</option>
+        <option value="unassigned">Unassigned players</option>
+        <option value="grouped">Grouped players</option>
+        <option value="by_group">By group / time</option>
+      `;
+      const next = allowed.has(previous) ? previous : "off";
+      select.value = next;
+      playGroupViewMode = next;
+      syncPlayGroupViewModeLabels();
+    }
+
+    function syncPlayGroupToolbarHint(){
+      const pgUi = getRosterPlayGroupUiConfig(getRosterUi(), isGolfEventCategory(tournamentMeta));
+      if (playGroupToolbarHint) playGroupToolbarHint.textContent = pgUi.bulkHint || "";
+      const titleEl = document.getElementById("playGroupToolbarTitle");
+      if (titleEl) titleEl.textContent = pgUi.toolbarTitle || "";
+    }
+
+    function ensureDefaultRosterHeaderCaptured(){
+      if (!rosterHeaderRowEl || rosterHeaderRowDefaultHtml) return;
+      rosterHeaderRowDefaultHtml = rosterHeaderRowEl.innerHTML;
+    }
+
+    function restoreRosterRegistrationHeader(){
+      ensureDefaultRosterHeaderCaptured();
+      if (rosterHeaderRowEl && rosterHeaderRowDefaultHtml) {
+        rosterHeaderRowEl.innerHTML = rosterHeaderRowDefaultHtml;
+      }
+    }
+
+    function setRosterParticipantHeader(){
+      ensureDefaultRosterHeaderCaptured();
+      const rosterUi = getRosterUi();
+      const pgUi = getRosterPlayGroupUiConfig(rosterUi, isGolfEventCategory(tournamentMeta));
+      const teamCol = escapeHtml(String(rosterUi.teamColumnLabel || "Signed up by / contact").trim());
+      const timeCol = escapeHtml(String(pgUi.groupTimeColumnHeader || "Group time").trim());
+      const startCol = escapeHtml(String(pgUi.groupStartColumnHeader || "Detail").trim());
+      const regAssignCol = escapeHtml(String(pgUi.registrationAssignmentHeader || "Sign-up assignment").trim());
+      if (!rosterHeaderRowEl) return;
+      rosterHeaderRowEl.innerHTML = `
+        <th style="min-width:44px;"><input type="checkbox" id="pgHeaderSelectAllCb" class="pgPartCb" title="Select all" /></th>
+        <th style="min-width:160px;">${escapeHtml(pgUi.entitySingular)}</th>
+        <th style="min-width:200px;">${teamCol}</th>
+        <th style="min-width:140px;">Play group</th>
+        <th style="min-width:120px;">${timeCol}</th>
+        <th style="min-width:90px;">${startCol}</th>
+        <th style="min-width:200px;">${regAssignCol}</th>
+        <th style="min-width:100px;">Status</th>
+      `;
+      const hcb = document.getElementById("pgHeaderSelectAllCb");
+      if (hcb) {
+        hcb.addEventListener("change", () => {
+          const on = !!hcb.checked;
+          const rows = filteredParticipantRows();
+          rows.forEach((r) => {
+            if (on) selectedParticipantKeys.add(r.participantKey);
+            else selectedParticipantKeys.delete(r.participantKey);
+          });
+          render();
+        });
+      }
+    }
+
+    function getParticipantToGroupMap(){
+      const enriched = (playGroups || []).map((g) => ({
+        ...g,
+        participantIds: Array.isArray(g.participantIds) ? g.participantIds : [],
+      }));
+      return computeParticipantToGroupMap(enriched);
+    }
+
+    function participantSearchHay(p){
+      const r = p.registration || {};
+      return [
+        p.displayName || "",
+        r.teamName || "",
+        r.captainName || "",
+        r.captainEmail || "",
+        r.captainPhone || "",
+        r.session || "",
+        r.timeSlot || "",
+        r.groupLabel || "",
+        r.instructor || "",
+        r.notes || "",
+      ]
+        .join(" ")
+        .toLowerCase();
+    }
+
+    function filteredParticipantRows(){
+      const q = norm(searchInput.value).toLowerCase();
+      const sf = String(statusFilter.value || "all");
+      const map = getParticipantToGroupMap();
+      let parts = expandAllParticipants(registrations);
+      parts = filterParticipantsByViewMode(playGroupViewMode, parts, map);
+      parts = parts.filter((p) => {
+        const st = normalizeStatus(p.registration?.status);
+        if (sf !== "all" && st !== sf) return false;
+        if (!q) return true;
+        return participantSearchHay(p).includes(q);
+      });
+      if (playGroupViewMode === "by_group" || playGroupViewMode === "grouped") {
+        parts = sortParticipantsForRosterGroupedView(parts, map);
+      }
+      return parts;
+    }
+
+    function getParticipantKeyToInfoMap() {
+      const m = new Map();
+      for (const p of expandAllParticipants(registrations)) {
+        m.set(p.participantKey, p);
+      }
+      return m;
+    }
+
+    function applyPlayGroupTeeTimeSort() {
+      if (!Array.isArray(playGroups) || !playGroups.length) return;
+      playGroups = sortPlayGroupsByTeeTime(playGroups);
+    }
+
+    function getSortedPlayGroupsForExport() {
+      return sortPlayGroupsByTeeTime(Array.isArray(playGroups) ? playGroups : []);
+    }
+
+    function getPairingsExportBlocks() {
+      const partMap = getParticipantKeyToInfoMap();
+      const isGolf = isGolfEventCategory(tournamentMeta);
+      const pgUi = getRosterPlayGroupUiConfig(getRosterUi(), isGolf);
+      const timeHeader = isGolf ? "Tee Time" : String(pgUi.groupTimeColumnHeader || "Group time");
+      const out = [];
+      for (const g of getSortedPlayGroupsForExport()) {
+        const ids = Array.isArray(g.participantIds) ? g.participantIds : [];
+        if (!ids.length) continue;
+        const groupTitle = String(g.groupName || "").trim() || `Group ${g.groupNumber || ""}`;
+        const teeRaw = String(getGroupTeeTimeValue(g) || "").trim();
+        const timeOnly = formatTime(teeRaw) || "—";
+        const timeLine = timeOnly !== "—" ? `${timeHeader}: ${timeOnly}` : `${timeHeader}: —`;
+        const names = ids.map((id) => {
+          const k = String(id || "").trim();
+          const pr = partMap.get(k);
+          return pr ? pr.displayName : "Unknown";
+        });
+        out.push({
+          timeOnly,
+          timeLine,
+          groupTitle,
+          names,
+          startingHole: String(g.startingHole || "").trim(),
+          notes: String(g.notes || "").trim(),
+          isGolf,
+          pgUi,
+        });
+      }
+      return out;
+    }
+
+    function buildPairingsText() {
+      const title = String(placardTournamentTitle() || "").trim() || "Tournament";
+      const course = String(placardCourseBrand() || "").trim() || "—";
+      const eventDate = norm(tournamentMeta?.eventDate || tournamentMeta?.date || "");
+      const lines = [title, course];
+      if (eventDate) lines.push(eventDate);
+      lines.push("");
+      const blocks = getPairingsExportBlocks();
+      if (!blocks.length) {
+        lines.push("No pairings yet.");
+        return lines.join("\n");
+      }
+      blocks.forEach((b, i) => {
+        if (i > 0) lines.push("");
+        lines.push(b.timeOnly);
+        lines.push(b.groupTitle);
+        b.names.forEach((n) => lines.push(`- ${n}`));
+      });
+      return lines.join("\n");
+    }
+
+    function buildPairingsPrintBodyHtml() {
+      return getPairingsExportBlocks()
+        .map((b) => {
+          const playerLines = b.names
+            .map((n) => `<div>- ${escapeHtml(n)}</div>`)
+            .join("");
+          return `<div class="group">
+  <div class="time">${escapeHtml(b.timeOnly)}</div>
+  <h2>${escapeHtml(b.groupTitle)}</h2>
+  <div class="players">${playerLines}</div>
+</div>`;
+        })
+        .join("\n");
+    }
+
+    function buildPairingsPrintPageHtml() {
+      const t = escapeHtml(String(placardTournamentTitle() || "").trim() || "Tournament");
+      const c = escapeHtml(String(placardCourseBrand() || "").trim() || "—");
+      const eventDate = norm(tournamentMeta?.eventDate || tournamentMeta?.date || "");
+      const d = eventDate ? escapeHtml(eventDate) : "";
+      const bodyHtml = buildPairingsPrintBodyHtml();
+      return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Pairings Sheet</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: white; color: black; padding: 24px; }
+    h1, h2 { text-align: center; margin: 0 0 8px; }
+    h1 { font-size: 22px; }
+    h2 { font-size: 18px; font-weight: 700; }
+    .sub { text-align: center; margin: 0 0 6px; font-size: 15px; }
+    .dateLine { text-align: center; margin: 0 0 20px; font-size: 15px; }
+    .group { border: 1px solid #222; padding: 12px; margin: 12px 0; page-break-inside: avoid; break-inside: avoid; }
+    .time { font-size: 20px; font-weight: bold; text-align: center; }
+    .players { margin-top: 8px; font-size: 16px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <h1>${t}</h1>
+  <div class="sub">${c}</div>
+  ${d ? `<div class="dateLine">${d}</div>` : ""}
+  ${bodyHtml}
+</body>
+</html>`;
+    }
+
+    function showPairingsToast(msg) {
+      if (!pairingsToast) return;
+      pairingsToast.textContent = String(msg || "Pairings copied");
+      pairingsToast.classList.remove("hidden");
+      if (showPairingsToast._t) clearTimeout(showPairingsToast._t);
+      showPairingsToast._t = setTimeout(() => {
+        pairingsToast.classList.add("hidden");
+      }, 2500);
+    }
+
+    function closePairingsPrintPreviewModal() {
+      if (pairingsPrintPreviewModal) pairingsPrintPreviewModal.classList.remove("show");
+      if (pairingsPrintPreviewModal) pairingsPrintPreviewModal.setAttribute("aria-hidden", "true");
+      if (pairingsPrintPreviewFrame) pairingsPrintPreviewFrame.srcdoc = "";
+    }
+
+    function openPairingsPrintPreview() {
+      if (!tournamentId) {
+        alert("Missing tournament id.");
+        return;
+      }
+      if (!getPairingsExportBlocks().length) {
+        showPairingsToast("No pairings to print yet.");
+        return;
+      }
+      if (!pairingsPrintPreviewFrame || !pairingsPrintPreviewModal) {
+        return;
+      }
+      pairingsPrintPreviewFrame.srcdoc = buildPairingsPrintPageHtml();
+      pairingsPrintPreviewModal.classList.add("show");
+      pairingsPrintPreviewModal.setAttribute("aria-hidden", "false");
+    }
+
+    function printPairingsFromPreview() {
+      try {
+        const w = pairingsPrintPreviewFrame && pairingsPrintPreviewFrame.contentWindow;
+        if (w) w.print();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function copyPairingsToClipboard() {
+      if (!tournamentId) {
+        alert("Missing tournament id.");
+        return;
+      }
+      if (!getPairingsExportBlocks().length) {
+        showPairingsToast("No pairings to copy yet.");
+        return;
+      }
+      const text = buildPairingsText();
+      try {
+        await navigator.clipboard.writeText(text);
+        showPairingsToast("Pairings copied");
+      } catch (e) {
+        console.error(e);
+        alert("Copy failed. Your browser may block the clipboard — copy from a text file instead.");
+      }
+    }
+
+    function sortParticipantPartsByName(list) {
+      return [...(list || [])].sort((a, b) =>
+        String(a.displayName || "").localeCompare(String(b.displayName || ""), undefined, { sensitivity: "base" })
+      );
+    }
+
+    function playGroupSectionHeaderRow(g) {
+      const isGolf = isGolfEventCategory(tournamentMeta);
+      const pgUi = getRosterPlayGroupUiConfig(getRosterUi(), isGolf);
+      const nameLine = String(g.groupName || "").trim() || `Group ${g.groupNumber || ""}`;
+      const teeRaw = String(getGroupTeeTimeValue(g) || "").trim();
+      const timeOnly = formatTime(teeRaw) || "—";
+      const timeLine = timeOnly;
+      const holeRaw = String(g.startingHole || "").trim();
+      let holeBlock = "";
+      if (holeRaw) {
+        if (isGolf) {
+          holeBlock = `<div class="pgSectionMeta">Starting hole: ${escapeHtml(holeRaw)}</div>`;
+        } else {
+          const lab = String(pgUi.groupStartColumnHeader || "Detail");
+          holeBlock = `<div class="pgSectionMeta">${escapeHtml(lab)}: ${escapeHtml(holeRaw)}</div>`;
+        }
+      }
+      const notes = String(g.notes || "").trim();
+      const notesBlock = notes ? `<div class="pgSectionNotes">${escapeHtml(notes)}</div>` : "";
+      return `<tr class="pgSectionHead" data-play-group-id="${escapeHtml(String(g.id || ""))}"><td colspan="8">
+        <div class="pgSectionHeadBlock">
+          <div class="pgSectionTimeLine">${escapeHtml(String(timeLine))}</div>
+          <div class="pgSectionNameLine">${escapeHtml(nameLine)}</div>
+          ${holeBlock}
+          ${notesBlock}
+        </div>
+      </td></tr>`;
+    }
+
+    function playGroupUnassignedHeaderRow() {
+      const pgUi = getRosterPlayGroupUiConfig(getRosterUi(), isGolfEventCategory(tournamentMeta));
+      const t = escapeHtml(String(pgUi.unassignedLabel || "Unassigned"));
+      return `<tr class="pgSectionHead pgSectionHead--unassigned"><td colspan="8">
+        <div class="pgSectionHeadBlock">
+          <div class="pgSectionNameLine">${t}</div>
+          <div class="pgSectionMeta">Not assigned to a play group</div>
+        </div>
+      </td></tr>`;
+    }
+
+    function buildPlayGroupClusteredTbodyHtml(filteredParts) {
+      const map = getParticipantToGroupMap();
+      const byGid = new Map();
+      for (const p of filteredParts) {
+        const g = map.get(p.participantKey);
+        const gid = g?.id || "__unassigned__";
+        if (!byGid.has(gid)) byGid.set(gid, []);
+        byGid.get(gid).push(p);
+      }
+      const chunks = [];
+      for (const g of getSortedPlayGroupsForExport()) {
+        const list = byGid.get(g.id);
+        if (!list || !list.length) continue;
+        const sorted = sortParticipantPartsByName(list);
+        chunks.push(playGroupSectionHeaderRow(g));
+        for (const p of sorted) {
+          chunks.push(participantRowHtml(p, { clusterMember: true }));
+        }
+      }
+      const un = byGid.get("__unassigned__");
+      if (un && un.length) {
+        const sortedU = sortParticipantPartsByName(un);
+        chunks.push(playGroupUnassignedHeaderRow());
+        for (const p of sortedU) {
+          chunks.push(participantRowHtml(p, { clusterMember: true }));
+        }
+      }
+      return chunks.join("");
+    }
+
+    function participantRowHtml(p, rowOpts) {
+      const clusterMember = !!(rowOpts && rowOpts.clusterMember);
+      const map = getParticipantToGroupMap();
+      const g = map.get(p.participantKey);
+      const r = p.registration || {};
+      const status = normalizeStatus(r.status);
+      const regAssign = escapeHtml(formatRosterAssignmentDisplay(r, tournamentMeta));
+      const teamLine = escapeHtml(r.teamName || "—");
+      const cap = norm(r.captainName || "");
+      const em = norm(r.captainEmail || "");
+      const checked = selectedParticipantKeys.has(p.participantKey) ? "checked" : "";
+      const teeRaw = g
+        ? String(getGroupTeeTimeValue(g) || "").trim()
+        : "";
+      const dispTee = teeRaw ? formatTime(teeRaw) || "—" : "";
+      const gName = clusterMember
+        ? "—"
+        : g
+        ? escapeHtml(String(g.groupName || "").trim() || `Group ${g.groupNumber || ""}`)
+        : "—";
+      const gTee = clusterMember
+        ? "—"
+        : g
+        ? escapeHtml(dispTee || "—")
+        : "—";
+      const gHole = clusterMember
+        ? "—"
+        : g
+        ? escapeHtml(String(g.startingHole || "").trim() || "—")
+        : "—";
+      const contactBits = [cap, em].filter(Boolean).map(escapeHtml).join(" · ");
+      const regBy =
+        p.playerIndex > 0 && cap
+          ? `<div class="captainLine" style="opacity:.78;font-size:11px;">Registered by: ${escapeHtml(cap)}</div>`
+          : "";
+      const trCls = clusterMember ? "pgClusterMemberRow" : "";
+      return `
+        <tr class="${trCls}" data-participant-key="${escapeHtml(p.participantKey)}">
+          <td><input type="checkbox" class="pgPartCb" data-participant-key="${escapeHtml(p.participantKey)}" ${checked} /></td>
+          <td><div class="teamName">${escapeHtml(p.displayName)}</div>${regBy}</td>
+          <td>
+            <div class="captainLine" style="opacity:.9;">${teamLine}</div>
+            ${contactBits ? `<div class="captainLine">${contactBits}</div>` : ""}
+          </td>
+          <td><span class="holeBadge${clusterMember ? " pgClusterDash" : ""}">${gName}</span></td>
+          <td><span class="holeBadge${clusterMember ? " pgClusterDash" : ""}">${gTee}</span></td>
+          <td><span class="holeBadge${clusterMember ? " pgClusterDash" : ""}">${gHole}</span></td>
+          <td><span class="holeBadge">${regAssign}</span></td>
+          <td><span class="statusBadge status-${status}">${humanStatus(status)}</span></td>
+        </tr>
+      `;
+    }
+
+    function updatePlayGroupBulkHint(){
+      if (!playGroupBulkHint) return;
+      const n = selectedParticipantKeys.size;
+      const pgUi = getRosterPlayGroupUiConfig(getRosterUi(), isGolfEventCategory(tournamentMeta));
+      playGroupBulkHint.textContent = `${n} selected · ${pgUi.entityPlural || "Players"}`;
+    }
+
+    function wireRegistrationRowActions(){
+      tbody.querySelectorAll(".rowEditBtn").forEach((btn) => {
+        btn.addEventListener("click", () => openEditModal(btn.getAttribute("data-id")));
+      });
+      tbody.querySelectorAll(".rowHoleBtn").forEach((btn) => {
+        btn.addEventListener("click", () => quickChangeHole(btn.getAttribute("data-id")));
+      });
+      tbody.querySelectorAll(".rowCancelBtn").forEach((btn) => {
+        btn.addEventListener("click", () => toggleCancel(btn.getAttribute("data-id")));
+      });
+      tbody.querySelectorAll(".rowScorecardBtn").forEach((btn) => {
+        btn.addEventListener("click", () => openScorecardEditFromRowId(btn.getAttribute("data-row-id")));
+      });
+      tbody.querySelectorAll("a.rosterTeamJoinA").forEach((a) => {
+        const rid = a.getAttribute("data-registration-id");
+        const u = buildTeamJoinUrl(rid, { log: false });
+        if (u) {
+          a.href = u;
+          a.textContent = u;
+        }
+      });
+      tbody.querySelectorAll("button.rowCopyTeamJoinBtn").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const rid = btn.getAttribute("data-registration-id");
+          const u = buildTeamJoinUrl(rid, { log: false });
+          if (!u) {
+            showPairingsToast("No scorecard link for this row");
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(u);
+            showPairingsToast("Team scorecard link copied");
+          } catch (e) {
+            console.error(e);
+            showPairingsToast("Copy failed — select the link text");
+          }
+        });
+      });
+    }
+
+    function wireParticipantRowActions(){
+      tbody.querySelectorAll(".pgPartCb").forEach((cb) => {
+        cb.addEventListener("change", () => {
+          const k = cb.getAttribute("data-participant-key");
+          if (!k) return;
+          if (cb.checked) selectedParticipantKeys.add(k);
+          else selectedParticipantKeys.delete(k);
+          updatePlayGroupBulkHint();
+        });
+      });
+    }
+
+    function closePlayGroupModal(){
+      if (playGroupModal) playGroupModal.classList.remove("show");
+    }
+
+    function setPlayGroupModalRowsVisibility(ctx){
+      const rowIds = [
+        "pgRowPlayGroupName",
+        "pgRowPlayGroupNumber",
+        "pgRowPlayGroupType",
+        "pgRowPlayGroupTee",
+        "pgRowPlayGroupStart",
+        "pgRowPlayGroupNotes",
+      ];
+      const show = (id, on) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle("hidden", !on);
+      };
+      if (ctx === "create") {
+        rowIds.forEach((id) => show(id, true));
+      } else if (ctx === "add" || ctx === "move") {
+        rowIds.forEach((id) => show(id, false));
+      } else if (ctx === "tee") {
+        ["pgRowPlayGroupName", "pgRowPlayGroupNumber", "pgRowPlayGroupType", "pgRowPlayGroupNotes"].forEach((id) =>
+          show(id, false)
+        );
+        show("pgRowPlayGroupTee", true);
+        show("pgRowPlayGroupStart", true);
+      }
+    }
+
+    function openPlayGroupModal(ctx){
+      playGroupModalContext = ctx;
+      const pgUi = getRosterPlayGroupUiConfig(getRosterUi(), isGolfEventCategory(tournamentMeta));
+      const ttl = document.getElementById("pgTeeTimeLabel");
+      const shl = document.getElementById("pgStartingHoleLabel");
+      const shi = document.getElementById("pgStartingHoleInput");
+      if (ttl) ttl.textContent = pgUi.teeTimeFieldLabel;
+      if (shl) shl.textContent = pgUi.startingHoleFieldLabel;
+      if (shi) shi.placeholder = pgUi.startingHolePlaceholder || "";
+      if (pgTargetGroupWrap) pgTargetGroupWrap.classList.toggle("hidden", ctx !== "add" && ctx !== "move");
+      if (pgTargetGroupSelect) {
+        pgTargetGroupSelect.innerHTML = "";
+        (playGroups || []).forEach((g) => {
+          const opt = document.createElement("option");
+          opt.value = g.id;
+          const label = String(g.groupName || "").trim() || `Group ${g.groupNumber || ""}`;
+          opt.textContent = `${label} (${(g.participantIds || []).length})`;
+          pgTargetGroupSelect.appendChild(opt);
+        });
+      }
+      if (ctx === "create") {
+        if (playGroupModalTitle) playGroupModalTitle.textContent = "Create Group";
+        if (playGroupModalSub)
+          playGroupModalSub.textContent = `Add selected ${(pgUi.entityPlural || "players").toLowerCase()} to a new roster-only group. Sign-ups and scoring stay as they are.`;
+        if (pgGroupNameInput) pgGroupNameInput.value = "";
+        if (pgGroupNumberInput) pgGroupNumberInput.value = String(nextPlayGroupNumber(playGroups));
+        if (pgGroupTypeInput) pgGroupTypeInput.value = isGolfEventCategory(tournamentMeta) ? "tee_time" : "general";
+        if (pgTeeTimeInput) pgTeeTimeInput.value = "";
+        if (pgStartingHoleInput) pgStartingHoleInput.value = "";
+        if (pgNotesInput) pgNotesInput.value = "";
+      } else if (ctx === "add") {
+        if (playGroupModalTitle) playGroupModalTitle.textContent = "Add to Group";
+        if (playGroupModalSub)
+          playGroupModalSub.textContent = `Choose a group, then save. Selected ${(pgUi.entityPlural || "players").toLowerCase()} are only re-grouped on this roster.`;
+      } else if (ctx === "move") {
+        if (playGroupModalTitle) playGroupModalTitle.textContent = "Move to Different Group";
+        if (playGroupModalSub)
+          playGroupModalSub.textContent = `Choose the group to move them into. Sign-up records and scoring teams do not change.`;
+      } else if (ctx === "tee") {
+        if (playGroupModalTitle) playGroupModalTitle.textContent = pgUi.assignGroupTimeModalTitle;
+        if (playGroupModalSub) playGroupModalSub.textContent = pgUi.assignGroupTimeModalSub;
+        const map = getParticipantToGroupMap();
+        const keys = Array.from(selectedParticipantKeys);
+        const g0 = keys.length ? map.get(keys[0]) : null;
+        if (pgTeeTimeInput) pgTeeTimeInput.value = String(g0 ? getGroupTeeTimeValue(g0) : "").trim();
+        if (pgStartingHoleInput) pgStartingHoleInput.value = String(g0?.startingHole || "").trim();
+      }
+      setPlayGroupModalRowsVisibility(ctx);
+      if (playGroupModal) playGroupModal.classList.add("show");
+    }
+
+    async function removeParticipantKeysEverywhere(keys){
+      if (!keys.length) return;
+      const batch = writeBatch(db);
+      const col = tournamentPlayGroupsCollection(db, orgId, tournamentId);
+      for (const g of playGroups) {
+        const before = Array.isArray(g.participantIds) ? g.participantIds : [];
+        const after = participantIdsAfterRemovingKeys(before, keys);
+        if (after.length !== before.length) {
+          batch.update(doc(col, g.id), { participantIds: after, updatedAt: serverTimestamp() });
+        }
+      }
+      await batch.commit();
+    }
+
+    async function assignParticipantKeysToGroup(playGroupId, keys){
+      const col = tournamentPlayGroupsCollection(db, orgId, tournamentId);
+      await removeParticipantKeysEverywhere(keys);
+      const g = playGroups.find((x) => x.id === playGroupId);
+      const remaining = participantIdsAfterRemovingKeys(g?.participantIds, keys);
+      const merged = mergeParticipantKeysUnique(remaining, keys);
+      await updateDoc(doc(col, playGroupId), {
+        participantIds: merged,
+        updatedAt: serverTimestamp(),
+      });
+    }
+
+    function logRosterPlayGroupWrite() {
+      const oid = String(orgId || "").trim();
+      const path = oid
+        ? `organizations/${oid}/tournaments/${tournamentId}/playGroups`
+        : `tournaments/${tournamentId}/playGroups`;
+      console.info(
+        "[roster] play group write — same subcollection as index.html (docs use participantIds, teeTime, startingHole, …)",
+        { orgId: oid || null, tournamentId, collectionPath: path }
+      );
+    }
+
+    async function savePlayGroupModal(){
+      const keys = Array.from(selectedParticipantKeys);
+      const uid = auth.currentUser?.uid || "";
+      try {
+        if (playGroupModalContext === "create") {
+          const col = tournamentPlayGroupsCollection(db, orgId, tournamentId);
+          const gn = Math.max(1, parseInt(String(pgGroupNumberInput?.value || "1"), 10) || 1);
+          const maxWarn = Number(tournamentMeta?.playGroupMaxSize);
+          if (Number.isFinite(maxWarn) && maxWarn > 0 && keys.length > maxWarn) {
+            alert(`Warning: more than ${maxWarn} participants selected (organizer limit).`);
+          }
+          await removeParticipantKeysEverywhere(keys);
+          const docBody = buildPlayGroupCreatePayload({
+            tournamentId,
+            organizationId: orgId,
+            orgId,
+            groupName: norm(pgGroupNameInput?.value || ""),
+            groupNumber: gn,
+            groupType: String(pgGroupTypeInput?.value || "general").trim(),
+            teeTime: norm(pgTeeTimeInput?.value || ""),
+            startingHole: norm(pgStartingHoleInput?.value || ""),
+            notes: String(pgNotesInput?.value || "").trim(),
+            participantIds: keys,
+            createdBy: uid,
+          });
+          await addDoc(col, {
+            ...docBody,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          });
+          keys.forEach((k) => selectedParticipantKeys.delete(k));
+        } else if (playGroupModalContext === "add" || playGroupModalContext === "move") {
+          const tid = String(pgTargetGroupSelect?.value || "").trim();
+          if (!tid) {
+            alert("Choose a target group.");
+            return;
+          }
+          await assignParticipantKeysToGroup(tid, keys);
+          keys.forEach((k) => selectedParticipantKeys.delete(k));
+        } else if (playGroupModalContext === "tee") {
+          const groups = new Set();
+          const map = getParticipantToGroupMap();
+          keys.forEach((k) => {
+            const g = map.get(k);
+            if (g?.id) groups.add(g.id);
+          });
+          if (groups.size !== 1) {
+            alert("Select participants that belong to a single play group, or remove them from groups first.");
+            return;
+          }
+          const gid = Array.from(groups)[0];
+          const col = tournamentPlayGroupsCollection(db, orgId, tournamentId);
+          await updateDoc(doc(col, gid), {
+            teeTime: norm(pgTeeTimeInput?.value || ""),
+            startingHole: norm(pgStartingHoleInput?.value || ""),
+            updatedAt: serverTimestamp(),
+          });
+        }
+        logRosterPlayGroupWrite();
+        closePlayGroupModal();
+      } catch (e) {
+        console.error(e);
+        alert("Could not save play group: " + (e?.message || e));
+      }
+    }
+
+    async function deleteEmptyPlayGroups(){
+      try {
+        const col = tournamentPlayGroupsCollection(db, orgId, tournamentId);
+        for (const g of playGroups) {
+          const ids = Array.isArray(g.participantIds) ? g.participantIds : [];
+          if (ids.length === 0 && g.id) {
+            await deleteDoc(doc(col, g.id));
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        alert("Could not delete empty groups: " + (e?.message || e));
+      }
+    }
+
+    /* ---------------------------------------------------- */
     /* FILTER + RENDER */
     /* ---------------------------------------------------- */
 
@@ -3025,14 +4186,14 @@
         : ``;
 
       const joinRegId = r.isSubmission ? norm(r.registrationId || "") : norm(r.id || "");
-      const teamJoinUrl = buildTeamJoinUrl(joinRegId);
-      const teamJoinHref = teamJoinUrl ? escapeHtml(teamJoinUrl) : "";
-      const showJoinCard = !!teamJoinHref && ui.showJoinLinkAction;
+      const teamJoinUrl = buildTeamJoinUrl(joinRegId, { log: false });
+      const showJoinCard = !!teamJoinUrl && ui.showJoinLinkAction;
       const hcpOn =
         ui.showHandicapInTable &&
         String(tournamentMeta?.handicapEnabled || "").toLowerCase() === "on";
 
-      const captainLabel = ui.showTeams ? "Captain" : "Primary";
+      const captainLabel =
+        ui.captainContactLabel || (ui.showTeams ? "Captain" : "Primary");
 
       return `
         <tr data-id="${r.id}" ${r.isSubmission ? `data-submission="1"` : ""}>
@@ -3081,7 +4242,10 @@
             <div class="rowActions">
               ${
                 showJoinCard
-                  ? `<a class="miniBtn" href="${teamJoinHref}" target="_blank" rel="noopener">📱 Team card</a>`
+                  ? `<div class="rosterTeamJoinWrap">
+                  <a class="rosterTeamJoinA" href="#" data-registration-id="${escapeHtml(joinRegId)}" target="_blank" rel="noopener"></a>
+                  <button type="button" class="miniBtn rowCopyTeamJoinBtn" data-registration-id="${escapeHtml(joinRegId)}">Copy link</button>
+                </div>`
                   : ``
               }
               ${
@@ -3111,23 +4275,12 @@
     }
 
     function render(){
-      const filtered=filteredRows()
-        .slice()
-        .sort((a,b)=>{
-          const sa=normalizeStatus(a.status);
-          const sb=normalizeStatus(b.status);
-
-          if(sa==="cancelled" && sb!=="cancelled") return 1;
-          if(sa!=="cancelled" && sb==="cancelled") return -1;
-
-          if (!isGolfEventCategory(tournamentMeta)) {
-            return compareRosterAssignmentSort(a, b, tournamentMeta);
-          }
-          if (isTeeTimesTournament()){
-            return compareTeeTimeStr(a.teeTime, b.teeTime);
-          }
-          return compareHoleLabels(a.assignedHole,b.assignedHole);
-        });
+      ensureDefaultRosterHeaderCaptured();
+      syncPlayGroupToolbarHint();
+      syncPlayGroupViewModeLabels();
+      const pgUiBar = getRosterPlayGroupUiConfig(getRosterUi(), isGolfEventCategory(tournamentMeta));
+      if (pgAssignTeeBtn) pgAssignTeeBtn.textContent = pgUiBar.assignTimeButtonLabel;
+      if (pgClearTeeBtn) pgClearTeeBtn.textContent = pgUiBar.clearTimeButtonLabel;
 
       const standSubs = standaloneSubmissionRows();
 
@@ -3152,40 +4305,62 @@
       openSlotHintEl.textContent = !isGolfEventCategory(tournamentMeta)
         ? "—"
         : isTeeTimesTournament()
-        ? getNextTeeTimeHint() || "—"
+        ? (() => {
+            const h = getNextTeeTimeHint();
+            if (!h) return "—";
+            return formatTime(h) || "—";
+          })()
         : getNextAvailableHole() || "Full";
       uniqueCountEl.textContent=String(uniquePlayerCount());
 
-      tbody.innerHTML=filtered.map(rowHtml).join("");
-      emptyState.style.display=filtered.length ? "none" : "block";
-      if (!filtered.length) {
-        emptyState.textContent = getRosterUi().emptyState || "No rows yet.";
+      if (playGroupViewMode === "off") {
+        restoreRosterRegistrationHeader();
+        if (playGroupBulkBar) playGroupBulkBar.classList.add("hidden");
+
+        const filtered=filteredRows()
+          .slice()
+          .sort((a,b)=>{
+            const sa=normalizeStatus(a.status);
+            const sb=normalizeStatus(b.status);
+
+            if(sa==="cancelled" && sb!=="cancelled") return 1;
+            if(sa!=="cancelled" && sb==="cancelled") return -1;
+
+            if (!isGolfEventCategory(tournamentMeta)) {
+              return compareRosterAssignmentSort(a, b, tournamentMeta);
+            }
+            if (isTeeTimesTournament()){
+              return compareTeeTimeStr(a.teeTime, b.teeTime);
+            }
+            return compareHoleLabels(a.assignedHole,b.assignedHole);
+          });
+
+        tbody.innerHTML=filtered.map(rowHtml).join("");
+        emptyState.style.display=filtered.length ? "none" : "block";
+        if (!filtered.length) {
+          emptyState.textContent = getRosterUi().emptyState || "No rows yet.";
+        }
+        textOut.textContent=registrationsToText() || getRosterUi().emptyState || "No rows yet.";
+        wireRegistrationRowActions();
+        return;
+      }
+
+      setRosterParticipantHeader();
+      if (playGroupBulkBar) playGroupBulkBar.classList.remove("hidden");
+
+      const parts = filteredParticipantRows();
+      const useClustered = playGroupViewMode === "grouped" || playGroupViewMode === "by_group";
+      tbody.innerHTML = useClustered
+        ? buildPlayGroupClusteredTbodyHtml(parts)
+        : parts.map((p) => participantRowHtml(p)).join("");
+      emptyState.style.display = parts.length ? "none" : "block";
+      if (!parts.length) {
+        const pgUi = getRosterPlayGroupUiConfig(getRosterUi(), isGolfEventCategory(tournamentMeta));
+        emptyState.textContent = `No ${String(pgUi.entityPlural || "players").toLowerCase()} match this filter.`;
       }
       textOut.textContent=registrationsToText() || getRosterUi().emptyState || "No rows yet.";
-
-      tbody.querySelectorAll(".rowEditBtn").forEach(btn=>{
-        btn.addEventListener("click",()=>{
-          openEditModal(btn.getAttribute("data-id"));
-        });
-      });
-
-      tbody.querySelectorAll(".rowHoleBtn").forEach(btn=>{
-        btn.addEventListener("click",()=>{
-          quickChangeHole(btn.getAttribute("data-id"));
-        });
-      });
-
-      tbody.querySelectorAll(".rowCancelBtn").forEach(btn=>{
-        btn.addEventListener("click",()=>{
-          toggleCancel(btn.getAttribute("data-id"));
-        });
-      });
-
-      tbody.querySelectorAll(".rowScorecardBtn").forEach(btn=>{
-        btn.addEventListener("click",()=>{
-          openScorecardEditFromRowId(btn.getAttribute("data-row-id"));
-        });
-      });
+      updatePlayGroupBulkHint();
+      wireParticipantRowActions();
     }
 
     /* ---------------------------------------------------- */
@@ -3330,32 +4505,27 @@
     }
 
     function buildDefaultJoinLink(){
-      const tid = norm(tournamentId);
-      const oid = norm(orgId);
-      if (!tid || !oid) return "";
-      const path = window.location.pathname;
-      const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
-      const base = `${window.location.origin}${dir}`;
-      const url = new URL("index.html", base);
-      url.searchParams.set("t", tid);
-      url.searchParams.set("org", oid);
-      return url.toString();
+      if (!norm(tournamentId)) return "";
+      return buildTournamentIndexJoinUrl(
+        window.location.href,
+        orgId,
+        tournamentId,
+        "",
+        { log: true }
+      );
     }
 
-    /** Team scorecard: index.html?t={tournamentId}&org={orgId}&registration={registrationId} */
-    function buildTeamJoinUrl(registrationId){
-      const tid = norm(tournamentId);
-      const oid = norm(orgId);
+    /** Team scorecard: index.html with id, t, org, and registration (no string-concat query). */
+    function buildTeamJoinUrl(registrationId, linkOpts){
       const rid = norm(registrationId || "");
-      if (!tid || !oid || !rid) return "";
-      const path = window.location.pathname;
-      const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
-      const base = `${window.location.origin}${dir}`;
-      const url = new URL("index.html", base);
-      url.searchParams.set("t", tid);
-      url.searchParams.set("org", oid);
-      url.searchParams.set("registration", rid);
-      return url.toString();
+      if (!norm(tournamentId) || !rid) return "";
+      return buildTournamentIndexJoinUrl(
+        window.location.href,
+        orgId,
+        tournamentId,
+        rid,
+        linkOpts !== undefined ? linkOpts : { log: false }
+      );
     }
 
     function buildDefaultLeaderboardLink(){
@@ -3713,7 +4883,7 @@
     saveTeamBtn.addEventListener("click", saveTeamFromModal);
     deleteTeamBtn.addEventListener("click", deleteEditingTeam);
     autoAssignBtn.addEventListener("click", autoAssignMissingHoles);
-    if (printPlacardsBtn) printPlacardsBtn.addEventListener("click", startPlacardPrintMode);
+    if (printPlacardsBtn) printPlacardsBtn.addEventListener("click", openPlacardPrintPreview);
     if (printAttendanceBtn) printAttendanceBtn.addEventListener("click", printAttendanceSheet);
 
     teamModal.addEventListener("click",(e)=>{
@@ -3761,12 +4931,179 @@
     searchInput.addEventListener("input", render);
     statusFilter.addEventListener("change", render);
 
+    if (playGroupViewModeEl) {
+      playGroupViewModeEl.addEventListener("change", () => {
+        playGroupViewMode = String(playGroupViewModeEl.value || "off").trim() || "off";
+        selectedParticipantKeys.clear();
+        render();
+      });
+    }
+    if (playGroupModalCloseBtn) playGroupModalCloseBtn.addEventListener("click", closePlayGroupModal);
+    if (playGroupModalSaveBtn) playGroupModalSaveBtn.addEventListener("click", () => void savePlayGroupModal());
+    if (playGroupModal) {
+      playGroupModal.addEventListener("click", (e) => {
+        if (e.target === playGroupModal) closePlayGroupModal();
+      });
+    }
+    if (pgSelectAllBtn) {
+      pgSelectAllBtn.addEventListener("click", () => {
+        filteredParticipantRows().forEach((p) => selectedParticipantKeys.add(p.participantKey));
+        render();
+      });
+    }
+    if (pgClearSelectBtn) {
+      pgClearSelectBtn.addEventListener("click", () => {
+        selectedParticipantKeys.clear();
+        render();
+      });
+    }
+    if (pgCreateGroupBtn) {
+      pgCreateGroupBtn.addEventListener("click", () => {
+        if (!selectedParticipantKeys.size) {
+          alert("Select at least one participant.");
+          return;
+        }
+        openPlayGroupModal("create");
+      });
+    }
+    if (pgAddToGroupBtn) {
+      pgAddToGroupBtn.addEventListener("click", () => {
+        if (!selectedParticipantKeys.size) {
+          alert("Select at least one participant.");
+          return;
+        }
+        if (!playGroups.length) {
+          alert("No groups yet. Create a group first.");
+          return;
+        }
+        openPlayGroupModal("add");
+      });
+    }
+    if (pgMoveGroupBtn) {
+      pgMoveGroupBtn.addEventListener("click", () => {
+        if (!selectedParticipantKeys.size) {
+          alert("Select at least one participant.");
+          return;
+        }
+        if (!playGroups.length) {
+          alert("No groups yet. Create a group first.");
+          return;
+        }
+        openPlayGroupModal("move");
+      });
+    }
+    if (pgRemoveFromGroupBtn) {
+      pgRemoveFromGroupBtn.addEventListener("click", async () => {
+        const keys = Array.from(selectedParticipantKeys);
+        if (!keys.length) {
+          alert("Select at least one participant.");
+          return;
+        }
+        try {
+          await removeParticipantKeysEverywhere(keys);
+          keys.forEach((k) => selectedParticipantKeys.delete(k));
+          render();
+        } catch (e) {
+          console.error(e);
+          alert("Remove failed: " + (e?.message || e));
+        }
+      });
+    }
+    if (pgAssignTeeBtn) {
+      pgAssignTeeBtn.addEventListener("click", () => {
+        if (!selectedParticipantKeys.size) {
+          alert("Select participants in one play group.");
+          return;
+        }
+        openPlayGroupModal("tee");
+      });
+    }
+    if (pgClearTeeBtn) {
+      pgClearTeeBtn.addEventListener("click", async () => {
+        const keys = Array.from(selectedParticipantKeys);
+        if (!keys.length) {
+          alert("Select participants in one play group.");
+          return;
+        }
+        const map = getParticipantToGroupMap();
+        const groups = new Set();
+        keys.forEach((k) => {
+          const g = map.get(k);
+          if (g?.id) groups.add(g.id);
+        });
+        if (groups.size !== 1) {
+          alert("Select participants that belong to a single play group.");
+          return;
+        }
+        const gid = Array.from(groups)[0];
+        try {
+          const col = tournamentPlayGroupsCollection(db, orgId, tournamentId);
+          await updateDoc(doc(col, gid), { teeTime: "", startingHole: "", updatedAt: serverTimestamp() });
+        } catch (e) {
+          console.error(e);
+          alert("Clear failed: " + (e?.message || e));
+        }
+      });
+    }
+    if (pgDeleteEmptyGroupsBtn) {
+      pgDeleteEmptyGroupsBtn.addEventListener("click", () => void deleteEmptyPlayGroups());
+    }
+    if (copyPairingsBtn) {
+      copyPairingsBtn.addEventListener("click", () => void copyPairingsToClipboard());
+    }
+    if (printPairingsBtn) {
+      printPairingsBtn.addEventListener("click", () => void openPairingsPrintPreview());
+    }
+    if (closePairingsPrintPreviewBtn) {
+      closePairingsPrintPreviewBtn.addEventListener("click", closePairingsPrintPreviewModal);
+    }
+    if (closePairingsPrintPreviewBtn2) {
+      closePairingsPrintPreviewBtn2.addEventListener("click", closePairingsPrintPreviewModal);
+    }
+    if (pairingsPrintPreviewPrintBtn) {
+      pairingsPrintPreviewPrintBtn.addEventListener("click", printPairingsFromPreview);
+    }
+    if (pairingsPrintPreviewModal) {
+      pairingsPrintPreviewModal.addEventListener("click", (e) => {
+        if (e.target === pairingsPrintPreviewModal) closePairingsPrintPreviewModal();
+      });
+    }
+
+    if (closePlacardsPrintPreviewBtn) {
+      closePlacardsPrintPreviewBtn.addEventListener("click", closePlacardsPrintPreviewModal);
+    }
+    if (closePlacardsPrintPreviewBtn2) {
+      closePlacardsPrintPreviewBtn2.addEventListener("click", closePlacardsPrintPreviewModal);
+    }
+    if (placardsPrintPreviewPrintBtn) {
+      placardsPrintPreviewPrintBtn.addEventListener("click", printPlacardsFromPreview);
+    }
+    if (placardsPrintPreviewModal) {
+      placardsPrintPreviewModal.addEventListener("click", (e) => {
+        if (e.target === placardsPrintPreviewModal) closePlacardsPrintPreviewModal();
+      });
+    }
+
+    if (sortByTeeTimeBtn) {
+      sortByTeeTimeBtn.addEventListener("click", () => {
+        if (!Array.isArray(playGroups) || !playGroups.length) {
+          showPairingsToast("No play groups to sort yet.");
+          return;
+        }
+        applyPlayGroupTeeTimeSort();
+        render();
+        showPairingsToast("Pairings sorted by tee time");
+      });
+    }
+
     /* ---------------------------------------------------- */
     /* BOOT */
     /* ---------------------------------------------------- */
 
     applyRosterShell();
     await loadTournamentMeta();
+    await migratePlayGroupsFromLegacyToOrgPath();
+    populatePlayGroupViewMode();
     selectedRegistrationId = loadSelectedRegistrationId();
 
     if(!tournamentId){
@@ -3781,6 +5118,10 @@
       const q=query(regCol);
 
       onSnapshot(q,(snap)=>{
+        if (!playGroupViewModePopulatedFromReg) {
+          playGroupViewModePopulatedFromReg = true;
+          populatePlayGroupViewMode();
+        }
         registrations=[];
 
         snap.forEach(d=>{
@@ -3838,6 +5179,50 @@
         emptyState.textContent="Live updates blocked (rules/network).";
         textOut.textContent="Live updates blocked (rules/network).";
       });
+
+      const pgCol = tournamentPlayGroupsCollection(db, orgId, tournamentId);
+      const pgQ = query(pgCol);
+      onSnapshot(
+        pgQ,
+        (pgSnap) => {
+          playGroups = [];
+          pgSnap.forEach((d) => {
+            const x = d.data() || {};
+            const rawIds =
+              (Array.isArray(x.participantIds) && x.participantIds) ||
+              (Array.isArray(x.participants) && x.participants) ||
+              (Array.isArray(x.playerKeys) && x.playerKeys) ||
+              [];
+            const participantIds = rawIds.map((id) => String(id || "").trim()).filter(Boolean);
+            playGroups.push({
+              id: d.id,
+              tournamentId: norm(x.tournamentId || tournamentId),
+              orgId: norm(x.orgId || x.organizationId || orgId),
+              groupName: norm(x.groupName || ""),
+              groupNumber: Number.isFinite(Number(x.groupNumber)) ? Number(x.groupNumber) : x.groupNumber,
+              groupType: norm(x.groupType || "general") || "general",
+              teeTime: norm(x.teeTime || ""),
+              groupTeeTime: norm(x.groupTeeTime || ""),
+              startTime: norm(x.startTime || ""),
+              time: norm(x.time || ""),
+              startingHole: norm(x.startingHole || ""),
+              notes: String(x.notes || "").trim(),
+              participantIds,
+              createdAt: x.createdAt || null,
+              updatedAt: x.updatedAt || null,
+              createdBy: norm(x.createdBy || ""),
+            });
+          });
+          applyPlayGroupTeeTimeSort();
+          render();
+        },
+        (err) => {
+          console.warn(
+            "Roster: playGroups listener failed (check Firestore rules for playGroups read)",
+            err
+          );
+        }
+      );
 
       const subCol = tournamentSubmissionsCollection(db, orgId, tournamentId);
       const subQ = query(subCol);

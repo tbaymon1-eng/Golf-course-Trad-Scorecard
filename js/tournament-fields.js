@@ -3,6 +3,8 @@
  * Keeps backward compatibility with legacy `startType` while preferring `assignmentType`.
  */
 
+import { formatTime } from "./time-format.js";
+
 export const EVENT_TYPE_GOLF_TOURNAMENT = "golf_tournament";
 
 /** Primary event classification for roster UI and import behavior */
@@ -267,12 +269,12 @@ export function applyEventTypeVisibility(eventTypeOrDoc) {
 export const REGISTRATION_PAGE_UI = {
   [REGISTRATION_PAGE_EVENT_TOURNAMENT]: {
     pageTitle: `${EVENT_TYPE_LABELS[REGISTRATION_PAGE_EVENT_TOURNAMENT]} Registration`,
-    heading: "Register Team",
+    heading: "Sign up your team",
     helperText:
-      "Add your team name, captain, and roster. Handicap fields appear when the organizer enables them for this event.",
-    submitLabel: "Register Team",
-    successMessage: "Team registration submitted successfully.",
-    finePrint: "Your registration will be saved for this event.",
+      "Add your team name, contact person, and player names. If handicaps are on for this event, those fields appear below.",
+    submitLabel: "Complete registration",
+    successMessage: "You’re signed up. The organizer has your details.",
+    finePrint: "Your information is saved for this event.",
     useTeamFlow: true,
     showPlayerFields: true,
     showTeamName: true,
@@ -280,11 +282,11 @@ export const REGISTRATION_PAGE_UI = {
   },
   [REGISTRATION_PAGE_EVENT_CLINIC]: {
     pageTitle: `${EVENT_TYPE_LABELS[REGISTRATION_PAGE_EVENT_CLINIC]} Registration`,
-    heading: `Register for ${EVENT_TYPE_LABELS[REGISTRATION_PAGE_EVENT_CLINIC]}`,
-    helperText: "Tell us who you are and how to reach you. Optional session or time preferences go in the fields below.",
-    submitLabel: `Register for ${EVENT_TYPE_LABELS[REGISTRATION_PAGE_EVENT_CLINIC]}`,
-    successMessage: "Clinic registration submitted successfully.",
-    finePrint: "Submit once per participant (or as instructed by the organizer).",
+    heading: `Sign up for this ${EVENT_TYPE_LABELS[REGISTRATION_PAGE_EVENT_CLINIC].toLowerCase()}`,
+    helperText: "Tell us who you are and how to reach you. Add session or time preferences if the form includes them.",
+    submitLabel: "Complete registration",
+    successMessage: "You’re signed up. The organizer has your details.",
+    finePrint: "Complete one form per person unless the organizer tells you otherwise.",
     useTeamFlow: false,
     showPlayerFields: false,
     showTeamName: false,
@@ -292,11 +294,11 @@ export const REGISTRATION_PAGE_UI = {
   },
   [REGISTRATION_PAGE_EVENT_CAMP]: {
     pageTitle: `${EVENT_TYPE_LABELS[REGISTRATION_PAGE_EVENT_CAMP]} Registration`,
-    heading: `Register for ${EVENT_TYPE_LABELS[REGISTRATION_PAGE_EVENT_CAMP]}`,
-    helperText: "Tell us who you are and how to reach you. Add notes if the organizer should know anything specific.",
-    submitLabel: `Register for ${EVENT_TYPE_LABELS[REGISTRATION_PAGE_EVENT_CAMP]}`,
-    successMessage: "Camp registration submitted successfully.",
-    finePrint: "Submit once per participant (or as instructed by the organizer).",
+    heading: `Sign up for this ${EVENT_TYPE_LABELS[REGISTRATION_PAGE_EVENT_CAMP].toLowerCase()}`,
+    helperText: "Tell us who you are and how to reach you. Use notes for anything the organizer should know.",
+    submitLabel: "Complete registration",
+    successMessage: "You’re signed up. The organizer has your details.",
+    finePrint: "Complete one form per person unless the organizer tells you otherwise.",
     useTeamFlow: false,
     showPlayerFields: false,
     showTeamName: false,
@@ -304,11 +306,11 @@ export const REGISTRATION_PAGE_UI = {
   },
   [REGISTRATION_PAGE_EVENT_GENERAL]: {
     pageTitle: `${EVENT_TYPE_LABELS[REGISTRATION_PAGE_EVENT_GENERAL]} Registration`,
-    heading: `Register for ${EVENT_TYPE_LABELS[REGISTRATION_PAGE_EVENT_GENERAL]}`,
-    helperText: "Tell us who you are and how to reach you. The organizer will follow up with details if needed.",
-    submitLabel: "Register",
-    successMessage: "Registration submitted successfully.",
-    finePrint: "Your details are sent to the event organizer.",
+    heading: `Sign up for this ${EVENT_TYPE_LABELS[REGISTRATION_PAGE_EVENT_GENERAL].toLowerCase()}`,
+    helperText: "Tell us who you are and how to reach you. The organizer will follow up if they need more.",
+    submitLabel: "Complete registration",
+    successMessage: "You’re signed up. The organizer has your details.",
+    finePrint: "Your details go straight to the event organizer.",
     useTeamFlow: false,
     showPlayerFields: false,
     showTeamName: false,
@@ -351,7 +353,7 @@ export const ROSTER_PAGE_UI = {
     teamColumnLabel: "Team",
     playersColumnLabel: "Players",
     assignmentColumnFallback: "Hole",
-    searchPlaceholder: "Search team, captain, player, or assignment…",
+    searchPlaceholder: "Search team, contact, player, or assignment…",
     emptyState: "No teams yet.",
     copyRosterLabel: "📋 Copy Roster",
     copyAlphaLabel: "📋 Copy Alpha List",
@@ -396,12 +398,12 @@ export const ROSTER_PAGE_UI = {
     playersColumnLabel: "Participants",
     assignmentColumnFallback: "Session / time",
     searchPlaceholder: "Search name, email, phone, session, instructor, or status…",
-    emptyState: "No clinic registrations yet.",
+    emptyState: "No one signed up yet.",
     copyRosterLabel: "📋 Copy List",
     copyAlphaLabel: "📋 Copy Alpha List",
-    addEntryLabel: "➕ Add Registration",
-    modalAddTitle: "Add Registration",
-    modalEditTitle: "Edit Registration",
+    addEntryLabel: "➕ Add sign-up",
+    modalAddTitle: "Add sign-up",
+    modalEditTitle: "Edit sign-up",
     saveEntryButtonLabel: "💾 Save",
     assignedPillLabel: "Scheduled",
     uniqueCountLabel: "Unique names",
@@ -440,12 +442,12 @@ export const ROSTER_PAGE_UI = {
     playersColumnLabel: "Participants",
     assignmentColumnFallback: "Session / group",
     searchPlaceholder: "Search name, email, phone, session, group, or status…",
-    emptyState: "No camp registrations yet.",
+    emptyState: "No one signed up yet.",
     copyRosterLabel: "📋 Copy List",
     copyAlphaLabel: "📋 Copy Alpha List",
-    addEntryLabel: "➕ Add Registration",
-    modalAddTitle: "Add Registration",
-    modalEditTitle: "Edit Registration",
+    addEntryLabel: "➕ Add sign-up",
+    modalAddTitle: "Add sign-up",
+    modalEditTitle: "Edit sign-up",
     saveEntryButtonLabel: "💾 Save",
     assignedPillLabel: "Scheduled",
     uniqueCountLabel: "Unique names",
@@ -479,17 +481,17 @@ export const ROSTER_PAGE_UI = {
     pageTitle: `${EVENT_TYPE_LABELS[REGISTRATION_PAGE_EVENT_GENERAL]} Attendees`,
     heading: "Attendee List",
     entityLabel: "Attendees",
-    collectionLabel: "Registrations",
-    teamColumnLabel: "Registrant",
+    collectionLabel: "Who is signed up",
+    teamColumnLabel: "Primary contact",
     playersColumnLabel: "Names",
     assignmentColumnFallback: "Details",
     searchPlaceholder: "Search name, email, phone, notes, or status…",
-    emptyState: "No registrations yet.",
+    emptyState: "No one signed up yet.",
     copyRosterLabel: "📋 Copy List",
     copyAlphaLabel: "📋 Copy Alpha List",
-    addEntryLabel: "➕ Add Registration",
-    modalAddTitle: "Add Registration",
-    modalEditTitle: "Edit Registration",
+    addEntryLabel: "➕ Add sign-up",
+    modalAddTitle: "Add sign-up",
+    modalEditTitle: "Edit sign-up",
     saveEntryButtonLabel: "💾 Save",
     assignedPillLabel: "Confirmed",
     uniqueCountLabel: "Unique names",
@@ -631,7 +633,9 @@ export function formatRosterAssignmentDisplay(r, tournamentMeta) {
     return "—";
   }
   if (normalizeAssignmentType(tournamentMeta) === ASSIGNMENT_TEE_TIMES) {
-    return String(r?.teeTime || "").trim() || "—";
+    const raw = String(r?.teeTime || "").trim();
+    if (!raw) return "—";
+    return formatTime(raw) || "—";
   }
   return String(r?.assignedHole || "").trim() || "—";
 }
@@ -676,4 +680,274 @@ function holeSortKey(label) {
   const m = s.match(/^([1-9]|1[0-8])([A-Z])$/);
   if (!m) return { hole: 999, wave: 999 };
   return { hole: parseInt(m[1], 10), wave: m[2].charCodeAt(0) - 65 };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Event registration model (structure, scoring, participant sizing)         */
+/* New fields are optional; missing values infer legacy-safe defaults.       */
+/* -------------------------------------------------------------------------- */
+
+/** One registration contact, one named participant */
+export const REGISTRATION_STRUCTURE_SINGLE = "single";
+/** One registration contact, multiple participants are one team */
+export const REGISTRATION_STRUCTURE_TEAM = "team";
+/** One registration contact, multiple participants = separate individuals */
+export const REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL = "multi_individual";
+
+export const SCORING_STRUCTURE_INDIVIDUAL = "individual";
+export const SCORING_STRUCTURE_TEAM = "team";
+export const SCORING_STRUCTURE_NONE = "none";
+
+/**
+ * Fixed vs flexible participant count per registration.
+ * Stored as `participantCountMode` on the event document (not `entryMode`, which is legacy timing).
+ */
+export const PARTICIPANT_COUNT_MODE_FIXED = "fixed";
+export const PARTICIPANT_COUNT_MODE_FLEX = "flex";
+
+function clampInt(n, lo, hi) {
+  const x = Math.floor(Number(n));
+  if (!Number.isFinite(x)) return lo;
+  return Math.max(lo, Math.min(hi, x));
+}
+
+/**
+ * @param {object} [t]
+ * @returns {typeof REGISTRATION_STRUCTURE_SINGLE | typeof REGISTRATION_STRUCTURE_TEAM | typeof REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL}
+ */
+export function resolveRegistrationStructure(t) {
+  const raw = String(t?.registrationStructure || "").trim().toLowerCase();
+  if (
+    raw === REGISTRATION_STRUCTURE_SINGLE ||
+    raw === REGISTRATION_STRUCTURE_TEAM ||
+    raw === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL
+  ) {
+    return raw;
+  }
+  const page = resolveRegistrationPageEventTypeFromDocument(t || {});
+  if (page !== REGISTRATION_PAGE_EVENT_TOURNAMENT) return REGISTRATION_STRUCTURE_SINGLE;
+  return REGISTRATION_STRUCTURE_TEAM;
+}
+
+function formatImpliesTeamScoring(t) {
+  const fmt = String(t?.formatOfPlay || t?.format || "").trim().toLowerCase();
+  return fmt.includes("scramble") || fmt.includes("best ball") || fmt.includes("bestball");
+}
+
+/**
+ * @param {object} [t]
+ * @returns {typeof SCORING_STRUCTURE_INDIVIDUAL | typeof SCORING_STRUCTURE_TEAM | typeof SCORING_STRUCTURE_NONE}
+ */
+export function resolveScoringStructure(t) {
+  const raw = String(t?.scoringType || t?.scoringStructure || "").trim().toLowerCase();
+  if (
+    raw === SCORING_STRUCTURE_INDIVIDUAL ||
+    raw === SCORING_STRUCTURE_TEAM ||
+    raw === SCORING_STRUCTURE_NONE
+  ) {
+    return raw;
+  }
+  const vis = getEventTypeVisibility(resolveRegistrationPageEventTypeFromDocument(t));
+  if (!vis.showLeaderboardOptions) return SCORING_STRUCTURE_NONE;
+  if (formatImpliesTeamScoring(t)) return SCORING_STRUCTURE_TEAM;
+  return SCORING_STRUCTURE_INDIVIDUAL;
+}
+
+/**
+ * @param {object} [t]
+ * @returns {typeof PARTICIPANT_COUNT_MODE_FIXED | typeof PARTICIPANT_COUNT_MODE_FLEX}
+ */
+export function resolveParticipantCountMode(t) {
+  const raw = String(t?.participantCountMode || t?.registrationParticipantEntryMode || "").trim().toLowerCase();
+  if (raw === PARTICIPANT_COUNT_MODE_FIXED || raw === PARTICIPANT_COUNT_MODE_FLEX) return raw;
+  return PARTICIPANT_COUNT_MODE_FLEX;
+}
+
+/**
+ * Participant count rules per registration (distinct from legacy `entryMode` = pre_event / onsite).
+ * @param {object} [t]
+ */
+export function resolveParticipantSizingRules(t) {
+  const rs = resolveRegistrationStructure(t);
+  const mode = resolveParticipantCountMode(t);
+
+  if (rs === REGISTRATION_STRUCTURE_SINGLE) {
+    return {
+      participantCountMode: PARTICIPANT_COUNT_MODE_FIXED,
+      minParticipantsPerRegistration: 1,
+      maxParticipantsPerRegistration: 1,
+      defaultParticipantsPerRegistration: 1,
+    };
+  }
+
+  if (rs === REGISTRATION_STRUCTURE_TEAM) {
+    let minP = clampInt(t?.minParticipantsPerRegistration, 1, 6);
+    let maxP = clampInt(t?.maxParticipantsPerRegistration, 1, 6);
+    let defP = clampInt(t?.defaultParticipantsPerRegistration, 1, 6);
+    if (mode === PARTICIPANT_COUNT_MODE_FIXED) {
+      const fs = clampInt(defP || maxP || minP || 4, 1, 6);
+      minP = maxP = defP = fs;
+    } else {
+      if (maxP < minP) maxP = minP;
+      defP = clampInt(defP || 4, minP, maxP);
+    }
+    return {
+      participantCountMode: mode,
+      minParticipantsPerRegistration: minP,
+      maxParticipantsPerRegistration: maxP,
+      defaultParticipantsPerRegistration: defP,
+    };
+  }
+
+  let minP =
+    t?.minParticipantsPerRegistration != null ? clampInt(t.minParticipantsPerRegistration, 1, 20) : 1;
+  let maxP =
+    t?.maxParticipantsPerRegistration != null ? clampInt(t.maxParticipantsPerRegistration, minP, 20) : 6;
+  let defP =
+    t?.defaultParticipantsPerRegistration != null
+      ? clampInt(t.defaultParticipantsPerRegistration, minP, maxP)
+      : Math.min(2, maxP);
+  if (maxP < minP) maxP = minP;
+  defP = clampInt(defP, minP, maxP);
+  return {
+    participantCountMode: mode,
+    minParticipantsPerRegistration: minP,
+    maxParticipantsPerRegistration: maxP,
+    defaultParticipantsPerRegistration: defP,
+  };
+}
+
+/**
+ * Unified config for admin, registration, join, roster, and leaderboard.
+ * @param {object} [t] tournament / event document
+ */
+export function getEventRegistrationModel(t) {
+  const registrationStructure = resolveRegistrationStructure(t);
+  return {
+    registrationStructure,
+    scoringStructure: resolveScoringStructure(t),
+    ...resolveParticipantSizingRules(t),
+  };
+}
+
+export function countNamedParticipantsInPlayerDetails(playerDetails) {
+  if (!Array.isArray(playerDetails)) return 0;
+  let n = 0;
+  const seen = new Set();
+  for (const p of playerDetails) {
+    const name = String(p?.name || "").trim();
+    if (!name) continue;
+    const k = name.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    n += 1;
+  }
+  return n;
+}
+
+/**
+ * Client + server validation for named participants only (no blank placeholders).
+ * @param {object} tournamentDoc
+ * @param {Array<{name?: string}>} playerDetails
+ */
+export function validateRegistrationParticipantCounts(tournamentDoc, playerDetails) {
+  const rules = resolveParticipantSizingRules(tournamentDoc || {});
+  const n = countNamedParticipantsInPlayerDetails(playerDetails);
+  if (n < 1) {
+    return { ok: false, message: "Add at least one person with a name.", rules, count: n };
+  }
+  if (n < rules.minParticipantsPerRegistration) {
+    return {
+      ok: false,
+      message: `This sign-up needs at least ${rules.minParticipantsPerRegistration} people listed by name.`,
+      rules,
+      count: n,
+    };
+  }
+  if (n > rules.maxParticipantsPerRegistration) {
+    return {
+      ok: false,
+      message: `This sign-up allows at most ${rules.maxParticipantsPerRegistration} people listed by name.`,
+      rules,
+      count: n,
+    };
+  }
+  return { ok: true, rules, count: n };
+}
+
+/**
+ * Registration page copy + flags merged with event document (golf / tournament flows).
+ * @param {object} [tournamentDoc]
+ */
+export function getRegistrationPageUiConfigForTournament(tournamentDoc) {
+  const pageType = resolveRegistrationPageEventTypeFromDocument(tournamentDoc || {});
+  const base = getRegistrationPageUiConfig(pageType);
+  const vis = getEventTypeVisibility(pageType);
+  const model = getEventRegistrationModel(tournamentDoc);
+
+  if (pageType !== REGISTRATION_PAGE_EVENT_TOURNAMENT || !vis.showPlayerFields) {
+    return { ...base, eventRegModel: model };
+  }
+
+  const rs = model.registrationStructure;
+  const out = {
+    ...base,
+    eventRegModel: model,
+    regStructure: rs,
+    showTeamNameField: rs === REGISTRATION_STRUCTURE_TEAM,
+    contactSectionTitle: "Your information",
+    captainNameLabel:
+      rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL
+        ? "Contact name"
+        : rs === REGISTRATION_STRUCTURE_SINGLE
+          ? "Player name"
+          : "Captain name",
+    captainEmailLabel: "Email",
+    captainPhoneLabel: "Phone",
+    participant1Visible: rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL,
+    hidePlayers2Thru6: rs === REGISTRATION_STRUCTURE_SINGLE,
+    flexParticipantCountUi:
+      rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL && model.participantCountMode === PARTICIPANT_COUNT_MODE_FLEX,
+    targetParticipantSlots: model.defaultParticipantsPerRegistration,
+  };
+
+  if (rs === REGISTRATION_STRUCTURE_SINGLE) {
+    out.heading = "Sign up one player";
+    out.submitLabel = "Complete registration";
+    out.successMessage = "You’re signed up. The organizer has your details.";
+    out.helperText =
+      "One player per form. Enter the player’s name and how to reach you (the person filling this out).";
+  } else if (rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL) {
+    out.heading = "Sign up multiple players";
+    out.submitLabel = "Complete registration";
+    out.successMessage = "You’re signed up. The organizer has your details.";
+    out.helperText =
+      "Add the contact person first, then each player by name. Each name is its own player for this event—they are not scored as one team unless the organizer set that up separately.";
+  }
+  return out;
+}
+
+/**
+ * Roster labels/columns adjusted for registration structure (esp. multi-individual golf).
+ * @param {string} pageType
+ * @param {object} [tournamentDoc]
+ */
+export function getRosterPageUiConfigForTournament(pageType, tournamentDoc) {
+  const base = getRosterPageUiConfig(pageType);
+  const t = tournamentDoc || {};
+  const model = getEventRegistrationModel(t);
+  if (!isGolfEventCategory(t)) return { ...base, eventRegModel: model };
+
+  if (model.registrationStructure === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL) {
+    return {
+      ...base,
+      eventRegModel: model,
+      collectionLabel: "Who is signed up",
+      teamColumnLabel: "Signed up by / contact",
+      playersColumnLabel: "Players",
+      captainContactLabel: "Contact",
+      searchPlaceholder: "Search contact, player, email, phone, or assignment…",
+    };
+  }
+  return { ...base, eventRegModel: model };
 }

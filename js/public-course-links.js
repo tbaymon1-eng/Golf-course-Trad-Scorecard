@@ -11,6 +11,7 @@ export function buildPublicCourseScorecardUrl(orgId, courseId, baseHref = window
     ? base.pathname
     : base.pathname.slice(0, base.pathname.lastIndexOf("/") + 1);
   const u = new URL(`index.html`, `${base.origin}${dir}`);
+  u.searchParams.set("mode", "casual");
   u.searchParams.set("courseId", cid);
   if (oid) u.searchParams.set("orgId", oid);
   return u.toString();

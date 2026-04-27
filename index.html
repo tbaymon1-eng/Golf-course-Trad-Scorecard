@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="ops-scorecard-chrome">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
@@ -124,6 +124,35 @@
       display:grid;
       gap:10px;
       margin-top:10px;
+      width:100%;
+      max-width:100%;
+    }
+
+    #teamPickerScreen .team-card.team-card--picker{
+      width:100%;
+      max-width:100%;
+      display:grid;
+      grid-template-columns:1fr;
+      align-items:stretch;
+      text-align:left;
+      padding:14px 12px;
+      gap:8px;
+      min-width:0;
+    }
+
+    #teamPickerScreen .team-card-tee{
+      font-size:13px;
+      font-weight:800;
+      line-height:1.4;
+      color:var(--muted);
+      word-break:break-word;
+    }
+
+    #teamPickerScreen .team-card-start{
+      font-size:12px;
+      font-weight:800;
+      line-height:1.35;
+      color:var(--muted);
     }
 
     .team-card{
@@ -516,24 +545,6 @@
       -webkit-appearance: none;
       appearance: none;
     }
-    
-    .team-hole-badge{
-  width:64px;
-  height:64px;
-  border-radius:50%;
-  background:var(--green);
-  color:var(--parRowText);
-  font-weight:800;
-  font-size:26px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-    .team-card{
-  display:flex;
-  align-items:center;
-  gap:14px;
-}
 
     .player-name:focus{
       box-shadow: inset 0 0 0 2px rgba(var(--focusRing),.35);
@@ -892,12 +903,13 @@
       color: var(--ink);
     }
   </style>
+  <link rel="stylesheet" href="./css/operations-typography.css" />
 </head>
   <body>
   <div class="wrap">
     <div class="card" id="card">
 
-      <img id="courseHeader" class="header-img" src="./assets/cypresswood_header.png" alt="Tradition Course header" />
+      <img id="courseHeader" class="header-img" src="" alt="Course header" />
 
       <div id="liveAlertBanner" class="liveAlertBanner liveAlertBanner--info" style="display:none;" role="alert">
         <div class="liveAlertInner">
@@ -912,52 +924,52 @@
 
       <div id="teamPickerScreen">
         <div class="team-picker-top">
-          <div class="team-picker-title">Select Your Team</div>
+          <div class="team-picker-title">Select your team</div>
           <div class="team-picker-meta" id="teamPickerMeta">
-            Scan the tournament QR code, then tap your team below to start scoring.
+            Scan the event QR code, then tap your team to start scoring.
           </div>
         </div>
 
         <div class="team-picker-search">
-          <input id="teamSearchInput" placeholder="Search by team, captain, player, or hole…" />
+          <input id="teamSearchInput" placeholder="Search by team, contact, player, or assignment…" />
         </div>
 
         <div id="teamList" class="team-list"></div>
         <div id="teamPickerEmpty" class="team-picker-empty">
-          No matching teams found.
+          No teams match that search.
         </div>
       </div>
 
       <div id="joinScreen">
-        <div style="font-family:Cinzel,serif; font-weight:900; font-size:16px;">Join Tournament</div>
+        <div style="font-family:Cinzel,serif; font-weight:900; font-size:16px;">Join event</div>
         <div id="joinMeta" style="margin-top:6px; font-size:13px; opacity:.85;"></div>
 
         <div style="display:grid; gap:10px; margin-top:12px;">
 
           <label style="font-weight:900; font-size:13px;">
-            Your Name (Scorer)
+            Your name (person keeping score)
             <input id="joinName" autocomplete="name"
               style="width:100%; padding:12px 10px; border:2px solid var(--border); border-radius:10px; background:var(--cellBg);" />
           </label>
 
           <div class="team-mates-block">
-            <div style="font-family:Cinzel,serif; font-weight:900; font-size:13px; opacity:.9;">Team Players</div>
-            <label>Teammate 1 <input id="joinMate1" placeholder="Teammate name"></label>
-            <label>Teammate 2 <input id="joinMate2" placeholder="Teammate name"></label>
-            <label>Teammate 3 <input id="joinMate3" placeholder="Teammate name"></label>
-            <label>Teammate 4 <input id="joinMate4" placeholder="Teammate name"></label>
-            <label>Teammate 5 <input id="joinMate5" placeholder="Teammate name"></label>
+            <div style="font-family:Cinzel,serif; font-weight:900; font-size:13px; opacity:.9;">Other players on this scorecard</div>
+            <label>Player 2 <input id="joinMate1" placeholder="Player name"></label>
+            <label>Player 3 <input id="joinMate2" placeholder="Player name"></label>
+            <label>Player 4 <input id="joinMate3" placeholder="Player name"></label>
+            <label>Player 5 <input id="joinMate4" placeholder="Player name"></label>
+            <label>Player 6 <input id="joinMate5" placeholder="Player name"></label>
           </div>
 
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <label style="font-weight:900; font-size:13px;">
-              Company Name
+              Team or company name
               <input id="joinGroup"
                 style="width:100%; padding:12px 10px; border:2px solid var(--border); border-radius:10px; background:var(--cellBg);" />
             </label>
 
             <label style="font-weight:900; font-size:13px;">
-              Start Hole
+              Starting hole
               <input id="joinStartHole" placeholder="2A" inputmode="text" autocapitalize="characters"
                 style="width:100%; padding:12px 10px; border:2px solid var(--border); border-radius:10px; background:var(--cellBg);" />
               <div style="margin-top:6px; font-size:12px; opacity:.8;">
@@ -967,11 +979,11 @@
           </div>
 
           <button id="joinBtn" style="border:2px solid var(--border); background:var(--green); color:var(--parRowText); border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
-            Join & Start Scoring
+            Start scoring
           </button>
 
           <button id="joinCancel" style="border:2px solid var(--border); background:var(--buttonSecondaryBg); border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
-            Back to Team List
+            Back to list
           </button>
 
           <div style="font-size:12px; opacity:.85; line-height:1.3;">
@@ -1001,7 +1013,7 @@
       </div>
 
       <div id="lockBanner" class="lockBanner">
-        Select your team above to unlock player names, score entry, side games, and tournament actions.
+        Choose your team or sign-up above to unlock player names, score entry, side games, and event actions.
       </div>
 
       <div id="scorecardStage">
@@ -1081,16 +1093,17 @@ import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, where, l
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { firebaseConfig } from "./js/firebase-config.js";
 import {
-  parseOrgTournamentFromSearch,
   tournamentDocRef,
   tournamentRegistrationsCollection,
   tournamentRegistrationDoc,
   tournamentSubmissionsDoc,
+  tournamentPlayGroupsCollection,
   tournamentAlertsLiveRef,
   publicLinkDocRef,
   courseDocRef,
   casualRoundDocRef
 } from "./js/org-paths.js";
+import { parseParticipantKey, expandRegistrationParticipants } from "./js/play-groups.js";
 import {
   applyScorecardTheme,
   BUILT_IN_CYPRESSWOOD_SCORECARD_THEME,
@@ -1099,11 +1112,18 @@ import {
   PLACEHOLDER_COURSE_HEADER_IMAGE,
   resolveScorecardHeaderImageForDoc,
 } from "./js/course-theme.js";
-import { normalizeAssignmentType, ASSIGNMENT_TEE_TIMES } from "./js/tournament-fields.js";
+import {
+  normalizeAssignmentType,
+  ASSIGNMENT_TEE_TIMES,
+  resolveRegistrationStructure,
+  REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL,
+} from "./js/tournament-fields.js";
+import { formatTime } from "./js/time-format.js";
 
 let db = null;
 let auth = null;
 let authReady = false;
+const DEFAULT_PUBLIC_COURSE_ID = "tradition";
 
 try {
   const app = initializeApp(firebaseConfig);
@@ -1203,6 +1223,8 @@ let sponsorUrl = "";
 let tournamentFormat = "stroke";
 let tournamentEntryMode = "team_rep";
 let tournamentStartType = "shotgun";
+/** From event doc `registrationStructure`; drives join copy. */
+let tournamentRegistrationStructure = "team";
 let tournamentSideGames = {
   skinsEnabled:false,
   ctpEnabled:false,
@@ -1211,7 +1233,10 @@ let tournamentSideGames = {
   longDriveHoles:[]
 };
 let loadedRegistrations = [];
+let loadedPlayGroups = [];
+const PLAY_GROUP_LIST_PREFIX = "pg:";
 let selectedRegistrationId = "";
+let selectedPlayGroupId = "";
 let incomingRegistrationId = "";
 let pendingRegistration = null;
 let selectedPlayerDetails = [];
@@ -1475,39 +1500,6 @@ function normalizeStartHole(raw){
   return { label: `${holeNum}${suffix}`, holeNum };
 }
 
-function formatUsTeeTimeDisplay(value){
-  const raw = String(value || "").trim();
-  if (!raw) return "";
-  let dt = null;
-  const localMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/);
-  if (localMatch) {
-    const y = Number(localMatch[1]);
-    const mo = Number(localMatch[2]);
-    const d = Number(localMatch[3]);
-    const h = Number(localMatch[4]);
-    const mi = Number(localMatch[5]);
-    if ([y, mo, d, h, mi].every(Number.isFinite)) {
-      dt = new Date(y, mo - 1, d, h, mi, 0, 0);
-    }
-  }
-  if (!dt) {
-    const parsed = new Date(raw);
-    if (!Number.isNaN(parsed.getTime())) dt = parsed;
-  }
-  if (!dt) return raw;
-  const datePart = new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(dt);
-  const timePart = new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(dt);
-  return `${datePart} at ${timePart}`;
-}
-
 function orgPart(){
   return organizationId ? `_o_${organizationId}` : "";
 }
@@ -1518,7 +1510,11 @@ function storageKeyFor(courseId){
   }
   const tPart = (isTournamentMode && tournamentId) ? `${orgPart()}_t_${tournamentId}` : "";
   const fPart = tournamentFormat ? `_f_${tournamentFormat}` : "";
-  const teamPart = selectedRegistrationId ? `_r_${selectedRegistrationId}` : "";
+  const teamPart = selectedPlayGroupId
+    ? `_pg_${selectedPlayGroupId}`
+    : selectedRegistrationId
+    ? `_r_${selectedRegistrationId}`
+    : "";
   return `scorecard_state_${courseId}${tPart}${fPart}${teamPart}_v10`;
 }
 
@@ -1703,7 +1699,7 @@ function getScoreLockTargets(){
   };
 }
 
-function setPreJoinLock(locked){
+function setPreJoinLock(locked, customLockMessage){
   const { playerNames, scoreInputs, sideGameInputs, saveBtn, shareBtn, finishBtn, clearBtn, courseSel } = getScoreLockTargets();
 
   playerNames.forEach(el => el.disabled = !!locked || roundFinished);
@@ -1719,6 +1715,9 @@ function setPreJoinLock(locked){
   if(lockBanner){
     if(roundFinished){
       lockBanner.textContent = "This round has been finalized and is now locked.";
+      lockBanner.classList.add("show");
+    }else if(locked && String(customLockMessage || "").trim()){
+      lockBanner.textContent = String(customLockMessage).trim();
       lockBanner.classList.add("show");
     }else{
       lockBanner.textContent = "Enter player names and your starting hole to unlock score entry, side games, and tournament actions.";
@@ -2779,7 +2778,149 @@ function setCourse(courseId){
   build();
 }
 
-courseSelect.addEventListener("change", () => setCourse(courseSelect.value));
+async function refreshCasualCourseSelectOptions() {
+  if (!courseSelect) return;
+  if (!isCasualMode) return;
+
+  const selected = String(currentCourseId || "").trim();
+  const options = [];
+  const seen = new Set();
+  const pushOption = (id, label) => {
+    const cid = String(id || "").trim();
+    if (!cid || seen.has(cid)) return;
+    seen.add(cid);
+    options.push({ id: cid, label: String(label || cid).trim() || cid });
+  };
+
+  pushOption("tradition", "Tradition");
+  pushOption("cypress", "Cypress");
+
+  if (db && organizationId) {
+    try {
+      const snap = await getDocs(collection(db, "organizations", organizationId, "courses"));
+      snap.forEach((d) => {
+        const data = d.data() || {};
+        pushOption(d.id, String(data.name || data.title || d.id).trim() || d.id);
+      });
+    } catch (e) {
+      console.warn("[scorecard] casual course option load failed", { orgId: organizationId, error: e });
+    }
+  }
+
+  if (selected && !seen.has(selected) && COURSES[selected]) {
+    pushOption(selected, String(COURSES[selected].title || selected));
+  }
+
+  courseSelect.innerHTML = "";
+  options.forEach((opt) => {
+    const el = document.createElement("option");
+    el.value = opt.id;
+    el.textContent = opt.label;
+    courseSelect.appendChild(el);
+  });
+  if (selected && seen.has(selected)) {
+    courseSelect.value = selected;
+  }
+}
+
+function updateCasualCourseUrl(courseId) {
+  const cid = String(courseId || "").trim();
+  if (!cid) return;
+  const u = new URL(location.href);
+  u.searchParams.set("mode", "casual");
+  u.searchParams.set("courseId", cid);
+  if (organizationId) {
+    u.searchParams.set("orgId", organizationId);
+  } else {
+    u.searchParams.delete("orgId");
+    u.searchParams.delete("org");
+  }
+  u.searchParams.delete("t");
+  u.searchParams.delete("id");
+  u.searchParams.delete("tournamentId");
+  history.replaceState(null, "", u.toString());
+}
+
+async function handleCasualCourseChange(nextCourseId) {
+  if (!isCasualMode) return;
+  const targetId = String(nextCourseId || "").trim();
+  if (!targetId || targetId === currentCourseId) return;
+
+  const previousCourseId = currentCourseId;
+  const previousRoundId = casualRoundId;
+  try {
+    let resolved = null;
+    if (organizationId) {
+      resolved = await resolveStandaloneCourseStrict(organizationId, targetId);
+    }
+    if (!resolved?.course) {
+      const fromLoaded = COURSES[targetId] || null;
+      if (fromLoaded) {
+        resolved = {
+          course: fromLoaded,
+          resolvedCourseDocId: targetId,
+          headerSource: "loadedCache",
+          lookupPath: "cache"
+        };
+      } else if (targetId === "tradition" || targetId === "cypress") {
+        resolved = {
+          course: COURSES[targetId],
+          resolvedCourseDocId: targetId,
+          headerSource: "builtIn",
+          lookupPath: "built-in"
+        };
+      }
+    }
+
+    if (!resolved?.course) {
+      throw new Error("Selected course could not be loaded.");
+    }
+
+    const storeKey = String(resolved.resolvedCourseDocId || resolved.course.id || targetId).trim();
+    const loaded = resolved.course;
+    loaded.id = storeKey;
+    COURSES[storeKey] = loaded;
+    currentCourseId = storeKey;
+    casualCourseId = storeKey;
+    tournamentFormat = "stroke";
+    playersCount = 6;
+    joinCompleted = true;
+    roundFinished = false;
+    finishedHolesCount = null;
+    rosterNames = [];
+    if (organizationId) {
+      casualRoundId = getOrCreateCasualRoundId(organizationId, storeKey);
+    }
+    build();
+    await refreshCasualCourseSelectOptions();
+    updateCasualCourseUrl(storeKey);
+    if (organizationId && casualRoundId && casualRoundId !== previousRoundId) {
+      await hydrateCasualRoundFromFirestore();
+    }
+    console.info("[scorecard] casual course switched", {
+      orgId: organizationId || "(none)",
+      fromCourseId: previousCourseId,
+      toCourseId: storeKey,
+      casualRoundId: casualRoundId || "(none)"
+    });
+  } catch (e) {
+    console.warn("[scorecard] casual course switch failed", {
+      orgId: organizationId || "(none)",
+      requestedCourseId: targetId,
+      error: e
+    });
+    courseSelect.value = previousCourseId;
+    alert("Could not load the selected course.");
+  }
+}
+
+courseSelect.addEventListener("change", async () => {
+  if (isCasualMode) {
+    await handleCasualCourseChange(courseSelect.value);
+    return;
+  }
+  setCourse(courseSelect.value);
+});
 
 let touchStartX = null;
 swipeZone.addEventListener("touchstart", (e) => {
@@ -2868,6 +3009,7 @@ function normalizeRegistration(r){
   return {
     id: r.id || "",
     teamName: String(r.teamName || r.group || "").trim(),
+    registrationStructure: String(r.registrationStructure || "").trim().toLowerCase(),
     captainName: String(r.captainName || "").trim(),
     players: players.map(x => String(x || "").trim()).filter(Boolean).slice(0,6),
     playerDetails: playerDetails
@@ -2910,20 +3052,171 @@ function applyRegistrationCourseId(regCourseId) {
   if (hit) currentCourseId = hit;
 }
 
+function playGroupToRegistrationFields(g) {
+  const raw = String(g?.startingHole || "").trim();
+  if (!raw) return { assignedHole: "", startingHole: null };
+  const upper = raw.toUpperCase();
+  const n = Number(raw);
+  if (Number.isFinite(n) && n >= 1 && n <= 18) {
+    return { assignedHole: upper, startingHole: Math.round(n) };
+  }
+  return { assignedHole: upper, startingHole: null };
+}
+
+function groupDisplayName(g) {
+  const gn = String(g?.groupName || "").trim();
+  if (gn) return gn;
+  const n = Number(g?.groupNumber);
+  if (Number.isFinite(n) && n > 0) return `Group ${n}`;
+  return "Group";
+}
+
+function resolvePlayGroupPlayerNames(g, regById) {
+  const ids = Array.isArray(g?.participantIds) ? g.participantIds : [];
+  const out = [];
+  for (const pid of ids) {
+    const key = String(pid || "").trim();
+    if (!key) continue;
+    const { registrationId, playerIndex } = parseParticipantKey(key);
+    const r = regById.get(registrationId);
+    if (!r) {
+      out.push("Player");
+      continue;
+    }
+    const ex = expandRegistrationParticipants(r);
+    const hit = ex.find((p) => p.participantKey === key);
+    out.push(hit ? hit.displayName : r.players?.[playerIndex] || "Player");
+  }
+  return out.filter(Boolean).slice(0, 6);
+}
+
+function collectGroupedParticipantKeys(playGroups) {
+  const s = new Set();
+  for (const g of playGroups || []) {
+    for (const pid of Array.isArray(g?.participantIds) ? g.participantIds : []) {
+      const k = String(pid || "").trim();
+      if (k) s.add(k);
+    }
+  }
+  return s;
+}
+
+function isRegistrationFullyUnassigned(reg, groupedKeySet) {
+  const parts = expandRegistrationParticipants(reg);
+  if (!parts.length) return true;
+  return parts.every((p) => !groupedKeySet.has(p.participantKey));
+}
+
+function playGroupMatchesSearch(g, regById, q) {
+  if (!q) return true;
+  const hay = [
+    groupDisplayName(g),
+    g?.groupNumber,
+    g?.teeTime,
+    g?.startingHole,
+    ...resolvePlayGroupPlayerNames(g, regById),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return hay.includes(q);
+}
+
+function buildSyntheticRegistrationFromPlayGroup(g, regById) {
+  const ids = (Array.isArray(g.participantIds) ? g.participantIds : [])
+    .map((x) => String(x || "").trim())
+    .filter(Boolean)
+    .slice(0, 6);
+  const f = playGroupToRegistrationFields(g);
+  const names = resolvePlayGroupPlayerNames(g, regById);
+  const playerDetails = [];
+  for (let i = 0; i < ids.length; i++) {
+    const key = ids[i];
+    const { registrationId, playerIndex } = parseParticipantKey(key);
+    const r = regById.get(registrationId);
+    const disp = names[i] || "Player";
+    const fromPd =
+      r && Array.isArray(r.playerDetails) && r.playerDetails[playerIndex] && r.playerDetails[playerIndex].name
+        ? r.playerDetails[playerIndex]
+        : null;
+    if (fromPd) {
+      playerDetails.push({
+        name: String(fromPd.name || "").trim() || disp,
+        handicap: Number(fromPd.handicap || 0) || 0,
+        isCaptain: !!fromPd.isCaptain,
+      });
+    } else {
+      playerDetails.push({ name: disp, handicap: 0, isCaptain: i === 0 });
+    }
+  }
+
+  let firstReg = null;
+  for (const key of ids) {
+    const { registrationId } = parseParticipantKey(key);
+    if (registrationId && regById.has(registrationId)) {
+      firstReg = regById.get(registrationId);
+      break;
+    }
+  }
+
+  let primaryRegistrationId = "";
+  for (const key of ids) {
+    const { registrationId } = parseParticipantKey(key);
+    if (registrationId) {
+      primaryRegistrationId = registrationId;
+      break;
+    }
+  }
+
+  const gLabel = groupDisplayName(g);
+  const rs = String(
+    firstReg?.registrationStructure || tournamentRegistrationStructure || "team"
+  ).trim().toLowerCase();
+
+  return {
+    id: primaryRegistrationId,
+    playGroupId: String(g.id || "").trim(),
+    primaryRegistrationId,
+    teamName: gLabel,
+    players: names.length ? names : playerDetails.map((p) => p.name).slice(0, 6),
+    playerDetails,
+    captainName: names[0] || playerDetails[0]?.name || "",
+    handicapEnabled: firstReg ? !!firstReg.handicapEnabled : false,
+    handicapPercent: firstReg ? Number(firstReg.handicapPercent || 100) || 100 : 100,
+    registrationStructure: rs,
+    assignedHole: f.assignedHole,
+    startingHole: f.startingHole,
+    teeTime: String(g.teeTime || "").trim(),
+    courseId: firstReg ? String(firstReg.courseId || "").trim() : "",
+    status: "assigned",
+  };
+}
+
 async function fetchRegistrationById(registrationId){
   if(!db || !tournamentId || !registrationId) return null;
+  const rid = String(registrationId || "").trim();
+  if(!rid) return null;
 
-  try{
-    const snap = await getDoc(
-      tournamentRegistrationDoc(db, organizationId, tournamentId, registrationId)
-    );
-
-    if(!snap.exists()) return null;
-
+  const loadFromPath = async (orgIdForPath) => {
+    const r = tournamentRegistrationDoc(db, orgIdForPath, tournamentId, rid);
+    const snap = await getDoc(r);
+    if (!snap.exists()) return null;
     return normalizeRegistration({
       id: snap.id,
-      ...(snap.data() || {})
+      ...(snap.data() || {}),
     });
+  };
+
+  try{
+    const orgPrimary = String(organizationId || "").trim();
+    if (orgPrimary) {
+      const fromOrg = await loadFromPath(orgPrimary);
+      if (fromOrg) return fromOrg;
+    }
+
+    const legacy = await loadFromPath("");
+    if (legacy) return legacy;
+
+    return null;
   }catch(err){
     console.error("Failed to load registration by id", err);
     return null;
@@ -2934,6 +3227,7 @@ async function autoStartFromRegistration(reg){
   if(!reg) return false;
 
   pendingRegistration = reg;
+  selectedPlayGroupId = "";
   selectedRegistrationId = reg.id || "";
   saveSelectedRegistrationId(selectedRegistrationId);
 
@@ -2983,6 +3277,95 @@ async function autoStartFromRegistration(reg){
   return true;
 }
 
+async function autoStartFromPlayGroup(g){
+  if (!g || !g.id) return false;
+  const regById = new Map(loadedRegistrations.map((r) => [r.id, r]));
+  const reg = buildSyntheticRegistrationFromPlayGroup(g, regById);
+  if (!reg.playGroupId) return false;
+
+  pendingRegistration = reg;
+  selectedPlayGroupId = reg.playGroupId;
+  selectedRegistrationId = reg.primaryRegistrationId || reg.id || "";
+  saveSelectedRegistrationId(PLAY_GROUP_LIST_PREFIX + reg.playGroupId);
+
+  selectedPlayerDetails = Array.isArray(reg.playerDetails) ? reg.playerDetails.slice(0, 6) : [];
+  selectedHandicapEnabled = !!reg.handicapEnabled;
+  selectedHandicapPercent = Number(reg.handicapPercent || 100) || 100;
+
+  rosterNames = Array.isArray(reg.players) ? reg.players.slice(0, 6) : [];
+  startHoleSelected = registrationEffectiveStartHoleLabel(reg);
+
+  joinGroup.value = reg.teamName || "";
+  joinName.value = reg.captainName || rosterNames[0] || "";
+  joinMate1.value = rosterNames[1] || "";
+  joinMate2.value = rosterNames[2] || "";
+  joinMate3.value = rosterNames[3] || "";
+  joinMate4.value = rosterNames[4] || "";
+  joinMate5.value = rosterNames[5] || "";
+  joinStartHole.value = registrationEffectiveStartHoleLabel(reg);
+
+  applyRegistrationCourseId(reg.courseId);
+
+  joinCompleted = true;
+  roundFinished = false;
+  finishedHolesCount = null;
+
+  teamPickerScreen.style.display = "none";
+  joinScreen.style.display = "none";
+
+  build();
+  setPlayerRowNames(rosterNames);
+  renderSideGamesPanel(readSideGamesFromDOM());
+  setPreJoinLock(false);
+  enforceStartHoleLock();
+  saveState();
+
+  try {
+    await pushTournamentNow();
+  } catch (e) {
+    console.error("Auto-start push failed", e);
+  }
+
+  const norm = normalizeStartHole(startHoleSelected);
+  if (norm) {
+    setTimeout(() => scrollToStartHole(norm.holeNum), 250);
+  }
+
+  return true;
+}
+
+function getTeeTimeSortMs(t){
+  const raw = String(t?.teeTime || "").trim();
+  if (!raw) return Infinity;
+  const ms = new Date(raw).getTime();
+  return Number.isFinite(ms) && !Number.isNaN(ms) ? ms : Infinity;
+}
+
+function teamPickerPrimaryLineHtml(team){
+  if (tournamentStartType === ASSIGNMENT_TEE_TIMES) {
+    const t = formatTime(team.teeTime) || "—";
+    return `Tee Time: ${escapeHtml(t)}`;
+  }
+  const a = String(team.assignedHole || "").trim();
+  if (a) {
+    return `Start: ${escapeHtml(a)}`;
+  }
+  const n = team.startingHole;
+  if (Number.isFinite(n) && n >= 1 && n <= 18) {
+    return `Start: Hole ${escapeHtml(String(n))}`;
+  }
+  return "Start: —";
+}
+
+function teamPickerSecondaryStartLineHtml(team){
+  if (tournamentStartType !== ASSIGNMENT_TEE_TIMES) return "";
+  const n = team.startingHole;
+  if (Number.isFinite(n) && n >= 1 && n <= 18) {
+    return `Start: Hole ${escapeHtml(String(n))}`;
+  }
+  return "";
+}
+
 function teamMatchesSearch(team, q){
   if(!q) return true;
   const hay = [
@@ -2995,87 +3378,259 @@ function teamMatchesSearch(team, q){
   return hay.includes(q);
 }
 
-function renderTeamPicker(){
-  const q = String(teamSearchInput.value || "").trim().toLowerCase();
-  const visible = loadedRegistrations
-    .filter(t => t.status !== "cancelled")
-    .filter(t => teamMatchesSearch(t, q))
-    .sort((a,b) => {
-      if (tournamentStartType === ASSIGNMENT_TEE_TIMES) {
-        const ta = String(a.teeTime || "").trim();
-        const tb = String(b.teeTime || "").trim();
-        if (ta !== tb) return ta.localeCompare(tb);
-        return (a.teamName || "").localeCompare(b.teamName || "");
-      }
-      const A = normalizeStartHole(a.assignedHole) || { holeNum:999, label:"999Z" };
-      const B = normalizeStartHole(b.assignedHole) || { holeNum:999, label:"999Z" };
-      if(A.label.endsWith("A") && !B.label.endsWith("A")) return -1;
-      if(!A.label.endsWith("A") && B.label.endsWith("A")) return 1;
-      if(A.holeNum !== B.holeNum) return A.holeNum - B.holeNum;
-      return a.teamName.localeCompare(b.teamName);
-    });
-
-  teamList.innerHTML = visible.map(team => `
-  <div class="team-card" data-team-id="${escapeHtmlAttr(team.id)}">
-
-    <div class="team-hole-badge">
-      ${escapeHtml(
-        tournamentStartType === ASSIGNMENT_TEE_TIMES
-          ? (formatUsTeeTimeDisplay(team.teeTime) || "—")
-          : (team.assignedHole || "—")
-      )}
-    </div>
-
-    <div class="team-card-body">
-      <div class="team-card-name">
-        ${escapeHtml(team.teamName || "Team")}
-      </div>
-
-      <div class="team-card-players">
-        ${escapeHtml((team.players || []).join(" • "))}
-      </div>
-    </div>
-
-  </div>
-`).join("");
-
-  teamPickerEmpty.style.display = visible.length ? "none" : "block";
-
-  teamList.querySelectorAll(".team-card").forEach(card => {
-  card.addEventListener("click", () => {
-    const id = card.getAttribute("data-team-id");
-    const reg = loadedRegistrations.find(x => x.id === id);
-
-    if (reg) {
-      localStorage.setItem(
-        `scorecard_selected_team_t_${tournamentId}_v1`,
-        reg.id
-      );
-
-      incomingRegistrationId = reg.id;
-      joinCompleted = true;
-
-      applyRegistrationSelection(reg);
-    }
-  });
-});
+function syncJoinPickerCopy(){
+  const rs = String(tournamentRegistrationStructure || "team").trim().toLowerCase();
+  const titleEl = document.querySelector(".team-picker-title");
+  const metaEl = document.getElementById("teamPickerMeta");
+  const emptyEl = document.getElementById("teamPickerEmpty");
+  if (!titleEl || !metaEl || !teamSearchInput || !emptyEl) return;
+  if (rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL) {
+    titleEl.textContent = "Find your sign-up";
+    metaEl.textContent =
+      "Tap the row that matches your confirmation (one line per person), then start scoring.";
+    teamSearchInput.placeholder = "Search by name, email, phone, or assignment…";
+    emptyEl.textContent = "No rows match that search.";
+  } else {
+    titleEl.textContent = "Select your team";
+    metaEl.textContent = "Scan the event QR code, then tap your team to start scoring.";
+    teamSearchInput.placeholder = "Search by team, contact, player, or assignment…";
+    emptyEl.textContent = "No teams match that search.";
+  }
 }
 
+function playGroupToPickerDisplayTeam(g) {
+  const f = playGroupToRegistrationFields(g);
+  return {
+    teeTime: String(g.teeTime || "").trim(),
+    assignedHole: f.assignedHole,
+    startingHole: f.startingHole,
+  };
+}
 
+function sortRegistrationsForPicker(list) {
+  return [...(list || [])].sort((a, b) => {
+    if (tournamentStartType === ASSIGNMENT_TEE_TIMES) {
+      const d = getTeeTimeSortMs(a) - getTeeTimeSortMs(b);
+      if (d !== 0) return d;
+      return (a.teamName || "").localeCompare(b.teamName || "", undefined, { sensitivity: "base" });
+    }
+    const A = normalizeStartHole(a.assignedHole) || { holeNum: 999, label: "999Z" };
+    const B = normalizeStartHole(b.assignedHole) || { holeNum: 999, label: "999Z" };
+    if (A.label.endsWith("A") && !B.label.endsWith("A")) return -1;
+    if (!A.label.endsWith("A") && B.label.endsWith("A")) return 1;
+    if (A.holeNum !== B.holeNum) return A.holeNum - B.holeNum;
+    return a.teamName.localeCompare(b.teamName);
+  });
+}
 
+function renderTeamPicker(){
+  const q = String(teamSearchInput.value || "").trim().toLowerCase();
+  const rs = String(tournamentRegistrationStructure || "team").trim().toLowerCase();
+  const regById = new Map(loadedRegistrations.map((r) => [r.id, r]));
+  const groupedKeys = collectGroupedParticipantKeys(loadedPlayGroups);
+  const hasOperationalPlayGroups = (loadedPlayGroups || []).some(
+    (g) => (Array.isArray(g.participantIds) ? g.participantIds : []).length > 0
+  );
+
+  let chunks = [];
+
+  if (hasOperationalPlayGroups) {
+    const pgs = loadedPlayGroups
+      .filter((g) => (Array.isArray(g.participantIds) ? g.participantIds : []).length > 0)
+      .filter((g) => playGroupMatchesSearch(g, regById, q))
+      .sort((a, b) => {
+        const d = getTeeTimeSortMs({ teeTime: a.teeTime }) - getTeeTimeSortMs({ teeTime: b.teeTime });
+        if (d !== 0) return d;
+        return groupDisplayName(a).localeCompare(groupDisplayName(b), undefined, { sensitivity: "base" });
+      });
+
+    for (const g of pgs) {
+      const extraStart = teamPickerSecondaryStartLineHtml(playGroupToPickerDisplayTeam(g));
+      const names = resolvePlayGroupPlayerNames(g, regById);
+      chunks.push(`
+  <div class="team-card team-card--picker" data-play-group-id="${escapeHtmlAttr(g.id)}" role="button" tabindex="0">
+    <div class="team-card-tee">
+      ${teamPickerPrimaryLineHtml(playGroupToPickerDisplayTeam(g))}
+    </div>
+    <div class="team-card-name">
+      ${escapeHtml(groupDisplayName(g))}
+    </div>
+    <div class="team-card-players">
+      ${escapeHtml(names.join(" • "))}
+    </div>
+    ${extraStart ? `<div class="team-card-start">${extraStart}</div>` : ""}
+  </div>`);
+    }
+
+    const regList = loadedRegistrations
+      .filter((t) => t.status !== "cancelled")
+      .filter((t) => isRegistrationFullyUnassigned(t, groupedKeys))
+      .filter((t) => teamMatchesSearch(t, q));
+    const visibleRegs = sortRegistrationsForPicker(regList);
+
+    for (const team of visibleRegs) {
+      const extraStart = teamPickerSecondaryStartLineHtml(team);
+      chunks.push(`
+  <div class="team-card team-card--picker" data-team-id="${escapeHtmlAttr(team.id)}" role="button" tabindex="0">
+    <div class="team-card-tee">
+      ${teamPickerPrimaryLineHtml(team)}
+    </div>
+    <div class="team-card-name">
+      ${escapeHtml(team.teamName || (rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL ? "Player sign-up" : "Team"))}
+    </div>
+    <div class="team-card-players">
+      ${escapeHtml((team.players || []).join(" • "))}
+    </div>
+    ${extraStart ? `<div class="team-card-start">${extraStart}</div>` : ""}
+  </div>`);
+    }
+  } else {
+    const visible = sortRegistrationsForPicker(
+      loadedRegistrations.filter((t) => t.status !== "cancelled").filter((t) => teamMatchesSearch(t, q))
+    );
+    chunks = visible.map((team) => {
+      const extraStart = teamPickerSecondaryStartLineHtml(team);
+      return `
+  <div class="team-card team-card--picker" data-team-id="${escapeHtmlAttr(team.id)}" role="button" tabindex="0">
+    <div class="team-card-tee">
+      ${teamPickerPrimaryLineHtml(team)}
+    </div>
+    <div class="team-card-name">
+      ${escapeHtml(team.teamName || (rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL ? "Player sign-up" : "Team"))}
+    </div>
+    <div class="team-card-players">
+      ${escapeHtml((team.players || []).join(" • "))}
+    </div>
+    ${extraStart ? `<div class="team-card-start">${extraStart}</div>` : ""}
+  </div>`;
+    });
+  }
+
+  teamList.innerHTML = chunks.join("");
+
+  teamPickerEmpty.style.display = chunks.length ? "none" : "block";
+
+  teamList.querySelectorAll(".team-card").forEach((card) => {
+    const go = () => {
+      const pgId = card.getAttribute("data-play-group-id");
+      if (pgId) {
+        const g = loadedPlayGroups.find((x) => x.id === pgId);
+        if (!g) return;
+        saveSelectedRegistrationId(PLAY_GROUP_LIST_PREFIX + g.id);
+        incomingRegistrationId = "";
+        joinCompleted = true;
+        applyRegistrationSelection(buildSyntheticRegistrationFromPlayGroup(g, regById));
+        return;
+      }
+      const id = card.getAttribute("data-team-id");
+      const reg = loadedRegistrations.find((x) => x.id === id);
+      if (!reg) return;
+      saveSelectedRegistrationId(reg.id);
+      incomingRegistrationId = reg.id;
+      joinCompleted = true;
+      applyRegistrationSelection(reg);
+    };
+    card.addEventListener("click", go);
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        go();
+      }
+    });
+  });
+
+  syncJoinPickerCopy();
+}
+
+/**
+ * Unifies Firestore play group docs for scorecard: participantIds + teeTime (supports older field names).
+ * Merges org path with legacy top-level `tournaments/{tournamentId}/playGroups` for backward compatibility.
+ */
+function normalizePlayGroupFromFirestore(d) {
+  const x = d.data() || {};
+  const fromArr =
+    (Array.isArray(x.participantIds) && x.participantIds) ||
+    (Array.isArray(x.participants) && x.participants) ||
+    (Array.isArray(x.playerKeys) && x.playerKeys) ||
+    [];
+  const participantIds = fromArr.map((id) => String(id || "").trim()).filter(Boolean);
+  const teeTime = String(
+    x.teeTime || x.groupTeeTime || x.startTime || x.time || x.groupTee || ""
+  ).trim();
+  const startingHole = String(x.startingHole || x.groupStart || x.start || "").trim();
+  return { ...x, id: d.id, participantIds, teeTime, startingHole };
+}
+
+async function loadMergedPlayGroups() {
+  const byId = new Map();
+  const org = String(organizationId || "").trim();
+  const addFromDocs = (snap) => {
+    snap.forEach((d) => {
+      const n = normalizePlayGroupFromFirestore(d);
+      if (!byId.has(n.id)) {
+        byId.set(n.id, n);
+        return;
+      }
+      const cur = byId.get(n.id);
+      const nextCount = (n.participantIds || []).length;
+      const curCount = (cur.participantIds || []).length;
+      if (nextCount > curCount) {
+        byId.set(n.id, n);
+        return;
+      }
+      if (nextCount === curCount) {
+        const tNew = String(n.teeTime || "");
+        const tCur = String(cur.teeTime || "");
+        if (tNew && !tCur) {
+          byId.set(n.id, n);
+        }
+      }
+    });
+  };
+  if (org) {
+    const snapOrg = await getDocs(tournamentPlayGroupsCollection(db, org, tournamentId));
+    addFromDocs(snapOrg);
+    const snapLeg = await getDocs(tournamentPlayGroupsCollection(db, "", tournamentId));
+    addFromDocs(snapLeg);
+  } else {
+    const snapLeg = await getDocs(tournamentPlayGroupsCollection(db, "", tournamentId));
+    addFromDocs(snapLeg);
+  }
+  return Array.from(byId.values());
+}
 
 async function loadRegistrations(){
-  if(!db || !tournamentId) return;
-  const snap = await getDocs(tournamentRegistrationsCollection(db, organizationId, tournamentId));
+  if (!db || !tournamentId) return;
+  const regSnap = await getDocs(
+    tournamentRegistrationsCollection(db, organizationId, tournamentId)
+  );
   loadedRegistrations = [];
-  snap.forEach(d => {
+  regSnap.forEach((d) => {
     loadedRegistrations.push(normalizeRegistration({ id: d.id, ...(d.data() || {}) }));
+  });
+  loadedPlayGroups = await loadMergedPlayGroups();
+
+  const nReg = loadedRegistrations.length;
+  const nPg = loadedPlayGroups.length;
+  const nPgWith = (loadedPlayGroups || []).filter(
+    (g) => (Array.isArray(g.participantIds) ? g.participantIds : []).length > 0
+  ).length;
+  const hasOperationalPlayGroups = nPgWith > 0;
+  const joinListSource = hasOperationalPlayGroups ? "playGroups" : "registrations";
+  console.info("[scorecard] tournament join data", {
+    tournamentId,
+    organizationId: String(organizationId || "").trim() || "(top-level / legacy id)",
+    registrationsLoaded: nReg,
+    playGroupsLoaded: nPg,
+    playGroupsWithParticipants: nPgWith,
+    joinListSource,
   });
   renderTeamPicker();
 }
 
 function applyRegistrationSelection(reg){
   pendingRegistration = reg;
+  selectedPlayGroupId = reg && reg.playGroupId ? String(reg.playGroupId) : "";
   selectedPlayerDetails = Array.isArray(reg.playerDetails) ? reg.playerDetails.slice(0,6) : [];
   selectedHandicapEnabled = !!reg.handicapEnabled;
   selectedHandicapPercent = Number(reg.handicapPercent || 100) || 100;
@@ -3098,15 +3653,27 @@ function applyRegistrationSelection(reg){
 
   teamPickerScreen.style.display = "none";
   joinScreen.style.display = "block";
+  const rsJoin =
+    String(reg.registrationStructure || tournamentRegistrationStructure || "team").trim().toLowerCase();
+  const rosterLabel =
+    reg.teamName ||
+    (Array.isArray(rosterNames) && rosterNames.filter(Boolean).length
+      ? rosterNames.filter(Boolean).join(", ")
+      : rsJoin === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL
+        ? "Participants"
+        : "Team");
+  const confirmWord =
+    rsJoin === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL ? "Confirm players" : "Confirm team";
   joinMeta.textContent =
     tournamentStartType === ASSIGNMENT_TEE_TIMES
-      ? `Confirm Team: ${reg.teamName || "Team"} • Tee time ${formatUsTeeTimeDisplay(reg.teeTime) || "—"} • Hole ${startLbl}`
-      : `Confirm Team: ${reg.teamName || "Team"} • Start Hole ${reg.assignedHole || "—"}`;
+      ? `${confirmWord}: ${rosterLabel} • Tee time ${formatTime(reg.teeTime) || "—"} • Hole ${startLbl}`
+      : `${confirmWord}: ${rosterLabel} • Start Hole ${reg.assignedHole || "—"}`;
   updateJoinScreenForEntryMode();
 }
 
 function backToTeamPicker(){
   pendingRegistration = null;
+  selectedPlayGroupId = "";
   joinScreen.style.display = "none";
   teamPickerScreen.style.display = "block";
   joinCompleted = false;
@@ -3124,54 +3691,59 @@ function updateJoinScreenForEntryMode(){
   const startHoleLabel = joinStartHole?.closest("label");
 
   if (isOnsite) {
-    if(joinTitle) joinTitle.textContent = "Enter Team Information";
+    if(joinTitle) joinTitle.textContent = "Enter team and players";
 
     if(scorerLabel) scorerLabel.style.display = "none";
     if(groupLabel) groupLabel.style.display = "";
     if(startHoleLabel) startHoleLabel.style.display = "";
 
-    if(joinGroup) joinGroup.placeholder = "Team Name";
+    if(joinGroup) joinGroup.placeholder = "Team name";
 
-    if(joinMate1) joinMate1.placeholder = "Player 1";
-    if(joinMate2) joinMate2.placeholder = "Player 2";
-    if(joinMate3) joinMate3.placeholder = "Player 3";
-    if(joinMate4) joinMate4.placeholder = "Player 4";
-    if(joinMate5) joinMate5.placeholder = "Player 5";
+    if(joinMate1) joinMate1.placeholder = "Player 2";
+    if(joinMate2) joinMate2.placeholder = "Player 3";
+    if(joinMate3) joinMate3.placeholder = "Player 4";
+    if(joinMate4) joinMate4.placeholder = "Player 5";
+    if(joinMate5) joinMate5.placeholder = "Player 6";
 
-    if(joinBtn) joinBtn.textContent = "Start Scoring";
+    if(joinBtn) joinBtn.textContent = "Start scoring";
     if(joinCancel) joinCancel.style.display = "none";
     return;
   }
 
   if (isTeamRep){
-    if(joinTitle) joinTitle.textContent = "Enter Team Names";
+    if(joinTitle) joinTitle.textContent = "Enter each player’s name";
 
     if(scorerLabel) scorerLabel.style.display = "none";
     if(groupLabel) groupLabel.style.display = "none";
     if(startHoleLabel) startHoleLabel.style.display = "";
 
-    if(joinMate1) joinMate1.placeholder = "Player 1";
-    if(joinMate2) joinMate2.placeholder = "Player 2";
-    if(joinMate3) joinMate3.placeholder = "Player 3";
-    if(joinMate4) joinMate4.placeholder = "Player 4";
-    if(joinMate5) joinMate5.placeholder = "Player 5";
+    if(joinMate1) joinMate1.placeholder = "Player 2";
+    if(joinMate2) joinMate2.placeholder = "Player 3";
+    if(joinMate3) joinMate3.placeholder = "Player 4";
+    if(joinMate4) joinMate4.placeholder = "Player 5";
+    if(joinMate5) joinMate5.placeholder = "Player 6";
 
-    if(joinBtn) joinBtn.textContent = "Save Team & Start Scoring";
+    if(joinBtn) joinBtn.textContent = "Save names and start scoring";
     if(joinCancel) joinCancel.style.display = "none";
   } else {
-    if(joinTitle) joinTitle.textContent = "Join Tournament";
+    if(joinTitle) joinTitle.textContent = "Join event";
 
     if(scorerLabel) scorerLabel.style.display = "";
     if(groupLabel) groupLabel.style.display = "";
     if(startHoleLabel) startHoleLabel.style.display = "";
 
-    if(joinMate1) joinMate1.placeholder = "Teammate name";
-    if(joinMate2) joinMate2.placeholder = "Teammate name";
-    if(joinMate3) joinMate3.placeholder = "Teammate name";
-    if(joinMate4) joinMate4.placeholder = "Teammate name";
-    if(joinMate5) joinMate5.placeholder = "Teammate name";
+    const rs = String(tournamentRegistrationStructure || "team").trim().toLowerCase();
+    const matePh =
+      rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL
+        ? "Another player on this scorecard"
+        : "Another player on this team";
+    if(joinMate1) joinMate1.placeholder = matePh;
+    if(joinMate2) joinMate2.placeholder = matePh;
+    if(joinMate3) joinMate3.placeholder = matePh;
+    if(joinMate4) joinMate4.placeholder = matePh;
+    if(joinMate5) joinMate5.placeholder = matePh;
 
-    if(joinBtn) joinBtn.textContent = "Join & Start Scoring";
+    if(joinBtn) joinBtn.textContent = "Start scoring";
     if(joinCancel) joinCancel.style.display = "";
   }
 }
@@ -3455,9 +4027,12 @@ function startLiveAlertListener(){
 /** Load tournament from URL; returns true if the scorecard was built from Firestore (format/rows correct). */
 async function checkTournamentFromURL(){
   const params = new URLSearchParams(location.search);
-  const { orgId, tournamentId: tId } = parseOrgTournamentFromSearch(params);
+  const orgId = getResolvedOrgId(params);
+  const tId = getResolvedTournamentId(params);
   const regId = (params.get("registration") || params.get("r") || "").trim();
 
+  console.log("Tournament ID:", tId || "(none)");
+  console.log("Registration ID:", regId || "(none)");
   console.info("[scorecard] URL search:", location.search || "(empty)");
   console.info("[scorecard] parsed orgId:", orgId || "(none)", "tournamentId:", tId || "(none)", "registration:", regId || "(none)");
 
@@ -3465,11 +4040,11 @@ async function checkTournamentFromURL(){
 
   organizationId = orgId;
   tournamentId = tId;
-  const savedTeamId = localStorage.getItem(`scorecard_selected_team_t_${tId}_v1`); 
-  incomingRegistrationId = regId;
   isTournamentMode = true;
+  const savedTeamId = localStorage.getItem(selectionKey());
+  incomingRegistrationId = regId;
   joinCompleted = !!savedTeamId;
-  if (savedTeamId && !incomingRegistrationId) {
+  if (savedTeamId && !incomingRegistrationId && !String(savedTeamId).startsWith(PLAY_GROUP_LIST_PREFIX)) {
     incomingRegistrationId = savedTeamId;
   }
   roundFinished = false;
@@ -3489,6 +4064,8 @@ async function checkTournamentFromURL(){
       playersCount = formatToPlayersCount(tournamentFormat);
       tournamentEntryMode = String(t.entryMode || "team_rep").trim().toLowerCase();
       tournamentStartType = normalizeAssignmentType(t);
+      tournamentRegistrationStructure = resolveRegistrationStructure(t);
+      syncJoinPickerCopy();
 
       await applyTournamentCourseSelection(t, organizationId);
 
@@ -3506,30 +4083,47 @@ async function checkTournamentFromURL(){
       const tournamentMetaText = `${t.tournamentName || t.name || "Tournament"}${(t.eventDate || t.date) ? " • " + (t.eventDate || t.date) : ""}`;
 
       if(incomingRegistrationId){
+        if (String(incomingRegistrationId).startsWith(PLAY_GROUP_LIST_PREFIX)) {
+          await loadRegistrations();
+          const pgid = String(incomingRegistrationId).slice(PLAY_GROUP_LIST_PREFIX.length);
+          const g = loadedPlayGroups.find((x) => x.id === pgid);
+          console.info("[scorecard] playGroup id from link:", pgid, "found:", !!g);
+          if (g) {
+            saveSelectedRegistrationId(incomingRegistrationId);
+            joinCompleted = true;
+            await autoStartFromPlayGroup(g);
+            console.info("[scorecard] after autoStartFromPlayGroup — joinCompleted:", joinCompleted, "format:", tournamentFormat);
+            return true;
+          }
+          console.warn("[scorecard] play group id in URL but document not found.");
+          joinCompleted = false;
+          isCasualMode = false;
+          build();
+          teamPickerScreen.style.display = "none";
+          joinScreen.style.display = "none";
+          setPreJoinLock(true, "This play group could not be found for this tournament.");
+          return true;
+        }
+
         const reg = await fetchRegistrationById(incomingRegistrationId);
+        console.log("Loaded registration:", reg || null);
         console.info("[scorecard] tournament format:", tournamentFormat, "playersCount:", playersCount, "joinCompleted (pre-auto):", joinCompleted);
         console.info("[scorecard] selectedRegistrationId:", incomingRegistrationId, "fetched registration:", reg ? { id: reg.id, teamName: reg.teamName, assignedHole: reg.assignedHole, players: reg.players } : null);
         if(reg){
-          localStorage.setItem(
-  `scorecard_selected_team_t_${tournamentId}_v1`,
-  incomingRegistrationId
-);
+          saveSelectedRegistrationId(incomingRegistrationId);
 joinCompleted = true;
 
           await autoStartFromRegistration(reg);
           console.info("[scorecard] after autoStartFromRegistration — joinCompleted:", joinCompleted, "format:", tournamentFormat);
           return true;
         }
-        console.warn("[scorecard] registration id in URL but document not found (check ?org= matches organizer org).");
+        console.warn("[scorecard] registration id in URL but document not found (check org path or legacy top-level tournament).");
+        joinCompleted = false;
+        isCasualMode = false;
         build();
         teamPickerScreen.style.display = "none";
         joinScreen.style.display = "none";
-        if (lockBanner) {
-          lockBanner.textContent =
-            "This team scorecard could not be loaded. Open the link from the roster (Team card) or registration confirmation.";
-          lockBanner.classList.add("show");
-        }
-        setPreJoinLock(true);
+        setPreJoinLock(true, "This team registration could not be found for this tournament.");
         return true;
       }
 
@@ -3553,10 +4147,19 @@ joinCompleted = true;
         await loadRegistrations();
 
         const savedRegId = loadSelectedRegistrationId();
-        if(savedRegId){
-          const found = loadedRegistrations.find(x => x.id === savedRegId);
-          if(found){
-            applyRegistrationSelection(found);
+        if (savedRegId) {
+          if (String(savedRegId).startsWith(PLAY_GROUP_LIST_PREFIX)) {
+            const pgid = String(savedRegId).slice(PLAY_GROUP_LIST_PREFIX.length);
+            const g = loadedPlayGroups.find((x) => x.id === pgid);
+            if (g) {
+              const regById = new Map(loadedRegistrations.map((r) => [r.id, r]));
+              applyRegistrationSelection(buildSyntheticRegistrationFromPlayGroup(g, regById));
+            }
+          } else {
+            const found = loadedRegistrations.find((x) => x.id === savedRegId);
+            if (found) {
+              applyRegistrationSelection(found);
+            }
           }
         }
       }
@@ -3571,6 +4174,105 @@ joinCompleted = true;
     hideScorecardSponsorTicker();
   }
   return false;
+}
+
+function getResolvedTournamentId(params) {
+  return String(
+    params.get("tournamentId") ||
+    params.get("id") ||
+    params.get("t") ||
+    ""
+  ).trim();
+}
+
+function getResolvedCourseId(params) {
+  return String(params.get("courseId") || params.get("c") || "").trim();
+}
+
+function getResolvedOrgId(params) {
+  return String(
+    params.get("orgId") ||
+    params.get("organizationId") ||
+    params.get("org") ||
+    params.get("o") ||
+    ""
+  ).trim();
+}
+
+function resolveScorecardMode(params) {
+  const modeRaw = String(params.get("mode") || "").trim().toLowerCase();
+  const forceCasual = modeRaw === "casual" || modeRaw === "daily";
+  const resolvedTournamentId = getResolvedTournamentId(params);
+  const resolvedCourseId = getResolvedCourseId(params);
+  const resolvedOrgId = getResolvedOrgId(params);
+  const registrationFromUrl = String(params.get("registration") || params.get("r") || "").trim();
+
+  if (registrationFromUrl && resolvedTournamentId) {
+    return {
+      mode: "tournament",
+      reason: "tournament + registration in URL (team scorecard link)",
+      resolvedTournamentId,
+      resolvedCourseId,
+      resolvedOrgId
+    };
+  }
+
+  if (forceCasual) {
+    if (!resolvedCourseId) {
+      return {
+        mode: "incomplete",
+        reason: "mode forced casual but courseId missing",
+        resolvedTournamentId,
+        resolvedCourseId,
+        resolvedOrgId
+      };
+    }
+    return {
+      mode: "casual_course",
+      reason: "mode param forced casual",
+      resolvedTournamentId,
+      resolvedCourseId,
+      resolvedOrgId
+    };
+  }
+  if (resolvedTournamentId) {
+    return {
+      mode: "tournament",
+      reason: "tournament id present",
+      resolvedTournamentId,
+      resolvedCourseId,
+      resolvedOrgId
+    };
+  }
+  if (resolvedCourseId) {
+    return {
+      mode: "casual_course",
+      reason: "course id present without tournament id",
+      resolvedTournamentId,
+      resolvedCourseId,
+      resolvedOrgId
+    };
+  }
+  return {
+    mode: "incomplete",
+    reason: "missing tournamentId and courseId",
+    resolvedTournamentId,
+    resolvedCourseId,
+    resolvedOrgId
+  };
+}
+
+function showIncompleteScorecardLinkMessage() {
+  const msg = "This scorecard link is incomplete. Ask your organizer for a valid tournament or daily course scorecard link.";
+  setPreJoinLock(true);
+  if (teamPickerScreen) teamPickerScreen.style.display = "none";
+  if (joinScreen) joinScreen.style.display = "none";
+  if (lockBanner) {
+    lockBanner.textContent = msg;
+    lockBanner.classList.add("show");
+  } else {
+    alert(msg);
+  }
 }
 
 function showStandaloneCourseError(msg) {
@@ -3589,11 +4291,129 @@ function showStandaloneCourseError(msg) {
   }
 }
 
+function getStoredPreferredOrgId() {
+  try {
+    return String(
+      sessionStorage.getItem("selectedOrgId") ||
+      localStorage.getItem("selectedOrgId") ||
+      sessionStorage.getItem("orgId") ||
+      localStorage.getItem("orgId") ||
+      ""
+    ).trim();
+  } catch (_e) {
+    return "";
+  }
+}
+
+function getStoredPreferredCourseId() {
+  try {
+    return String(
+      sessionStorage.getItem("selectedCourseId") ||
+      localStorage.getItem("selectedCourseId") ||
+      ""
+    ).trim();
+  } catch (_e) {
+    return "";
+  }
+}
+
+function resolveFallbackOrgIdForCasual(params) {
+  return getResolvedOrgId(params) || getStoredPreferredOrgId();
+}
+
+function applyResolvedCasualCourse(orgParam, courseParam, resolved) {
+  const storeKey = String(resolved.resolvedCourseDocId || resolved.course.id || courseParam).trim();
+  const loaded = resolved.course;
+  loaded.id = storeKey;
+  COURSES[storeKey] = loaded;
+  currentCourseId = storeKey;
+  isCasualMode = true;
+  isTournamentMode = false;
+  tournamentId = null;
+  tournamentFormat = "stroke";
+  casualCourseId = storeKey;
+  organizationId = orgParam;
+  joinCompleted = true;
+  roundFinished = false;
+  finishedHolesCount = null;
+  playersCount = 6;
+  rosterNames = [];
+  teamPickerScreen.style.display = "none";
+  joinScreen.style.display = "none";
+  return { storeKey, loaded };
+}
+
+async function resolveDefaultCourseForOrg(orgId) {
+  if (!db || !orgId) return null;
+  const preferredCourse = getStoredPreferredCourseId();
+  const candidateIds = [];
+  const addCandidate = (v) => {
+    const s = String(v || "").trim();
+    if (!s || candidateIds.includes(s)) return;
+    candidateIds.push(s);
+  };
+
+  addCandidate(preferredCourse);
+
+  try {
+    const orgSnap = await getDoc(doc(db, "organizations", orgId));
+    if (orgSnap.exists()) {
+      const d = orgSnap.data() || {};
+      addCandidate(d.defaultCourseId);
+      addCandidate(d.defaultCourse);
+      addCandidate(d.courseDefault);
+      addCandidate(d.courseId);
+      addCandidate(d.selectedCourseId);
+    }
+  } catch (e) {
+    console.warn("[scorecard] org default course lookup failed", { orgId, error: e });
+  }
+
+  for (const candidateId of candidateIds) {
+    const resolved = await resolveStandaloneCourseStrict(orgId, candidateId);
+    if (resolved?.course) {
+      return { resolved, source: "organization default field", candidateId };
+    }
+  }
+
+  try {
+    const snap = await getDocs(collection(db, "organizations", orgId, "courses"));
+    if (snap.empty) return null;
+    let picked = snap.docs.find((d) => {
+      const data = d.data() || {};
+      return data.isDefault === true || data.defaultCourse === true;
+    });
+    if (!picked) {
+      picked = snap.docs.find((d) => {
+        const data = d.data() || {};
+        return data.active !== false && data.archived !== true;
+      }) || snap.docs[0];
+    }
+    if (!picked) return null;
+    const data = picked.data() || {};
+    const built = tryBuildOrgCourseFromDoc(data, picked.id) || courseFromFirestoreData(data, picked.id);
+    if (!built) return null;
+    return {
+      resolved: {
+        course: built,
+        resolvedCourseDocId: picked.id,
+        headerSource: detectHeaderSourceForLog(picked.id, data, COURSES[picked.id]?.headerImg),
+        lookupPath: "orgCourses:first-available"
+      },
+      source: "first available course",
+      candidateId: picked.id
+    };
+  } catch (e) {
+    console.warn("[scorecard] org courses fallback lookup failed", { orgId, error: e });
+    return null;
+  }
+}
+
 /** Load standalone everyday-play course from URL (?orgId=...&courseId=...). */
 async function checkStandaloneCourseFromURL() {
   const params = new URLSearchParams(location.search);
-  const courseParam = String(params.get("courseId") || params.get("c") || "").trim();
-  const orgParam = String(params.get("orgId") || params.get("organizationId") || params.get("org") || "").trim();
+  const courseParam = getResolvedCourseId(params);
+  const orgParam = getResolvedOrgId(params);
   if (!courseParam) return false;
 
   console.info("[scorecard] standalone course URL params", {
@@ -3625,16 +4445,7 @@ async function checkStandaloneCourseFromURL() {
     return false;
   }
 
-  const storeKey = String(resolved.resolvedCourseDocId || resolved.course.id || courseParam).trim();
-  const loaded = resolved.course;
-  loaded.id = storeKey;
-  COURSES[storeKey] = loaded;
-  currentCourseId = storeKey;
-  isCasualMode = true;
-  casualCourseId = storeKey;
-  organizationId = orgParam;
-  teamPickerScreen.style.display = "none";
-  joinScreen.style.display = "none";
+  const { storeKey } = applyResolvedCasualCourse(orgParam, courseParam, resolved);
   console.info("[scorecard] standalone resolved course", {
     incomingCourseId: courseParam,
     incomingOrgId: orgParam,
@@ -3686,6 +4497,7 @@ joinBtn.addEventListener("click", async () => {
     }
 
     selectedRegistrationId = "";
+    selectedPlayGroupId = "";
     clearSelectedRegistrationId();
   }
   else if (tournamentEntryMode === "team_rep") {
@@ -3703,6 +4515,7 @@ joinBtn.addEventListener("click", async () => {
     }
 
     selectedRegistrationId = "";
+    selectedPlayGroupId = "";
     clearSelectedRegistrationId();
   }
   else {
@@ -3713,8 +4526,17 @@ joinBtn.addEventListener("click", async () => {
     }
 
     if (pendingRegistration) {
-      selectedRegistrationId = pendingRegistration.id || "";
-      saveSelectedRegistrationId(selectedRegistrationId);
+      if (pendingRegistration.playGroupId) {
+        selectedPlayGroupId = String(pendingRegistration.playGroupId);
+        selectedRegistrationId = String(
+          pendingRegistration.primaryRegistrationId || pendingRegistration.id || ""
+        );
+        saveSelectedRegistrationId(PLAY_GROUP_LIST_PREFIX + selectedPlayGroupId);
+      } else {
+        selectedPlayGroupId = "";
+        selectedRegistrationId = pendingRegistration.id || "";
+        saveSelectedRegistrationId(selectedRegistrationId);
+      }
     }
 
     const matesRaw = [
@@ -3798,33 +4620,104 @@ refreshBtn.addEventListener("click", () => {
 
 wireButtons();
 
+async function initTournamentScorecard() {
+  const ok = await checkTournamentFromURL();
+  if (!ok) {
+    build();
+  }
+}
+
+async function initCasualCourseScorecard() {
+  const ok = await checkStandaloneCourseFromURL();
+  if (!ok) {
+    showStandaloneCourseError("Course data not found for this link");
+    return false;
+  }
+  build();
+  await refreshCasualCourseSelectOptions();
+  updateCasualCourseUrl(currentCourseId);
+  return true;
+}
+
+async function initDefaultCasualScorecardForOrg(params) {
+  const orgId = resolveFallbackOrgIdForCasual(params);
+  if (lockBanner) {
+    lockBanner.textContent = "Loading scorecard…";
+    lockBanner.classList.add("show");
+  }
+  if (orgId) {
+    const fallback = await resolveDefaultCourseForOrg(orgId);
+    if (fallback?.resolved?.course) {
+      const pickedCourseId = String(fallback.resolved.resolvedCourseDocId || fallback.candidateId || "").trim();
+      const { storeKey } = applyResolvedCasualCourse(orgId, pickedCourseId, fallback.resolved);
+      console.info("[scorecard] default casual course resolved", {
+        resolvedOrgId: orgId,
+        resolvedCourseId: storeKey,
+        source: fallback.source
+      });
+      build();
+      return true;
+    }
+  }
+
+  const preferredCourseId = getStoredPreferredCourseId();
+  const fallbackBuiltInCourseId =
+    (preferredCourseId && COURSES[preferredCourseId]) ? preferredCourseId : DEFAULT_PUBLIC_COURSE_ID;
+  const builtInCourse = COURSES[fallbackBuiltInCourseId];
+  if (!builtInCourse) return false;
+
+  const resolvedFallback = {
+    course: { ...builtInCourse },
+    resolvedCourseDocId: fallbackBuiltInCourseId,
+    headerSource: "builtInDefault",
+    lookupPath: "built-in-default"
+  };
+  const { storeKey } = applyResolvedCasualCourse(orgId || "", fallbackBuiltInCourseId, resolvedFallback);
+  console.info("[scorecard] default casual course resolved", {
+    resolvedOrgId: orgId || "(none)",
+    resolvedCourseId: storeKey,
+    source: orgId ? "built-in fallback after org default miss" : "built-in site default"
+  });
+  build();
+  await refreshCasualCourseSelectOptions();
+  updateCasualCourseUrl(storeKey);
+  return true;
+}
+
 (async function boot() {
   const params = new URLSearchParams(location.search);
-  const hasStandaloneCourseId = Boolean(String(params.get("courseId") || params.get("c") || "").trim());
+  const resolved = resolveScorecardMode(params);
+  console.info("[scorecard] Scorecard mode:", resolved.mode === "tournament" ? "tournament" : resolved.mode === "casual_course" ? "casual course" : "incomplete");
+  console.info("[scorecard] Resolved orgId:", resolved.resolvedOrgId || "(none)");
+  console.info("[scorecard] Resolved courseId:", resolved.resolvedCourseId || "(none)");
+  console.info("[scorecard] Resolved tournamentId:", resolved.resolvedTournamentId || "(none)");
+  console.info("[scorecard] Mode resolver reason:", resolved.reason);
+
   try {
-    const { tournamentId: tId } = parseOrgTournamentFromSearch(params);
-
-    if (tId) {
-      await checkTournamentFromURL();
-      build();// tournament flow (we’ll wire this next)
-    } else if (hasStandaloneCourseId) {
-      const ok = await checkStandaloneCourseFromURL();
-      if (ok) {
-        build(); // standalone everyday-play course mode
-      } else {
-        showStandaloneCourseError("Course data not found for this link");
-      }
-    } else {
-      build(); // default/test scorecard
+    if (resolved.mode === "tournament") {
+      await initTournamentScorecard();
+      return;
     }
-
+    if (resolved.mode === "casual_course") {
+      await initCasualCourseScorecard();
+      return;
+    }
+    const loadedDefaultCasual = await initDefaultCasualScorecardForOrg(params);
+    if (loadedDefaultCasual) return;
+    showIncompleteScorecardLinkMessage();
   } catch (err) {
     console.error("Tournament load failed:", err);
-    if (hasStandaloneCourseId) {
+    if (resolved.mode === "casual_course") {
       showStandaloneCourseError("Course data not found for this link");
       return;
     }
-    build();
+    if (resolved.mode === "tournament") {
+      build();
+      return;
+    }
+    const loadedDefaultCasual = await initDefaultCasualScorecardForOrg(params);
+    if (loadedDefaultCasual) return;
+    showIncompleteScorecardLinkMessage();
   }
 })();
 </script>

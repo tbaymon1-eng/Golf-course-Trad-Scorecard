@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="ops-typography">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
@@ -402,6 +402,46 @@
       word-break:break-word;
     }
 
+    .adminTeamJoinLinksHost{
+      max-height: 380px;
+      overflow: auto;
+      border: 4px solid #d5d5d5;
+      border-radius: 20px;
+      background: #f9f9f9;
+      padding: 4px 0;
+    }
+    .adminTeamJoinRow{
+      padding: 12px 16px;
+      border-bottom: 1px solid #e4e4e4;
+    }
+    .adminTeamJoinRow:last-child{ border-bottom: none; }
+    .adminTeamJoinName{ font-weight: 800; font-size: 15px; color: #2b2724; margin-bottom: 6px; }
+    .adminTeamJoinUrlA{
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      word-break: break-all;
+      color: #0d2a55;
+      text-decoration: underline;
+    }
+    .adminTeamJoinRowActions{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .adminTeamJoinQr{
+      width: 120px;
+      min-height: 120px;
+      border: 2px solid #d5d5d5;
+      border-radius: 12px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .qr-box{
       min-height:148px;
       border-radius:24px;
@@ -433,6 +473,27 @@
       font-size:clamp(16px, 2.2vw, 19px);
       line-height:1.12;
       font-weight:700;
+    }
+    .operator-success{
+      margin-top:16px;
+      padding:16px;
+      border-radius:18px;
+      border:3px solid rgba(47,122,49,.45);
+      background: rgba(47,122,49,.08);
+    }
+    .operator-success.hidden{ display:none; }
+    .operator-success-title{
+      margin:0 0 6px;
+      font-family:"Cinzel", serif;
+      font-size:clamp(22px, 3vw, 30px);
+      font-weight:800;
+      color:#1f4c20;
+    }
+    .operator-success-sub{
+      margin:0 0 12px;
+      font-size:clamp(15px, 2.1vw, 18px);
+      font-weight:700;
+      color:#355f36;
     }
 
     .sponsor-list{
@@ -581,6 +642,7 @@
       .row-2{ grid-template-columns:1fr 1fr; }
     }
   </style>
+  <link rel="stylesheet" href="./css/operations-typography.css" />
 </head>
 <body>
   <div class="page">
@@ -628,31 +690,84 @@
 
         <div class="dash-box setup-section">
           <header class="setup-section-header">
-            <p class="section-phase">How people register</p>
-            <h2 class="dash-title">Roster &amp; sign-up</h2>
+            <p class="section-phase">Players &amp; registration</p>
+            <h2 class="dash-title">Players &amp; registration</h2>
             <p class="section-lede" id="adminRosterSignupLede">Decide how names get on the list—public link, optional bulk spreadsheet, or both—and who receives confirmations.</p>
           </header>
 
           <div id="adminEventTypeCallout" class="muted-block hidden" style="margin-top:4px;padding:12px 14px;border-radius:12px;border:2px dashed rgba(154,98,23,.45);"></div>
 
           <div class="field">
-            <label class="label" for="registrantSourceMode">Registrant source</label>
+            <label class="label" for="registrantSourceMode">How players are added</label>
             <select id="registrantSourceMode">
-              <option value="both">Both (registration link + upload)</option>
-              <option value="registration_link">Registration link only</option>
-              <option value="upload">Upload Excel/CSV only</option>
+              <option value="both">Public link and spreadsheet import</option>
+              <option value="registration_link">Public sign-up link only</option>
+              <option value="upload">Spreadsheet import only (Excel / CSV)</option>
             </select>
-            <div class="hint">Who may add players: public link, organizer import, or both.</div>
+            <div class="hint">Choose whether players register with a link, you upload a list, or both.</div>
           </div>
 
           <div class="field" id="adminTeamEntryModeSection">
-            <label class="label" for="entryMode" id="adminEntryModeLabel">Team Setup</label>
+            <label class="label" for="entryMode" id="adminEntryModeLabel">Scorecard Access Mode</label>
             <select id="entryMode">
-              <option value="onsite">On-Site Player Entry</option>
-              <option value="pre_event">Pre-Event Registration</option>
+              <option value="pre_event">Roster Only</option>
+              <option value="onsite">Open Entry</option>
+              <option value="team_rep">Team Captain Entry</option>
             </select>
             <div class="hint" id="adminEntryModeHint">
-              Choose how participants join this event (on-site vs pre-registration).
+              Choose how players will get into the scorecard during the event.
+            </div>
+            <div class="hint" id="adminEntryModeOptionHint"></div>
+          </div>
+
+          <div id="adminRegistrationModelSection" class="hidden">
+            <div class="field">
+              <label class="label" for="registrationStructure">Player / Team Signup Type</label>
+              <select id="registrationStructure">
+                <option value="team">Group / Team sign-up</option>
+                <option value="single">Single player sign-up</option>
+                <option value="multi_individual">Multiple individual players per sign-up</option>
+              </select>
+              <div class="hint">Choose whether each signup represents one player or a group/team.</div>
+            </div>
+            <div class="field">
+              <label class="label">How is this event scored?</label>
+              <div id="scoringTypeGroup" role="radiogroup" aria-label="How is this event scored?" style="display:grid; gap:8px;">
+                <label style="display:flex;align-items:center;gap:10px;">
+                  <input type="radio" name="scoringType" id="scoringTypeTeam" value="team" />
+                  <span>Team scoring</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;">
+                  <input type="radio" name="scoringType" id="scoringTypeIndividual" value="individual" />
+                  <span>Individual scoring</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;">
+                  <input type="radio" name="scoringType" id="scoringTypeNone" value="none" />
+                  <span>No scoring (event only)</span>
+                </label>
+              </div>
+              <div class="hint">Tip: team formats (scramble / best ball) usually use team scoring; stroke play usually uses individual scoring.</div>
+            </div>
+            <div class="field">
+              <label class="label" for="participantCountMode">How many people per sign-up?</label>
+              <select id="participantCountMode">
+                <option value="flex">Let the count vary within a range</option>
+                <option value="fixed">Same number every time</option>
+              </select>
+              <div class="hint">Separate from sign-up timing above. Use this for how many named people one form can include when you allow multiple players under one contact.</div>
+            </div>
+            <div class="field" id="minParticipantsField">
+              <label class="label" for="minParticipantsPerRegistration">Minimum people listed on one sign-up</label>
+              <input id="minParticipantsPerRegistration" type="number" min="1" max="20" step="1" value="1" />
+            </div>
+            <div class="field" id="maxParticipantsField">
+              <label class="label" for="maxParticipantsPerRegistration">Maximum people listed on one sign-up</label>
+              <input id="maxParticipantsPerRegistration" type="number" min="1" max="20" step="1" value="6" />
+            </div>
+            <div class="field hidden" id="defaultParticipantsField">
+              <label class="label" for="defaultParticipantsPerRegistration">Starting number of name slots (when count can vary)</label>
+              <input id="defaultParticipantsPerRegistration" type="number" min="1" max="20" step="1" value="4" />
+              <div class="hint">Shown as the first number of blank name lines when the count can vary. If you chose “Same number every time,” the min and max below should match that size.</div>
             </div>
           </div>
 
@@ -757,10 +872,10 @@
               <table class="csv-preview-table" id="csvPreviewTable">
                 <thead id="csvPreviewHead">
                   <tr>
-                    <th>Team Name</th>
+                    <th>Team or group</th>
                     <th>Players</th>
-                    <th>Captain Email</th>
-                    <th>Captain Phone</th>
+                    <th>Contact email</th>
+                    <th>Contact phone</th>
                   </tr>
                 </thead>
                 <tbody id="csvPreviewBody"></tbody>
@@ -777,8 +892,8 @@
 
         <div class="dash-box setup-section">
           <header class="setup-section-header">
-            <p class="section-phase">How it runs</p>
-            <h2 class="dash-title">Course, schedule &amp; start</h2>
+            <p class="section-phase">Course &amp; date</p>
+            <h2 class="dash-title">Course &amp; date</h2>
             <p class="section-lede" id="adminCourseScheduleLede">Set date, status (draft / live / closed), and default venue or course when your format uses it. <b>Tournament</b> events also use <b>Starts &amp; assignments</b> next.</p>
           </header>
 
@@ -807,7 +922,7 @@
 
         <div class="dash-box setup-section" id="golfStartAssignmentSection">
           <header class="setup-section-header">
-            <p class="section-phase">Tournament only</p>
+            <p class="section-phase">Day-of setup</p>
             <h2 class="dash-title">Starts &amp; assignments</h2>
             <p class="section-lede">Shotgun waves or tee times—assign groups to starting holes or clock times.</p>
           </header>
@@ -883,7 +998,7 @@
 
         <div class="dash-box setup-section" id="adminScoringFormatSection">
           <header class="setup-section-header">
-            <p class="section-phase">How it’s scored</p>
+            <p class="section-phase">Format &amp; scoring</p>
             <h2 class="dash-title">Format, handicaps &amp; games</h2>
             <p class="section-lede" id="adminScoringSectionLede">Competition format and scoring—primarily for golf. Clinics, camps, or general events can leave unused fields at default.</p>
           </header>
@@ -977,7 +1092,7 @@
 
         <div class="dash-box setup-section">
           <header class="setup-section-header">
-            <p class="section-phase">Look &amp; feel</p>
+            <p class="section-phase">Branding / sponsors</p>
             <h2 class="dash-title">Sponsors &amp; branding</h2>
             <p class="section-lede" id="adminSponsorSectionLede">
               Optional sponsor logos and names for marketing and revenue—shown on attendee-facing surfaces for this event type.
@@ -1069,7 +1184,7 @@
 
         <div class="action-stack">
           <header class="setup-section-header">
-            <p class="section-phase">Publish</p>
+            <p class="section-phase">Create event / publish links</p>
             <h2 class="dash-title">Create, load, or save</h2>
             <p class="section-lede">When the setup above looks right, create a new event or load one you’ve already saved—then share links below.</p>
           </header>
@@ -1088,11 +1203,18 @@
           </header>
 
           <div class="field">
-            <label class="label">Join Link</label>
+            <label class="label">Join Link (tournament — no team pre-selected)</label>
             <div id="joinLinkBox" class="readonly-box">—</div>
+            <p class="hint" style="margin:6px 0 0;">Opens the event scorecard flow. For a <b>team-specific</b> scorecard, use a link with <code>registration=</code> below or on Roster.</p>
           </div>
 
           <button class="btn btn-ghost" id="copyJoinBtn" type="button">Copy Join</button>
+
+          <div class="field" style="margin-top:14px;">
+            <label class="label">Team scorecard links (per registration id)</label>
+            <p class="hint" style="margin:0 0 8px;">Each row includes <code>registration=</code> so that team loads automatically on the scorecard.</p>
+            <div id="adminTeamJoinLinksHost" class="adminTeamJoinLinksHost" aria-live="polite">—</div>
+          </div>
 
           <div id="adminShareLeaderboardLinksGroup">
           <div class="field">
@@ -1116,7 +1238,7 @@
             <div class="field">
               <label class="label">Registration Link</label>
               <div id="registrationLinkBox" class="readonly-box">—</div>
-              <div class="hint" id="adminRegistrationLinkHint">Use this link for player or team registration.</div>
+              <div class="hint" id="adminRegistrationLinkHint">Share this link so players or teams can sign up online.</div>
             </div>
 
             <button class="btn btn-ghost" id="copyRegistrationBtn" type="button">Copy Registration</button>
@@ -1151,6 +1273,11 @@
           <div class="muted-block">
             Tip: after you create or load, tap Copy and you’ll see “✔ Copied” + a toast.
           </div>
+          <div id="operatorGuideSuccess" class="operator-success hidden" aria-live="polite">
+            <h3 class="operator-success-title">Tournament Created Successfully</h3>
+            <p class="operator-success-sub">Run this event from one simple operator guide.</p>
+            <a class="btn btn-green" id="openOperatorGuideBtn" href="./operator.html">Open Operator Guide</a>
+          </div>
         </div>
       </section>
     </div>
@@ -1180,6 +1307,8 @@
     tournamentDocRef,
     tournamentRegistrationsCollection,
     tournamentRegistrationDoc,
+    applyOrgTournamentParams,
+    buildTournamentIndexJoinUrl,
   } from "./js/org-paths.js";
   import {
     resolveOrganizerOrgId,
@@ -1338,6 +1467,10 @@
 
   /** While true, skip applyLinks so share boxes are not cleared before Firestore hydrate. */
   let adminBootstrapping = true;
+  let adminForcedNewMode = false;
+  let isCreatingTournament = false;
+  let lastCreateTapTs = 0;
+  let showOperatorGuideSuccess = false;
   let authRole = "";
   let profileOrgId = "";
   let csvImportHeaders = [];
@@ -1386,6 +1519,7 @@
       read(sessionStorage, LS_SELECTED_ORG) ||
       read(localStorage, LS_SELECTED_ORG) ||
       read(sessionStorage, SS_DASHBOARD_ADMIN_ORG) ||
+      read(sessionStorage, "activeOrgId") ||
       read(sessionStorage, "orgId") ||
       ""
     );
@@ -1395,6 +1529,7 @@
     const oid = String(orgId || "").trim();
     if (!oid) return;
     try { sessionStorage.setItem("orgId", oid); } catch (_e) {}
+    try { sessionStorage.setItem("activeOrgId", oid); } catch (_e) {}
     try { sessionStorage.setItem(LS_SELECTED_ORG, oid); } catch (_e) {}
     try { sessionStorage.setItem(SS_DASHBOARD_ADMIN_ORG, oid); } catch (_e) {}
     try { localStorage.setItem(LS_SELECTED_ORG, oid); } catch (_e) {}
@@ -1433,7 +1568,7 @@
       }
     }
     if (fh) {
-      const hasStored = Boolean(readLastTournamentId(state.orgId));
+      const hasStored = adminForcedNewMode ? false : Boolean(readLastTournamentId(state.orgId));
       fh.classList.toggle("hidden", Boolean(state.tournamentId || hasStored));
     }
   }
@@ -1469,11 +1604,11 @@
 
   function buildLinks(orgId, id, token){
     const root = getBaseShareRoot();
-    const q = (path, extra) => {
+    const hrefBase = window.location.href;
+    const join = buildTournamentIndexJoinUrl(hrefBase, orgId, id, "", { log: true });
+    const mk = (path, extra) => {
       const url = new URL(path, root);
-      url.searchParams.set("id", id);
-      url.searchParams.set("t", id);
-      if (orgId) url.searchParams.set("org", orgId);
+      applyOrgTournamentParams(url, orgId, id);
       if (extra) {
         for (const [k, v] of Object.entries(extra)) {
           url.searchParams.set(k, v);
@@ -1482,11 +1617,35 @@
       return url.toString();
     };
     return {
-      join: q("index.html"),
-      leaderboard: q("leaderboard.html"),
-      roster: q("roster.html", { admin: token }),
-      registration: q("register-complete.html")
+      join,
+      leaderboard: mk("leaderboard.html"),
+      roster: mk("roster.html", { admin: token }),
+      registration: mk("register-complete.html")
     };
+  }
+
+  function buildOperatorGuideUrl(orgId, tournamentId, adminToken) {
+    const root = getBaseShareRoot();
+    const url = new URL("operator.html", root);
+    const tid = String(tournamentId || "").trim();
+    if (!tid) return url.toString();
+    applyOrgTournamentParams(url, orgId, tid);
+    const tok = String(adminToken || "").trim();
+    if (tok) {
+      url.searchParams.set("admin", tok);
+    }
+    return url.toString();
+  }
+
+  function updateOperatorGuideCta() {
+    const box = $("operatorGuideSuccess");
+    const btn = $("openOperatorGuideBtn");
+    if (!box || !btn) return;
+    const tid = String(state.tournamentId || "").trim();
+    const tok = $("adminToken")?.value?.trim() || String(state.adminToken || "").trim();
+    const href = buildOperatorGuideUrl(state.orgId, tid, tok);
+    btn.href = href;
+    box.classList.toggle("hidden", !(showOperatorGuideSuccess && tid));
   }
 
   function setBox(id, value){
@@ -1894,31 +2053,31 @@
 
     if (isGolf) {
       $("csvPreviewSummary").textContent =
-        `${regs.length} team(s) ready • ${totalPlayers} player line(s) • Format: ${formatLabel} • Team-size assumption: ${autoSize} • Source rows: ${srcRows}`;
+        `${regs.length} team row(s) ready • ${totalPlayers} player name(s) • Format: ${formatLabel} • Assuming about ${autoSize} players per team • Source rows: ${srcRows}`;
     } else {
       $("csvPreviewSummary").textContent =
-        `${regs.length} registration row(s) • ${totalPlayers} player name(s) • Source rows: ${srcRows}`;
+        `${regs.length} sign-up row(s) • ${totalPlayers} name(s) • Source rows: ${srcRows}`;
     }
 
     const avg = regs.length ? (totalPlayers / regs.length) : 0;
     let warning = "";
-    if (!regs.length || !totalPlayers) warning = "Warning: no usable rows detected for this setup.";
-    else if (isGolf && avg < 1) warning = "Warning: average players per team is very low.";
-    else if (isGolf && avg > 4.5) warning = "Warning: average players per team is unusually high.";
+    if (!regs.length || !totalPlayers) warning = "No usable rows found for this import setup.";
+    else if (isGolf && avg < 1) warning = "Very few player names per team—double-check your column mapping.";
+    else if (isGolf && avg > 4.5) warning = "Unusually many player names per team—double-check your column mapping.";
     $("csvPreviewWarning").textContent = warning;
 
     const head = $("csvPreviewHead");
     if (head) {
       head.innerHTML = isGolf
         ? `<tr>
-            <th>Team Name</th>
+            <th>Team or group</th>
             <th>Players</th>
-            <th>Captain Email</th>
-            <th>Captain Phone</th>
+            <th>Contact email</th>
+            <th>Contact phone</th>
           </tr>`
         : `<tr>
-            <th>Team / label</th>
-            <th>Captain / primary</th>
+            <th>Group or label</th>
+            <th>Primary contact</th>
             <th>Session</th>
             <th>Time / group</th>
             <th>Email</th>
@@ -2393,6 +2552,7 @@
     toggle("adminScoringFormatSection", vis.showFormatSection, "format_scoring");
     toggle("golfStartAssignmentSection", vis.showStartsAssignmentsSection, "starts_assignments");
     toggle("adminTeamEntryModeSection", vis.showTeamRegistrationOptions, "team_entry_mode");
+    toggle("adminRegistrationModelSection", vis.showTeamRegistrationOptions, "registration_model");
     toggle("adminDefaultCourseField", vis.showVenueCourseField, "default_course");
     toggle("adminShareLeaderboardLinksGroup", vis.showLeaderboardOptions, "leaderboard_links");
     toggle("adminShareLeaderboardQrGroup", vis.showLeaderboardOptions, "leaderboard_qr");
@@ -2482,17 +2642,18 @@
     const entryHint = $("adminEntryModeHint");
     if (entryLabel && entryHint) {
       if (vis.showTeamRegistrationOptions) {
-        entryLabel.textContent = "Team Setup";
-        entryHint.textContent = "Choose how participants join this event (on-site vs pre-registration).";
+        entryLabel.textContent = "Scorecard Access Mode";
+        entryHint.textContent =
+          "Choose how players will get into the scorecard during the event.";
       } else if (eventTypeKey === REGISTRATION_PAGE_EVENT_CLINIC) {
         entryLabel.textContent = "Check-in style";
-        entryHint.textContent = "Choose whether attendees register ahead of time or sign in on site.";
+        entryHint.textContent = "Choose whether people sign up ahead of time or check in when they arrive.";
       } else if (eventTypeKey === REGISTRATION_PAGE_EVENT_CAMP) {
-        entryLabel.textContent = "Participant signup style";
-        entryHint.textContent = "Choose whether participants enroll ahead of time or sign in on site.";
+        entryLabel.textContent = "Sign-up style";
+        entryHint.textContent = "Choose whether families sign up ahead of time or check in when they arrive.";
       } else {
-        entryLabel.textContent = "Registration style";
-        entryHint.textContent = "Choose whether people register ahead of time or check in on site.";
+        entryLabel.textContent = "Sign-up style";
+        entryHint.textContent = "Choose whether people sign up ahead of time or check in when they arrive.";
       }
     }
 
@@ -2511,13 +2672,13 @@
         callout.classList.remove("hidden");
         if (eventTypeKey === REGISTRATION_PAGE_EVENT_CLINIC) {
           callout.innerHTML =
-            "<b>Clinic setup</b> — Registration and roster use <b>attendee</b> rows (name, contact, optional session & instructor). Team and scoring tools stay hidden.";
+            "<b>Clinic</b> — The sign-up form and roster focus on each person’s name and contact, with optional session and instructor fields. Golf scoring tools stay hidden.";
         } else if (eventTypeKey === REGISTRATION_PAGE_EVENT_CAMP) {
           callout.innerHTML =
-            "<b>Camp setup</b> — Registration and roster use <b>participant</b> rows with optional session, group, and instructor fields. Golf scoring stays hidden.";
+            "<b>Camp</b> — The sign-up form and roster focus on each participant, with optional session, group, and instructor fields. Golf scoring tools stay hidden.";
         } else {
           callout.innerHTML =
-            "<b>General event</b> — Keep setup simple: date, status, roster source, and a flexible attendee registration form.";
+            "<b>General event</b> — Keep setup simple: date, status, how people get on the list, and a flexible sign-up form.";
         }
       }
     }
@@ -2528,6 +2689,8 @@
       hiddenSections: hidden,
       visibleSections: shown,
     });
+    syncEntryModeOptionHint();
+    syncParticipantSettingsAdminUI();
   }
 
   function syncEventCategoryAdminUI(){
@@ -2545,6 +2708,68 @@
     if (regQrCell) regQrCell.classList.toggle("hidden", hideRegLink);
     if (importBlock) importBlock.classList.toggle("hidden", hideImportUi);
     if (hideImportUi) clearCsvPreview(true);
+  }
+
+  function syncEntryModeOptionHint(){
+    const mode = String($("entryMode")?.value || "pre_event").trim().toLowerCase();
+    const hint = $("adminEntryModeOptionHint");
+    if (!hint) return;
+    if (mode === "onsite") {
+      hint.textContent = "Open Entry: Players can enter scores directly without registration.";
+      return;
+    }
+    if (mode === "team_rep") {
+      hint.textContent = "Team Captain Entry: One person can enter the team and submit scores.";
+      return;
+    }
+    hint.textContent = "Roster Only: Players must be registered or imported before scoring.";
+  }
+
+  function syncParticipantSettingsAdminUI(){
+    const rs = String($("registrationStructure")?.value || "team").trim().toLowerCase();
+    const mode = String($("participantCountMode")?.value || "flex").trim().toLowerCase();
+    const minWrap = $("minParticipantsField");
+    const maxWrap = $("maxParticipantsField");
+    const defWrap = $("defaultParticipantsField");
+    const minEl = $("minParticipantsPerRegistration");
+    const maxEl = $("maxParticipantsPerRegistration");
+    const defEl = $("defaultParticipantsPerRegistration");
+
+    const isSingle = rs === "single";
+    const supportsRange = rs !== "single";
+    const isFlex = supportsRange && mode === "flex";
+
+    if (minWrap) minWrap.classList.toggle("hidden", !supportsRange);
+    if (maxWrap) maxWrap.classList.toggle("hidden", !supportsRange);
+    if (defWrap) defWrap.classList.add("hidden");
+
+    if (!minEl || !maxEl || !defEl) return;
+    let minV = Math.max(1, Math.min(20, parseInt(String(minEl.value || "1"), 10) || 1));
+    let maxV = Math.max(1, Math.min(20, parseInt(String(maxEl.value || "6"), 10) || 6));
+    if (maxV < minV) maxV = minV;
+    minEl.value = String(minV);
+    maxEl.value = String(maxV);
+
+    if (isSingle) {
+      minEl.value = "1";
+      maxEl.value = "1";
+      defEl.value = "1";
+      return;
+    }
+
+    if (!isFlex) {
+      const fixed = Math.max(minV, maxV);
+      minEl.value = String(fixed);
+      maxEl.value = String(fixed);
+      defEl.value = String(fixed);
+      return;
+    }
+
+    const curDef = parseInt(String(defEl.value || "4"), 10);
+    const safeDefault = Number.isFinite(curDef)
+      ? Math.max(minV, Math.min(maxV, curDef))
+      : Math.max(minV, Math.min(maxV, 4));
+    defEl.value = String(safeDefault);
   }
 
   function selectOptionText(id){
@@ -2570,26 +2795,26 @@
     const catLabel = getEventTypeDisplayLabelFromStoredCategory($("eventCategory")?.value ?? "");
     parts.push(catLabel);
 
-    const name = String($("tournamentName")?.value || "").trim();
-    if (name) {
-      parts.push(name.length > 40 ? `${name.slice(0, 38)}…` : name);
-    }
-
     if (vis.showFormatSection && isGolf) {
       const fmt = String($("formatOfPlay")?.value || "").trim();
       if (fmt) parts.push(fmt);
     }
 
-    const course = selectOptionText("defaultCourse");
-    if (course && vis.showVenueCourseField) parts.push(course);
+    if (vis.showTeamRegistrationOptions) {
+      const em = String($("entryMode")?.value || "").toLowerCase();
+      if (em === "onsite" || em === "individual") parts.push("Open Entry");
+      else if (em === "team_rep") parts.push("Team Captain Entry");
+      else parts.push("Roster Only");
+
+      const rs = String($("registrationStructure")?.value || "team").trim().toLowerCase();
+      if (rs === "single") parts.push("Singles");
+      else if (rs === "multi_individual") parts.push("Individuals");
+      else parts.push("Teams");
+    }
 
     if (vis.showStartsAssignmentsSection && isGolf) {
       const st = String($("startType")?.value || "shotgun").toLowerCase();
       parts.push(st === "tee_times" ? "Tee Times" : "Shotgun Start");
-    } else if (!vis.showTeamRegistrationOptions) {
-      const em = String($("entryMode")?.value || "").toLowerCase();
-      if (em === "onsite" || em === "individual" || em === "team_rep") parts.push("On-Site Entry");
-      else parts.push("Pre-Registration");
     }
 
     parts.push(registrantSourceSummary());
@@ -2729,6 +2954,29 @@
     return { courseId: val, courseName: label || val, defaultCourse: val };
   }
 
+  function deriveScoringTypeFromFormat(formatValue){
+    const fmt = String(formatValue || "").trim().toLowerCase();
+    if (fmt.includes("scramble") || fmt.includes("best ball") || fmt.includes("bestball")) return "team";
+    return "individual";
+  }
+
+  function getSelectedScoringType(){
+    const checked = document.querySelector('input[name="scoringType"]:checked');
+    const raw = String(checked?.value || "").trim().toLowerCase();
+    if (raw === "team" || raw === "individual" || raw === "none") return raw;
+    return deriveScoringTypeFromFormat($("formatOfPlay")?.value || "Stroke Play");
+  }
+
+  function setSelectedScoringType(value){
+    const raw = String(value || "").trim().toLowerCase();
+    const resolved =
+      raw === "team" || raw === "individual" || raw === "none"
+        ? raw
+        : deriveScoringTypeFromFormat($("formatOfPlay")?.value || "Stroke Play");
+    const target = document.querySelector(`input[name="scoringType"][value="${resolved}"]`);
+    if (target) target.checked = true;
+  }
+
   function collectForm(){
     const handicapScoringValue = String($("handicapEnabled").value || "off").toLowerCase();
     const handicapOn = handicapScoringValue === "on";
@@ -2780,6 +3028,23 @@
       sponsors: state.sponsors,
       eventCategory: String($("eventCategory")?.value || EVENT_CATEGORY_GOLF).toLowerCase(),
       registrantSourceMode: String($("registrantSourceMode")?.value || REGISTRANT_SOURCE_MODE_BOTH).toLowerCase(),
+
+      registrationStructure: String($("registrationStructure")?.value || "team").trim().toLowerCase(),
+      scoringType: getSelectedScoringType(),
+      scoringStructure: getSelectedScoringType(),
+      participantCountMode: String($("participantCountMode")?.value || "flex").trim().toLowerCase(),
+      minParticipantsPerRegistration: (() => {
+        const n = parseInt(String($("minParticipantsPerRegistration")?.value || "1"), 10);
+        return Number.isFinite(n) && n > 0 ? Math.min(20, n) : 1;
+      })(),
+      maxParticipantsPerRegistration: (() => {
+        const n = parseInt(String($("maxParticipantsPerRegistration")?.value || "6"), 10);
+        return Number.isFinite(n) && n > 0 ? Math.min(20, n) : 6;
+      })(),
+      defaultParticipantsPerRegistration: (() => {
+        const n = parseInt(String($("defaultParticipantsPerRegistration")?.value || "4"), 10);
+        return Number.isFinite(n) && n > 0 ? Math.min(20, n) : 4;
+      })(),
     };
   }
 
@@ -2799,8 +3064,7 @@
     {
       const em = String(data.entryMode || "pre_event").trim().toLowerCase();
       if (em === "onsite" || em === "individual") $("entryMode").value = "onsite";
-      else if (em === "pre_event") $("entryMode").value = "pre_event";
-      else if (em === "team_rep") $("entryMode").value = "onsite";
+      else if (em === "team_rep") $("entryMode").value = "team_rep";
       else $("entryMode").value = "pre_event";
     }
     $("sideGame").value = data.sideGame || "None";
@@ -2854,6 +3118,31 @@
         else if (rsm === REGISTRANT_SOURCE_MODE_UPLOAD) $("registrantSourceMode").value = REGISTRANT_SOURCE_MODE_UPLOAD;
         else $("registrantSourceMode").value = REGISTRANT_SOURCE_MODE_BOTH;
       }
+    }
+    if ($("registrationStructure")) {
+      const rs = String(data.registrationStructure || "").trim().toLowerCase();
+      $("registrationStructure").value =
+        rs === "single" || rs === "team" || rs === "multi_individual" ? rs : "team";
+    }
+    setSelectedScoringType(data.scoringType || data.scoringStructure || "");
+    if ($("participantCountMode")) {
+      const pcm = String(data.participantCountMode || "").trim().toLowerCase();
+      $("participantCountMode").value = pcm === "fixed" ? "fixed" : "flex";
+    }
+    if ($("minParticipantsPerRegistration")) {
+      const n = parseInt(String(data.minParticipantsPerRegistration ?? 1), 10);
+      $("minParticipantsPerRegistration").value =
+        Number.isFinite(n) && n > 0 ? String(Math.min(20, n)) : "1";
+    }
+    if ($("maxParticipantsPerRegistration")) {
+      const n = parseInt(String(data.maxParticipantsPerRegistration ?? 6), 10);
+      $("maxParticipantsPerRegistration").value =
+        Number.isFinite(n) && n > 0 ? String(Math.min(20, n)) : "6";
+    }
+    if ($("defaultParticipantsPerRegistration")) {
+      const n = parseInt(String(data.defaultParticipantsPerRegistration ?? 4), 10);
+      $("defaultParticipantsPerRegistration").value =
+        Number.isFinite(n) && n > 0 ? String(Math.min(20, n)) : "4";
     }
     syncEventCategoryAdminUI();
     syncRegistrantSourceAdminUI();
@@ -2913,6 +3202,20 @@
         eventCategory,
         eventType: eventTypeForDoc,
         registrantSourceMode,
+
+        registrationStructure: String(data.registrationStructure || "team").trim().toLowerCase(),
+        scoringType: String(data.scoringType || data.scoringStructure || "").trim().toLowerCase(),
+        scoringStructure: String(data.scoringType || data.scoringStructure || "").trim().toLowerCase(),
+        participantCountMode: String(data.participantCountMode || "flex").trim().toLowerCase(),
+        minParticipantsPerRegistration: Number.isFinite(Number(data.minParticipantsPerRegistration))
+          ? Math.max(1, Math.min(20, Math.floor(Number(data.minParticipantsPerRegistration))))
+          : 1,
+        maxParticipantsPerRegistration: Number.isFinite(Number(data.maxParticipantsPerRegistration))
+          ? Math.max(1, Math.min(20, Math.floor(Number(data.maxParticipantsPerRegistration))))
+          : 6,
+        defaultParticipantsPerRegistration: Number.isFinite(Number(data.defaultParticipantsPerRegistration))
+          ? Math.max(1, Math.min(20, Math.floor(Number(data.defaultParticipantsPerRegistration))))
+          : 4,
 
         courseId: String(data.courseId || "").trim(),
         courseName: String(data.courseName || "").trim(),
@@ -3028,6 +3331,120 @@
     }
   }
 
+  function buildAdminTeamJoinUrlForRegistrationId(registrationId) {
+    const rid = String(registrationId || "").trim();
+    if (!rid || !state.tournamentId) return "";
+    return buildTournamentIndexJoinUrl(
+      window.location.href,
+      state.orgId,
+      state.tournamentId,
+      rid,
+      { log: false }
+    );
+  }
+
+  function safeDomIdForRegistration(registrationId) {
+    return "adminTjQr-" + String(registrationId || "").replace(/[^a-zA-Z0-9_-]/g, "_");
+  }
+
+  function clearAdminTeamJoinLinks() {
+    const host = $("adminTeamJoinLinksHost");
+    if (!host) return;
+    host.textContent = "";
+    const p = document.createElement("p");
+    p.className = "hint";
+    p.style.margin = "12px 16px";
+    p.textContent = "—";
+    host.appendChild(p);
+  }
+
+  async function fillAdminTeamJoinLinks() {
+    const host = $("adminTeamJoinLinksHost");
+    if (!host) return;
+    host.replaceChildren();
+    if (!db || !state.tournamentId || !state.orgId) {
+      const p = document.createElement("p");
+      p.className = "hint";
+      p.style.margin = "12px 16px";
+      p.textContent = "Create or load an event to list per-team scorecard links.";
+      host.appendChild(p);
+      return;
+    }
+    try {
+      const col = tournamentRegistrationsCollection(db, state.orgId, state.tournamentId);
+      const snap = await withFirestoreRetry(() => getDocs(col));
+      if (snap.empty) {
+        const p = document.createElement("p");
+        p.className = "hint";
+        p.style.margin = "12px 16px";
+        p.textContent = "No registration rows yet — add sign-ups, then each team will get a scorecard link here.";
+        host.appendChild(p);
+        return;
+      }
+      const rows = snap.docs
+        .map((d) => ({ id: d.id, data: d.data() || {} }))
+        .sort((a, b) => {
+          const na = String(a.data.teamName || a.id || "").toLowerCase();
+          const nb = String(b.data.teamName || b.id || "").toLowerCase();
+          if (na !== nb) return na.localeCompare(nb);
+          return a.id.localeCompare(b.id);
+        });
+      for (const { id, data } of rows) {
+        const teamLabel = String(data.teamName || data.group || id || "Team").trim() || "Team";
+        const status = String(data.status || "").trim().toLowerCase();
+        const sub = status && status !== "registered" ? ` · ${status}` : "";
+
+        const url = buildAdminTeamJoinUrlForRegistrationId(id);
+        if (!url) continue;
+
+        const row = document.createElement("div");
+        row.className = "adminTeamJoinRow";
+
+        const nameEl = document.createElement("div");
+        nameEl.className = "adminTeamJoinName";
+        nameEl.textContent = teamLabel + sub;
+        row.appendChild(nameEl);
+
+        const a = document.createElement("a");
+        a.className = "adminTeamJoinUrlA";
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.href = url;
+        a.textContent = url;
+        row.appendChild(a);
+
+        const rowActions = document.createElement("div");
+        rowActions.className = "adminTeamJoinRowActions";
+
+        const copyBtn = document.createElement("button");
+        copyBtn.type = "button";
+        copyBtn.className = "btn btn-ghost";
+        copyBtn.textContent = "Copy link";
+        copyBtn.addEventListener("click", () => {
+          void copyText(url, "✔ Team scorecard link copied");
+        });
+        rowActions.appendChild(copyBtn);
+
+        const qrId = safeDomIdForRegistration(id);
+        const qrBox = document.createElement("div");
+        qrBox.className = "adminTeamJoinQr";
+        qrBox.id = qrId;
+        rowActions.appendChild(qrBox);
+        row.appendChild(rowActions);
+
+        host.appendChild(row);
+        drawRealQr(qrId, url);
+      }
+    } catch (e) {
+      console.warn("admin team join links list failed", e);
+      const p = document.createElement("p");
+      p.className = "hint";
+      p.style.margin = "12px 16px";
+      p.textContent = "Could not load team list for links (check network or rules).";
+      host.appendChild(p);
+    }
+  }
+
   function applyLinks(){
     if (adminBootstrapping) return;
     const token =
@@ -3038,7 +3455,9 @@
       setBox("leaderboardLinkBox", "—");
       setBox("rosterLinkBox", "—");
       setBox("registrationLinkBox", "—");
+      clearAdminTeamJoinLinks();
       renderAllQrs();
+      updateOperatorGuideCta();
       return;
     }
 
@@ -3047,7 +3466,9 @@
     setBox("leaderboardLinkBox", links.leaderboard);
     setBox("rosterLinkBox", links.roster);
     setBox("registrationLinkBox", links.registration);
+    void fillAdminTeamJoinLinks();
     renderAllQrs();
+    updateOperatorGuideCta();
   }
 
   function clearSponsorForm(){
@@ -3380,7 +3801,17 @@
   }
 
   async function createTournament(){
+    if (isCreatingTournament) {
+      console.info("[admin] create ignored: creation already in progress");
+      return;
+    }
     try{
+      const createBtn = $("createTournamentBtn");
+      isCreatingTournament = true;
+      if (createBtn) {
+        createBtn.disabled = true;
+      }
+      console.info("Create button clicked — creating tournament");
       showToast("Preparing…");
       state.orgId = await ensureOrgUser();
 
@@ -3396,11 +3827,19 @@
       persistLastTournamentId(state.orgId, state.tournamentId);
       syncAdminUrlWithTournamentId(state.tournamentId);
 
+      showOperatorGuideSuccess = true;
       applyLinks();
+      console.info(`Tournament created: ${state.tournamentId}`);
       showToast(createSuccessToastForEventCategory($("eventCategory")?.value));
     }catch(err){
       console.error("Create event failed:", err);
       alert("Could not create:\n\n" + formatFirestoreErr(err));
+    } finally {
+      isCreatingTournament = false;
+      const createBtn = $("createTournamentBtn");
+      if (createBtn) {
+        createBtn.disabled = false;
+      }
     }
   }
 
@@ -3427,6 +3866,7 @@
     fillForm(data);
     persistLastTournamentId(state.orgId, id);
     syncAdminUrlWithTournamentId(id);
+    showOperatorGuideSuccess = false;
     applyLinks();
     showToast(loadedToastForEventCategory($("eventCategory")?.value));
   }
@@ -3533,7 +3973,17 @@
   const backToMappingBtn = $("backToMappingBtn");
   const cancelImportBtn = $("cancelImportBtn");
 
-  if (createTournamentBtn) createTournamentBtn.addEventListener("click", createTournament);
+  if (createTournamentBtn) {
+    const triggerCreate = (ev) => {
+      if (ev?.type === "touchend") ev.preventDefault();
+      const now = Date.now();
+      if (now - lastCreateTapTs < 450) return;
+      lastCreateTapTs = now;
+      void createTournament();
+    };
+    createTournamentBtn.addEventListener("click", triggerCreate);
+    createTournamentBtn.addEventListener("touchend", triggerCreate, { passive: false });
+  }
   if (loadTournamentBtn) loadTournamentBtn.addEventListener("click", loadTournament);
   if (saveChangesBtn) saveChangesBtn.addEventListener("click", saveChanges);
   if (closeTournamentBtn) closeTournamentBtn.addEventListener("click", closeTournament);
@@ -3554,6 +4004,8 @@
   syncStartTypeAdminUI();
   syncEventCategoryAdminUI();
   syncRegistrantSourceAdminUI();
+  syncEntryModeOptionHint();
+  syncParticipantSettingsAdminUI();
   syncCategoryActionLabels();
   updateAdminSummary();
 
@@ -3569,6 +4021,7 @@
   if (registrantSourceModeEl) {
     registrantSourceModeEl.addEventListener("change", () => {
       syncRegistrantSourceAdminUI();
+      updateAdminSummary();
       applyLinks();
     });
   }
@@ -3600,6 +4053,31 @@
   if (addSponsorBtn) addSponsorBtn.addEventListener("click", addSponsor);
   if (clearSponsorFormBtn) clearSponsorFormBtn.addEventListener("click", clearSponsorForm);
   if (handicapEnabledEl) handicapEnabledEl.addEventListener("change", syncHandicapAdminUI);
+  const entryModeEl = $("entryMode");
+  if (entryModeEl) {
+    entryModeEl.addEventListener("change", () => {
+      syncEntryModeOptionHint();
+      updateAdminSummary();
+    });
+  }
+  const registrationStructureEl = $("registrationStructure");
+  if (registrationStructureEl) {
+    registrationStructureEl.addEventListener("change", () => {
+      syncParticipantSettingsAdminUI();
+      updateAdminSummary();
+    });
+  }
+  const participantCountModeEl = $("participantCountMode");
+  if (participantCountModeEl) {
+    participantCountModeEl.addEventListener("change", () => {
+      syncParticipantSettingsAdminUI();
+      updateAdminSummary();
+    });
+  }
+  const minParticipantsEl = $("minParticipantsPerRegistration");
+  const maxParticipantsEl = $("maxParticipantsPerRegistration");
+  if (minParticipantsEl) minParticipantsEl.addEventListener("change", syncParticipantSettingsAdminUI);
+  if (maxParticipantsEl) maxParticipantsEl.addEventListener("change", syncParticipantSettingsAdminUI);
   if (importRegistrationsBtn) {
     importRegistrationsBtn.addEventListener("click", () => {
       $("csvImportPanel")?.classList.toggle("hidden");
@@ -3709,6 +4187,14 @@
     "entryMode",
     "registrantSourceMode",
     "startType",
+    "registrationStructure",
+    "scoringTypeTeam",
+    "scoringTypeIndividual",
+    "scoringTypeNone",
+    "participantCountMode",
+    "minParticipantsPerRegistration",
+    "maxParticipantsPerRegistration",
+    "defaultParticipantsPerRegistration",
   ].forEach((id) => {
     const el = $(id);
     if (!el) return;
@@ -3716,6 +4202,16 @@
     el.addEventListener("input", fn);
     el.addEventListener("change", fn);
   });
+
+  if ($("formatOfPlay")) {
+    $("formatOfPlay").addEventListener("change", () => {
+      const current = getSelectedScoringType();
+      if (current !== "none") {
+        setSelectedScoringType("");
+      }
+    });
+  }
+  setSelectedScoringType("");
 onAuthStateChanged(auth, async (user) => {
   const loadingEl = $("adminLoadingBanner");
 
@@ -3781,11 +4277,23 @@ onAuthStateChanged(auth, async (user) => {
     state.orgId = resolvedOrgId;
     persistSelectedOrgId(state.orgId);
 
-    fromUrl = (params.get("id") || params.get("t") || "").trim();
-    const fromInput = ($("tournamentId")?.value || "").trim();
-    const fromStorage = readLastTournamentId(state.orgId);
-    let resumeId = fromUrl || fromInput || fromStorage;
-    fromStorageUsed = Boolean(!fromUrl && !fromInput && fromStorage && resumeId === fromStorage);
+    fromUrl = (params.get("id") || params.get("tournamentId") || params.get("t") || "").trim();
+    const fromUrlExplicit = Boolean(fromUrl);
+    let resumeId = fromUrlExplicit ? fromUrl : "";
+    fromStorageUsed = false;
+    if (!fromUrlExplicit) {
+      adminForcedNewMode = true;
+      state.tournamentId = "";
+      state.adminToken = "";
+      if ($("tournamentId")) $("tournamentId").value = "";
+      if ($("adminToken")) $("adminToken").value = "";
+      console.info("Admin loaded new tournament mode — no document created", {
+        tournamentId: "(none)",
+        reason: "no id/tournamentId/t in URL",
+      });
+    } else {
+      adminForcedNewMode = false;
+    }
     const urlCourseId = (params.get("courseId") || "").trim();
 
     await loadDefaultCourseOptionsForOrg(state.orgId, urlCourseId);
@@ -3804,9 +4312,7 @@ onAuthStateChanged(auth, async (user) => {
         fillForm(data);
         await loadDefaultCourseOptionsForOrg(state.orgId, String(data.courseId || urlCourseId || "").trim());
         persistLastTournamentId(state.orgId, resumeId);
-        if (fromStorageUsed) {
-          syncAdminUrlWithTournamentId(resumeId);
-        }
+        console.info(`Existing tournament loaded: ${resumeId}`);
       } else {
         state.tournamentId = "";
         state.adminToken = "";

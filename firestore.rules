@@ -2,18 +2,18 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Align with js/resolve-organizer-org.js orgIdFromUserSnap: prefer non-empty orgId, else organizationId.
-    function userOrgId() {
-      let d = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      let a = d.orgId is string ? d.orgId : "";
-      let b = d.organizationId is string ? d.organizationId : "";
-      return a != "" ? a : b;
-    }
-
-    function isOrgMember(orgId) {
+    // Membership: orgId in orgIds, or legacy orgId / organizationId (see js/resolve-organizer-org.js migration).
+    function isOrgMember(oid) {
+      let p = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      let a = p.orgId is string ? p.orgId : "";
+      let b = p.organizationId is string ? p.organizationId : "";
+      let legacy = a != "" ? a : b;
       return request.auth != null
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && userOrgId() == orgId;
+        && (
+          (p.orgIds is list && oid in p.orgIds) ||
+          (oid == legacy && legacy != "")
+        );
     }
 
     function userData() {

@@ -1,0 +1,212 @@
+/**
+ * Operational UI typography (admin, roster, leaderboard, registration).
+ * Inter for UI/data; Cinzel for display headings. Load after page-local styles.
+ * Scorecard (index): use html.ops-scorecard-chrome — scopes fonts to chrome only.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700&display=swap");
+
+:root {
+  --ops-font-ui: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ops-font-display: "Cinzel", Georgia, "Times New Roman", Times, serif;
+  --ops-body-lh: 1.55;
+  --ops-ui-lh: 1.45;
+  --ops-heading-lh: 1.12;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Full operational shell (admin, roster, register-complete, leaderboard)      */
+/* -------------------------------------------------------------------------- */
+
+html.ops-typography body {
+  font-family: var(--ops-font-ui);
+  line-height: var(--ops-body-lh);
+  font-weight: 450;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Leaderboard: data rows use Inter via existing var(--font-ui) / var(--font-row) */
+  --font-ui: var(--ops-font-ui);
+  --font-row: var(--ops-font-ui);
+}
+
+html.ops-typography .hero h1,
+html.ops-typography .hero .event-title,
+html.ops-typography .section-title,
+html.ops-typography .dash-title,
+html.ops-typography .dash-subtitle,
+html.ops-typography .import-callout-title,
+html.ops-typography h1#title,
+html.ops-typography .event-title,
+html.ops-typography .course-brand-name,
+html.ops-typography .sheetTitle,
+html.ops-typography .sheetHdr .sheetTitle,
+html.ops-typography .rulesSheet .sheetTitle,
+html.ops-typography .scorecardSheet .sheetTitle,
+html.ops-typography .alertOrganizerTitle,
+html.ops-typography .team-picker-title,
+html.ops-typography .lb-head,
+html.ops-typography .titleBlock h1,
+html.ops-typography .clubName,
+html.ops-typography .sidegames-title,
+html.ops-typography .round-complete-kicker,
+html.ops-typography .round-complete-title {
+  font-family: var(--ops-font-display);
+  line-height: var(--ops-heading-lh);
+}
+
+html.ops-typography h1#titleHeading,
+html.ops-typography h1#pageHeading,
+html.ops-typography h2.section-heading,
+html.ops-typography .wrap > h1,
+html.ops-typography .card > h1 {
+  font-family: var(--ops-font-display);
+  line-height: var(--ops-heading-lh);
+}
+
+html.ops-typography .modal h1,
+html.ops-typography .modal h2,
+html.ops-typography .modal h3 {
+  font-family: var(--ops-font-display);
+  line-height: var(--ops-heading-lh);
+}
+
+html.ops-typography input,
+html.ops-typography select,
+html.ops-typography textarea,
+html.ops-typography button,
+html.ops-typography .btn,
+html.ops-typography .miniBtn,
+html.ops-typography table,
+html.ops-typography thead,
+html.ops-typography tbody,
+html.ops-typography th,
+html.ops-typography td,
+html.ops-typography .label,
+html.ops-typography .fieldLabel,
+html.ops-typography .hint,
+html.ops-typography .section-phase,
+html.ops-typography .section-lede,
+html.ops-typography .footerHint,
+html.ops-typography .meta,
+html.ops-typography .sheetSubtle,
+html.ops-typography .monoBox,
+html.ops-typography .pgLabel,
+html.ops-typography .pgHint,
+html.ops-typography .pill,
+html.ops-typography .statusBadge,
+html.ops-typography .holeBadge,
+html.ops-typography .captainLine,
+html.ops-typography .teamName,
+html.ops-typography .import-callout-note,
+html.ops-typography .admin-live-summary-text,
+html.ops-typography .admin-live-summary-eyebrow,
+html.ops-typography .import-callout-kicker,
+html.ops-typography .fine-print,
+html.ops-typography .event-meta,
+html.ops-typography .lb-name,
+html.ops-typography .lb-sub,
+html.ops-typography .lb-row,
+html.ops-typography .lb-list,
+html.ops-typography .actions .btn,
+html.ops-typography .actions .primary,
+html.ops-typography .actions button {
+  font-family: var(--ops-font-ui);
+  line-height: var(--ops-ui-lh);
+}
+
+html.ops-typography pre,
+html.ops-typography code,
+html.ops-typography .monoBox pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  line-height: 1.45;
+}
+
+/* Slightly calmer form headings on admin (labels are UI, not display titles) */
+html.ops-typography .label {
+  font-weight: 650;
+  letter-spacing: 0.04em;
+}
+
+/* Comfortable section rhythm */
+html.ops-typography .field {
+  margin-bottom: 20px;
+}
+
+html.ops-typography .dash-box {
+  margin-top: 20px;
+}
+
+html.ops-typography .setup-section-header {
+  margin-bottom: 20px;
+}
+
+html.ops-typography .toolbar,
+html.ops-typography .summaryRow {
+  gap: 12px;
+}
+
+html.ops-typography .playGroupToolbar,
+html.ops-typography .playGroupBulkBar {
+  line-height: var(--ops-ui-lh);
+}
+
+/* -------------------------------------------------------------------------- */
+/* index.html — supporting chrome only (not score table / header art)        */
+/* -------------------------------------------------------------------------- */
+
+html.ops-scorecard-chrome #teamPickerScreen,
+html.ops-scorecard-chrome #joinScreen,
+html.ops-scorecard-chrome #lockBanner,
+html.ops-scorecard-chrome #liveAlertBanner,
+html.ops-scorecard-chrome .coursebar,
+html.ops-scorecard-chrome #scoreSponsor,
+html.ops-scorecard-chrome #scoreSponsorTicker,
+html.ops-scorecard-chrome .actions,
+html.ops-scorecard-chrome .liveAlertInner,
+html.ops-scorecard-chrome .team-picker-search input,
+html.ops-scorecard-chrome #joinScreen input,
+html.ops-scorecard-chrome #joinScreen label,
+html.ops-scorecard-chrome #joinScreen button,
+html.ops-scorecard-chrome .course-select,
+html.ops-scorecard-chrome .course-title,
+html.ops-scorecard-chrome .course-hint,
+html.ops-scorecard-chrome #hintLine {
+  font-family: var(--ops-font-ui);
+  line-height: 1.5;
+}
+
+/* Round complete: Inter for body copy only; keep existing Cinzel on kicker/title */
+html.ops-scorecard-chrome #roundCompletePanel .round-complete-warm,
+html.ops-scorecard-chrome #roundCompletePanel .round-complete-summary,
+html.ops-scorecard-chrome #roundCompletePanel .round-complete-next,
+html.ops-scorecard-chrome #roundCompletePanel .round-complete-line {
+  font-family: var(--ops-font-ui);
+  line-height: 1.5;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Privacy & Terms — long-form legal copy only (html.ops-typography.ops-legal) */
+/* -------------------------------------------------------------------------- */
+
+html.ops-typography.ops-legal body {
+  line-height: 1.65;
+}
+
+html.ops-typography.ops-legal .card > h1,
+html.ops-typography.ops-legal .card > h2 {
+  font-family: var(--ops-font-display);
+  line-height: var(--ops-heading-lh);
+}
+
+html.ops-typography.ops-legal .card p,
+html.ops-typography.ops-legal .card li {
+  font-family: var(--ops-font-ui);
+  line-height: 1.65;
+}
+
+html.ops-typography.ops-legal .card .small,
+html.ops-typography.ops-legal .card .muted {
+  font-family: var(--ops-font-ui);
+  line-height: 1.55;
+}

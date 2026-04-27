@@ -39,6 +39,21 @@ export function tournamentRegistrationDoc(db, orgId, tournamentId, registrationI
   return doc(db, "tournaments", tournamentId, "registrations", registrationId);
 }
 
+/** Operational play groups (tee times / pairings) — separate from registrations and scoring. */
+export function tournamentPlayGroupsCollection(db, orgId, tournamentId) {
+  if (orgId) {
+    return collection(db, "organizations", orgId, "tournaments", tournamentId, "playGroups");
+  }
+  return collection(db, "tournaments", tournamentId, "playGroups");
+}
+
+export function tournamentPlayGroupDoc(db, orgId, tournamentId, playGroupId) {
+  if (orgId) {
+    return doc(db, "organizations", orgId, "tournaments", tournamentId, "playGroups", playGroupId);
+  }
+  return doc(db, "tournaments", tournamentId, "playGroups", playGroupId);
+}
+
 export function tournamentSubmissionsDoc(db, orgId, tournamentId, deviceId) {
   if (orgId) {
     return doc(db, "organizations", orgId, "tournaments", tournamentId, "submissions", deviceId);
@@ -77,6 +92,38 @@ export function applyOrgTournamentParams(url, orgId, tournamentId) {
   if (orgId) {
     url.searchParams.set("org", orgId);
   }
+}
+
+/**
+ * Public tournament scorecard / join entry (index.html). Always uses URL + URLSearchParams.
+ * Optional registration = team / player context for the scorecard. Never concatenate query strings.
+ *
+ * @param {string} baseHref - e.g. window.location.href (resolves index.html in the same directory)
+ * @param {string} orgId
+ * @param {string} tournamentId
+ * @param {string} [registrationId] - if set, adds `registration` param
+ * @param {{ log?: boolean }} [options] - pass `{ log: false }` to skip console (e.g. per-row links)
+ * @returns {string}
+ */
+export function buildTournamentIndexJoinUrl(
+  baseHref,
+  orgId,
+  tournamentId,
+  registrationId,
+  options
+) {
+  const tid = String(tournamentId || "").trim();
+  if (!tid) return "";
+  const url = new URL("./index.html", baseHref);
+  applyOrgTournamentParams(url, orgId, tid);
+  const rid = String(registrationId || "").trim();
+  if (rid) {
+    url.searchParams.set("registration", rid);
+  }
+  if (options?.log !== false) {
+    console.log("Generated join URL:", url.toString());
+  }
+  return url.toString();
 }
 
 export function publicLinkDocRef(db, token) {
