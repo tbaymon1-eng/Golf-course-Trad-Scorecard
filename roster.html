@@ -816,14 +816,14 @@
       text-align:center;
     }
     .rulesBrandLogoWrap{
-      margin-bottom: 14px;
-      text-align: left;
+      margin: 0 auto 24px;
+      text-align: center;
     }
     .rulesBrandLogo{
-      width: clamp(140px, 28vw, 200px);
+      width: clamp(150px, 28vw, 220px);
       max-height: 110px;
-      max-width: 200px;
-      min-width: 140px;
+      max-width: 220px;
+      min-width: 150px;
       height: auto;
       object-fit: contain;
     }
@@ -879,6 +879,12 @@
       .rulesQrColumn,
       .rulesQrWrap{
         align-items:flex-start;
+      }
+
+      .rulesBrandLogo{
+        width: clamp(150px, 42vw, 170px);
+        max-width: 170px;
+        min-width: 150px;
       }
 
       .rulesJoinLinkText{
@@ -952,14 +958,17 @@
       justify-content:center;
       pointer-events:none;
       z-index:0;
+      background-repeat:no-repeat;
+      background-position:center;
+      background-size:contain;
     }
     #placardPrintHost .cart-placard-watermark img{
-      width: 80%;
-      max-width: 6.6in;
+      width: 75%;
+      max-width: 80%;
       max-height: 2.8in;
       object-fit: contain;
-      opacity: 0.1;
-      filter: grayscale(1) contrast(0.8) brightness(1.05);
+      opacity: 0.2;
+      filter: grayscale(100%) contrast(1.1);
     }
     #placardPrintHost .cart-placard-content{
       position:relative;
@@ -1070,7 +1079,7 @@
         color: #000 !important;
         max-width: 100%;
       }
-      #placardPrintHost .cart-placard *{
+      #placardPrintHost .cart-placard *:not(.cart-placard-watermark):not(.cart-placard-watermark img){
         color: #000 !important;
         position: static !important;
         transform: none !important;
@@ -2501,10 +2510,6 @@
       ]);
     }
 
-    function tournamentPlacardWatermarkLogoUrl(){
-      return tournamentCourseLogoUrl();
-    }
-
     function placardCourseBrand(){
       return resolvePlacardCourseBrand(tournamentMeta);
     }
@@ -2579,9 +2584,10 @@
       const playerLines = players.length
         ? players.map((p) => `<div class="cart-placard-player">${escapeHtml(p)}</div>`).join("")
         : `<div class="cart-placard-player cart-placard-player--muted">—</div>`;
-      const logo = String(watermarkLogoUrl || "").trim();
-      const watermark = logo
-        ? `<div class="cart-placard-watermark"><img src="${escapeHtml(logo)}" alt="" onerror="this.parentElement.remove()" /></div>`
+      const selectedLogoUrl = String(watermarkLogoUrl || "").trim();
+      console.log("PLACARD WATERMARK IMAGE SOURCE:", selectedLogoUrl);
+      const watermark = selectedLogoUrl
+        ? `<div class="cart-placard-watermark"><img src="${escapeHtml(selectedLogoUrl)}" alt="" onerror="this.parentElement.remove()" /></div>`
         : "";
       const sponsor = sponsorBranding && (sponsorBranding.name || sponsorBranding.logo) ? sponsorBranding : null;
       const sponsorHtml = sponsor
@@ -2629,10 +2635,10 @@ body{
   position: relative; overflow: hidden;
 }
 .cart-placard-watermark{
-  position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:0;
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:0; background-repeat:no-repeat; background-position:center; background-size:contain;
 }
 .cart-placard-watermark img{
-  width:80%; max-width:6.6in; max-height:2.8in; object-fit:contain; opacity:0.1; filter:grayscale(1) contrast(0.8) brightness(1.05);
+  width:75%; max-width:80%; max-height:2.8in; object-fit:contain; opacity:0.2; filter:grayscale(100%) contrast(1.1);
 }
 .cart-placard-content{
   position:relative; z-index:2; background:rgba(255,255,255,.58); border-radius:8px; padding:0.06in 0.08in;
@@ -2657,7 +2663,7 @@ body{
   .pp-printPage{ page-break-after: always; min-height:0; margin:0 auto; max-width:8.5in; break-inside: avoid; page-break-inside: avoid; }
   .pp-printPage:last-child{ page-break-after: auto; }
   .cart-placard{ width:7.5in; min-height:3.5in; margin:0 auto 0.25in; padding:0.25in; page-break-inside: avoid; break-inside: avoid; background: #fff !important; color: #000 !important; }
-  .cart-placard *{ color: #000 !important; position: static !important; transform: none !important; }
+  .cart-placard *:not(.cart-placard-watermark):not(.cart-placard-watermark img){ color: #000 !important; position: static !important; transform: none !important; }
   .cart-placard-content, .cart-placard-team, .cart-placard-start, .cart-placard-players{ display: block; margin-bottom: 8px; line-height: 1.25; }
   .cart-placard-team{ font-size: 44px; font-weight: 800; text-align: center; }
   .cart-placard-start{ font-size: 34px; font-weight: 900; text-align: center; }
@@ -2666,11 +2672,11 @@ body{
 `;
 
     function buildPlacardPreviewDocumentHtml() {
-      const headerLogoUrl = tournamentPlacardWatermarkLogoUrl();
+      const selectedLogoUrl = norm(tournamentCourseMeta?.logoUrl || "");
       const primarySponsor = getPrimarySponsorBranding();
       const rows = buildPlacardRows();
       const bodyInner = rows
-        .map((r) => `<div class="pp-printPage">${placardCardHtml(r, primarySponsor, headerLogoUrl)}</div>`)
+        .map((r) => `<div class="pp-printPage">${placardCardHtml(r, primarySponsor, selectedLogoUrl)}</div>`)
         .join("");
       return `<!DOCTYPE html>
 <html lang="en">
@@ -2691,11 +2697,12 @@ ${bodyInner}
       if (placardsPrintPreviewFrame) placardsPrintPreviewFrame.srcdoc = "";
     }
 
-    function openPlacardPrintPreview() {
+    async function openPlacardPrintPreview() {
       if (!tournamentId) {
         alert("Missing tournament id.");
         return;
       }
+      await refreshTournamentCourseMetaForPrint();
 
       const rows = buildPlacardRows();
       if (!rows.length) {
@@ -3046,6 +3053,34 @@ ${bodyInner}
         }
       } catch (err) {
         console.warn("[roster] course doc load failed for print branding", { orgId, courseId: cid, err });
+      }
+    }
+
+    async function refreshTournamentCourseMetaForPrint(){
+      tournamentCourseMeta = null;
+      const cid = norm(
+        tournamentMeta?.courseId ||
+        tournamentMeta?.defaultCourse ||
+        tournamentMeta?.courseDefault ||
+        ""
+      );
+      if (!cid || !orgId || !db) {
+        console.log("Fresh course loaded:", "");
+        console.log("Logo URL:", "");
+        return;
+      }
+      try {
+        const courseRef = doc(db, "organizations", orgId, "courses", cid);
+        const cs = await getDoc(courseRef);
+        const course = cs.exists() ? (cs.data() || {}) : {};
+        tournamentCourseMeta = course;
+        console.log("Fresh course loaded:", String(course.name || ""));
+        console.log("Logo URL:", String(course.logoUrl || ""));
+      } catch (err) {
+        tournamentCourseMeta = null;
+        console.warn("[roster] fresh course load for print failed", { orgId, courseId: cid, err });
+        console.log("Fresh course loaded:", "");
+        console.log("Logo URL:", "");
       }
     }
 
@@ -4975,11 +5010,12 @@ ${bodyInner}
       }
     }
 
-    function openRulesSheetModal(){
+    async function openRulesSheetModal(){
       if (!tournamentId){
         alert("Missing tournament id.");
         return;
       }
+      await refreshTournamentCourseMetaForPrint();
 
       rulesSheetModal.classList.add("show");
       document.body.style.overflow = "hidden";
@@ -5046,7 +5082,8 @@ ${bodyInner}
       fillRulesSheetForm(defaults);
     }
 
-    function printRulesSheet(){
+    async function printRulesSheet(){
+      await refreshTournamentCourseMetaForPrint();
       const data = getRulesSheetFormData();
       const html = buildRulesSheetPreviewHtml(data);
 
@@ -5125,7 +5162,7 @@ ${bodyInner}
     if (rulesSheetBtn) {
       rulesSheetBtn.addEventListener("click", async () => {
         await loadRulesSheetData();
-        openRulesSheetModal();
+        await openRulesSheetModal();
       });
     }
 
@@ -5134,7 +5171,9 @@ ${bodyInner}
     saveTeamBtn.addEventListener("click", saveTeamFromModal);
     deleteTeamBtn.addEventListener("click", deleteEditingTeam);
     autoAssignBtn.addEventListener("click", autoAssignMissingHoles);
-    if (printPlacardsBtn) printPlacardsBtn.addEventListener("click", openPlacardPrintPreview);
+    if (printPlacardsBtn) printPlacardsBtn.addEventListener("click", () => {
+      void openPlacardPrintPreview();
+    });
     if (printAttendanceBtn) printAttendanceBtn.addEventListener("click", printAttendanceSheet);
 
     teamModal.addEventListener("click",(e)=>{
@@ -5151,7 +5190,9 @@ ${bodyInner}
 
     if (closeRulesSheetBtn) closeRulesSheetBtn.addEventListener("click", closeRulesSheetModal);
     if (saveRulesSheetBtn) saveRulesSheetBtn.addEventListener("click", saveRulesSheet);
-    if (printRulesSheetBtn) printRulesSheetBtn.addEventListener("click", printRulesSheet);
+    if (printRulesSheetBtn) printRulesSheetBtn.addEventListener("click", () => {
+      void printRulesSheet();
+    });
     if (resetRulesSheetBtn) resetRulesSheetBtn.addEventListener("click", resetRulesSheetToDefaults);
 
     [

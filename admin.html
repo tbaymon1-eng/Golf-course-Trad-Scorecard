@@ -3649,6 +3649,10 @@
         const ref = doc(orgCoursesCollection(db, oid), target.id);
         const snap = await withFirestoreRetry(() => getDoc(ref));
         if (!snap.exists()) continue;
+        const current = snap.data() || {};
+        if (current.cypressColorCorrectionAppliedV2 === true) {
+          continue;
+        }
         const teeSets = target.teeRows.map((r) => String(r.label || "").trim()).filter(Boolean);
         const holes = buildHolesFromTeeRows(
           target.teeRows,
@@ -3663,7 +3667,6 @@
           bookingUrl: CYPRESSWOOD_BOOKING_URL,
           headerImageUrl: target.header,
           scorecardImageUrl: target.header,
-          logoUrl: target.header,
           teeRows: target.teeRows,
           teeSets,
           holes,
@@ -3676,9 +3679,16 @@
           scorecardRowColors: deleteField(),
           extraRow: deleteField(),
           bottomRow: deleteField(),
+          cypressColorCorrectionAppliedV2: true,
           active: true,
           updatedAt: serverTimestamp(),
         };
+        const currentLogoUrl = String(current.logoUrl || "").trim();
+        if (currentLogoUrl && currentLogoUrl.startsWith("https://")) {
+          console.log("Migration skipped - logoUrl already valid");
+        } else {
+          patch.logoUrl = target.header;
+        }
         await withFirestoreRetry(() => updateDoc(ref, patch));
         corrected.push(target.id);
       } catch (e) {
