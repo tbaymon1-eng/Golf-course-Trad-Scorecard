@@ -55,6 +55,7 @@
       <strong>Staff:</strong> use your work email, the golf course name your manager gave you, and the staff invite code.
       If your club does not have an organizer account yet, use <em>First-time organizer</em> below instead.
     </p>
+    <p id="operatorInviteNotice" class="status" style="display:none;"></p>
 
     <form id="staffForm">
       <label for="staffDisplayName">Display name</label>
@@ -113,8 +114,25 @@
     const functions = getFunctions(app, "us-central1");
     const setupOrganization = httpsCallable(functions, "setupOrganization");
     const staffSignupWithInvite = httpsCallable(functions, "staffSignupWithInvite");
+    const acceptOrganizationOperatorInvite = httpsCallable(functions, "acceptOrganizationOperatorInvite");
 
     const $ = (id) => document.getElementById(id);
+    const operatorInviteToken = new URLSearchParams(location.search).get("operatorInvite") || "";
+    const operatorInviteNotice = $("operatorInviteNotice");
+
+    if (operatorInviteToken) {
+      if (operatorInviteNotice) {
+        operatorInviteNotice.style.display = "block";
+        operatorInviteNotice.textContent =
+          "Operator invite detected. Create your account with this email, then we will link you to your assigned customer account and role.";
+      }
+      $("staffCourseName").required = false;
+      $("staffInviteCode").required = false;
+      $("staffCourseName").disabled = true;
+      $("staffInviteCode").disabled = true;
+      $("staffCourseName").placeholder = "Invite link will auto-assign organization";
+      $("staffInviteCode").placeholder = "Invite link will auto-assign role";
+    }
 
     if (location.hash === "#first-time-organizer") {
       const d = document.getElementById("first-time-organizer");
@@ -238,21 +256,30 @@
       sessionStorage.setItem("orgId", orgId);
       try {
         sessionStorage.setItem("activeOrgId", orgId);
+        sessionStorage.setItem("selectedOrgId", orgId);
+      } catch (_e) {}
+      try {
+        localStorage.setItem("selectedOrgId", orgId);
       } catch (_e) {}
       setStatus($("o_status"), "Success! Redirecting…", "success");
       window.setTimeout(() => {
-        window.location.href = "./create-course.html";
+        window.location.href = `./create-course.html?org=${encodeURIComponent(orgId)}`;
       }, 450);
       return true;
     }
 
     async function runStaffJoinThenRedirect(displayName, golfCourseName, inviteCode) {
       setStatus($("staffStatus"), "Joining your organization...", "");
-      const res = await staffSignupWithInvite({
-        displayName,
-        golfCourseName,
-        inviteCode,
-      });
+      const res = operatorInviteToken
+        ? await acceptOrganizationOperatorInvite({
+            inviteToken: operatorInviteToken,
+            displayName,
+          })
+        : await staffSignupWithInvite({
+            displayName,
+            golfCourseName,
+            inviteCode,
+          });
       const data = res && res.data != null ? res.data : {};
       const orgId =
         typeof data.orgId === "string" ? data.orgId.trim() : String(data.orgId || "").trim();
@@ -262,10 +289,14 @@
       sessionStorage.setItem("orgId", orgId);
       try {
         sessionStorage.setItem("activeOrgId", orgId);
+        sessionStorage.setItem("selectedOrgId", orgId);
+      } catch (_e) {}
+      try {
+        localStorage.setItem("selectedOrgId", orgId);
       } catch (_e) {}
       setStatus($("staffStatus"), "Success! Redirecting…", "success");
       window.setTimeout(() => {
-        window.location.href = "./dashboard.html";
+        window.location.href = `./dashboard.html?org=${encodeURIComponent(orgId)}`;
       }, 450);
       return true;
     }
@@ -287,7 +318,7 @@
       let succeeded = false;
 
       try {
-        if (!displayName || !golfCourseName || !inviteCode) {
+        if (!displayName || (!operatorInviteToken && (!golfCourseName || !inviteCode))) {
           throw new Error("Please fill in all fields.");
         }
         setStatus($("staffStatus"), "Creating account...");
@@ -309,8 +340,8 @@
       const golfCourseName = $("staffCourseName").value.trim();
       const inviteCode = $("staffInviteCode").value.trim();
       const btn = $("staffSubmitBtn");
-      if (!displayName || !golfCourseName || !inviteCode) {
-        setStatus($("staffStatus"), "Fill in display name, golf course name, and invite code.", "error");
+      if (!displayName || (!operatorInviteToken && (!golfCourseName || !inviteCode))) {
+        setStatus($("staffStatus"), "Fill in the required fields to continue.", "error");
         return;
       }
       if (!auth.currentUser) {

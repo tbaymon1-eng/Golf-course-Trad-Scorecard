@@ -180,6 +180,119 @@
       padding-left: 1.2em;
       font-weight: 600;
     }
+    .tee-colors-editor {
+      margin-top: 12px;
+      border: 2px solid rgba(154, 98, 23, 0.32);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.5);
+      padding: 10px 10px 8px;
+    }
+    .tee-colors-editor[hidden] { display: none !important; }
+    .tee-colors-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .tee-colors-title {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--blue);
+    }
+    .tee-colors-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    .tee-colors-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .tee-color-row {
+      display: grid;
+      grid-template-columns: minmax(84px, 1fr) 40px minmax(96px, 124px) 44px;
+      align-items: center;
+      gap: 8px;
+    }
+    .tee-color-name {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--ink);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tee-color-swatch {
+      width: 36px;
+      height: 28px;
+      border-radius: 8px;
+      border: 2px solid rgba(0,0,0,0.18);
+    }
+    .tee-color-input {
+      width: 100%;
+      height: 32px;
+      padding: 4px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(154, 98, 23, 0.6);
+      background: rgba(255,255,255,0.9);
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .tee-color-picker {
+      width: 40px;
+      height: 32px;
+      border: 1px solid rgba(154, 98, 23, 0.6);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.9);
+      padding: 0;
+      cursor: pointer;
+    }
+    .scorecard-preview-panel {
+      margin-top: 10px;
+      border: 2px solid rgba(154,98,23,.3);
+      border-radius: 10px;
+      background: rgba(255,255,255,.65);
+      padding: 8px;
+    }
+    .scorecard-preview-panel[hidden] { display: none !important; }
+    .scorecard-preview-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .scorecard-preview-table {
+      border-collapse: collapse;
+      min-width: 900px;
+      width: max-content;
+      font-size: 0.73rem;
+      font-weight: 700;
+      color: #1f1b18;
+    }
+    .scorecard-preview-table th,
+    .scorecard-preview-table td {
+      border: 1px solid rgba(0,0,0,0.12);
+      padding: 4px 6px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .scorecard-preview-table .label-cell {
+      text-align: left;
+      min-width: 86px;
+      position: sticky;
+      left: 0;
+      background: rgba(255,255,255,.92);
+      z-index: 2;
+    }
+    .scorecard-preview-status {
+      margin-top: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #5f5851;
+      min-height: 1.2em;
+    }
     input:focus {
       outline: 2px solid rgba(18, 53, 111, 0.35);
       outline-offset: 1px;
@@ -349,7 +462,7 @@
   <form id="form" class="stack-form" autocomplete="on" hidden>
     <section class="section" aria-labelledby="org-heading">
       <h2 class="section-title" id="org-heading">Organization</h2>
-      <p class="section-note">Your course is stored under the organization linked to your signed-in account. Existing share links and tournaments for this org are unchanged.</p>
+      <p class="section-note">Your course is stored inside the active customer account organization linked to your signed-in account. Existing share links and tournaments for this organization are unchanged.</p>
     </section>
 
     <section class="section" aria-labelledby="course-heading">
@@ -416,6 +529,29 @@
       >
         Auto-fill from scorecard
       </button>
+      <div id="teeColorsEditor" class="tee-colors-editor" hidden>
+        <div class="tee-colors-head">
+          <div class="tee-colors-title">Scorecard row colors</div>
+          <button type="button" class="btn-prefill" id="useExtractedColorsBtn" style="margin-top:0;max-width:220px;">
+            Use extracted colors
+          </button>
+        </div>
+        <div id="teeColorsList" class="tee-colors-list"></div>
+        <div class="tee-colors-actions">
+          <button type="button" class="btn-prefill" id="previewScorecardBtn" style="margin-top:0;max-width:220px;">
+            Preview Scorecard
+          </button>
+          <button type="button" class="btn-prefill" id="applyColorsBtn" style="margin-top:0;max-width:220px;">
+            Apply colors
+          </button>
+        </div>
+        <div id="scorecardPreviewPanel" class="scorecard-preview-panel" hidden>
+          <div class="scorecard-preview-wrap">
+            <table id="scorecardPreviewTable" class="scorecard-preview-table"></table>
+          </div>
+          <div id="scorecardPreviewStatus" class="scorecard-preview-status"></div>
+        </div>
+      </div>
       <div id="extractStatus" class="extract-status" role="status" aria-live="polite"></div>
     </section>
 
@@ -466,6 +602,12 @@
       isPlatformAdminRole,
     } from "./js/resolve-organizer-org.js";
     import { generateThemeFromLogoUrl, generateThemeFromLogoFile } from "./js/course-theme.js";
+    import {
+      suggestBrandingFromScorecardFile,
+      suggestBrandingFromScorecardUrl,
+      normalizeTeeColorKey,
+      pickContrastTextForBackground,
+    } from "./js/scorecard-extract-branding.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -528,6 +670,15 @@
     let ready = false;
     /** Preserved from Firestore in edit mode when not replacing with a new upload. */
     let savedScorecardImageUrl = "";
+    /** Merged from scorecard image extraction; saved on submit. */
+    let courseBrandingTeeColors = {};
+    let courseBrandingRowColors = {};
+    let persistedAccentColor = "";
+    let extractedTeeColorsCandidate = {};
+    let teeColorsManualEdited = false;
+    let hadExistingPersistedTeeColors = false;
+    let showScorecardPreview = false;
+    let cachedHolesForPreview = [];
 
     function applyEditModeChrome() {
       document.title = "Edit course";
@@ -632,6 +783,9 @@
     const scorecardExistingWrap = $("scorecardExistingWrap");
     const scorecardExistingImg = $("scorecardExistingImg");
     const prefillFromScorecardBtn = $("prefillFromScorecardBtn");
+    const useExtractedColorsBtn = $("useExtractedColorsBtn");
+    const previewScorecardBtn = $("previewScorecardBtn");
+    const applyColorsBtn = $("applyColorsBtn");
     const extractStatusEl = $("extractStatus");
 
     function setExtractStatus(kind, mainText, extraLines = []) {
@@ -677,6 +831,56 @@
       updatePrefillButtonState();
     });
 
+    $("teeBoxNames").addEventListener("input", () => {
+      renderTeeColorEditor();
+      if (showScorecardPreview) renderScorecardPreview();
+    });
+
+    if (useExtractedColorsBtn) {
+      useExtractedColorsBtn.addEventListener("click", () => {
+        if (applyExtractedTeeColorsToDraft(extractedTeeColorsCandidate)) {
+          teeColorsManualEdited = true;
+          setExtractStatus("success", "Extracted tee colors applied. You can still adjust them before saving.");
+          if (showScorecardPreview) renderScorecardPreview();
+        }
+      });
+    }
+    if (previewScorecardBtn) {
+      previewScorecardBtn.addEventListener("click", () => {
+        showScorecardPreview = !showScorecardPreview;
+        renderScorecardPreview();
+      });
+    }
+    if (applyColorsBtn) {
+      applyColorsBtn.addEventListener("click", async () => {
+        const map = normalizeTeeColorMap(courseBrandingTeeColors);
+        if (!Object.keys(map).length) {
+          setExtractStatus("warn", "No tee colors to apply yet.");
+          return;
+        }
+        if (!isEditMode || !orgId || !editCourseId) {
+          setExtractStatus("success", "Colors are ready. Click Save and continue to persist them.");
+          return;
+        }
+        applyColorsBtn.disabled = true;
+        try {
+          const patch = {
+            teeColors: map,
+            scorecardRowColors: { ...(courseBrandingRowColors || {}), ...map },
+            updatedAt: serverTimestamp(),
+          };
+          await updateDoc(courseDocRef(db, orgId, editCourseId), patch);
+          hadExistingPersistedTeeColors = true;
+          setExtractStatus("success", "Scorecard row colors saved.");
+        } catch (e) {
+          console.error(e);
+          setExtractStatus("error", e?.message || "Could not save colors.");
+        } finally {
+          applyColorsBtn.disabled = false;
+        }
+      });
+    }
+
     async function uploadPendingScorecardFileToDownloadUrl() {
       const f = scorecardFileInput.files?.[0];
       if (!f || !orgId) return null;
@@ -698,7 +902,9 @@
       if (!payload || typeof payload !== "object") return;
       if (payload.error === true) return;
       const cn = safeText(payload.courseName);
-      if (cn) $("courseName").value = cn;
+      if (cn && !safeText($("courseName").value)) {
+        $("courseName").value = cn;
+      }
 
       let teeSets = Array.isArray(payload.teeSets)
         ? payload.teeSets.map((x) => String(x).trim()).filter(Boolean)
@@ -713,6 +919,17 @@
       toggleHoleBuilder.setAttribute("aria-expanded", "true");
       rebuildHoleGrid();
       fillHoleInputsFromDoc(teeSets, payload.holes);
+
+      extractedTeeColorsCandidate = normalizeTeeColorMap(payload.teeColors || {});
+      const allowAutoApply =
+        !hadExistingPersistedTeeColors &&
+        !teeColorsManualEdited &&
+        Object.keys(courseBrandingTeeColors).length === 0;
+      if (allowAutoApply && Object.keys(extractedTeeColorsCandidate).length) {
+        applyExtractedTeeColorsToDraft(extractedTeeColorsCandidate);
+      } else {
+        renderTeeColorEditor();
+      }
     }
 
     const PREFILL_BTN_DEFAULT = "Auto-fill from scorecard";
@@ -753,6 +970,29 @@
           courseId: isEditMode ? editCourseId : undefined,
         });
         const data = result.data || {};
+        let brandingSuggestion = null;
+        try {
+          const teeSetNames = Array.isArray(data.teeSets)
+            ? data.teeSets
+            : parseTeeNames($("teeBoxNames")?.value || "");
+          if (scorecardFileInput.files?.[0]) {
+            brandingSuggestion = await suggestBrandingFromScorecardFile(
+              scorecardFileInput.files[0],
+              teeSetNames
+            );
+          } else if (imageUrl) {
+            brandingSuggestion = await suggestBrandingFromScorecardUrl(imageUrl, teeSetNames);
+          }
+        } catch (brandErr) {
+          console.warn("[create-course] tee color extraction from scorecard image failed", brandErr);
+        }
+        if (
+          brandingSuggestion &&
+          brandingSuggestion.teeColors &&
+          typeof brandingSuggestion.teeColors === "object"
+        ) {
+          data.teeColors = normalizeTeeColorMap(brandingSuggestion.teeColors);
+        }
 
         console.log("[create-course] extractScorecardData response", {
           error: !!data.error,
@@ -784,6 +1024,13 @@
         if (data.incomplete) {
           warnList.push("Extraction may be incomplete — verify par, handicap, and yardages.");
         }
+        if (
+          Object.keys(extractedTeeColorsCandidate).length &&
+          hadExistingPersistedTeeColors &&
+          !teeColorsManualEdited
+        ) {
+          warnList.push("Extracted tee colors are available below. Click Use extracted colors to replace current custom colors.");
+        }
 
         errEl.textContent = "";
         if (warnList.length) {
@@ -808,6 +1055,208 @@
 
     function safeText(v) {
       return String(v || "").trim();
+    }
+
+    function normalizeHexColor(v) {
+      const s = String(v || "").trim();
+      if (/^#[0-9A-Fa-f]{6}$/.test(s)) return s.toLowerCase();
+      return "";
+    }
+
+    function normalizeTeeColorMap(raw) {
+      const out = {};
+      if (!raw || typeof raw !== "object") return out;
+      for (const [k, v] of Object.entries(raw)) {
+        const nk = normalizeTeeColorKey(k);
+        const hv = normalizeHexColor(v);
+        if (!nk || !hv) continue;
+        out[nk] = hv;
+      }
+      return out;
+    }
+
+    function teeColorDisplayRows() {
+      const tees = parseTeeNames($("teeBoxNames")?.value || "");
+      const seen = new Set();
+      const rows = [];
+      for (const tee of tees) {
+        const key = normalizeTeeColorKey(tee);
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        rows.push({
+          teeName: tee,
+          key,
+          color: normalizeHexColor(courseBrandingTeeColors[key] || ""),
+        });
+      }
+      if (!rows.length) {
+        for (const [k, v] of Object.entries(courseBrandingTeeColors || {})) {
+          const key = normalizeTeeColorKey(k);
+          const color = normalizeHexColor(v);
+          if (!key || !color || seen.has(key)) continue;
+          seen.add(key);
+          rows.push({ teeName: key, key, color });
+        }
+      }
+      return rows;
+    }
+
+    function getStructuralRowColorRows() {
+      const defs = [
+        { teeName: "Header row", key: "header" },
+        { teeName: "Par row", key: "Par" },
+        { teeName: "Handicap row", key: "Handicap" },
+      ];
+      return defs.map((d) => ({
+        teeName: d.teeName,
+        key: d.key,
+        color: normalizeHexColor(courseBrandingRowColors?.[d.key] || ""),
+      }));
+    }
+
+    function hasPreviewableScorecardData() {
+      const snap = buildPreviewSnapshot();
+      if (!Array.isArray(snap.tees) || !snap.tees.length) return false;
+      if (!Array.isArray(snap.holes) || !snap.holes.length) return false;
+      for (const h of snap.holes) {
+        const par = Number(h?.par);
+        if (Number.isFinite(par) && par > 0) return true;
+        const yards = h?.yards && typeof h.yards === "object" ? Object.values(h.yards) : [];
+        if (yards.some((v) => Number.isFinite(Number(v)) && Number(v) > 0)) return true;
+      }
+      return false;
+    }
+
+    function syncScorecardRowColorsFromTeeColors() {
+      if (!courseBrandingRowColors || typeof courseBrandingRowColors !== "object") {
+        courseBrandingRowColors = {};
+      }
+      for (const [k, v] of Object.entries(courseBrandingTeeColors || {})) {
+        const key = normalizeTeeColorKey(k);
+        const color = normalizeHexColor(v);
+        if (!key || !color) continue;
+        courseBrandingRowColors[key] = color;
+      }
+    }
+
+    function renderTeeColorEditor() {
+      const editor = $("teeColorsEditor");
+      const list = $("teeColorsList");
+      const useBtn = $("useExtractedColorsBtn");
+      if (!editor || !list || !useBtn) return;
+
+      const teeRows = teeColorDisplayRows();
+      const structuralRows = getStructuralRowColorRows();
+      const rows = [...teeRows, ...structuralRows];
+      const hasScorecardData = hasPreviewableScorecardData();
+      if (!rows.length && !Object.keys(extractedTeeColorsCandidate).length && !hasScorecardData) {
+        editor.hidden = true;
+        return;
+      }
+      editor.hidden = false;
+      useBtn.hidden = !Object.keys(extractedTeeColorsCandidate).length;
+      list.innerHTML = "";
+
+      for (const row of rows) {
+        const wrap = document.createElement("div");
+        wrap.className = "tee-color-row";
+
+        const name = document.createElement("div");
+        name.className = "tee-color-name";
+        name.textContent = row.teeName;
+        wrap.appendChild(name);
+
+        const swatch = document.createElement("div");
+        swatch.className = "tee-color-swatch";
+        swatch.style.background = row.color || "#ffffff";
+        swatch.style.color = pickContrastTextForBackground(row.color || "#ffffff");
+        wrap.appendChild(swatch);
+
+        const inp = document.createElement("input");
+        inp.className = "tee-color-input";
+        inp.type = "text";
+        inp.value = row.color || "";
+        inp.placeholder = "#aabbcc";
+        inp.setAttribute("aria-label", `${row.teeName} row color hex`);
+        inp.addEventListener("input", () => {
+          const hex = normalizeHexColor(inp.value);
+          if (hex) {
+            if (row.key === "header" || row.key === "Par" || row.key === "Handicap") {
+              courseBrandingRowColors[row.key] = hex;
+            } else {
+              courseBrandingTeeColors[row.key] = hex;
+              courseBrandingRowColors[row.key] = hex;
+            }
+            swatch.style.background = hex;
+            swatch.style.color = pickContrastTextForBackground(hex);
+            if (showScorecardPreview) renderScorecardPreview();
+          }
+        });
+        inp.addEventListener("change", () => {
+          const hex = normalizeHexColor(inp.value);
+          if (!hex) {
+            inp.value = courseBrandingRowColors[row.key] || courseBrandingTeeColors[row.key] || "";
+            return;
+          }
+          if (row.key === "header" || row.key === "Par" || row.key === "Handicap") {
+            courseBrandingRowColors[row.key] = hex;
+          } else {
+            courseBrandingTeeColors[row.key] = hex;
+            courseBrandingRowColors[row.key] = hex;
+          }
+          teeColorsManualEdited = true;
+          if (picker) picker.value = hex;
+          if (showScorecardPreview) renderScorecardPreview();
+        });
+        wrap.appendChild(inp);
+
+        const picker = document.createElement("input");
+        picker.className = "tee-color-picker";
+        picker.type = "color";
+        picker.value = row.color || "#cccccc";
+        picker.setAttribute("aria-label", `${row.teeName} row color picker`);
+        picker.addEventListener("input", () => {
+          const hex = normalizeHexColor(picker.value);
+          if (!hex) return;
+          if (row.key === "header" || row.key === "Par" || row.key === "Handicap") {
+            courseBrandingRowColors[row.key] = hex;
+          } else {
+            courseBrandingTeeColors[row.key] = hex;
+            courseBrandingRowColors[row.key] = hex;
+          }
+          inp.value = hex;
+          swatch.style.background = hex;
+          swatch.style.color = pickContrastTextForBackground(hex);
+          if (showScorecardPreview) renderScorecardPreview();
+        });
+        picker.addEventListener("change", () => {
+          const hex = normalizeHexColor(picker.value);
+          if (!hex) return;
+          if (row.key === "header" || row.key === "Par" || row.key === "Handicap") {
+            courseBrandingRowColors[row.key] = hex;
+          } else {
+            courseBrandingTeeColors[row.key] = hex;
+            courseBrandingRowColors[row.key] = hex;
+          }
+          inp.value = hex;
+          teeColorsManualEdited = true;
+          if (showScorecardPreview) renderScorecardPreview();
+        });
+        wrap.appendChild(picker);
+        list.appendChild(wrap);
+      }
+    }
+
+    function applyExtractedTeeColorsToDraft(source) {
+      const next = normalizeTeeColorMap(source);
+      if (!Object.keys(next).length) return false;
+      courseBrandingTeeColors = {
+        ...normalizeTeeColorMap(courseBrandingTeeColors),
+        ...next,
+      };
+      syncScorecardRowColorsFromTeeColors();
+      renderTeeColorEditor();
+      return true;
     }
 
     /** Comma-separated tee names; duplicates removed (first wins), order preserved. */
@@ -852,6 +1301,80 @@
         holes.push({ hole: h, par, handicap, yards });
       }
       return holes;
+    }
+
+    function buildPreviewSnapshot() {
+      let tees = parseTeeNames($("teeBoxNames")?.value || "");
+      let holes = [];
+      const hasInputs = Boolean($("par_1")) || Boolean($("yard_0_1"));
+      if (hasInputs && tees.length) {
+        holes = collectHolesPayload(tees);
+      } else if (Array.isArray(cachedHolesForPreview) && cachedHolesForPreview.length === 18) {
+        holes = cachedHolesForPreview.map((h) => ({ ...h, yards: { ...(h.yards || {}) } }));
+        if (!tees.length) {
+          const y0 = holes[0]?.yards;
+          if (y0 && typeof y0 === "object") tees = Object.keys(y0);
+        }
+      }
+      return { tees, holes };
+    }
+
+    function renderScorecardPreview() {
+      const panel = $("scorecardPreviewPanel");
+      const table = $("scorecardPreviewTable");
+      const status = $("scorecardPreviewStatus");
+      if (!panel || !table || !status || !previewScorecardBtn) return;
+      panel.hidden = !showScorecardPreview;
+      previewScorecardBtn.textContent = showScorecardPreview ? "Hide Preview" : "Preview Scorecard";
+      if (!showScorecardPreview) return;
+
+      const snap = buildPreviewSnapshot();
+      const tees = snap.tees;
+      const holes = snap.holes;
+      if (!tees.length || !holes.length) {
+        table.innerHTML = "";
+        status.textContent = "Enter tee names and hole values to preview the scorecard.";
+        return;
+      }
+      const labels = Array.from({ length: 18 }, (_, i) => i + 1);
+      const headerCells = labels.map((n) => `<th${headerStyle}>${n}</th>`).join("");
+      const headerBg = normalizeHexColor(courseBrandingRowColors?.header || "");
+      const headerFg = headerBg ? pickContrastTextForBackground(headerBg) : "#1f1b18";
+      const headerStyle = headerBg ? ` style="background:${headerBg};color:${headerFg};"` : "";
+      let html = `<thead><tr${headerStyle}><th class="label-cell"${headerStyle}>Row</th>${headerCells}<th${headerStyle}>Out</th><th${headerStyle}>In</th><th${headerStyle}>Tot</th></tr></thead><tbody>`;
+
+      const sum = (arr) => arr.reduce((a, b) => a + (Number.isFinite(Number(b)) ? Number(b) : 0), 0);
+      for (const tee of tees) {
+        const key = normalizeTeeColorKey(tee);
+        const bg = normalizeHexColor(courseBrandingTeeColors[key] || "");
+        const fg = bg ? pickContrastTextForBackground(bg) : "#1f1b18";
+        const vals = labels.map((h) => Number(holes[h - 1]?.yards?.[tee] ?? 0));
+        const out = sum(vals.slice(0, 9));
+        const inn = sum(vals.slice(9, 18));
+        const tot = out + inn;
+        const rowStyle = bg ? ` style="background:${bg};color:${fg};"` : "";
+        html += `<tr${rowStyle}><td class="label-cell"${rowStyle}>${escapeHtml(tee)}</td>${vals
+          .map((v) => `<td${rowStyle}>${Number.isFinite(v) && v > 0 ? v : ""}</td>`)
+          .join("")}<td${rowStyle}>${out}</td><td${rowStyle}>${inn}</td><td${rowStyle}>${tot}</td></tr>`;
+      }
+
+      const parVals = labels.map((h) => Number(holes[h - 1]?.par ?? ""));
+      const hcpVals = labels.map((h) => Number(holes[h - 1]?.handicap ?? ""));
+      const parBg = normalizeHexColor(courseBrandingRowColors?.Par || "");
+      const parFg = parBg ? pickContrastTextForBackground(parBg) : "#1f1b18";
+      const parStyle = parBg ? ` style="background:${parBg};color:${parFg};"` : "";
+      const hcpBg = normalizeHexColor(courseBrandingRowColors?.Handicap || "");
+      const hcpFg = hcpBg ? pickContrastTextForBackground(hcpBg) : "#1f1b18";
+      const hcpStyle = hcpBg ? ` style="background:${hcpBg};color:${hcpFg};"` : "";
+      html += `<tr${parStyle}><td class="label-cell"${parStyle}>Par</td>${parVals
+        .map((v) => `<td${parStyle}>${Number.isFinite(v) ? v : ""}</td>`)
+        .join("")}<td${parStyle}>${sum(parVals.slice(0, 9))}</td><td${parStyle}>${sum(parVals.slice(9, 18))}</td><td${parStyle}>${sum(parVals)}</td></tr>`;
+      html += `<tr${hcpStyle}><td class="label-cell"${hcpStyle}>Handicap</td>${hcpVals
+        .map((v) => `<td${hcpStyle}>${Number.isFinite(v) ? v : ""}</td>`)
+        .join("")}<td${hcpStyle}></td><td${hcpStyle}></td><td${hcpStyle}></td></tr>`;
+      html += "</tbody>";
+      table.innerHTML = html;
+      status.textContent = "Preview updates live as you adjust tee rows and scorecard row colors.";
     }
 
     function escapeHtml(s) {
@@ -944,6 +1467,12 @@
 
       scroll.appendChild(inner);
       holesTable.appendChild(scroll);
+      holesTable.querySelectorAll("input").forEach((inp) => {
+        inp.addEventListener("input", () => {
+          renderTeeColorEditor();
+          if (showScorecardPreview) renderScorecardPreview();
+        });
+      });
     }
 
     function fillHoleInputsFromDoc(tees, holesArray) {
@@ -966,6 +1495,9 @@
           if (el != null && y != null && Number.isFinite(Number(y))) el.value = String(y);
         });
       }
+      cachedHolesForPreview = Array.isArray(holesArray)
+        ? holesArray.map((h) => ({ ...h, yards: { ...(h?.yards || {}) } }))
+        : [];
     }
 
     function prefillFormFromCourseData(data) {
@@ -975,6 +1507,14 @@
       $("primaryColor").value = safeText(data.primaryColor);
       $("website").value = safeText(data.website);
       $("bookingUrl").value = safeText(data.bookingUrl);
+      courseBrandingTeeColors =
+        normalizeTeeColorMap(data.teeColors && typeof data.teeColors === "object" ? data.teeColors : {});
+      courseBrandingRowColors =
+        data.scorecardRowColors && typeof data.scorecardRowColors === "object"
+          ? { ...data.scorecardRowColors }
+          : {};
+      hadExistingPersistedTeeColors = Object.keys(courseBrandingTeeColors).length > 0;
+      persistedAccentColor = safeText(data.accentColor);
       let teeSets = Array.isArray(data.teeSets)
         ? data.teeSets.map((x) => String(x).trim()).filter(Boolean)
         : [];
@@ -998,6 +1538,8 @@
         scorecardExistingImg.removeAttribute("src");
       }
       updatePrefillButtonState();
+      renderTeeColorEditor();
+      renderScorecardPreview();
 
       if (data.theme && typeof data.theme === "object" && data.theme.primary) {
         renderThemePreview(data.theme);
@@ -1012,6 +1554,7 @@
       toggleHoleBuilder.textContent = open ? "Hide Hole Builder" : "Show Hole Builder";
       toggleHoleBuilder.setAttribute("aria-expanded", String(open));
       if (open) rebuildHoleGrid();
+      if (showScorecardPreview) renderScorecardPreview();
     });
 
     onAuthStateChanged(auth, async (user) => {
@@ -1030,16 +1573,28 @@
         form.hidden = !showForm;
       };
 
-      const urlOrgParam =
-        (urlParams.get("orgId") || urlParams.get("organizationId") || "").trim();
+      const urlOrgParam = (
+        urlParams.get("org") ||
+        urlParams.get("orgId") ||
+        urlParams.get("organizationId") ||
+        urlParams.get("o") ||
+        ""
+      ).trim();
       const urlCourseParam = (urlParams.get("courseId") || "").trim();
 
       if (!user) {
         const nextQs = new URLSearchParams();
-        if (urlOrgParam) nextQs.set("orgId", urlOrgParam);
+        if (urlOrgParam) {
+          nextQs.set("org", urlOrgParam);
+          nextQs.set("orgId", urlOrgParam);
+        }
         if (urlCourseParam) nextQs.set("courseId", urlCourseParam);
         const qs = nextQs.toString();
-        const nextPath = qs ? `./edit-course.html?${qs}` : "./create-course.html";
+        const nextPath = urlCourseParam
+          ? `./edit-course.html?${qs}`
+          : qs
+            ? `./create-course.html?${qs}`
+            : "./create-course.html";
         console.info("[create-course] redirect to login (no user)", {
           nextPath,
           urlOrgParam: urlOrgParam || "(none)",
@@ -1138,7 +1693,7 @@
               "[create-course] redirect to dashboard: create-course is only for orgs with zero courses (not in edit mode)"
             );
             endInit(false);
-            window.location.href = "./dashboard.html";
+            window.location.href = `./dashboard.html?org=${encodeURIComponent(orgId)}`;
             return;
           }
         } catch (e) {
@@ -1159,7 +1714,7 @@
             errEl.textContent =
               "We couldn’t find that course. It may have been removed, or the link is out of date.";
             skipLink.style.display = "block";
-            skipLink.href = "./dashboard.html";
+            skipLink.href = `./dashboard.html?org=${encodeURIComponent(orgId)}`;
             skipLink.textContent = "Back to dashboard";
             console.warn("[create-course] course document missing after load", {
               reason: "no document at organizations/{orgId}/courses/{courseId}",
@@ -1176,7 +1731,7 @@
           errEl.textContent =
             e?.message || "Could not load this course. Try again from the dashboard.";
           skipLink.style.display = "block";
-          skipLink.href = "./dashboard.html";
+          skipLink.href = `./dashboard.html?org=${encodeURIComponent(orgId)}`;
           skipLink.textContent = "Back to dashboard";
           console.warn("[create-course] course load threw", {
             reason: e?.message || String(e),
@@ -1190,6 +1745,9 @@
       ready = true;
       updatePrefillButtonState();
       void refreshThemePreview();
+      if (skipLink && orgId) {
+        skipLink.href = `./dashboard.html?org=${encodeURIComponent(orgId)}`;
+      }
       endInit(true);
       console.log("[create-course] after org resolution", { orgId, ready, isEditMode });
     });
@@ -1197,7 +1755,7 @@
     skipLink.addEventListener("click", (e) => {
       if (!orgId) return;
       e.preventDefault();
-      window.location.href = "./dashboard.html";
+      window.location.href = `./dashboard.html?org=${encodeURIComponent(orgId)}`;
     });
 
     form.addEventListener("submit", async (e) => {
@@ -1296,6 +1854,21 @@
           } else if (!logoUrl) {
             patch.theme = deleteField();
           }
+          if (Object.keys(courseBrandingTeeColors).length) {
+            patch.teeColors = courseBrandingTeeColors;
+          } else {
+            patch.teeColors = deleteField();
+          }
+          if (Object.keys(courseBrandingRowColors).length) {
+            patch.scorecardRowColors = courseBrandingRowColors;
+          } else {
+            patch.scorecardRowColors = deleteField();
+          }
+          if (persistedAccentColor) {
+            patch.accentColor = persistedAccentColor;
+          } else {
+            patch.accentColor = deleteField();
+          }
           console.log("[create-course] before updateDoc", { refPath: courseRef.path });
           await updateDoc(courseRef, patch);
           console.log("[create-course] after updateDoc");
@@ -1314,13 +1887,25 @@
           if (bookingUrl) payload.bookingUrl = bookingUrl;
           if (scorecardImageUrl) payload.scorecardImageUrl = scorecardImageUrl;
           if (themeForDoc && themeForDoc.primary) payload.theme = themeForDoc;
+          if (Object.keys(courseBrandingTeeColors).length) {
+            payload.teeColors = courseBrandingTeeColors;
+          }
+          if (Object.keys(courseBrandingRowColors).length) {
+            payload.scorecardRowColors = courseBrandingRowColors;
+          }
+          if (persistedAccentColor) {
+            payload.accentColor = persistedAccentColor;
+          }
 
           console.log("[create-course] before setDoc", { refPath: newRef.path });
           await setDoc(newRef, payload);
-          console.log("[create-course] after setDoc");
+          const createdCourseId = newRef.id;
+          console.log("[create-course] after setDoc", { createdCourseId });
+          window.location.href = `./dashboard.html?org=${encodeURIComponent(orgId)}&createdCourseId=${encodeURIComponent(createdCourseId)}`;
+          return;
         }
-        console.log("[create-course] before redirect");
-        window.location.href = "./dashboard.html";
+        console.log("[create-course] before redirect", { orgId: orgId || "(none)" });
+        window.location.href = `./dashboard.html?org=${encodeURIComponent(orgId)}`;
       } catch (e2) {
         console.error(e2);
         errEl.textContent = e2?.message || String(e2);

@@ -1042,7 +1042,7 @@
 
           <div class="actions">
             <button class="primary" id="refreshBtn">🔄 Refresh</button>
-            <a class="btn green" id="joinBtn" href="./index.html">Join event</a>
+            <a class="btn green" id="joinBtn" href="./index.html">Tournament Scorecard</a>
             <button id="copyBtn">📋 Copy Link</button>
             <a class="btn" id="tvBtn" href="#">📺 TV</a>
           </div>
@@ -1186,6 +1186,7 @@
   import { firebaseConfig } from "./js/firebase-config.js";
   import {
     parseOrgTournamentFromSearch,
+    resolveTournamentOrgIdStrict,
     tournamentDocRef,
     tournamentSubmissionsCollection,
     tournamentAlertsLiveRef,
@@ -1207,6 +1208,34 @@
     SCORING_STRUCTURE_TEAM,
   } from "./js/tournament-fields.js";
   import { formatTime } from "./js/time-format.js";
+
+  const isLeaderboardPage = window.location.pathname.includes("leaderboard.html");
+
+  function installLeaderboardStorageReadOnlyGuard() {
+    if (!isLeaderboardPage) return;
+
+    const blockStorageMutations = (storage, label) => {
+      if (!storage) return;
+      try {
+        storage.setItem = () => {
+          console.warn(`[leaderboard] blocked ${label}.setItem`);
+        };
+        storage.removeItem = () => {
+          console.warn(`[leaderboard] blocked ${label}.removeItem`);
+        };
+        storage.clear = () => {
+          console.warn(`[leaderboard] blocked ${label}.clear`);
+        };
+      } catch (e) {
+        console.warn(`[leaderboard] unable to install ${label} read-only guard`, e);
+      }
+    };
+
+    blockStorageMutations(window.localStorage, "localStorage");
+    blockStorageMutations(window.sessionStorage, "sessionStorage");
+  }
+
+  installLeaderboardStorageReadOnlyGuard();
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -1408,6 +1437,25 @@
   const params = new URLSearchParams(location.search);
   let { orgId: organizationId, tournamentId: tournamentIdFromUrl } = parseOrgTournamentFromSearch(params);
   const tournamentId = tournamentIdFromUrl;
+  if (String(tournamentIdFromUrl || "").trim() && !String(organizationId || "").trim()) {
+    console.warn(
+      "[leaderboard] URL includes tournament id but no org / orgId / organizationId; strict resolution will use legacy rules when allowed."
+    );
+  }
+  if (!tournamentId) {
+    pageMeta.textContent = "Missing tournament id.";
+    statusPill.textContent = "⚠️ ERROR";
+    throw new Error("Missing tournament id.");
+  }
+  {
+    const resolvedOrg = await resolveTournamentOrgIdStrict(db, organizationId, tournamentId);
+    if (!resolvedOrg.ok || !resolvedOrg.orgId) {
+      pageMeta.textContent = resolvedOrg.error || "Missing or invalid organization.";
+      statusPill.textContent = "⚠️ ERROR";
+      throw new Error(resolvedOrg.error || "Missing or invalid organization.");
+    }
+    organizationId = String(resolvedOrg.orgId || "").trim();
+  }
   const tvMode = params.get("tv") === "1";
 
   if (tvMode) document.body.classList.add("tv");

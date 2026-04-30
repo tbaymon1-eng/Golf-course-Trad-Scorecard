@@ -198,25 +198,25 @@
   <div class="wrap">
     <h1 id="titleHeading">Tournament dashboard</h1>
     <div id="platformAdminBar" class="platform-admin-bar" aria-live="polite">
-      <div class="platform-kicker">Platform admin</div>
+      <div class="platform-kicker">Platform Admin</div>
       <div class="platform-active-name-row">
         <span id="platformActiveAccountName" class="platform-active-account-name" aria-live="polite">—</span>
         <span class="workspace-badge" id="platformWorkspaceBadge">Current workspace</span>
       </div>
-      <label class="platform-select-label" for="orgSwitcher">Active account</label>
+      <label class="platform-select-label" for="orgSwitcher">Active Organization</label>
       <select id="orgSwitcher" class="platform-org-select"></select>
       <p class="platform-switcher-helper" id="platformSwitcherHelper">
         Courses, tournaments, links, and QR codes below belong to this account.
       </p>
       <div class="platform-admin-actions platform-admin-actions--row">
-        <button type="button" class="btn btn-sm btn-blue" id="newCourseAccountBtn" title="Scroll to create a new course or club account while signed in">+ New course account</button>
+        <button type="button" class="btn btn-sm btn-blue" id="newCourseAccountBtn" title="Scroll to create a new customer account while signed in">+ Create New Customer Account</button>
         <a class="btn btn-sm btn-ghost" id="manageAccountBtn" href="./admin.html">Manage selected account</a>
         <button type="button" class="btn btn-sm btn-org-delete" id="deleteOrgBtn">Delete organization</button>
       </div>
     </div>
     <div id="orgMemberBar" class="org-member-bar" aria-live="polite">
-      <div class="org-member-kicker">Your organizations</div>
-      <label for="orgMemberSwitcher">Active organization</label>
+      <div class="org-member-kicker">Customer Account</div>
+      <label for="orgMemberSwitcher">Active Organization</label>
       <select id="orgMemberSwitcher"></select>
     </div>
     <p class="meta" id="orgLine"></p>
@@ -237,12 +237,12 @@
     <div id="listHost" class="list"></div>
 
     <section id="newCourseAccountSection" class="new-course-account-panel" hidden aria-labelledby="newCourseAccountHeading">
-      <h2 class="section-heading" id="newCourseAccountHeading">Add another course account</h2>
+      <h2 class="section-heading" id="newCourseAccountHeading">Create New Customer Account</h2>
       <p class="meta" id="newCourseAccountIntro" style="margin-bottom:0;">
-        Create a new course or club under your current login. This uses the same server step as first-time setup—no new email or password.
+        Platform Admin creates a separate customer organization account. This does not create a course inside your currently active customer account.
       </p>
       <form id="platformNewOrgForm" class="new-course-form" novalidate>
-        <label for="platformNewOrgName">Organization / course account name</label>
+        <label for="platformNewOrgName">Customer Account name</label>
         <input
           id="platformNewOrgName"
           name="courseName"
@@ -253,7 +253,7 @@
           placeholder="e.g. your club or course display name"
         />
         <div class="new-course-form-actions">
-          <button type="submit" class="btn" id="platformCreateOrgBtn">Create account</button>
+          <button type="submit" class="btn" id="platformCreateOrgBtn">Create New Customer Account</button>
         </div>
         <div id="newCourseAccountFormErr" class="err" style="margin-top:8px;"></div>
         <p id="newCourseAccountFormStatus" class="meta" role="status" aria-live="polite" style="margin-top:8px;min-height:0;"></p>
@@ -607,7 +607,7 @@
       if (!active.length) {
         $("coursesHost").innerHTML = `<div class="empty">No active organizations found.</div>`;
         $("listHost").innerHTML = "";
-        $("orgLine").textContent = "Platform admin · No active organizations";
+        $("orgLine").textContent = "Platform Admin · No active organizations";
         return;
       }
       orgSwitcher.value = active[0].id;
@@ -618,9 +618,9 @@
         localStorage.setItem("selectedOrgId", active[0].id);
       } catch (_e) {}
       await Promise.all([renderCourses(active[0].id), renderList(active[0].id)]);
-      $("adminBtn").href = `./admin.html?orgId=${encodeURIComponent(active[0].id)}`;
+      $("adminBtn").href = cleanAdminHrefForOrg(active[0].id);
       const manage = $("manageAccountBtn");
-      if (manage) manage.href = `./admin.html?orgId=${encodeURIComponent(active[0].id)}`;
+      if (manage) manage.href = cleanAdminHrefForOrg(active[0].id);
       const oSnap = await withFirestoreRetry(() => getDoc(doc(db, "organizations", active[0].id)));
       const oName = oSnap.exists() ? String(oSnap.data()?.name || "").trim() : "";
       const nameEl = $("platformActiveAccountName");
@@ -756,66 +756,26 @@
 
     function cleanAdminHrefForOrg(orgId) {
       const oid = String(orgId || "").trim();
-      return `./admin.html?orgId=${encodeURIComponent(oid)}`;
+      if (!oid) return "./admin.html";
+      const q = new URLSearchParams();
+      q.set("org", oid);
+      q.set("orgId", oid);
+      return `./admin.html?${q.toString()}`;
+    }
+
+    function createCourseHrefForOrg(orgId) {
+      const oid = String(orgId || "").trim();
+      return oid ? `./create-course.html?org=${encodeURIComponent(oid)}` : "./create-course.html";
     }
 
     function renderCourseCard(orgId, row) {
-      const oid = String(orgId || "").trim();
       const div = document.createElement("div");
       div.className = "item";
 
-      const titleRow = document.createElement("div");
-      titleRow.className = "item-title-row";
-      const h2 = document.createElement("h2");
-      h2.textContent = row.name || "Course";
-      titleRow.appendChild(h2);
-      div.appendChild(titleRow);
-
-      const actions = document.createElement("div");
-      actions.className = "card-actions";
-      const q = new URLSearchParams();
-      if (oid) q.set("orgId", oid);
-      q.set("courseId", row.id);
-      const courseQs = q.toString();
-
-      const createT = document.createElement("a");
-      createT.className = "btn btn-sm btn-blue";
-      createT.href = `./admin.html?${courseQs}`;
-      createT.textContent = "Create Tournament";
-      createT.addEventListener("click", () => persistCourseSelection(oid, row.id));
-      actions.appendChild(createT);
-
-      const editC = document.createElement("a");
-      editC.className = "btn btn-sm btn-ghost";
-      editC.href = `./edit-course.html?${courseQs}`;
-      editC.textContent = "Edit Course";
-      editC.addEventListener("click", () => {
-        persistCourseSelection(oid, row.id);
-        console.info("[dashboard] Edit Course navigation", {
-          selectedOrgId: oid,
-          selectedCourseId: row.id,
-          href: editC.href,
-        });
-      });
-      actions.appendChild(editC);
-
-      const dailyQr = document.createElement("button");
-      dailyQr.type = "button";
-      dailyQr.className = "btn btn-sm btn-ghost";
-      dailyQr.textContent = "Daily Scorecard QR";
-      dailyQr.addEventListener("click", () => openCourseQrModal(oid, row));
-      actions.appendChild(dailyQr);
-
-      if (canDeleteCourses) {
-        const delCourse = document.createElement("button");
-        delCourse.type = "button";
-        delCourse.className = "btn btn-sm btn-course-delete";
-        delCourse.textContent = "Delete Course";
-        delCourse.addEventListener("click", () => openCourseDeleteModal(oid, row));
-        actions.appendChild(delCourse);
-      }
-
-      div.appendChild(actions);
+      const line = document.createElement("div");
+      line.className = "sub";
+      line.textContent = `• ${String(row.name || row.id || "Course").trim() || "Course"}`;
+      div.appendChild(line);
       return div;
     }
 
@@ -824,12 +784,28 @@
       if (!oid) return;
       const host = $("coursesHost");
       host.innerHTML = "";
+      let allowCypressBuiltIns = false;
+      try {
+        const orgSnap = await withFirestoreRetry(() => getDoc(doc(db, "organizations", oid)));
+        if (orgSnap.exists()) {
+          const d = orgSnap.data() || {};
+          const name = String(d.name || "").trim().toLowerCase();
+          const slug = String(d.slug || "").trim().toLowerCase();
+          allowCypressBuiltIns =
+            oid.toLowerCase().includes("cypresswood") ||
+            name.includes("cypresswood") ||
+            slug.includes("cypresswood");
+        }
+      } catch (e) {
+        console.warn("[dashboard] org lookup failed for cypresswood compatibility", { orgId: oid, error: e });
+      }
       const snap = await withFirestoreRetry(() => getDocs(orgCoursesCollection(db, oid)));
-      if (snap.empty) {
+      if (snap.empty && !allowCypressBuiltIns) {
+        const createHref = createCourseHrefForOrg(oid);
         host.innerHTML = `
           <div class="empty">
-            No courses yet. Add your first course to use it for tournaments and scoring.
-            <a class="btn btn-sm" href="./create-course.html">Add a course</a>
+            <p><strong>Create your first course</strong> to run tournaments and scorecards for this customer account.</p>
+            <a class="btn btn-sm" href="${createHref}">Create your first course</a>
           </div>`;
         return;
       }
@@ -848,11 +824,36 @@
           organizationId: t.organizationId || t.orgId || oid,
         });
       });
+      if (!rows.length && allowCypressBuiltIns) {
+        rows.push(
+          {
+            id: "tradition",
+            name: "Tradition",
+            courseId: "tradition",
+            slug: "tradition",
+            sourceOrgId: oid,
+            orgId: oid,
+            organizationId: oid,
+            builtInCourse: true,
+          },
+          {
+            id: "cypress",
+            name: "Cypress",
+            courseId: "cypress",
+            slug: "cypress",
+            sourceOrgId: oid,
+            orgId: oid,
+            organizationId: oid,
+            builtInCourse: true,
+          }
+        );
+      }
       if (!rows.length) {
+        const createHref = createCourseHrefForOrg(oid);
         host.innerHTML = `
           <div class="empty">
-            No courses yet. Add your first course to use it for tournaments and scoring.
-            <a class="btn btn-sm" href="./create-course.html">Add a course</a>
+            <p><strong>Create your first course</strong> to run tournaments and scorecards for this customer account.</p>
+            <a class="btn btn-sm" href="${createHref}">Create your first course</a>
           </div>`;
         return;
       }
@@ -904,7 +905,10 @@
       links.appendChild(a(r.links.leaderboard, "Leaderboard"));
       links.appendChild(a(r.links.roster, "Roster"));
       links.appendChild(a(r.links.register, "Registration"));
-      const adminA = a(`./admin.html?id=${encodeURIComponent(r.id)}&orgId=${encodeURIComponent(orgId)}`, "Admin");
+      const adminA = a(
+        `./admin.html?id=${encodeURIComponent(r.id)}&org=${encodeURIComponent(orgId)}&orgId=${encodeURIComponent(orgId)}`,
+        "Admin"
+      );
       adminA.addEventListener("click", () => {
         try {
           localStorage.setItem(`${ADMIN_LAST_TOURNAMENT_KEY}_${orgId}`, r.id);
@@ -1071,7 +1075,7 @@
         await applyPlatformFromSwitcher();
         if (nameIn) nameIn.value = "";
         if (status) {
-          status.textContent = "Course account created. The dashboard is now on that account.";
+          status.textContent = "Customer account created. Active Organization was switched to the new account.";
         }
       } catch (err) {
         console.error(err);
@@ -1094,7 +1098,9 @@
       applyPlatformFromSwitcher = async () => {};
       if (!user) {
         console.info("[dashboard] redirect to login (no user)");
-        window.location.href = "./login.html?next=" + encodeURIComponent("./dashboard.html");
+        window.location.href =
+          "./login.html?next=" +
+          encodeURIComponent(`./dashboard.html${window.location.search || ""}`);
         return;
       }
 
@@ -1151,9 +1157,31 @@
             orgSwitcher.appendChild(opt);
           }
 
+          const dashParams = new URLSearchParams(window.location.search || "");
+          const urlOrgPrefer = String(
+            dashParams.get("org") ||
+              dashParams.get("orgId") ||
+              dashParams.get("organizationId") ||
+              ""
+          ).trim();
+
           const firstId = orgOptions[0].id;
-          const pick = orgOptions.some((o) => o.id === saved) ? saved : firstId;
+          const pick =
+            urlOrgPrefer && orgOptions.some((o) => o.id === urlOrgPrefer)
+              ? urlOrgPrefer
+              : orgOptions.some((o) => o.id === saved)
+                ? saved
+                : firstId;
           orgSwitcher.value = pick;
+
+          try {
+            if (pick) {
+              const u = new URL(window.location.href);
+              u.searchParams.set("org", pick);
+              u.searchParams.set("orgId", pick);
+              history.replaceState(null, "", `${u.pathname}${u.search}${u.hash || ""}`);
+            }
+          } catch (_e) {}
 
           const applyPlatformOrg = async () => {
             const v = String(orgSwitcher.value || "").trim();
@@ -1163,6 +1191,12 @@
               sessionStorage.setItem(DASHBOARD_ADMIN_ORG_KEY, v);
             } catch (_e) {}
             persistSessionActiveOrgId(v);
+            try {
+              const pu = new URL(window.location.href);
+              pu.searchParams.set("org", v);
+              pu.searchParams.set("orgId", v);
+              history.replaceState(null, "", `${pu.pathname}${pu.search}${pu.hash || ""}`);
+            } catch (_e) {}
             try {
               await setActiveOrganization({ orgId: v });
             } catch (e) {
@@ -1187,8 +1221,8 @@
             const orgLineEl = $("orgLine");
             if (orgLineEl) orgLineEl.textContent = "";
             const manage = $("manageAccountBtn");
-            if (manage) manage.href = `./admin.html?orgId=${encodeURIComponent(v)}`;
-            $("adminBtn").href = `./admin.html?orgId=${encodeURIComponent(v)}`;
+            if (manage) manage.href = cleanAdminHrefForOrg(v);
+            $("adminBtn").href = cleanAdminHrefForOrg(v);
             try {
               await user.getIdToken(true);
               await Promise.all([renderCourses(v), renderList(v)]);
@@ -1266,14 +1300,32 @@
                 ""
             ).trim();
           } catch (_e) {}
+          const memberParams = new URLSearchParams(window.location.search || "");
+          const urlOrgMember = String(
+            memberParams.get("org") ||
+              memberParams.get("orgId") ||
+              memberParams.get("organizationId") ||
+              ""
+          ).trim();
           const inList = (x) => memberOrgIds.includes(x);
-          if (savedPick && inList(savedPick)) {
+          if (urlOrgMember && inList(urlOrgMember)) {
+            workOrgId = urlOrgMember;
+          } else if (savedPick && inList(savedPick)) {
             workOrgId = savedPick;
           } else if (inList(scopedOrgId)) {
             workOrgId = scopedOrgId;
           } else {
             workOrgId = memberOrgIds[0];
           }
+
+          try {
+            if (workOrgId && inList(workOrgId)) {
+              const u = new URL(window.location.href);
+              u.searchParams.set("org", workOrgId);
+              u.searchParams.set("orgId", workOrgId);
+              history.replaceState(null, "", `${u.pathname}${u.search}${u.hash || ""}`);
+            }
+          } catch (_e) {}
           orgMemberSwitcher.value = workOrgId;
           if (workOrgId !== scopedOrgId && inList(workOrgId)) {
             try {
@@ -1301,6 +1353,12 @@
             } catch (_e) {}
             persistSessionActiveOrgId(v);
             try {
+              const pu = new URL(window.location.href);
+              pu.searchParams.set("org", v);
+              pu.searchParams.set("orgId", v);
+              history.replaceState(null, "", `${pu.pathname}${pu.search}${pu.hash || ""}`);
+            } catch (_e) {}
+            try {
               await user.getIdToken(true);
             } catch (_e) {}
             let oName2 = "";
@@ -1310,8 +1368,8 @@
             } catch (e) {
               console.warn(e);
             }
-            $("orgLine").textContent = oName2 || "Your organization";
-            $("adminBtn").href = `./admin.html?orgId=${encodeURIComponent(v)}`;
+            $("orgLine").textContent = oName2 || "Customer Account";
+            $("adminBtn").href = cleanAdminHrefForOrg(v);
             try {
               await Promise.all([renderCourses(v), renderList(v)]);
             } catch (e) {
@@ -1347,10 +1405,10 @@
               "You're offline or the connection dropped. Organization name may not show until you're back online.";
           }
         }
-        $("orgLine").textContent = orgName ? orgName : "Your organization";
+        $("orgLine").textContent = orgName ? orgName : "Customer Account";
 
-        $("adminBtn").href = `./admin.html?orgId=${encodeURIComponent(workOrgId)}`;
-        try {
+      $("adminBtn").href = cleanAdminHrefForOrg(workOrgId);
+      try {
           sessionStorage.setItem("selectedOrgId", workOrgId);
           localStorage.setItem("selectedOrgId", workOrgId);
         } catch (_e) {}

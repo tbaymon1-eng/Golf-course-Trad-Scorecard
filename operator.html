@@ -254,8 +254,8 @@
 
     <div class="actions">
       <div class="action-card action-card--score">
-        <a id="scorecardBtn" class="btn btn-green" href="#" target="_blank" rel="noopener">Scorecard Entry</a>
-        <p class="helper">Players enter scores here.</p>
+        <a id="scorecardBtn" class="btn btn-green" href="#" target="_blank" rel="noopener">Tournament Scorecard</a>
+        <p class="helper">Open the tournament scoring page.</p>
       </div>
       <div class="action-card">
         <a id="leaderboardBtn" class="btn" href="#" target="_blank" rel="noopener">Live Leaderboard</a>
@@ -290,7 +290,7 @@
     <div class="section" id="qrSection">
       <h2>QR Sheet</h2>
       <div class="qr-grid">
-        <div class="qr-cell">Scorecard Entry<div id="qrScorecard" class="qr-box"></div></div>
+        <div class="qr-cell">Tournament Scorecard<div id="qrScorecard" class="qr-box"></div></div>
         <div class="qr-cell">Leaderboard<div id="qrLeaderboard" class="qr-box"></div></div>
         <div class="qr-cell">Organizer Roster<div id="qrRoster" class="qr-box"></div></div>
         <div class="qr-cell">Registration<div id="qrRegistration" class="qr-box"></div></div>
@@ -301,7 +301,7 @@
     <div class="section">
       <h2>Backup Raw Links</h2>
       <div class="raw">
-        <div class="raw-item"><b>Scorecard Entry</b><span id="rawScorecard">—</span></div>
+        <div class="raw-item"><b>Tournament Scorecard</b><span id="rawScorecard">—</span></div>
         <div class="raw-item"><b>Leaderboard</b><span id="rawLeaderboard">—</span></div>
         <div class="raw-item"><b>Organizer Roster</b><span id="rawRoster">—</span></div>
         <div class="raw-item"><b>Registration</b><span id="rawRegistration">—</span></div>
@@ -316,7 +316,13 @@
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { firebaseConfig } from "./js/firebase-config.js";
-    import { applyOrgTournamentParams, buildTournamentIndexJoinUrl, tournamentDocRef, courseDocRef } from "./js/org-paths.js";
+    import {
+      applyOrgTournamentParams,
+      buildTournamentIndexJoinUrl,
+      tournamentDocRef,
+      courseDocRef,
+      resolveTournamentOrgIdStrict,
+    } from "./js/org-paths.js";
     import { getEventTypeDisplayLabelFromStoredCategory } from "./js/tournament-fields.js";
 
     const $ = (id) => document.getElementById(id);
@@ -328,7 +334,7 @@
     const db = getFirestore(app);
     const params = new URLSearchParams(location.search);
     const tournamentId = String(params.get("id") || params.get("t") || params.get("tournamentId") || "").trim();
-    const orgId = String(params.get("org") || params.get("orgId") || params.get("organizationId") || "").trim();
+    let orgId = String(params.get("org") || params.get("orgId") || params.get("organizationId") || "").trim();
     const tokenFromUrl = String(params.get("admin") || "").trim();
 
     function baseRoot() {
@@ -371,8 +377,8 @@
 
     async function copyAllLinks(links) {
       const lines = [
-        `Scorecard Entry: ${links.scorecard}`,
-        `Leaderboard: ${links.leaderboard}`,
+        `Tournament Scorecard: ${links.scorecard}`,
+        `Live Leaderboard: ${links.leaderboard}`,
         `Organizer Roster: ${links.roster}`,
         `Registration: ${links.registration}`,
         `Admin: ${links.admin}`,
@@ -389,6 +395,17 @@
       $("status").textContent = "Missing tournament id in URL.";
       throw new Error("Missing tournament id");
     }
+    if (!orgId) {
+      console.warn(
+        "[operator] Tournament id in URL but no org / orgId / organizationId; strict resolution may use legacy Cypresswood-only rules when applicable."
+      );
+    }
+    const resolvedOrg = await resolveTournamentOrgIdStrict(db, orgId, tournamentId);
+    if (!resolvedOrg.ok || !resolvedOrg.orgId) {
+      $("status").textContent = resolvedOrg.error || "Missing or invalid organization.";
+      throw new Error(resolvedOrg.error || "Missing or invalid organization.");
+    }
+    orgId = String(resolvedOrg.orgId || "").trim();
 
     const snap = await getDoc(tournamentDocRef(db, orgId, tournamentId));
     if (!snap.exists()) {

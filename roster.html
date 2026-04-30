@@ -433,18 +433,22 @@
 
     .rosterTeamJoinWrap{
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
+      align-items: center;
       gap: 6px;
-      max-width: min(100%, 380px);
+      flex-wrap: wrap;
     }
     a.rosterTeamJoinA{
-      font-size: 11px;
-      font-weight: 800;
-      line-height: 1.25;
-      word-break: break-all;
-      color: rgba(255,255,255,.95) !important;
-      text-decoration: underline;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 900;
+      border-radius: 10px;
+      border: 2px solid rgba(154,98,23,.4);
+      background: rgba(255,255,255,.12);
+      color: rgba(255,255,255,.96) !important;
+      text-decoration: none;
     }
 
     .miniBtn{
@@ -721,12 +725,12 @@
 
     .rulesPreviewTop{
       display:grid;
-      grid-template-columns: 1fr 210px;
+      grid-template-columns: 1fr 220px;
       gap:20px;
       align-items:start;
       border-bottom: 2px solid #e9e9e9;
-      padding-bottom:18px;
-      margin-bottom:18px;
+      padding-bottom:16px;
+      margin-bottom:14px;
     }
 
     .rulesPreviewBrand{
@@ -810,6 +814,36 @@
       word-break:break-word;
       color:#333;
       text-align:center;
+    }
+    .rulesBrandLogoWrap{
+      margin-bottom: 14px;
+      text-align: left;
+    }
+    .rulesBrandLogo{
+      width: clamp(140px, 28vw, 200px);
+      max-height: 110px;
+      max-width: 200px;
+      min-width: 140px;
+      height: auto;
+      object-fit: contain;
+    }
+    .rulesPresentedBy{
+      margin-top: 18px;
+      border-top: 1px solid #e8e8e8;
+      padding-top: 12px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:13px;
+      font-weight:700;
+      color:#444;
+    }
+    .rulesPresentedByLogo{
+      max-height: 34px;
+      max-width: 150px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
     }
 
     .checkRow{
@@ -910,60 +944,51 @@
       overflow: hidden;
     }
 
-    #placardPrintHost .cart-placard-header{
-      text-align: center;
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 0.2in;
-      margin-bottom: 0.2in;
+    #placardPrintHost .cart-placard-watermark{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+      z-index:0;
     }
-
-    #placardPrintHost .cart-placard-header-row{
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: center;
-      gap: 0.2in;
-      flex-wrap: wrap;
-    }
-
-    #placardPrintHost .cart-placard-header-logo{
-      max-height: 0.38in;
-      max-width: 1.1in;
-      width: auto;
-      height: auto;
+    #placardPrintHost .cart-placard-watermark img{
+      width: 80%;
+      max-width: 6.6in;
+      max-height: 2.8in;
       object-fit: contain;
-      opacity: 0.9;
+      opacity: 0.1;
+      filter: grayscale(1) contrast(0.8) brightness(1.05);
     }
-
-    #placardPrintHost .cart-placard-header-text{
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1.3;
-      max-width: 6.2in;
-      word-wrap: break-word;
+    #placardPrintHost .cart-placard-content{
+      position:relative;
+      z-index:2;
+      background: rgba(255,255,255,0.58);
+      border-radius: 8px;
+      padding: 0.06in 0.08in;
     }
 
     #placardPrintHost .cart-placard-team{
-      font-size: 28px;
+      font-size: 44px;
       font-weight: 800;
       line-height: 1.2;
       text-align: center;
-      margin: 0 0 0.18in;
+      margin: 0 0 0.12in;
       word-wrap: break-word;
     }
-
-    #placardPrintHost .cart-placard-time{
-      font-size: 18px;
-      font-style: italic;
+    #placardPrintHost .cart-placard-start{
+      font-size: 34px;
+      font-weight: 900;
       text-align: center;
-      line-height: 1.3;
-      margin: 0 0 0.2in;
+      line-height: 1.2;
+      margin: 0 0 0.14in;
     }
 
     #placardPrintHost .cart-placard-players{
-      font-size: 16px;
+      font-size: 20px;
       text-align: center;
-      line-height: 1.45;
+      line-height: 1.4;
     }
 
     #placardPrintHost .cart-placard-player{
@@ -972,6 +997,34 @@
 
     #placardPrintHost .cart-placard-player--muted{
       opacity: 0.55;
+    }
+    #placardPrintHost .cart-placard-meta{
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.35;
+      margin: 0 0 0.12in;
+      font-weight: 700;
+      opacity: 0.82;
+    }
+    #placardPrintHost .cart-placard-presented{
+      margin-top: 0.16in;
+      border-top: 1px solid #ddd;
+      padding-top: 0.1in;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #444;
+    }
+    #placardPrintHost .cart-placard-sponsor-logo{
+      max-height: 0.28in;
+      max-width: 1.2in;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      opacity: 0.9;
     }
 
     @media print{
@@ -1022,32 +1075,27 @@
         position: static !important;
         transform: none !important;
       }
-      #placardPrintHost .cart-placard-header,
+      #placardPrintHost .cart-placard-content,
       #placardPrintHost .cart-placard-team,
-      #placardPrintHost .cart-placard-time,
+      #placardPrintHost .cart-placard-start,
       #placardPrintHost .cart-placard-players{
         display: block;
         margin-bottom: 8px;
         line-height: 1.25;
       }
       #placardPrintHost .cart-placard-team{
-        font-size: 28px;
+        font-size: 44px;
         font-weight: 800;
         text-align: center;
       }
-      #placardPrintHost .cart-placard-time{
-        font-size: 20px;
-        font-style: italic;
+      #placardPrintHost .cart-placard-start{
+        font-size: 34px;
+        font-weight: 900;
         text-align: center;
       }
       #placardPrintHost .cart-placard-players{
-        font-size: 16px;
+        font-size: 20px;
         text-align: center;
-      }
-      #placardPrintHost .cart-placard-header-row{
-        flex-direction: row !important;
-        justify-content: center !important;
-        align-items: center !important;
       }
 
       body.rulesPrintActive .wrap,
@@ -1089,8 +1137,8 @@
           <button class="green" id="copyBtn">📋 Copy Roster</button>
           <button type="button" class="btn" id="copyAlphaBtn">📋 Copy Alpha List</button>
           <button type="button" class="btn" id="rulesSheetBtn">📄 Rules Sheet</button>
-          <a class="btn" id="leaderBtn" href="./leaderboard.html">🏆 Leaderboard</a>
-          <a class="btn" id="joinBtn" href="./index.html">Join event</a>
+          <a class="btn" id="leaderBtn" href="./leaderboard.html">🏆 Live Leaderboard</a>
+          <a class="btn" id="joinBtn" href="./index.html">Tournament Scorecard</a>
           <button type="button" class="btn hidden" id="printAttendanceBtn">🖨 Print Sign-In Sheet</button>
         </div>
       </div>
@@ -1435,28 +1483,28 @@
           </div>
 
           <div class="fieldSp">
-            <label class="fieldLabel" for="rulesJoinLinkInput">Join Link</label>
+            <label class="fieldLabel" for="rulesJoinLinkInput">Tournament Scorecard Link</label>
             <input id="rulesJoinLinkInput" />
           </div>
 
           <div class="fieldSp">
-            <label class="fieldLabel" for="rulesLeaderboardLinkInput">Leaderboard Link</label>
+            <label class="fieldLabel" for="rulesLeaderboardLinkInput">Live Leaderboard Link</label>
             <input id="rulesLeaderboardLinkInput" />
           </div>
 
           <div class="checkRow">
             <input type="checkbox" id="rulesShowQrInput" checked />
-            <label for="rulesShowQrInput" style="font-weight:900;">Show join (scoring) QR code</label>
+            <label for="rulesShowQrInput" style="font-weight:900;">Show Tournament Scorecard QR code</label>
           </div>
 
           <div class="checkRow">
             <input type="checkbox" id="rulesShowLeaderboardQrInput" checked />
-            <label for="rulesShowLeaderboardQrInput" style="font-weight:900;">Show leaderboard QR code</label>
+            <label for="rulesShowLeaderboardQrInput" style="font-weight:900;">Show Live Leaderboard QR code</label>
           </div>
 
           <div class="checkRow">
             <input type="checkbox" id="rulesShowJoinLinkInput" checked />
-            <label for="rulesShowJoinLinkInput" style="font-weight:900;">Show join link text</label>
+            <label for="rulesShowJoinLinkInput" style="font-weight:900;">Show Tournament Scorecard link text</label>
           </div>
 
           <div class="rulesMiniNote">
@@ -1547,6 +1595,7 @@
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import {
       parseOrgTournamentFromSearch,
+      resolveTournamentOrgIdStrict,
       tournamentDocRef,
       tournamentRegistrationsCollection,
       tournamentRegistrationDoc,
@@ -1609,6 +1658,21 @@
     const parsed = parseOrgTournamentFromSearch(params);
     let orgId = parsed.orgId;
     const tournamentId = parsed.tournamentId;
+    if (String(tournamentId || "").trim() && !String(orgId || "").trim()) {
+      console.warn(
+        "[roster] URL includes tournament id but no org / orgId / organizationId; strict resolution will use legacy rules when allowed."
+      );
+    }
+    if (!tournamentId) {
+      throw new Error("Missing tournament id.");
+    }
+    {
+      const resolvedOrg = await resolveTournamentOrgIdStrict(db, orgId, tournamentId);
+      if (!resolvedOrg.ok || !resolvedOrg.orgId) {
+        throw new Error(resolvedOrg.error || "Missing or invalid organization.");
+      }
+      orgId = String(resolvedOrg.orgId || "").trim();
+    }
 
     /* ---------------------------------------------------- */
     /* DOM REFERENCES */
@@ -1734,6 +1798,8 @@
     /* ---------------------------------------------------- */
 
     let tournamentMeta = null;
+    let tournamentCourseMeta = null;
+    let tournamentOrgMeta = null;
     /** tournament | clinic | camp | event — from event document (eventType / eventCategory) */
     let rosterPageEventType = REGISTRATION_PAGE_EVENT_TOURNAMENT;
 
@@ -2173,11 +2239,66 @@
     }
 
     function standaloneSubmissionRows(){
-      const regIds = new Set(registrations.map(r => r.id));
-      return liveSubmissions.filter(s => {
-        const rid = norm(s.registrationId || "");
-        return !rid || !regIds.has(rid);
+      const matchedRegIds = new Set();
+      liveSubmissions.forEach((s) => {
+        const m = findRegistrationMatchForSubmission(s);
+        if (m?.registrationId) matchedRegIds.add(m.registrationId);
       });
+      return liveSubmissions.filter((s) => {
+        const m = findRegistrationMatchForSubmission(s);
+        return !m?.registrationId || !matchedRegIds.has(m.registrationId);
+      });
+    }
+
+    function normalizedPlayerSignature(players){
+      const arr = normalizePlayers(players || [])
+        .map((p) => norm(p).toLowerCase())
+        .filter(Boolean);
+      if (!arr.length) return "";
+      const uniq = Array.from(new Set(arr));
+      uniq.sort();
+      return uniq.join("|");
+    }
+
+    function findRegistrationMatchForSubmission(sub){
+      const s = sub || {};
+      const byIdRaw = [
+        norm(s.registrationId || ""),
+        norm(s.registrationParam || ""),
+        norm(s.registration || ""),
+      ].filter(Boolean);
+      for (const rid of byIdRaw) {
+        const hit = registrations.find((r) => norm(r.id) === rid);
+        if (hit) return { registrationId: hit.id, reason: "registration-id" };
+      }
+
+      const sTeam = norm(s.teamName || "").toLowerCase();
+      const sCaptain = norm(s.captainName || s.playerName || "").toLowerCase();
+      const sPlayersSig = normalizedPlayerSignature(s.players);
+
+      let best = null;
+      for (const r of registrations) {
+        const rTeam = norm(r.teamName || "").toLowerCase();
+        const rCaptain = norm(r.captainName || "").toLowerCase();
+        const rPlayersSig = normalizedPlayerSignature(r.players);
+        const teamMatch = !!sTeam && !!rTeam && sTeam === rTeam;
+        const captainMatch = !!sCaptain && !!rCaptain && sCaptain === rCaptain;
+        const playerMatch = !!sPlayersSig && !!rPlayersSig && sPlayersSig === rPlayersSig;
+
+        const score = (teamMatch ? 2 : 0) + (captainMatch ? 2 : 0) + (playerMatch ? 3 : 0);
+        if (score < 3) continue;
+        if (!best || score > best.score) {
+          best = {
+            registrationId: r.id,
+            reason: "team/captain/players",
+            score,
+            teamMatch,
+            captainMatch,
+            playerMatch,
+          };
+        }
+      }
+      return best ? { registrationId: best.registrationId, reason: best.reason } : null;
     }
 
     function buildRosterRows(){
@@ -2185,8 +2306,16 @@
       const subsByReg = new Map();
 
       liveSubmissions.forEach(s => {
-        const rid = norm(s.registrationId || "");
+        const match = findRegistrationMatchForSubmission(s);
+        const rid = norm(match?.registrationId || "");
         if (!rid || !regIds.has(rid)) return;
+        if (match && match.reason !== "registration-id") {
+          console.warn("[roster] duplicate live scorecard merged into registration row", {
+            registrationId: rid,
+            submissionDeviceId: norm(s.submissionDeviceId || ""),
+            reason: match.reason,
+          });
+        }
         const cur = subsByReg.get(rid);
         if (!cur){
           subsByReg.set(rid, s);
@@ -2303,22 +2432,77 @@
       }
     }
 
-    function tournamentPlacardWatermarkLogoUrl(){
-      const m = tournamentMeta;
-      if (!m) return "";
-      const candidates = [
-        m.logoUrl,
-        m.courseLogo,
-        m.courseLogoUrl,
-        m.organizationLogo,
-        m.organizationLogoUrl,
-        m.branding && m.branding.logoUrl
-      ];
-      for (const raw of candidates){
+    function firstResolvedAssetUrl(candidates){
+      for (const raw of candidates || []){
         const u = resolvePrintAssetUrl(raw);
         if (u) return u;
       }
       return "";
+    }
+
+    function normalizeSponsorForPrint(raw){
+      const s = raw && typeof raw === "object" ? raw : {};
+      return {
+        name: norm(s.name || s.sponsorName || ""),
+        logo: firstResolvedAssetUrl([s.logoUrl, s.logo, s.sponsorLogo, s.logoURL]),
+        website: norm(s.website || s.url || s.sponsorUrl || s.sponsorWebsite || s.sponsorLink || ""),
+        tier: norm(s.tier || ""),
+        order: Number(s.order ?? s.sort ?? 999),
+        active: s.active !== false
+      };
+    }
+
+    function getPrimarySponsorBranding(){
+      const sponsors = Array.isArray(tournamentMeta?.sponsors) ? tournamentMeta.sponsors : [];
+      const active = sponsors
+        .map(normalizeSponsorForPrint)
+        .filter((s) => s.active && (s.name || s.logo));
+      active.sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
+      const hero =
+        active.find((s) => {
+          const t = String(s.tier || "").toLowerCase();
+          return t === "title" || t === "presenting";
+        }) ||
+        active[0] ||
+        normalizeSponsorForPrint({
+          sponsorName: tournamentMeta?.sponsorName,
+          sponsorLogo: tournamentMeta?.sponsorLogo || tournamentMeta?.sponsorLogoUrl,
+          sponsorWebsite: tournamentMeta?.sponsorUrl || tournamentMeta?.sponsorWebsite || tournamentMeta?.sponsorLink
+        });
+      if (!hero || (!hero.name && !hero.logo)) return null;
+      return hero;
+    }
+
+    function tournamentCourseLogoUrl(){
+      return firstResolvedAssetUrl([
+        tournamentCourseMeta?.logoUrl,
+        tournamentCourseMeta?.courseLogoUrl,
+        tournamentCourseMeta?.branding?.logoUrl,
+        tournamentOrgMeta?.logoUrl,
+        tournamentOrgMeta?.branding?.logoUrl,
+        tournamentMeta?.organizationLogoUrl,
+        tournamentMeta?.organizationLogo,
+        tournamentMeta?.branding?.logoUrl
+      ]);
+    }
+
+    function tournamentCourseHeaderImageUrl(){
+      return firstResolvedAssetUrl([
+        tournamentCourseMeta?.headerImage,
+        tournamentCourseMeta?.headerImageUrl,
+        tournamentCourseMeta?.scorecardImage,
+        tournamentCourseMeta?.scorecardImageUrl,
+        tournamentCourseMeta?.coverImage,
+        tournamentCourseMeta?.heroImage,
+        tournamentMeta?.headerImage,
+        tournamentMeta?.headerImageUrl,
+        tournamentMeta?.scorecardImage,
+        tournamentMeta?.scorecardImageUrl
+      ]);
+    }
+
+    function tournamentPlacardWatermarkLogoUrl(){
+      return tournamentCourseLogoUrl();
     }
 
     function placardCourseBrand(){
@@ -2329,6 +2513,22 @@
       const m = tournamentMeta;
       if (!m) return "Tournament";
       return norm(m.tournamentName || m.name || m.eventTitle || "Tournament");
+    }
+
+    function buildPlacardStartingHoleText(r){
+      const h = normalizeHoleLabel(r.assignedHole);
+      if (h) return `Starting hole ${h}`;
+      const sh = normalizeHoleLabel(r.startingHole || "");
+      if (sh) return `Starting hole ${sh}`;
+      const th = normalizeHoleLabel(tournamentMeta?.startingHole || tournamentMeta?.startHole || "");
+      if (th) return `Starting hole ${th}`;
+      return "Starting hole: —";
+    }
+
+    function buildPlacardTeeTimeText(r){
+      const raw = String(r.teeTime || "").trim();
+      if (!raw) return "";
+      return `Tee time ${formatTime(raw) || "—"}`;
     }
 
     function buildPlacardTimeLineText(r) {
@@ -2371,32 +2571,41 @@
         .sort((a, b) => compareHoleLabels(a.assignedHole, b.assignedHole));
     }
 
-    function placardCardHtml(r, _sponsorLogoUrl, headerLogoUrl){
-      const courseAndEvent = escapeHtml(
-        `${placardCourseBrand()} — ${placardTournamentTitle()}`.replace(/\s+—\s+—/g, " — ").trim()
-      );
+    function placardCardHtml(r, sponsorBranding, watermarkLogoUrl){
+      const courseName = escapeHtml(placardCourseBrand() || "Course");
+      const startLine = escapeHtml(buildPlacardStartingHoleText(r));
       const team = escapeHtml(r.teamName || "—");
-      const timeLine = escapeHtml(buildPlacardTimeLineText(r));
       const players = normalizePlayers(r.players);
       const playerLines = players.length
         ? players.map((p) => `<div class="cart-placard-player">${escapeHtml(p)}</div>`).join("")
         : `<div class="cart-placard-player cart-placard-player--muted">—</div>`;
-      const logo = String(headerLogoUrl || "").trim();
-      const logoRow = logo
-        ? `<img class="cart-placard-header-logo" src="${escapeHtml(logo)}" alt="" />`
+      const logo = String(watermarkLogoUrl || "").trim();
+      const watermark = logo
+        ? `<div class="cart-placard-watermark"><img src="${escapeHtml(logo)}" alt="" onerror="this.parentElement.remove()" /></div>`
+        : "";
+      const sponsor = sponsorBranding && (sponsorBranding.name || sponsorBranding.logo) ? sponsorBranding : null;
+      const sponsorHtml = sponsor
+        ? `<div class="cart-placard-presented" style="${sponsor.logo ? "" : "display:none;"}">
+            <span>Presented by</span>
+            ${
+              sponsor.logo
+                ? `<img class="cart-placard-sponsor-logo" src="${escapeHtml(sponsor.logo)}" alt="${escapeHtml(sponsor.name || "Sponsor")}" onerror="this.remove()" />`
+                : ``
+            }
+            ${sponsor.name ? `<span>${escapeHtml(sponsor.name)}</span>` : ``}
+          </div>`
         : "";
 
       return `
         <div class="cart-placard">
-          <div class="cart-placard-header">
-            <div class="cart-placard-header-row">
-              ${logoRow}
-              <div class="cart-placard-header-text">${courseAndEvent}</div>
-            </div>
+          ${watermark}
+          <div class="cart-placard-content">
+            <div class="cart-placard-team">${team}</div>
+            <div class="cart-placard-start">${startLine}</div>
+            <div class="cart-placard-players">${playerLines}</div>
+            <div class="cart-placard-meta">${courseName}</div>
+            ${sponsorHtml}
           </div>
-          <div class="cart-placard-team">${team}</div>
-          <div class="cart-placard-time">${timeLine}</div>
-          <div class="cart-placard-players">${playerLines}</div>
         </div>`;
     }
 
@@ -2419,15 +2628,29 @@ body{
   padding: 0.28in 0.3in; border: 1px solid #222; background: #fff; color: #111;
   position: relative; overflow: hidden;
 }
-.cart-placard-header{ text-align: center; border-bottom: 1px solid #ccc; padding-bottom: 0.2in; margin-bottom: 0.2in; }
-.cart-placard-header-row{ display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 0.2in; flex-wrap: wrap; }
-.cart-placard-header-logo{ max-height: 0.38in; max-width: 1.1in; width: auto; height: auto; object-fit: contain; opacity: 0.9; }
-.cart-placard-header-text{ font-size: 13px; font-weight: 700; line-height: 1.3; max-width: 6.2in; word-wrap: break-word; }
-.cart-placard-team{ font-size: 28px; font-weight: 800; line-height: 1.2; text-align: center; margin: 0 0 0.18in; word-wrap: break-word; }
-.cart-placard-time{ font-size: 18px; font-style: italic; text-align: center; line-height: 1.3; margin: 0 0 0.2in; }
-.cart-placard-players{ font-size: 16px; text-align: center; line-height: 1.45; }
+.cart-placard-watermark{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:0;
+}
+.cart-placard-watermark img{
+  width:80%; max-width:6.6in; max-height:2.8in; object-fit:contain; opacity:0.1; filter:grayscale(1) contrast(0.8) brightness(1.05);
+}
+.cart-placard-content{
+  position:relative; z-index:2; background:rgba(255,255,255,.58); border-radius:8px; padding:0.06in 0.08in;
+}
+.cart-placard-team{ font-size: 44px; font-weight: 800; line-height: 1.2; text-align: center; margin: 0 0 0.12in; word-wrap: break-word; }
+.cart-placard-start{ font-size: 34px; font-weight: 900; text-align: center; line-height: 1.2; margin: 0 0 0.14in; }
+.cart-placard-players{ font-size: 20px; text-align: center; line-height: 1.4; }
 .cart-placard-player{ margin: 0.1em 0; }
 .cart-placard-player--muted{ opacity: 0.55; }
+.cart-placard-meta{ font-size: 12px; text-align: center; line-height: 1.35; margin: 0 0 0.12in; font-weight:700; opacity:.82; }
+.cart-placard-presented{
+  margin-top: 0.16in; border-top: 1px solid #ddd; padding-top: 0.1in;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  font-size:10px; font-weight:700; color:#444;
+}
+.cart-placard-sponsor-logo{
+  max-height:0.28in; max-width:1.2in; width:auto; height:auto; object-fit:contain; opacity:.9;
+}
 @media print {
   @page { size: letter; margin: 0.5in; }
   body { margin:0; padding:0; }
@@ -2435,19 +2658,19 @@ body{
   .pp-printPage:last-child{ page-break-after: auto; }
   .cart-placard{ width:7.5in; min-height:3.5in; margin:0 auto 0.25in; padding:0.25in; page-break-inside: avoid; break-inside: avoid; background: #fff !important; color: #000 !important; }
   .cart-placard *{ color: #000 !important; position: static !important; transform: none !important; }
-  .cart-placard-header, .cart-placard-team, .cart-placard-time, .cart-placard-players{ display: block; margin-bottom: 8px; line-height: 1.25; }
-  .cart-placard-team{ font-size: 28px; font-weight: 800; text-align: center; }
-  .cart-placard-time{ font-size: 20px; font-style: italic; text-align: center; }
-  .cart-placard-players{ font-size: 16px; text-align: center; }
-  .cart-placard-header-row{ flex-direction: row !important; justify-content: center !important; align-items: center !important; }
+  .cart-placard-content, .cart-placard-team, .cart-placard-start, .cart-placard-players{ display: block; margin-bottom: 8px; line-height: 1.25; }
+  .cart-placard-team{ font-size: 44px; font-weight: 800; text-align: center; }
+  .cart-placard-start{ font-size: 34px; font-weight: 900; text-align: center; }
+  .cart-placard-players{ font-size: 20px; text-align: center; }
 }
 `;
 
     function buildPlacardPreviewDocumentHtml() {
       const headerLogoUrl = tournamentPlacardWatermarkLogoUrl();
+      const primarySponsor = getPrimarySponsorBranding();
       const rows = buildPlacardRows();
       const bodyInner = rows
-        .map((r) => `<div class="pp-printPage">${placardCardHtml(r, "", headerLogoUrl)}</div>`)
+        .map((r) => `<div class="pp-printPage">${placardCardHtml(r, primarySponsor, headerLogoUrl)}</div>`)
         .join("");
       return `<!DOCTYPE html>
 <html lang="en">
@@ -2790,6 +3013,8 @@ ${bodyInner}
         });
         syncRosterAssignmentModeUI();
         syncPlayGroupToolbarHint();
+        await loadTournamentOrgMeta();
+        await loadTournamentCourseMeta();
       }
 
       joinBtn.href = buildTournamentIndexJoinUrl(
@@ -2802,6 +3027,40 @@ ${bodyInner}
       const leaderUrl = new URL("./leaderboard.html", window.location.href);
       applyOrgTournamentParams(leaderUrl, orgId, tournamentId);
       leaderBtn.href = leaderUrl.toString();
+    }
+
+    async function loadTournamentCourseMeta(){
+      tournamentCourseMeta = null;
+      const cid = norm(
+        tournamentMeta?.courseId ||
+        tournamentMeta?.defaultCourse ||
+        tournamentMeta?.courseDefault ||
+        ""
+      );
+      if (!cid || !orgId) return;
+      try {
+        const courseRef = doc(db, "organizations", orgId, "courses", cid);
+        const cs = await getDoc(courseRef);
+        if (cs.exists()) {
+          tournamentCourseMeta = cs.data() || null;
+        }
+      } catch (err) {
+        console.warn("[roster] course doc load failed for print branding", { orgId, courseId: cid, err });
+      }
+    }
+
+    async function loadTournamentOrgMeta(){
+      tournamentOrgMeta = null;
+      if (!orgId) return;
+      try {
+        const orgRef = doc(db, "organizations", orgId);
+        const orgSnap = await getDoc(orgRef);
+        if (orgSnap.exists()) {
+          tournamentOrgMeta = orgSnap.data() || null;
+        }
+      } catch (err) {
+        console.warn("[roster] org doc load failed for print branding", { orgId, err });
+      }
     }
 
     /* ---------------------------------------------------- */
@@ -3262,8 +3521,9 @@ ${bodyInner}
         isSubmission: true,
         submissionDeviceId: docId,
         registrationId: norm(x.registrationId || ""),
+        registrationParam: norm(x.registration || x.registrationParam || x.r || ""),
         teamName: team,
-        captainName: "",
+        captainName: norm(x.captainName || x.playerName || ""),
         players,
         playerDetails: [],
         assignedHole: hole,
@@ -3276,7 +3536,10 @@ ${bodyInner}
     function resolveSubmissionDeviceId(r){
       if (!r) return "";
       if (r.isSubmission) return norm(r.submissionDeviceId);
-      const hit = liveSubmissions.find(s => norm(s.registrationId) === norm(r.id));
+      const hit = liveSubmissions.find((s) => {
+        const m = findRegistrationMatchForSubmission(s);
+        return norm(m?.registrationId || "") === norm(r.id);
+      });
       return hit ? norm(hit.submissionDeviceId) : "";
     }
 
@@ -3604,7 +3867,7 @@ ${bodyInner}
         const names = ids.map((id) => {
           const k = String(id || "").trim();
           const pr = partMap.get(k);
-          return pr ? pr.displayName : "Unknown";
+          return pr ? pr.displayName : "Unnamed";
         });
         out.push({
           timeOnly,
@@ -3903,7 +4166,7 @@ ${bodyInner}
         const u = buildTeamJoinUrl(rid, { log: false });
         if (u) {
           a.href = u;
-          a.textContent = u;
+          a.textContent = "Open Scorecard";
         }
       });
       tbody.querySelectorAll("button.rowCopyTeamJoinBtn").forEach((btn) => {
@@ -4179,9 +4442,7 @@ ${bodyInner}
       const captain = norm(r.captainName || "");
       const em = norm(r.captainEmail || "");
       const ph = norm(r.captainPhone || "");
-      const subNote = r.isSubmission
-        ? `<div class="captainLine" style="opacity:.85;">Join link scorecard</div>`
-        : r.liveFromSubmission
+      const subNote = r.liveFromSubmission
         ? `<div class="captainLine" style="opacity:.85;">Live scorecard linked</div>`
         : ``;
 
@@ -4244,7 +4505,7 @@ ${bodyInner}
                 showJoinCard
                   ? `<div class="rosterTeamJoinWrap">
                   <a class="rosterTeamJoinA" href="#" data-registration-id="${escapeHtml(joinRegId)}" target="_blank" rel="noopener"></a>
-                  <button type="button" class="miniBtn rowCopyTeamJoinBtn" data-registration-id="${escapeHtml(joinRegId)}">Copy link</button>
+                  <button type="button" class="miniBtn rowCopyTeamJoinBtn" data-registration-id="${escapeHtml(joinRegId)}">Copy Link</button>
                 </div>`
                   : ``
               }
@@ -4544,7 +4805,7 @@ ${bodyInner}
       const course = getTournamentDisplayCourse();
       const sideGamesText = getTournamentSideGamesText();
 
-      let scheduleText = "Please arrive early, check in with the tournament operator, and use the QR code below to join live scoring.";
+      let scheduleText = "Please arrive early, check in with the tournament operator, and use the Tournament Scorecard QR code below.";
       if (sideGamesText){
         scheduleText += `\n\n${sideGamesText}`;
       }
@@ -4553,7 +4814,7 @@ ${bodyInner}
         title: title || "Tournament",
         date: date || "",
         course: course || "",
-        welcomeText: `Welcome to ${title || "today's tournament"}.\n\nPlease review the rules below and scan the QR code to join live scoring.`,
+        welcomeText: `Welcome to ${title || "today's tournament"}.\n\nPlease review the rules below and scan the Tournament Scorecard QR code.`,
         formatText: getTournamentFormatText(),
         scheduleText,
         footerText: "Good luck and have a great round.",
@@ -4609,22 +4870,17 @@ ${bodyInner}
       const previewTitle = d.title || "Tournament";
       const courseLine = d.course ? `<div><b>Course:</b> ${escapeHtml(d.course)}</div>` : "";
       const dateLine = d.date ? `<div><b>Date:</b> ${escapeHtml(d.date)}</div>` : "";
+      const courseLogo = tournamentCourseLogoUrl();
+      const primarySponsor = getPrimarySponsorBranding();
       const joinQrOn =
         d.showJoinQr !== undefined ? d.showJoinQr !== false : d.showQr !== false;
-      const leaderQrOn =
-        d.showLeaderboardQr !== undefined ? d.showLeaderboardQr !== false : true;
-      const showQrColumn =
-        (joinQrOn && d.joinLink) || (leaderQrOn && d.leaderboardLink);
+      const showQrColumn = joinQrOn && d.joinLink;
       const qrHtml = showQrColumn
         ? `<div class="rulesQrColumn">
              ${joinQrOn && d.joinLink ? `<div class="rulesQrWrap">
                <div id="rulesQrBoxJoin" class="rulesQrBox"></div>
-               <div class="rulesQrCaption">Scan to join live scoring</div>
-               ${d.showJoinLink && d.joinLink ? `<div class="rulesJoinLinkText">${escapeHtml(d.joinLink)}</div>` : ``}
-             </div>` : ``}
-             ${leaderQrOn && d.leaderboardLink ? `<div class="rulesQrWrap">
-               <div id="rulesQrBoxLeaderboard" class="rulesQrBox"></div>
-               <div class="rulesQrCaption">Scan for live leaderboard</div>
+               <div class="rulesQrCaption">Tournament Scorecard</div>
+              ${d.showJoinLink && d.joinLink && !joinQrOn ? `<div class="rulesJoinLinkText">${escapeHtml(d.joinLink)}</div>` : ``}
              </div>` : ``}
            </div>`
         : `<div></div>`;
@@ -4633,6 +4889,11 @@ ${bodyInner}
         <div class="rulesPreviewCard" id="rulesPreviewCard">
           <div class="rulesPreviewTop">
             <div>
+              ${
+                courseLogo
+                  ? `<div class="rulesBrandLogoWrap"><img class="rulesBrandLogo" src="${escapeHtml(courseLogo)}" alt="" onerror="this.remove()" /></div>`
+                  : ``
+              }
               <div class="rulesPreviewBrand">${escapeHtml(previewTitle)}</div>
               <div class="rulesPreviewMeta">
                 ${dateLine}
@@ -4665,6 +4926,19 @@ ${bodyInner}
             <h3>Footer</h3>
             <div class="rulesPreviewText">${escapeHtml(d.footerText)}</div>
           </div>` : ``}
+          ${
+            primarySponsor && (primarySponsor.name || primarySponsor.logo)
+              ? `<div class="rulesPresentedBy">
+                  <span>Presented by</span>
+                  ${
+                    primarySponsor.logo
+                      ? `<img class="rulesPresentedByLogo" src="${escapeHtml(primarySponsor.logo)}" alt="${escapeHtml(primarySponsor.name || "Sponsor")}" onerror="this.remove()" />`
+                      : ``
+                  }
+                  ${primarySponsor.name ? `<span>${escapeHtml(primarySponsor.name)}</span>` : ``}
+                </div>`
+              : ``
+          }
         </div>
       `;
     }
@@ -4696,13 +4970,8 @@ ${bodyInner}
       rulesSheetPreview.innerHTML = buildRulesSheetPreviewHtml(data);
       const joinQrOn =
         data.showJoinQr !== undefined ? data.showJoinQr !== false : data.showQr !== false;
-      const leaderQrOn =
-        data.showLeaderboardQr !== undefined ? data.showLeaderboardQr !== false : true;
       if (joinQrOn && data.joinLink){
         renderRulesSheetQrInto("rulesQrBoxJoin", data.joinLink);
-      }
-      if (leaderQrOn && data.leaderboardLink){
-        renderRulesSheetQrInto("rulesQrBoxLeaderboard", data.leaderboardLink);
       }
     }
 
@@ -4787,8 +5056,6 @@ ${bodyInner}
 
       const joinQrOn =
         data.showJoinQr !== undefined ? data.showJoinQr !== false : data.showQr !== false;
-      const leaderQrOn =
-        data.showLeaderboardQr !== undefined ? data.showLeaderboardQr !== false : true;
       if (joinQrOn && data.joinLink){
         const box = rulesPrintHost.querySelector("#rulesQrBoxJoin");
         if (box){
@@ -4796,22 +5063,6 @@ ${bodyInner}
           try{
             new QRCode(box, {
               text: data.joinLink,
-              width: 172,
-              height: 172,
-              correctLevel: QRCode.CorrectLevel.H
-            });
-          }catch(err){
-            console.error(err);
-          }
-        }
-      }
-      if (leaderQrOn && data.leaderboardLink){
-        const boxLb = rulesPrintHost.querySelector("#rulesQrBoxLeaderboard");
-        if (boxLb){
-          boxLb.innerHTML = "";
-          try{
-            new QRCode(boxLb, {
-              text: data.leaderboardLink,
               width: 172,
               height: 172,
               correctLevel: QRCode.CorrectLevel.H

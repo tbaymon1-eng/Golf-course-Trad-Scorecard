@@ -12,6 +12,7 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
+const crypto = require("crypto");
 
 const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
 
@@ -114,6 +115,24 @@ function normalizeOrgSlug(raw) {
     .replace(/[^a-z0-9-]/g, "")
     .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function normalizeOperatorRole(raw) {
+  const r = String(raw || "")
+    .trim()
+    .toLowerCase();
+  if (r === "admin" || r === "staff" || r === "viewer") return r;
+  return "";
+}
+
+function isOrgAdminLikeRole(role) {
+  const r = normalizeOperatorRole(role);
+  return r === "admin";
+}
+
+function isOrgStaffLikeRole(role) {
+  const r = normalizeOperatorRole(role);
+  return r === "admin" || r === "staff";
 }
 
 /**
@@ -546,6 +565,243 @@ exports.staffSignupWithInvite = onCall(
     await userRef.set(payload, { merge: true });
 
     return { orgId: targetId, ok: true };
+  }
+);
+
+exports.createOrganizationOperatorInvite = onCall(
+  {
+    region: "us-central1",
+    cors: true,
+  },
+  async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Sign in required.");
+    const uid = request.auth.uid;
+    const orgId = safeText(request.data?.orgId);
+    const email = safeText(request.data?.email).toLowerCase();
+    const role = normalizeOperatorRole(request.data?.role);
+    if (!orgId) throw new HttpsError("invalid-argument", "orgId is required.");
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      throw new HttpsError("invalid-argument", "Valid operator email is required.");
+    }
+    if (!role) throw new HttpsError("invalid-argument", "role must be admin, staff, or viewer.");
+
+    const userSnap = await db.collection("users").doc(uid).get();
+    const userData = userSnap.exists ? userSnap.data() || {} : {};
+    const merged = buildMergedUserOrgState(userData);
+    const globalRole = String(userData.role || "")
+      .trim()
+      .toLowerCase();
+    const callerOrgRole = normalizeOperatorRole(merged.roleByOrg?.[orgId] || "");
+    const allowed = isPlatformGlobalRoleValue(globalRole) || isOrgAdminLikeRole(callerOrgRole);
+    if (!allowed) {
+      throw new HttpsError("permission-denied", "Only platform admins or org admins can invite operators.");
+    }
+
+    const orgRef = db.collection("organizations").doc(orgId);
+    const orgSnap = await orgRef.get();
+    if (!orgSnap.exists) throw new HttpsError("not-found", "Organization not found.");
+    if (orgSnap.data()?.active === false) {
+      throw new HttpsError("failed-precondition", "Organization is inactive.");
+    }
+
+    const token = crypto.randomBytes(24).toString("hex");
+    const now = Date.now();
+    const inviteRef = orgRef.collection("operatorInvites").doc(token);
+    await inviteRef.set({
+      orgId,
+      email,
+      role,
+      token,
+      active: true,
+      status: "pending",
+      createdByUid: uid,
+      createdAt: FieldValue.serverTimestamp(),
+      expiresAtMs: now + 1000 * 60 * 60 * 24 * 14,
+    });
+
+    const inviteUrl = `./signup.html?operatorInvite=${encodeURIComponent(token)}`;
+    return { ok: true, orgId, email, role, token, inviteUrl };
+  }
+);
+
+exports.acceptOrganizationOperatorInvite = onCall(
+  {
+    region: "us-central1",
+    cors: true,
+  },
+  async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Sign in required.");
+    const uid = request.auth.uid;
+    const token = safeText(request.data?.inviteToken);
+    const displayName = safeText(request.data?.displayName);
+    if (!token) throw new HttpsError("invalid-argument", "inviteToken is required.");
+
+    const inviteQuery = await db
+      .collectionGroup("operatorInvites")
+      .where("token", "==", token)
+      .limit(2)
+      .get();
+    if (inviteQuery.empty) throw new HttpsError("not-found", "Invite not found.");
+    const inviteDoc = inviteQuery.docs[0];
+    const inv = inviteDoc.data() || {};
+    const orgId = safeText(inv.orgId);
+    const role = normalizeOperatorRole(inv.role);
+    if (!orgId || !role) throw new HttpsError("failed-precondition", "Invite is invalid.");
+    if (inv.active === false || String(inv.status || "") === "revoked") {
+      throw new HttpsError("failed-precondition", "Invite is no longer active.");
+    }
+    const exp = Number(inv.expiresAtMs || 0);
+    if (Number.isFinite(exp) && exp > 0 && Date.now() > exp) {
+      throw new HttpsError("failed-precondition", "Invite has expired.");
+    }
+    const emailFromInvite = safeText(inv.email).toLowerCase();
+    const emailFromAuth = safeText(request.auth.token?.email).toLowerCase();
+    if (emailFromInvite && emailFromAuth && emailFromInvite !== emailFromAuth) {
+      throw new HttpsError("permission-denied", "Invite email does not match your signed-in account.");
+    }
+
+    const userRef = db.collection("users").doc(uid);
+    const userSnap = await userRef.get();
+    const prev = userSnap.exists ? userSnap.data() || {} : {};
+    const merged = buildMergedUserOrgState(prev);
+    const nextIds = [...new Set([...merged.orgIds, orgId])];
+    const nextRoleByOrg = { ...merged.roleByOrg, [orgId]: role };
+    const top = String(prev.role || "")
+      .trim()
+      .toLowerCase();
+    const nextTopRole = isPlatformGlobalRoleValue(top)
+      ? prev.role
+      : userSnap.exists && safeText(prev.role)
+        ? prev.role
+        : role;
+
+    await userRef.set(
+      {
+        displayName: displayName || safeText(prev.displayName),
+        email: emailFromAuth || safeText(prev.email),
+        orgIds: nextIds,
+        roleByOrg: nextRoleByOrg,
+        activeOrgId: orgId,
+        orgId,
+        role: nextTopRole,
+        active: true,
+        updatedAt: FieldValue.serverTimestamp(),
+        ...(userSnap.exists ? {} : { createdAt: FieldValue.serverTimestamp() }),
+      },
+      { merge: true }
+    );
+    await inviteDoc.ref.set(
+      {
+        active: false,
+        status: "accepted",
+        acceptedByUid: uid,
+        acceptedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return { ok: true, orgId, role };
+  }
+);
+
+exports.listOrganizationOperators = onCall(
+  {
+    region: "us-central1",
+    cors: true,
+  },
+  async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Sign in required.");
+    const uid = request.auth.uid;
+    const orgId = safeText(request.data?.orgId);
+    if (!orgId) throw new HttpsError("invalid-argument", "orgId is required.");
+
+    const callerSnap = await db.collection("users").doc(uid).get();
+    const callerData = callerSnap.exists ? callerSnap.data() || {} : {};
+    const merged = buildMergedUserOrgState(callerData);
+    const globalRole = String(callerData.role || "")
+      .trim()
+      .toLowerCase();
+    const callerOrgRole = normalizeOperatorRole(merged.roleByOrg?.[orgId] || "");
+    const allowed = isPlatformGlobalRoleValue(globalRole) || isOrgAdminLikeRole(callerOrgRole);
+    if (!allowed) {
+      throw new HttpsError("permission-denied", "Only platform admins or org admins can view operators.");
+    }
+
+    const userSnaps = await db.collection("users").where("orgIds", "array-contains", orgId).limit(300).get();
+    const users = [];
+    userSnaps.forEach((d) => {
+      const x = d.data() || {};
+      const m = buildMergedUserOrgState(x);
+      if (!m.orgIds.includes(orgId)) return;
+      users.push({
+        uid: d.id,
+        email: safeText(x.email),
+        displayName: safeText(x.displayName),
+        role: normalizeOperatorRole(m.roleByOrg?.[orgId] || x.role || "viewer") || "viewer",
+        active: x.active !== false,
+      });
+    });
+    users.sort((a, b) => String(a.email || a.uid).localeCompare(String(b.email || b.uid)));
+    return { ok: true, users };
+  }
+);
+
+exports.deactivateOrganizationOperator = onCall(
+  {
+    region: "us-central1",
+    cors: true,
+  },
+  async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Sign in required.");
+    const callerUid = request.auth.uid;
+    const orgId = safeText(request.data?.orgId);
+    const targetUid = safeText(request.data?.uid);
+    if (!orgId || !targetUid) {
+      throw new HttpsError("invalid-argument", "orgId and uid are required.");
+    }
+
+    const callerSnap = await db.collection("users").doc(callerUid).get();
+    const callerData = callerSnap.exists ? callerSnap.data() || {} : {};
+    const callerMerged = buildMergedUserOrgState(callerData);
+    const callerGlobal = String(callerData.role || "")
+      .trim()
+      .toLowerCase();
+    const callerOrgRole = normalizeOperatorRole(callerMerged.roleByOrg?.[orgId] || "");
+    const allowed = isPlatformGlobalRoleValue(callerGlobal) || isOrgAdminLikeRole(callerOrgRole);
+    if (!allowed) {
+      throw new HttpsError("permission-denied", "Only platform admins or org admins can remove operators.");
+    }
+    if (callerUid === targetUid && !isPlatformGlobalRoleValue(callerGlobal)) {
+      throw new HttpsError("failed-precondition", "Org admins cannot remove themselves.");
+    }
+
+    const targetRef = db.collection("users").doc(targetUid);
+    const targetSnap = await targetRef.get();
+    if (!targetSnap.exists) throw new HttpsError("not-found", "User not found.");
+    const targetData = targetSnap.data() || {};
+    const targetMerged = buildMergedUserOrgState(targetData);
+    if (!targetMerged.orgIds.includes(orgId)) {
+      throw new HttpsError("failed-precondition", "User is not in this organization.");
+    }
+
+    const nextOrgIds = targetMerged.orgIds.filter((x) => x !== orgId);
+    const nextRoleByOrg = { ...targetMerged.roleByOrg };
+    delete nextRoleByOrg[orgId];
+    const nextActive = safeText(targetMerged.activeOrgId);
+    const fallback = nextOrgIds.length ? nextOrgIds[0] : "";
+    const resolvedActive = nextOrgIds.includes(nextActive) ? nextActive : fallback;
+
+    await targetRef.set(
+      {
+        orgIds: nextOrgIds,
+        roleByOrg: nextRoleByOrg,
+        activeOrgId: resolvedActive,
+        orgId: resolvedActive,
+        active: nextOrgIds.length > 0 ? targetData.active !== false : false,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return { ok: true, uid: targetUid, orgId };
   }
 );
 
@@ -1170,7 +1426,7 @@ function parseJsonFromModelContent(raw) {
 
 /**
  * Validates extracted shape: 18 holes, pars, tee keys match yard columns per hole.
- * @returns {{ ok: true, courseName: string, teeSets: string[], holes: object[] } | { ok: false }}
+ * @returns {{ ok: true, courseName: string, teeSets: string[], holes: object[], teeColors: object } | { ok: false }}
  */
 function validateExtractedScorecard(parsed) {
   if (!parsed || typeof parsed !== "object") return { ok: false };
@@ -1222,8 +1478,24 @@ function validateExtractedScorecard(parsed) {
     if (!byHole.has(n)) return { ok: false };
     holes.push(byHole.get(n));
   }
+  const normalizeColorKey = (s) =>
+    String(s || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+  const teeColorsRaw =
+    parsed.teeColors && typeof parsed.teeColors === "object" ? parsed.teeColors : {};
+  const teeColors = {};
+  for (const [k, v] of Object.entries(teeColorsRaw)) {
+    const nk = normalizeColorKey(k);
+    const hv = String(v || "").trim().toLowerCase();
+    if (!nk) continue;
+    if (!/^#[0-9a-f]{6}$/.test(hv)) continue;
+    teeColors[nk] = hv;
+  }
 
-  return { ok: true, courseName, teeSets, holes };
+  return { ok: true, courseName, teeSets, holes, teeColors };
 }
 
 /**
@@ -1286,6 +1558,13 @@ Return ONLY a single JSON object (no markdown fences, no commentary before or af
 {
   "courseName": "",
   "teeSets": ["Gold", "Forest", "Blue", "Stone", "Copper"],
+  "teeColors": {
+    "gold": "#c9a74a",
+    "forest": "#2f6b47",
+    "blue": "#1f4e8c",
+    "stone": "#d9d5cc",
+    "copper": "#9a6217"
+  },
   "holes": [
     {
       "hole": 1,
@@ -1309,6 +1588,7 @@ Strict rules:
 - **Tee / yardage columns:** Include EVERY distinct yardage column visible on the card (often 4–8 columns). Scorecards may list tees in multiple horizontal bands or stacked blocks (e.g. Gold, Forest, Blue, Stone, Copper). Scan the entire yardage table—do NOT stop after two or three columns. If you see five tee names, "teeSets" must have five names and every hole's "yards" must have five matching keys with numeric values.
 - "teeSets" lists those tee/column names in the same order as the yardage columns appear on the scorecard (left-to-right, or top-to-bottom if that matches how columns are labeled).
 - For every hole, "yards" must include exactly one numeric yardage for each name in "teeSets", using the same keys as in "teeSets".
+- Include "teeColors" when row colors are visible on the card. Keys should be normalized tee names (lowercase, underscore separators) and values must be 6-digit hex colors.
 - Do not omit holes. If a value is unreadable, estimate from context or use 0 only for yardage with a note in courseName — prefer leaving par/handicap as numbers you can infer.
 - Use integers for yards and par when shown as whole numbers.
 - Support at least 6 tee columns when the image shows that many; there is no benefit to merging or dropping columns.
@@ -1428,6 +1708,7 @@ exports.extractScorecardData = onCall(
       return {
         courseName: validated.courseName,
         teeSets: validated.teeSets,
+        teeColors: validated.teeColors,
         holes: validated.holes,
         notes: "Extracted with OpenAI Vision. Review all values before saving.",
         warnings: [

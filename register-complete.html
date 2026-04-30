@@ -609,6 +609,7 @@
     import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import {
   parseOrgTournamentFromSearch,
+  resolveTournamentOrgIdStrict,
   tournamentDocRef,
   buildTournamentIndexJoinUrl
 } from "./js/org-paths.js";
@@ -670,6 +671,22 @@ const params = new URLSearchParams(location.search);
       /** tournament | clinic | camp | event — driven by loaded event document */
       registrationPageEventType: REGISTRATION_PAGE_EVENT_TOURNAMENT,
     };
+    if (!state.tournamentId) {
+      throw new Error("Missing tournament id.");
+    }
+    {
+      const hadUrlOrg = Boolean(String(parsed.orgId || "").trim());
+      if (String(state.tournamentId || "").trim() && !hadUrlOrg) {
+        console.warn(
+          "[registration] URL has tournament id but no org / orgId / organizationId. Legacy org resolution may run; use dashboard links with ?org=."
+        );
+      }
+      const resolvedOrg = await resolveTournamentOrgIdStrict(db, state.orgId, state.tournamentId);
+      if (!resolvedOrg.ok || !resolvedOrg.orgId) {
+        throw new Error(resolvedOrg.error || "Missing or invalid organization.");
+      }
+      state.orgId = String(resolvedOrg.orgId || "").trim();
+    }
 
     function getActiveUiConfig(){
       const t = state.tournament;
@@ -1303,6 +1320,9 @@ const params = new URLSearchParams(location.search);
       const rid = String(registrationId || "").trim();
       if (!String(state.tournamentId || "").trim() || !rid) {
         return new URL("./index.html", window.location.href).toString();
+      }
+      if (!String(state.orgId || "").trim()) {
+        console.warn("[registration] buildScorecardUrl: tournament/registration context but org id missing after resolve; link may rely on legacy rules.");
       }
       return buildTournamentIndexJoinUrl(
         window.location.href,

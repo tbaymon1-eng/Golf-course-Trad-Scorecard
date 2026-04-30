@@ -2,12 +2,106 @@
  * Multi-tenant Firestore path helpers.
  * When orgId is empty, use legacy top-level tournaments/{tournamentId} (existing links).
  */
-import { doc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  doc,
+  collection,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  limit,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/**
+ * Canonical org id from URL: `org` wins over `orgId` / `organizationId` / `o`
+ * so internal links can use ?org= without being overridden by stale orgId.
+ */
+export function readOrgAliasFromSearchParams(searchParams) {
+  if (!searchParams || typeof searchParams.get !== "function") return "";
+  return (
+    searchParams.get("org") ||
+    searchParams.get("orgId") ||
+    searchParams.get("organizationId") ||
+    searchParams.get("o") ||
+    ""
+  ).trim();
+}
 
 export function parseOrgTournamentFromSearch(searchParams) {
   const tournamentId = (searchParams.get("id") || searchParams.get("t") || "").trim();
-  const orgId = (searchParams.get("org") || searchParams.get("o") || "").trim();
+  const orgId = readOrgAliasFromSearchParams(searchParams);
   return { orgId, tournamentId };
+}
+
+function safeText(v) {
+  return String(v || "").trim();
+}
+
+/**
+ * Resolve the effective org for a tournament in strict multi-org mode.
+ * - If URL orgId is provided, the tournament must exist in that org path.
+ * - If URL orgId is missing, use tournament.orgId/organizationId if present.
+ * - Legacy top-level tournaments with no orgId are allowed only when the owner
+ *   maps to a Cypresswood organization.
+ */
+export async function resolveTournamentOrgIdStrict(db, requestedOrgId, tournamentId) {
+  const tid = safeText(tournamentId);
+  if (!tid) {
+    return { ok: false, error: "Missing tournament id." };
+  }
+  const requested = safeText(requestedOrgId);
+
+  if (requested) {
+    const scoped = await getDoc(doc(db, "organizations", requested, "tournaments", tid));
+    if (scoped.exists()) {
+      return { ok: true, orgId: requested, source: "scoped" };
+    }
+    return {
+      ok: false,
+      error: "Invalid organization for this tournament. Open the link from the correct customer account.",
+    };
+  }
+
+  const legacySnap = await getDoc(doc(db, "tournaments", tid));
+  if (!legacySnap.exists()) {
+    return { ok: false, error: "Tournament not found." };
+  }
+  const legacy = legacySnap.data() || {};
+  const canonOrg = safeText(legacy.organizationId || legacy.orgId);
+  if (canonOrg) {
+    return { ok: true, orgId: canonOrg, source: "legacy-canonical-field" };
+  }
+
+  const ownerUid = safeText(legacy.ownerUid || legacy.createdByUid || legacy.organizerUid);
+  if (!ownerUid) {
+    return {
+      ok: false,
+      error: "Tournament orgId is missing. Ask the organizer to regenerate this link.",
+    };
+  }
+  const qy = query(
+    collection(db, "organizations"),
+    where("ownerUid", "==", ownerUid),
+    limit(20)
+  );
+  const ownerOrgs = await getDocs(qy);
+  let cypressOrgId = "";
+  ownerOrgs.forEach((d) => {
+    if (cypressOrgId) return;
+    const row = d.data() || {};
+    const slug = safeText(row.slug).toLowerCase();
+    const name = safeText(row.name).toLowerCase();
+    if (slug.includes("cypresswood") || name.includes("cypresswood")) {
+      cypressOrgId = d.id;
+    }
+  });
+  if (cypressOrgId) {
+    return { ok: true, orgId: cypressOrgId, source: "legacy-cypresswood-owner" };
+  }
+  return {
+    ok: false,
+    error: "Tournament orgId is missing and cannot be resolved safely for this account.",
+  };
 }
 
 export function tournamentDocRef(db, orgId, tournamentId) {
@@ -89,8 +183,10 @@ export function applyOrgTournamentParams(url, orgId, tournamentId) {
     url.searchParams.set("id", tournamentId);
     url.searchParams.set("t", tournamentId);
   }
-  if (orgId) {
-    url.searchParams.set("org", orgId);
+  const o = String(orgId || "").trim();
+  if (o) {
+    url.searchParams.set("org", o);
+    url.searchParams.set("orgId", o);
   }
 }
 
