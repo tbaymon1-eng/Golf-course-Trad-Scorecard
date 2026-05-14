@@ -2831,7 +2831,7 @@
       tournamentAlertsLiveRef,
       buildTournamentIndexJoinUrl,
       buildTournamentAbsoluteUrl,
-    } from "./js/org-paths.js";
+    } from "./js/org-paths.js?v=20260514-0845";
     import { resolvePlacardCourseBrand } from "./js/branding-display.js";
     import {
       normalizeAssignmentType,
@@ -2905,6 +2905,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+
     await auth.authStateReady();
     if (!auth.currentUser) await signInAnonymously(auth);
 
@@ -5593,11 +5594,23 @@ ${bodyInner}
 
     async function loadTournamentMeta(){
       if(!tournamentId){
-        meta.textContent="Missing tournament id";
+        if (meta) meta.textContent="Missing tournament id";
         return;
       }
 
-      const snap=await getDoc(tournamentDocRef(db, orgId, tournamentId));
+      const tMetaRef = tournamentDocRef(db, orgId, tournamentId);
+      let snap;
+      try {
+        snap = await getDoc(tMetaRef);
+      } catch (e) {
+        console.warn("[roster] tournament doc read failed", tMetaRef.path, e?.code, e?.message);
+        throw e;
+      }
+      if (!snap.exists()) {
+        console.warn("[roster] tournament doc missing at path", tMetaRef.path);
+        if (meta) meta.textContent = "Event not found";
+        if (textOut) textOut.textContent = "Check your link (tournament id and organization).";
+      }
 
       if(snap.exists()){
         tournamentMeta=snap.data();
@@ -5632,8 +5645,10 @@ ${bodyInner}
         } catch (_e) {}
       }
 
-      joinBtn.href = buildTournamentIndexJoinUrl("", orgId, tournamentId, "", { log: true });
-      leaderBtn.href = buildTournamentAbsoluteUrl("leaderboard.html", orgId, tournamentId);
+      const joinHref = buildTournamentIndexJoinUrl("", orgId, tournamentId, "", { log: true });
+      const leaderHref = buildTournamentAbsoluteUrl("leaderboard.html", orgId, tournamentId);
+      if (joinBtn) joinBtn.href = joinHref;
+      if (leaderBtn) leaderBtn.href = leaderHref;
 
       await refreshRosterMayDeleteRegistration();
     }
@@ -8728,10 +8743,56 @@ ${bodyInner}
     }else{
       if(alertOrganizerBox) alertOrganizerBox.style.display="block";
 
-      const regCol=tournamentRegistrationsCollection(db, orgId, tournamentId);
-      const q=query(regCol);
+      Promise.resolve()
+        .then(async () => {
+          const orgRegCol = tournamentRegistrationsCollection(db, orgId, tournamentId);
+          const legacyRegCol = tournamentRegistrationsCollection(db, "", tournamentId);
 
-      onSnapshot(q,(snap)=>{
+          let orgScopedCount = 0;
+          try {
+            orgScopedCount = (await getDocs(query(orgRegCol))).size;
+          } catch (e) {
+            orgScopedCount = 0;
+            console.warn(
+              "[roster registrations path] org-scoped probe failed (treat as empty)",
+              orgRegCol.path,
+              e?.code,
+              e?.message
+            );
+          }
+
+          let legacyCount = 0;
+          try {
+            legacyCount = (await getDocs(query(legacyRegCol))).size;
+          } catch (e) {
+            legacyCount = 0;
+            console.warn(
+              "[roster registrations path] legacy probe failed (treat as empty)",
+              legacyRegCol.path,
+              e?.code,
+              e?.message
+            );
+          }
+
+          console.log("[roster registrations path] counts", {
+            orgScopedCount,
+            legacyCount,
+            orgPath: orgRegCol.path,
+            legacyPath: legacyRegCol.path,
+          });
+
+          const regCol =
+            orgScopedCount > 0 ? orgRegCol : legacyCount > 0 ? legacyRegCol : orgRegCol;
+
+          console.log("[roster registrations path] final", {
+            finalPath: regCol.path,
+            chose:
+              orgScopedCount > 0 ? "org" : legacyCount > 0 ? "legacy" : "org-default-empty",
+          });
+
+          const q = query(regCol);
+
+          onSnapshot(q,(snap)=>{
         if (!playGroupViewModePopulatedFromReg) {
           playGroupViewModePopulatedFromReg = true;
           populatePlayGroupViewMode();
@@ -8799,12 +8860,18 @@ ${bodyInner}
           }
         }
 
-      },()=>{
+      },(err)=>{
+        console.warn("[roster] registrations listener error", regCol.path, err?.code, err?.message);
         emptyState.style.display="block";
         emptyState.textContent="Live updates blocked (rules/network).";
         textOut.textContent="Live updates blocked (rules/network).";
         updateCopyTeamScorecardLinksBtn();
       });
+        })
+        .catch((e) => {
+          console.error("[roster] registrations path wiring failed (read-only probe)", e);
+        })
+        .then(() => {
 
       const pgCol = tournamentPlayGroupsCollection(db, orgId, tournamentId);
       const pgQ = query(pgCol);
@@ -8865,6 +8932,7 @@ ${bodyInner}
       }, (err) => {
         console.warn("Roster: submissions listener failed (check Firestore rules for submissions read)", err);
       });
+        });
     }
   </script>
 </body>

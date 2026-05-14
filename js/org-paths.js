@@ -11,6 +11,7 @@ import {
   where,
   limit,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAppBaseUrl } from "./base-url.js";
 
 /**
  * Canonical org id from URL: `org` wins over `orgId` / `organizationId` / `o`
@@ -210,7 +211,11 @@ export function buildTournamentIndexJoinUrl(
 ) {
   const tid = String(tournamentId || "").trim();
   if (!tid) return "";
-  const url = new URL("./index.html", baseHref);
+  const safeBase =
+    baseHref && String(baseHref).trim()
+      ? String(baseHref).trim()
+      : globalThis.location?.origin || getAppBaseUrl() || "https://elbsolutions.co";
+  const url = new URL("./index.html", safeBase);
   applyOrgTournamentParams(url, orgId, tid);
   const rid = String(registrationId || "").trim();
   if (rid) {
@@ -218,6 +223,32 @@ export function buildTournamentIndexJoinUrl(
   }
   if (options?.log !== false) {
     console.log("Generated join URL:", url.toString());
+  }
+  return url.toString();
+}
+
+/**
+ * Same org/tournament query params as {@link buildTournamentIndexJoinUrl}, but under
+ * {@link getAppBaseUrl} (production vs local) for window.open / mailto / QR targets.
+ *
+ * @param {string} page - e.g. "leaderboard.html"
+ * @param {string} orgId
+ * @param {string} tournamentId
+ * @param {Record<string, string>} [extraSearchParams] - merged after id/t/org params
+ * @returns {string}
+ */
+export function buildTournamentAbsoluteUrl(page, orgId, tournamentId, extraSearchParams) {
+  const tid = String(tournamentId || "").trim();
+  if (!tid) return "";
+  const base = getAppBaseUrl();
+  const cleanPage = String(page || "index.html").replace(/^\.\//, "");
+  const url = new URL(cleanPage, base.endsWith("/") ? base : `${base}/`);
+  applyOrgTournamentParams(url, orgId, tid);
+  const extra = extraSearchParams && typeof extraSearchParams === "object" ? extraSearchParams : {};
+  for (const [k, v] of Object.entries(extra)) {
+    if (v !== undefined && v !== null && String(v).trim() !== "") {
+      url.searchParams.set(k, String(v));
+    }
   }
   return url.toString();
 }
