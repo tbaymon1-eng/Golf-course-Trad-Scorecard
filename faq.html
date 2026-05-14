@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Player Info / Event FAQ</title>
+  <meta name="theme-color" content="#0d1f16" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --faq-accent: #3d9a5c;
+      --faq-accent-dim: rgba(61, 154, 92, 0.35);
+      --faq-glass: rgba(5, 20, 14, 0.72);
+      --faq-glass-border: rgba(255, 255, 255, 0.22);
+      --faq-body-bg: #0a120e;
+      --faq-overlay-top: rgba(8, 22, 16, 0.55);
+      --faq-font-head: "Cinzel", Georgia, serif;
+      --faq-font-ui: "Barlow", system-ui, sans-serif;
+      --faq-font-cond: "Barlow Condensed", system-ui, sans-serif;
+      --lb-bg-image: none;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html {
+      min-height: 100%;
+      background: var(--faq-body-bg);
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      font-family: var(--faq-font-ui);
+      color: #f4f7f5;
+      background-image: var(--lb-bg-image, none);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-color: var(--faq-body-bg);
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, var(--faq-overlay-top), rgba(0, 0, 0, 0.5)),
+        radial-gradient(circle at 18% 0%, rgba(61, 154, 92, 0.12), transparent 55%);
+    }
+    .faq-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 16px 14px 100px;
+    }
+    .faq-topbar {
+      text-align: center;
+      padding: 10px 0 18px;
+    }
+    .faq-brand {
+      font-family: var(--faq-font-head);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      color: rgba(255, 255, 255, 0.82);
+    }
+    .faq-page-title {
+      font-family: var(--faq-font-head);
+      font-weight: 700;
+      font-size: 1.35rem;
+      margin: 8px 0 4px;
+      color: #fff;
+    }
+    .faq-tagline {
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--faq-accent);
+      font-weight: 600;
+    }
+    .glass {
+      background: var(--faq-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--faq-glass-border);
+      border-radius: 18px;
+      padding: 20px 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+    }
+    .glass h2 {
+      font-family: var(--faq-font-cond);
+      font-size: 1.05rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin: 0 0 12px;
+      color: var(--faq-accent);
+      font-weight: 800;
+    }
+    .hero-grid {
+      display: grid;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (min-width: 720px) {
+      .hero-grid { grid-template-columns: auto 1fr; }
+    }
+    .hero-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 160px;
+      min-height: 88px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+    }
+    .hero-logo img {
+      max-width: 200px;
+      max-height: 80px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+    .hero-course {
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.78);
+      margin-bottom: 4px;
+    }
+    .hero-event {
+      font-family: var(--faq-font-head);
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin: 0 0 10px;
+    }
+    .hero-meta {
+      font-size: 0.95rem;
+      line-height: 1.55;
+      color: rgba(255, 255, 255, 0.88);
+    }
+    .hero-meta strong { color: #fff; font-weight: 600; }
+    .sponsor-hero {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      display: none;
+    }
+    .sponsor-hero.is-on { display: block; }
+    .sponsor-hero-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--faq-accent);
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .sponsor-hero-row {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .sponsor-hero-row img {
+      max-height: 52px;
+      max-width: 200px;
+      object-fit: contain;
+    }
+    .sponsor-hero-name {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    .notes-body {
+      white-space: pre-wrap;
+      line-height: 1.6;
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.92);
+    }
+    details.faq-item {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.18);
+    }
+    details.faq-item summary {
+      cursor: pointer;
+      padding: 14px 16px;
+      font-weight: 700;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    details.faq-item summary::-webkit-details-marker { display: none; }
+    details.faq-item summary::after {
+      content: "+";
+      font-weight: 800;
+      color: var(--faq-accent);
+      flex-shrink: 0;
+    }
+    details.faq-item[open] summary::after { content: "−"; }
+    .faq-answer {
+      padding: 0 16px 16px;
+      color: rgba(255, 255, 255, 0.88);
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+    .sponsor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+    }
+    .sponsor-card {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    .sponsor-card img {
+      max-width: 100%;
+      max-height: 48px;
+      object-fit: contain;
+      margin-bottom: 8px;
+    }
+    .sponsor-card a {
+      color: #fff;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .sponsor-card a:hover { text-decoration: underline; color: var(--faq-accent); }
+    .contact-line { margin: 6px 0; font-size: 1rem; }
+    .contact-line a { color: var(--faq-accent); }
+    .faq-footer {
+      text-align: center;
+      padding: 28px 12px 8px;
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.55);
+    }
+    .faq-footer strong { color: rgba(255, 255, 255, 0.78); }
+    #faqStatus {
+      text-align: center;
+      padding: 40px 20px;
+      font-size: 1.05rem;
+      color: rgba(255, 255, 255, 0.85);
+    }
+    @media print {
+      body::before { display: none; }
+      body { background: #fff !important; color: #111 !important; }
+      .glass {
+        background: #fff !important;
+        border: 1px solid #ccc !important;
+        color: #111 !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+      }
+      .glass h2, .faq-tagline { color: #0d4f26 !important; }
+      .hero-meta, .notes-body, .faq-answer, .hero-course { color: #222 !important; }
+      .faq-footer { color: #444 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="faqStatus" role="status">Loading…</div>
+  <div id="faqRoot" class="faq-wrap" hidden>
+    <header class="faq-topbar">
+      <div class="faq-brand">ELB Solutions</div>
+      <h1 class="faq-page-title" id="faqHeadline">Player Info / Event FAQ</h1>
+      <div class="faq-tagline">Official scoring partner · ELB Solutions</div>
+    </header>
+
+    <section class="glass" id="faqHero">
+      <div class="hero-grid">
+        <div class="hero-logo" id="faqLogoWrap" hidden>
+          <img id="faqLogoImg" alt="Course logo" />
+        </div>
+        <div>
+          <div class="hero-course" id="faqCourseName"></div>
+          <h2 class="hero-event" id="faqEventName"></h2>
+          <div class="hero-meta" id="faqEventMeta"></div>
+          <div class="sponsor-hero" id="faqTitleSponsor" aria-label="Featured sponsor">
+            <div class="sponsor-hero-label">Featured sponsor</div>
+            <div class="sponsor-hero-row">
+              <img id="faqTitleSponsorImg" alt="" hidden />
+              <div>
+                <div class="sponsor-hero-name" id="faqTitleSponsorName"></div>
+                <a id="faqTitleSponsorLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Visit sponsor</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass" id="faqNotesSection" hidden>
+      <h2>Organizer notes / player instructions</h2>
+      <div class="notes-body" id="faqNotesBody"></div>
+    </section>
+
+    <section class="glass" id="faqCourseSection" hidden>
+      <h2>Course information</h2>
+      <div class="hero-meta" id="faqCourseBody"></div>
+    </section>
+
+    <section class="glass" id="faqFaqSection" hidden>
+      <h2>FAQ</h2>
+      <div id="faqAccordion"></div>
+    </section>
+
+    <section class="glass" id="faqSponsorSection" hidden>
+      <h2>Sponsors</h2>
+      <div class="sponsor-grid" id="faqSponsorGrid"></div>
+    </section>
+
+    <section class="glass" id="faqContactSection" hidden>
+      <h2>Need help / contact</h2>
+      <div id="faqContactBody"></div>
+    </section>
+
+    <footer class="faq-footer">
+      <strong>Powered by ELB Solutions</strong><br />
+      Digital scorecards &amp; live leaderboards for your club and events.
+    </footer>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+    import {
+      tournamentDocRef,
+      courseDocRef,
+      resolveTournamentOrgIdStrict,
+      parseOrgTournamentFromSearch,
+    } from "./js/org-paths.js";
+
+    const DEFAULT_BG = "./assets/IMG_5318.jpeg";
+
+    const $ = (id) => document.getElementById(id);
+
+    function safeText(v) {
+      return String(v == null ? "" : v).trim();
+    }
+
+    function escapeHtml(s) {
+      return String(s || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function normalizeUrl(u) {
+      const t = safeText(u);
+      if (!t) return "";
+      if (/^https?:\/\//i.test(t)) return t;
+      return "https://" + t;
+    }
+
+    function setBg(url) {
+      const raw = safeText(url) || DEFAULT_BG;
+      const safe = raw.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+      document.documentElement.style.setProperty("--lb-bg-image", `url("${safe}")`);
+    }
+
+    function normalizeSponsorRow(s) {
+      const name = safeText(s?.name || s?.sponsorName);
+      const logoUrl = safeText(s?.logoUrl || s?.logo || s?.sponsorLogo || s?.logoURL);
+      const website = safeText(s?.website || s?.url || s?.sponsorUrl || s?.sponsorWebsite);
+      return { name, logoUrl, website };
+    }
+
+    function pickPrimarySponsor(tournament) {
+      if (tournament.sponsorMarketingEnabled === false) return null;
+      const raw = Array.isArray(tournament.sponsors) ? tournament.sponsors : [];
+      const rows = raw
+        .map((s, i) => ({ ...normalizeSponsorRow(s), order: Number(s?.order ?? i) }))
+        .filter((x) => x.name || x.logoUrl)
+        .sort((a, b) => a.order - b.order);
+      if (!rows.length) {
+        const legacyName = safeText(tournament.sponsorName);
+        const legacyLogo = safeText(tournament.sponsorLogo || tournament.sponsorLogoUrl);
+        const legacyWeb = safeText(tournament.sponsorUrl || tournament.sponsorWebsite || tournament.sponsorLink);
+        if (legacyName || legacyLogo) return { name: legacyName, logoUrl: legacyLogo, website: legacyWeb };
+        return null;
+      }
+      return rows[0];
+    }
+
+    function renderSponsorsAll(tournament) {
+      const grid = $("faqSponsorGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+      if (tournament.sponsorMarketingEnabled === false) return;
+      const raw = Array.isArray(tournament.sponsors) ? tournament.sponsors : [];
+      let rows = raw
+        .map((s, i) => ({ ...normalizeSponsorRow(s), order: Number(s?.order ?? i) }))
+        .filter((x) => x.name || x.logoUrl)
+        .sort((a, b) => a.order - b.order);
+      if (!rows.length) {
+        const legacyName = safeText(tournament.sponsorName);
+        const legacyLogo = safeText(tournament.sponsorLogo || tournament.sponsorLogoUrl);
+        const legacyWeb = safeText(tournament.sponsorUrl || tournament.sponsorWebsite || tournament.sponsorLink);
+        if (legacyName || legacyLogo) {
+          rows = [{ name: legacyName, logoUrl: legacyLogo, website: legacyWeb, order: 0 }];
+        }
+      }
+      rows.forEach((s) => {
+        const card = document.createElement("div");
+        card.className = "sponsor-card";
+        if (s.logoUrl) {
+          const img = document.createElement("img");
+          img.src = s.logoUrl;
+          img.alt = s.name || "Sponsor";
+          card.appendChild(img);
+        }
+        const label = document.createElement("div");
+        if (s.website) {
+          const a = document.createElement("a");
+          a.href = normalizeUrl(s.website);
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          a.textContent = s.name || "Sponsor";
+          label.appendChild(a);
+        } else {
+          label.textContent = s.name || "Sponsor";
+        }
+        card.appendChild(label);
+        grid.appendChild(card);
+      });
+    }
+
+    async function main() {
+      const status = $("faqStatus");
+      const root = $("faqRoot");
+      const params = new URLSearchParams(window.location.search);
+      const { orgId: orgParam, tournamentId: tid } = parseOrgTournamentFromSearch(params);
+      if (!tid) {
+        status.textContent = "Missing event id. Use the link from your confirmation email or organizer.";
+        return;
+      }
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      try {
+        await signInAnonymously(auth);
+      } catch (e) {
+        status.textContent = "Could not connect. Check your connection and try again.";
+        console.error(e);
+        return;
+      }
+
+      const resolved = await resolveTournamentOrgIdStrict(db, orgParam, tid, app);
+      if (!resolved.ok) {
+        status.textContent = resolved.error || "Event not found.";
+        return;
+      }
+      const orgId = resolved.orgId;
+
+      let tSnap;
+      try {
+        tSnap = await getDoc(tournamentDocRef(db, orgId, tid));
+      } catch (e) {
+        status.textContent = "Could not load this event.";
+        console.error(e);
+        return;
+      }
+      const ex = typeof tSnap.exists === "function" ? tSnap.exists() : tSnap.exists;
+      if (!ex) {
+        status.textContent = "Event not found.";
+        return;
+      }
+      const tournament = tSnap.data() || {};
+
+      if (tournament.playerInfoEnabled !== true) {
+        status.textContent = "Player information is not published for this event.";
+        return;
+      }
+
+      status.hidden = true;
+      root.hidden = false;
+
+      const pageTitle =
+        safeText(tournament.playerInfoTitle) || "Player Info / Event FAQ";
+      document.title = pageTitle;
+      $("faqHeadline").textContent = pageTitle;
+
+      const courseName =
+        safeText(tournament.courseName) || safeText(tournament.defaultCourse) || "";
+      $("faqCourseName").textContent = courseName || "Golf event";
+      $("faqEventName").textContent =
+        safeText(tournament.tournamentName || tournament.name) || "Tournament";
+
+      const venue = safeText(tournament.venueName || tournament.venue || tournament.courseLabel);
+      const whenDate = safeText(tournament.eventDate || tournament.date);
+      const firstTee = safeText(tournament.firstTeeTime);
+      const metaParts = [];
+      if (whenDate) metaParts.push(`<strong>Date</strong> · ${escapeHtml(whenDate)}`);
+      if (firstTee) metaParts.push(`<strong>Start</strong> · ${escapeHtml(firstTee)}`);
+      if (venue) metaParts.push(`<strong>Location</strong> · ${escapeHtml(venue)}`);
+      $("faqEventMeta").innerHTML = metaParts.join("<br />") || "Details coming soon.";
+
+      const bgUrl =
+        safeText(tournament.leaderboardBackgroundUrl) ||
+        safeText(tournament.backgroundImageUrl) ||
+        "";
+      let courseBg = "";
+      const cid = safeText(tournament.courseId || tournament.defaultCourse);
+      if (cid) {
+        try {
+          const cSnap = await getDoc(courseDocRef(db, orgId, cid));
+          const cEx = typeof cSnap.exists === "function" ? cSnap.exists() : cSnap.exists;
+          if (cEx) {
+            const c = cSnap.data() || {};
+            courseBg =
+              safeText(c.leaderboardBackgroundUrl) ||
+              safeText(c.leaderboardBackgroundImageUrl) ||
+              safeText(c.backgroundImageUrl) ||
+              "";
+            const logo = safeText(c.logoUrl);
+            if (logo) {
+              $("faqLogoImg").src = logo;
+              $("faqLogoWrap").hidden = false;
+            }
+          }
+        } catch (_e) {}
+      }
+      setBg(bgUrl || courseBg);
+
+      const primary = pickPrimarySponsor(tournament);
+      const th = $("faqTitleSponsor");
+      if (primary && (primary.name || primary.logoUrl)) {
+        th.classList.add("is-on");
+        $("faqTitleSponsorName").textContent = primary.name || "Sponsor";
+        if (primary.logoUrl) {
+          const im = $("faqTitleSponsorImg");
+          im.src = primary.logoUrl;
+          im.alt = primary.name || "";
+          im.hidden = false;
+        }
+        if (primary.website) {
+          const a = $("faqTitleSponsorLink");
+          a.href = normalizeUrl(primary.website);
+          a.hidden = false;
+        }
+      }
+
+      const notes = safeText(tournament.playerInfoContent);
+      if (notes) {
+        $("faqNotesSection").hidden = false;
+        $("faqNotesBody").textContent = notes;
+      }
+
+      const courseBits = [];
+      if (courseName) courseBits.push(`<strong>Course</strong> · ${escapeHtml(courseName)}`);
+      if (venue) courseBits.push(`<strong>Venue / routing</strong> · ${escapeHtml(venue)}`);
+      const fmt = safeText(tournament.formatOfPlay || tournament.format);
+      if (fmt) courseBits.push(`<strong>Format</strong> · ${escapeHtml(fmt)}`);
+      if (courseBits.length) {
+        $("faqCourseSection").hidden = false;
+        $("faqCourseBody").innerHTML = courseBits.join("<br />");
+      }
+
+      const faqItems = Array.isArray(tournament.faqItems) ? tournament.faqItems : [];
+      const faqClean = faqItems
+        .map((x) => ({
+          q: safeText(x?.question),
+          a: safeText(x?.answer),
+        }))
+        .filter((x) => x.q || x.a);
+      if (faqClean.length) {
+        $("faqFaqSection").hidden = false;
+        const host = $("faqAccordion");
+        host.innerHTML = "";
+        faqClean.forEach((item) => {
+          const d = document.createElement("details");
+          d.className = "faq-item";
+          const s = document.createElement("summary");
+          s.textContent = item.q || "Question";
+          const div = document.createElement("div");
+          div.className = "faq-answer";
+          div.textContent = item.a || "";
+          d.appendChild(s);
+          d.appendChild(div);
+          host.appendChild(d);
+        });
+      }
+
+      const sponsorRows = Array.isArray(tournament.sponsors) ? tournament.sponsors : [];
+      const sponsorCount = sponsorRows.map(normalizeSponsorRow).filter((x) => x.name || x.logoUrl).length;
+      const legacySponsor =
+        safeText(tournament.sponsorName) ||
+        safeText(tournament.sponsorLogo || tournament.sponsorLogoUrl);
+      const showSponsorGrid =
+        tournament.sponsorMarketingEnabled !== false && (sponsorCount > 0 || legacySponsor);
+      if (showSponsorGrid) {
+        $("faqSponsorSection").hidden = false;
+        renderSponsorsAll(tournament);
+        if (!$("faqSponsorGrid").children.length) $("faqSponsorSection").hidden = true;
+      }
+
+      const cName = safeText(tournament.contactName) || safeText(tournament.organizerName);
+      const cEmail = safeText(tournament.contactEmail) || safeText(tournament.organizerEmail);
+      const cPhone = safeText(tournament.contactPhone);
+      if (cName || cEmail || cPhone) {
+        $("faqContactSection").hidden = false;
+        const lines = [];
+        if (cName) lines.push(`<div class="contact-line"><strong>Contact</strong> · ${escapeHtml(cName)}</div>`);
+        if (cEmail) {
+          lines.push(
+            `<div class="contact-line"><strong>Email</strong> · <a href="mailto:${escapeHtml(cEmail)}">${escapeHtml(cEmail)}</a></div>`
+          );
+        }
+        if (cPhone) {
+          const tel = cPhone.replace(/\s+/g, "");
+          lines.push(
+            `<div class="contact-line"><strong>Phone</strong> · <a href="tel:${escapeHtml(tel)}">${escapeHtml(cPhone)}</a></div>`
+          );
+        }
+        $("faqContactBody").innerHTML = lines.join("");
+      }
+    }
+
+    main().catch((e) => {
+      console.error(e);
+      const status = $("faqStatus");
+      if (status) status.textContent = "Something went wrong loading this page.";
+    });
+  </script>
+</body>
+</html>

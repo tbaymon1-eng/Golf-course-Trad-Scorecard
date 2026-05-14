@@ -12,48 +12,51 @@ import {
 
 export { normalizeTeamKeyForImport };
 
+/**
+ * `tier`: "core" = default mapping rows; "advanced" = behind "Show advanced fields" in admin.
+ */
 export const IMPORT_FIELD_KEYS = [
-  { id: "fullName", label: "Full name" },
-  { id: "firstName", label: "First name" },
-  { id: "lastName", label: "Last name" },
-  { id: "teamName", label: "Team / group name" },
-  { id: "email", label: "Email" },
-  { id: "phone", label: "Phone" },
-  { id: "playerNames", label: "Player names (comma-separated)" },
-  { id: "player2", label: "Player 2 name" },
-  { id: "player3", label: "Player 3 name" },
-  { id: "player4", label: "Player 4 name" },
-  { id: "player5", label: "Player 5 name" },
-  { id: "player6", label: "Player 6 name" },
-  { id: "handicap", label: "Handicap" },
-  { id: "session", label: "Session" },
-  { id: "timeSlot", label: "Time slot" },
-  { id: "group", label: "Group" },
-  { id: "instructor", label: "Instructor" },
-  { id: "paidStatus", label: "Paid status" },
-  { id: "notes", label: "Notes" },
+  { id: "firstName", label: "First name (required)", tier: "core" },
+  { id: "lastName", label: "Last name (required)", tier: "core" },
+  { id: "email", label: "Email (optional)", tier: "core" },
+  { id: "teamName", label: "Team name (optional)", tier: "core" },
+  { id: "phone", label: "Phone", tier: "advanced" },
+  { id: "gender", label: "Gender", tier: "advanced" },
+  { id: "teamFlight", label: "Team flight", tier: "advanced" },
+  { id: "handicap", label: "Handicap", tier: "advanced" },
+  { id: "playerNames", label: "Player names (comma-separated)", tier: "advanced" },
+  { id: "player2", label: "Player 2 name", tier: "advanced" },
+  { id: "player3", label: "Player 3 name", tier: "advanced" },
+  { id: "player4", label: "Player 4 name", tier: "advanced" },
+  { id: "player5", label: "Player 5 name", tier: "advanced" },
+  { id: "player6", label: "Player 6 name", tier: "advanced" },
+  { id: "session", label: "Session", tier: "advanced" },
+  { id: "timeSlot", label: "Time slot", tier: "advanced" },
+  { id: "teeTime", label: "Tee time (golf)", tier: "advanced" },
+  { id: "startingHole", label: "Starting hole / slot", tier: "advanced" },
+  { id: "cart", label: "Cart # / cart group", tier: "advanced" },
+  { id: "group", label: "Group / pairing", tier: "advanced" },
+  { id: "pairing", label: "Pairing code", tier: "advanced" },
+  { id: "instructor", label: "Instructor", tier: "advanced" },
+  { id: "paidStatus", label: "Paid status", tier: "advanced" },
+  { id: "notes", label: "Notes", tier: "advanced" },
 ];
 
 export const DUPLICATE_MODE_ADD_ONLY = "add_only";
 export const DUPLICATE_MODE_UPDATE = "update_matching";
 export const DUPLICATE_MODE_SKIP = "skip_duplicates";
 
+/** Roster advanced import: how rows become registrations */
+export const ROSTER_IMPORT_GROUPING_INDIVIDUAL = "individual";
+export const ROSTER_IMPORT_GROUPING_FIXED_SIZE = "fixed_size";
+export const ROSTER_IMPORT_GROUPING_SPREADSHEET = "spreadsheet_columns";
+export const ROSTER_IMPORT_GROUPING_MANUAL_LATER = "manual_later";
+
+export const ROSTER_TEAM_NAMING_TEAM_N = "team_n";
+export const ROSTER_TEAM_NAMING_CAPTAIN_LAST = "captain_last";
+export const ROSTER_TEAM_NAMING_SPREADSHEET = "spreadsheet";
+
 const IMPORT_FIELD_LABELS = Object.fromEntries(IMPORT_FIELD_KEYS.map((f) => [f.id, f.label]));
-const NAME_FIELD_IDS = ["fullName", "firstName", "lastName"];
-
-function headerLooksLike(header, regex) {
-  return regex.test(String(header || "").trim().toLowerCase());
-}
-
-function getHeaderIntentLabel(header) {
-  if (!header) return "";
-  if (headerLooksLike(header, /e-?mail|email\s*address/)) return "Email";
-  if (headerLooksLike(header, /(team|group|foursome|squad|company)/)) return "TeamName";
-  if (headerLooksLike(header, /(full\s*name|display\s*name|participant|first\s*name|last\s*name|surname|given|name)/))
-    return "PlayerName";
-  if (headerLooksLike(header, /(phone|mobile|cell|tel)/)) return "Phone";
-  return "";
-}
 
 function pushUniqueIssue(bucket, text) {
   if (!text) return;
@@ -62,15 +65,6 @@ function pushUniqueIssue(bucket, text) {
 
 function rowHasReadableData(row) {
   return Object.values(row || {}).some((v) => String(v || "").trim());
-}
-
-function firstReadableRowValue(row) {
-  const vals = Object.values(row || {});
-  for (const v of vals) {
-    const s = String(v || "").trim();
-    if (s) return s;
-  }
-  return "";
 }
 
 export function validateImportMappingSelections(mapping, eventCategory) {
@@ -91,55 +85,34 @@ export function validateImportMappingSelections(mapping, eventCategory) {
     const issueCountBefore = issues.length;
     const hasTeam = uniq.includes("teamName");
     const hasEmail = uniq.includes("email");
-    const hasFullName = uniq.includes("fullName");
     const hasFirst = uniq.includes("firstName");
     const hasLast = uniq.includes("lastName");
-    const hasPlayerName = NAME_FIELD_IDS.some((id) => uniq.includes(id));
+    const hasStructuredName = uniq.includes("firstName") || uniq.includes("lastName");
 
-    if (hasPlayerName && hasTeam) {
-      pushUniqueIssue(issues, "A player name column is mapped to the same column as the team name");
+    if (hasStructuredName && hasTeam) {
+      pushUniqueIssue(issues, "Name and team can’t use the same column.");
     }
     if (hasTeam && hasEmail) {
-      pushUniqueIssue(issues, "The team name column is mapped to the same column as email");
+      pushUniqueIssue(issues, "Team name and email can’t use the same column.");
     }
     if (hasFirst && hasLast) {
-      pushUniqueIssue(issues, "First name and last name are currently matched to the same spreadsheet column");
-    }
-    if (hasFullName && (hasFirst || hasLast)) {
-      pushUniqueIssue(issues, "Full name is currently matched to the same column as first or last name");
+      pushUniqueIssue(issues, "First name and last name can’t use the same column.");
     }
 
     if (issues.length === issueCountBefore) {
       const labels = uniq.map((id) => IMPORT_FIELD_LABELS[id] || id).join(", ");
-      pushUniqueIssue(issues, `These fields are using the same spreadsheet column: ${labels}`);
+      pushUniqueIssue(issues, `These fields use the same column: ${labels}`);
     }
   });
-
-  NAME_FIELD_IDS.forEach((nameFieldId) => {
-    const header = m[nameFieldId];
-    const intent = getHeaderIntentLabel(header);
-    if (intent === "TeamName") {
-      pushUniqueIssue(issues, "Player name is currently matched to TeamName");
-    }
-  });
-
-  if (getHeaderIntentLabel(m.teamName) === "Email") {
-    pushUniqueIssue(issues, "Team name is currently matched to Email");
-  }
-  if (getHeaderIntentLabel(m.email) === "TeamName") {
-    pushUniqueIssue(issues, "Email is currently matched to TeamName");
-  }
 
   const cat = normalizeEventCategory({ eventCategory });
   const isGolf = cat === EVENT_CATEGORY_GOLF;
-  if (isGolf && !m.teamName) {
-    pushUniqueIssue(issues, "Team name is required for tournament imports");
+  const hasStructuredName = !!(m.firstName && m.lastName);
+  if (isGolf && !hasStructuredName) {
+    pushUniqueIssue(issues, "First and Last Name are required");
   }
-  if (isGolf && !m.fullName && (!m.firstName || !m.lastName)) {
-    pushUniqueIssue(issues, "Player name is required (Full name or First + Last)");
-  }
-  if (!isGolf && !m.fullName && !m.email && (!m.firstName || !m.lastName)) {
-    pushUniqueIssue(issues, "Add at least one participant identifier (Full name, Email, or First + Last)");
+  if (!isGolf && !m.email && !hasStructuredName) {
+    pushUniqueIssue(issues, "Add an email or map first and last name columns.");
   }
 
   return {
@@ -169,8 +142,8 @@ export function normalizePhoneKey(phone) {
   return d;
 }
 
-export function normalizeNameSessionKey(fullName, session, timeSlot) {
-  const n = String(fullName || "")
+export function normalizeNameSessionKey(displayName, session, timeSlot) {
+  const n = String(displayName || "")
     .trim()
     .toLowerCase()
     .replace(/\s+/g, " ");
@@ -181,12 +154,6 @@ export function normalizeNameSessionKey(fullName, session, timeSlot) {
     .trim()
     .toLowerCase();
   return `${n}|${s}|${t}`;
-}
-
-function resolveDisplayName(row, m) {
-  const full = pickImportCell(row, m.fullName);
-  if (full) return full.trim();
-  return playerNameFromParts(pickImportCell(row, m.firstName), pickImportCell(row, m.lastName));
 }
 
 function parsePlayerListFromRow(row, m) {
@@ -214,6 +181,408 @@ function parsePlayerListFromRow(row, m) {
   return uniq.slice(0, 6);
 }
 
+function mergePlayerDetailsFromRowRecs(rowRecs) {
+  const out = [];
+  const seen = new Set();
+  (rowRecs || []).forEach((rec) => {
+    (rec.playerDetails || []).forEach((pd) => {
+      const name = String(pd.name || "").trim();
+      const k = name.toLowerCase();
+      if (!k || seen.has(k)) return;
+      seen.add(k);
+      const h = pd.handicap;
+      const handicapVal =
+        h != null && h !== "" && Number.isFinite(Number(h)) ? Math.max(0, Math.min(54, Math.round(Number(h)))) : null;
+      out.push({
+        name,
+        isCaptain: out.length === 0,
+        ...(handicapVal != null ? { handicap: handicapVal } : {}),
+      });
+    });
+  });
+  return out.map((pd, idx) => ({ ...pd, isCaptain: idx === 0 }));
+}
+
+function pickFirstNonEmptyStringFromRecs(rowRecs, key) {
+  for (const rec of rowRecs || []) {
+    const v = String(rec?.[key] || "").trim();
+    if (v) return v;
+  }
+  return "";
+}
+
+function pickFirstStartingHoleFromRecs(rowRecs) {
+  for (const rec of rowRecs || []) {
+    const n = Number(rec?.startingHole);
+    if (Number.isFinite(n) && n >= 1 && n <= 18) return Math.round(n);
+  }
+  return null;
+}
+
+function mergeNotesFromRecs(rowRecs) {
+  const parts = [];
+  const seen = new Set();
+  (rowRecs || []).forEach((rec) => {
+    String(rec?.notes || "")
+      .split("\n")
+      .map((x) => x.trim())
+      .filter(Boolean)
+      .forEach((line) => {
+        const k = line.toLowerCase();
+        if (seen.has(k)) return;
+        seen.add(k);
+        parts.push(line);
+      });
+  });
+  return parts.join("\n").trim();
+}
+
+/**
+ * @param {object} team
+ * @param {string} team.teamKey
+ * @param {string} [team.displayTeamName]
+ * @param {object[]} team.rowRecs
+ * @param {number[]} team.sourceRows
+ * @param {string[]} team.importIssues
+ * @param {string} [team._incompleteHint]
+ */
+function finalizeGolfRegistrationFromAggregate(team) {
+  const rowRecs = team.rowRecs || [];
+  const playerDetails = mergePlayerDetailsFromRowRecs(rowRecs);
+  if (!playerDetails.length) return null;
+  const uniquePlayers = playerDetails.map((p) => p.name);
+  const captainName = uniquePlayers[0] || "";
+  const captainEmail = team.captainEmail || pickFirstNonEmptyStringFromRecs(rowRecs, "captainEmail");
+  const captainPhone = team.captainPhone || pickFirstNonEmptyStringFromRecs(rowRecs, "captainPhone");
+  const teeTime = pickFirstNonEmptyStringFromRecs(rowRecs, "teeTime");
+  const assignedHole = pickFirstNonEmptyStringFromRecs(rowRecs, "assignedHole");
+  const startingHole = pickFirstStartingHoleFromRecs(rowRecs);
+  const matchEmail = normalizeEmailKey(captainEmail);
+  const matchPhone = normalizePhoneKey(captainPhone);
+  const matchNameSession = normalizeNameSessionKey(captainName, team.session || "", team.timeSlot || "");
+  const importIssues = (team.importIssues || []).slice();
+  if (team._incompleteHint) pushUniqueIssue(importIssues, team._incompleteHint);
+
+  const out = {
+    eventCategory: EVENT_CATEGORY_GOLF,
+    teamKey: team.teamKey,
+    teamName: String(team.displayTeamName || team.teamKey || "").trim() || team.teamKey,
+    captainName,
+    captainEmail: captainEmail || "",
+    captainPhone: captainPhone || "",
+    players: uniquePlayers,
+    playerDetails,
+    session: team.session || "",
+    timeSlot: team.timeSlot || "",
+    teeTime,
+    assignedHole,
+    groupLabel: team.groupLabel || "",
+    instructor: pickFirstNonEmptyStringFromRecs(rowRecs, "instructor") || "",
+    paidStatus: pickFirstNonEmptyStringFromRecs(rowRecs, "paidStatus") || "",
+    notes: mergeNotesFromRecs(rowRecs),
+    matchEmail,
+    matchPhone,
+    matchNameSession,
+    _sourceRows: (team.sourceRows || []).slice(),
+    _importIssues: importIssues,
+  };
+  if (startingHole != null) out.startingHole = startingHole;
+  return out;
+}
+
+function clampImportInt(n, lo, hi) {
+  const x = Math.floor(Number(n));
+  if (!Number.isFinite(x)) return lo;
+  return Math.max(lo, Math.min(hi, x));
+}
+
+function pickSpreadsheetGroupingCell(row, m, spreadsheetGroupBy) {
+  const by = String(spreadsheetGroupBy || "teamName").trim();
+  if (by === "group") return pickImportCell(row, m.group) || pickImportCell(row, m.pairing);
+  if (by === "pairing") return pickImportCell(row, m.pairing) || pickImportCell(row, m.group);
+  if (by === "cart") return pickImportCell(row, m.cart);
+  if (by === "teeTime") return pickImportCell(row, m.teeTime) || pickImportCell(row, m.timeSlot);
+  if (by === "timeSlot") return pickImportCell(row, m.timeSlot);
+  return pickImportCell(row, m.teamName);
+}
+
+function displayNameFromRow(row, m) {
+  return playerNameFromParts(pickImportCell(row, m.firstName), pickImportCell(row, m.lastName)).trim();
+}
+
+function formatRosterSyntheticTeamName(teamNamingStyle, chunkIndex, firstRow, m) {
+  const style = String(teamNamingStyle || ROSTER_TEAM_NAMING_TEAM_N).trim();
+  if (style === ROSTER_TEAM_NAMING_CAPTAIN_LAST) {
+    const ln = String(pickImportCell(firstRow, m.lastName) || "").trim();
+    const fn = String(pickImportCell(firstRow, m.firstName) || "").trim();
+    if (ln) return fn ? `${ln} · ${fn}` : ln;
+  }
+  if (style === ROSTER_TEAM_NAMING_SPREADSHEET) {
+    const tn = String(pickImportCell(firstRow, m.teamName) || "").trim();
+    if (tn) return tn;
+  }
+  return `Team ${chunkIndex + 1}`;
+}
+
+/**
+ * Preview rows for operator confirmation (subset of mapped columns + resolved fields).
+ * @param {Record<string, string>[]} mappedRows
+ * @param {Record<string, string>} mapping
+ * @param {number} [limit]
+ */
+export function buildImportPreviewRows(mappedRows, mapping, limit = 200) {
+  const m = mapping || {};
+  const keys = [
+    "firstName",
+    "lastName",
+    "email",
+    "phone",
+    "handicap",
+    "teamName",
+    "group",
+    "pairing",
+    "teeTime",
+    "timeSlot",
+    "startingHole",
+    "cart",
+    "notes",
+  ];
+  const slice = (mappedRows || []).filter(rowHasReadableData).slice(0, limit);
+  return slice.map((row, idx) => {
+    const o = { _row: idx + 2 };
+    keys.forEach((k) => {
+      if (m[k]) o[k] = pickImportCell(row, m[k]);
+    });
+    o._displayName = displayNameFromRow(row, m);
+    return o;
+  });
+}
+
+/**
+ * Advanced roster import: grouping modes beyond legacy "group by team column".
+ * @param {Record<string, string>[]} mappedRows
+ * @param {Record<string, string>} mapping
+ * @param {string} eventCategory
+ * @param {object} [opts]
+ */
+export function buildRosterAdvancedImportRecords(mappedRows, mapping, eventCategory, opts = {}) {
+  const cat = normalizeEventCategory({ eventCategory }) || EVENT_CATEGORY_GOLF;
+  const groupingMode = String(opts.groupingMode || ROSTER_IMPORT_GROUPING_SPREADSHEET).trim();
+  const fixedGroupSize = clampImportInt(opts.fixedGroupSize, 1, 12);
+  const spreadsheetGroupBy = String(opts.spreadsheetGroupBy || "teamName").trim();
+  const teamNamingStyle = String(opts.teamNamingStyle || ROSTER_TEAM_NAMING_SPREADSHEET).trim();
+  const markIncomplete = opts.markIncompleteGroups !== false;
+
+  if (cat !== EVENT_CATEGORY_GOLF) {
+    if (groupingMode === ROSTER_IMPORT_GROUPING_FIXED_SIZE) {
+      return buildNonGolfFixedSizeRecords(mappedRows, mapping, cat, fixedGroupSize, teamNamingStyle, markIncomplete);
+    }
+    return buildImportRecordsFromMappedRows(mappedRows, mapping, cat);
+  }
+
+  if (groupingMode === ROSTER_IMPORT_GROUPING_FIXED_SIZE) {
+    return buildGolfFixedSizeRecords(mappedRows, mapping, fixedGroupSize, teamNamingStyle, markIncomplete);
+  }
+  if (groupingMode === ROSTER_IMPORT_GROUPING_INDIVIDUAL || groupingMode === ROSTER_IMPORT_GROUPING_MANUAL_LATER) {
+    return buildGolfIndividualRecords(mappedRows, mapping, teamNamingStyle);
+  }
+  return buildGolfSpreadsheetColumnRecords(mappedRows, mapping, spreadsheetGroupBy);
+}
+
+function buildGolfSpreadsheetColumnRecords(mappedRows, mapping, spreadsheetGroupBy) {
+  let ignoredBlankRows = 0;
+  const groupedMap = new Map();
+  (mappedRows || []).forEach((r, rowIdx) => {
+    if (!rowHasReadableData(r)) {
+      ignoredBlankRows += 1;
+      return;
+    }
+    const rec = rowToImportRecord(r, mapping, EVENT_CATEGORY_GOLF, rowIdx + 2);
+    const cell = pickSpreadsheetGroupingCell(r, mapping, spreadsheetGroupBy);
+    const fallback = String(rec.teamName || displayNameFromRow(r, mapping) || `Imported Team ${rowIdx + 2}`).trim();
+    const teamKey = String(cell || fallback).trim() || fallback;
+    if (!groupedMap.has(teamKey)) {
+      groupedMap.set(teamKey, {
+        teamKey,
+        displayTeamName: teamKey,
+        captainEmail: "",
+        captainPhone: "",
+        session: "",
+        timeSlot: "",
+        groupLabel: "",
+        sourceRows: [],
+        importIssues: [],
+        rowRecs: [],
+      });
+    }
+    const group = groupedMap.get(teamKey);
+    if (!group.captainEmail && rec.captainEmail) group.captainEmail = rec.captainEmail;
+    if (!group.captainPhone && rec.captainPhone) group.captainPhone = rec.captainPhone;
+    if (rec.session) group.session = rec.session;
+    if (rec.timeSlot) group.timeSlot = rec.timeSlot;
+    if (rec.groupLabel) group.groupLabel = rec.groupLabel;
+    group.rowRecs.push(rec);
+    (rec._sourceRows || []).forEach((n) => group.sourceRows.push(n));
+    (rec._importIssues || []).forEach((issue) => {
+      if (issue && !group.importIssues.includes(issue)) group.importIssues.push(issue);
+    });
+  });
+
+  const regs = [];
+  for (const team of groupedMap.values()) {
+    const fin = finalizeGolfRegistrationFromAggregate(team);
+    if (fin) regs.push(fin);
+  }
+  return { regs, skippedRows: 0, ignoredBlankRows };
+}
+
+function buildGolfIndividualRecords(mappedRows, mapping, teamNamingStyle) {
+  let ignoredBlankRows = 0;
+  const regs = [];
+  (mappedRows || []).forEach((r, rowIdx) => {
+    if (!rowHasReadableData(r)) {
+      ignoredBlankRows += 1;
+      return;
+    }
+    const rec = rowToImportRecord(r, mapping, EVENT_CATEGORY_GOLF, rowIdx + 2);
+    const disp = displayNameFromRow(r, mapping) || rec.captainName || rec.teamName;
+    let teamName = disp;
+    if (teamNamingStyle === ROSTER_TEAM_NAMING_CAPTAIN_LAST) {
+      teamName = captainLastNameTeamLabel(r, mapping) || disp;
+    } else if (teamNamingStyle === ROSTER_TEAM_NAMING_TEAM_N) {
+      teamName = `Player ${regs.length + 1}`;
+    } else if (teamNamingStyle === ROSTER_TEAM_NAMING_SPREADSHEET) {
+      const tn = String(pickImportCell(r, mapping.teamName) || "").trim();
+      teamName = tn || disp;
+    }
+    teamName = `${String(teamName).trim()} · row ${rowIdx + 2}`;
+    rec.teamName = teamName;
+    rec.teamKey = teamName;
+    rec.matchNameSession = `${rec.matchNameSession}|row:${rowIdx + 2}`;
+    regs.push(rec);
+  });
+  return { regs, skippedRows: 0, ignoredBlankRows };
+}
+
+function captainLastNameTeamLabel(row, m) {
+  const ln = String(pickImportCell(row, m.lastName) || "").trim();
+  const fn = String(pickImportCell(row, m.firstName) || "").trim();
+  if (ln) return fn ? `${ln} · ${fn}` : ln;
+  return displayNameFromRow(row, m);
+}
+
+function buildGolfFixedSizeRecords(mappedRows, mapping, fixedGroupSize, teamNamingStyle, markIncomplete) {
+  const rows = (mappedRows || []).filter((r) => rowHasReadableData(r));
+  let ignoredBlankRows = (mappedRows || []).length - rows.length;
+  const regs = [];
+  for (let i = 0; i < rows.length; i += fixedGroupSize) {
+    const chunk = rows.slice(i, i + fixedGroupSize);
+    const sourceRows = [];
+    const rowRecs = [];
+    const importIssues = [];
+    chunk.forEach((r, j) => {
+      const rec = rowToImportRecord(r, mapping, EVENT_CATEGORY_GOLF, i + j + 2);
+      rowRecs.push(rec);
+      (rec._sourceRows || []).forEach((n) => sourceRows.push(n));
+      (rec._importIssues || []).forEach((issue) => {
+        if (issue && !importIssues.includes(issue)) importIssues.push(issue);
+      });
+    });
+    const chunkIndex = Math.floor(i / fixedGroupSize);
+    const displayTeamName = formatRosterSyntheticTeamName(teamNamingStyle, chunkIndex, chunk[0], mapping);
+    const teamKey = displayTeamName;
+    let captainEmail = "";
+    let captainPhone = "";
+    rowRecs.forEach((rec) => {
+      if (!captainEmail && rec.captainEmail) captainEmail = rec.captainEmail;
+      if (!captainPhone && rec.captainPhone) captainPhone = rec.captainPhone;
+    });
+    let incompleteHint = "";
+    if (markIncomplete && chunk.length < fixedGroupSize) {
+      incompleteHint = `Incomplete group: ${chunk.length} of ${fixedGroupSize} players in this chunk`;
+    }
+    const fin = finalizeGolfRegistrationFromAggregate({
+      teamKey,
+      displayTeamName,
+      captainEmail,
+      captainPhone,
+      session: pickFirstNonEmptyStringFromRecs(rowRecs, "session"),
+      timeSlot: pickFirstNonEmptyStringFromRecs(rowRecs, "timeSlot"),
+      groupLabel: pickFirstNonEmptyStringFromRecs(rowRecs, "groupLabel"),
+      sourceRows,
+      importIssues,
+      rowRecs,
+      _incompleteHint: incompleteHint,
+    });
+    if (fin) regs.push(fin);
+  }
+  return { regs, skippedRows: 0, ignoredBlankRows };
+}
+
+function buildNonGolfFixedSizeRecords(mappedRows, mapping, cat, fixedGroupSize, teamNamingStyle, markIncomplete) {
+  const rows = (mappedRows || []).filter((r) => rowHasReadableData(r));
+  let ignoredBlankRows = (mappedRows || []).length - rows.length;
+  const regs = [];
+  for (let i = 0; i < rows.length; i += fixedGroupSize) {
+    const chunk = rows.slice(i, i + fixedGroupSize);
+    const rowRecs = chunk.map((r, j) => rowToImportRecord(r, mapping, cat, i + j + 2));
+    const chunkIndex = Math.floor(i / fixedGroupSize);
+    const teamName = formatRosterSyntheticTeamName(teamNamingStyle, chunkIndex, chunk[0], mapping);
+    const players = [];
+    const seen = new Set();
+    rowRecs.forEach((rec) => {
+      (rec.players || []).forEach((p) => {
+        const k = String(p || "")
+          .trim()
+          .toLowerCase();
+        if (!k || seen.has(k)) return;
+        seen.add(k);
+        players.push(String(p).trim());
+      });
+    });
+    if (!players.length) continue;
+    const captainName = players[0];
+    const playerDetails = players.map((name, idx) => ({ name, isCaptain: idx === 0 }));
+    const captainEmail = pickFirstNonEmptyStringFromRecs(rowRecs, "captainEmail");
+    const captainPhone = pickFirstNonEmptyStringFromRecs(rowRecs, "captainPhone");
+    const session = pickFirstNonEmptyStringFromRecs(rowRecs, "session");
+    const timeSlot = pickFirstNonEmptyStringFromRecs(rowRecs, "timeSlot");
+    const groupLabel = pickFirstNonEmptyStringFromRecs(rowRecs, "groupLabel");
+    const importIssues = [];
+    rowRecs.forEach((rec) =>
+      (rec._importIssues || []).forEach((issue) => {
+        if (issue && !importIssues.includes(issue)) importIssues.push(issue);
+      })
+    );
+    if (markIncomplete && chunk.length < fixedGroupSize) {
+      pushUniqueIssue(importIssues, `Incomplete group: ${chunk.length} of ${fixedGroupSize} rows in this chunk`);
+    }
+    const sourceRows = [];
+    rowRecs.forEach((rec) => (rec._sourceRows || []).forEach((n) => sourceRows.push(n)));
+    regs.push({
+      eventCategory: cat,
+      teamName,
+      captainName,
+      captainEmail,
+      captainPhone,
+      players,
+      playerDetails,
+      session,
+      timeSlot,
+      groupLabel,
+      instructor: pickFirstNonEmptyStringFromRecs(rowRecs, "instructor") || "",
+      paidStatus: pickFirstNonEmptyStringFromRecs(rowRecs, "paidStatus") || "",
+      notes: mergeNotesFromRecs(rowRecs),
+      matchEmail: normalizeEmailKey(captainEmail),
+      matchPhone: normalizePhoneKey(captainPhone),
+      matchNameSession: normalizeNameSessionKey(captainName, session, timeSlot),
+      _sourceRows: sourceRows,
+      _importIssues: importIssues,
+    });
+  }
+  return { regs, skippedRows: 0, ignoredBlankRows };
+}
+
 /**
  * One logical import record (one roster row target).
  */
@@ -223,27 +592,50 @@ export function rowToImportRecord(row, m, eventCategory, sourceRowNumber = null)
   const phone = pickImportCell(row, m.phone);
   const session = pickImportCell(row, m.session);
   const timeSlot = pickImportCell(row, m.timeSlot);
-  const groupLabel = pickImportCell(row, m.group);
+  const teeTimeCell = pickImportCell(row, m.teeTime);
+  const teeTime =
+    teeTimeCell ||
+    (normalizeEventCategory({ eventCategory }) === EVENT_CATEGORY_GOLF ? pickImportCell(row, m.timeSlot) : "");
+  const groupLabel =
+    pickImportCell(row, m.teamFlight) ||
+    pickImportCell(row, m.group) ||
+    pickImportCell(row, m.pairing);
   const instructor = pickImportCell(row, m.instructor);
   const paidStatus = pickImportCell(row, m.paidStatus);
-  const notes = pickImportCell(row, m.notes);
-  const fallbackCell = firstReadableRowValue(row);
-  let teamNameRaw = pickImportCell(row, m.teamName);
-  let displayName = resolveDisplayName(row, m);
-  if (!displayName && fallbackCell) {
-    displayName = fallbackCell;
-    importIssues.push("Player name was missing, so we used the first filled spreadsheet value");
+  const gender = pickImportCell(row, m.gender);
+  const cart = pickImportCell(row, m.cart);
+  let notes = pickImportCell(row, m.notes);
+  if (gender) {
+    notes = [notes, `Gender: ${gender}`].filter(Boolean).join("\n").trim();
   }
-  if (!displayName) {
-    displayName = `Player ${sourceRowNumber || 1}`;
-    importIssues.push("Player name was missing, so we generated one");
+  if (cart) {
+    notes = [notes, `Cart: ${cart}`].filter(Boolean).join("\n").trim();
+  }
+
+  const startRaw = pickImportCell(row, m.startingHole);
+  let startingHole = null;
+  let assignedHole = "";
+  if (startRaw) {
+    const n = Number(String(startRaw).replace(/[^\d.]/g, ""));
+    if (Number.isFinite(n) && n >= 1 && n <= 18) {
+      startingHole = Math.round(n);
+    } else {
+      assignedHole = String(startRaw).trim();
+    }
+  }
+  let teamNameRaw = pickImportCell(row, m.teamName);
+  const fnRaw = pickImportCell(row, m.firstName);
+  const lnRaw = pickImportCell(row, m.lastName);
+  let displayName = playerNameFromParts(fnRaw, lnRaw);
+  if (!String(fnRaw).trim() || !String(lnRaw).trim()) {
+    pushUniqueIssue(importIssues, "First and Last Name are required");
   }
   if (!teamNameRaw) {
-    teamNameRaw = displayName || fallbackCell || `Imported Team ${sourceRowNumber || 1}`;
+    teamNameRaw = displayName || `Imported Team ${sourceRowNumber || 1}`;
     importIssues.push("Team name was missing, so we generated one");
   }
-  const hc = pickImportCell(row, m.handicap);
-  const handicapNum = Number(hc);
+  const hcRaw = pickImportCell(row, m.handicap);
+  const handicapNum = hcRaw ? Number(hcRaw) : NaN;
   const handicapVal = Number.isFinite(handicapNum) ? Math.max(0, Math.min(54, Math.round(handicapNum))) : null;
 
   const playersFromCols = parsePlayerListFromRow(row, m);
@@ -273,6 +665,9 @@ export function rowToImportRecord(row, m, eventCategory, sourceRowNumber = null)
     playerDetails,
     session,
     timeSlot,
+    teeTime,
+    startingHole,
+    assignedHole,
     groupLabel,
     instructor,
     paidStatus,
@@ -318,14 +713,15 @@ export function buildImportRecordsFromMappedRows(mappedRows, mapping, eventCateg
     if (!groupedMap.has(teamKey)) {
       groupedMap.set(teamKey, {
         teamKey,
+        displayTeamName: teamKey,
         captainEmail: "",
         captainPhone: "",
         session: "",
         timeSlot: "",
         groupLabel: "",
-        players: [],
         sourceRows: [],
         importIssues: [],
+        rowRecs: [],
       });
     }
     const group = groupedMap.get(teamKey);
@@ -334,7 +730,7 @@ export function buildImportRecordsFromMappedRows(mappedRows, mapping, eventCateg
     if (rec.session) group.session = rec.session;
     if (rec.timeSlot) group.timeSlot = rec.timeSlot;
     if (rec.groupLabel) group.groupLabel = rec.groupLabel;
-    rec.players.forEach((name) => group.players.push(name));
+    group.rowRecs.push(rec);
     (rec._sourceRows || []).forEach((n) => group.sourceRows.push(n));
     (rec._importIssues || []).forEach((issue) => {
       if (issue && !group.importIssues.includes(issue)) group.importIssues.push(issue);
@@ -343,41 +739,8 @@ export function buildImportRecordsFromMappedRows(mappedRows, mapping, eventCateg
 
   const regs = [];
   for (const team of groupedMap.values()) {
-    const seen = new Set();
-    const uniquePlayers = [];
-    team.players.forEach((p) => {
-      const key = String(p || "").trim().toLowerCase();
-      if (!key || seen.has(key)) return;
-      seen.add(key);
-      uniquePlayers.push(String(p).trim());
-    });
-    if (!uniquePlayers.length) continue;
-    const captainName = uniquePlayers[0] || "";
-    const playerDetails = uniquePlayers.map((name, idx) => ({ name, isCaptain: idx === 0 }));
-    const matchEmail = normalizeEmailKey(team.captainEmail);
-    const matchPhone = normalizePhoneKey(team.captainPhone);
-    const matchNameSession = normalizeNameSessionKey(captainName, team.session, team.timeSlot);
-    regs.push({
-      eventCategory: EVENT_CATEGORY_GOLF,
-      teamKey: team.teamKey,
-      teamName: team.teamKey,
-      captainName,
-      captainEmail: team.captainEmail || "",
-      captainPhone: team.captainPhone || "",
-      players: uniquePlayers,
-      playerDetails,
-      session: team.session || "",
-      timeSlot: team.timeSlot || "",
-      groupLabel: team.groupLabel || "",
-      instructor: "",
-      paidStatus: "",
-      notes: "",
-      matchEmail,
-      matchPhone,
-      matchNameSession,
-      _sourceRows: team.sourceRows.slice(),
-      _importIssues: team.importIssues.slice(),
-    });
+    const fin = finalizeGolfRegistrationFromAggregate(team);
+    if (fin) regs.push(fin);
   }
 
   return { regs, skippedRows, ignoredBlankRows };
@@ -431,6 +794,92 @@ export function findMatchingRegistration(rec, indexed) {
     if (hit) return { id: hit.id, data: hit.data };
   }
   return null;
+}
+
+/** Captain / primary contact keys for import duplicate checks (not full multi-player fan-out). */
+export function extractImportCaptainIdentityKeys(rec) {
+  return {
+    email: normalizeEmailKey(rec?.captainEmail ?? rec?.email ?? ""),
+    phone: normalizePhoneKey(rec?.captainPhone ?? rec?.phone ?? ""),
+    name: String(rec?.captainName || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " "),
+  };
+}
+
+/**
+ * Detect duplicate risks before writing: existing roster matches + duplicate contacts within the import batch.
+ * @param {object[]} stagedRegs
+ * @param {ReturnType<typeof indexRegistrationsForMatching>} indexedExisting
+ * @param {{ updateExisting?: boolean }} opts
+ * @returns {{ warnings: string[], skipIndices: Set<number> }}
+ */
+export function analyzeImportDuplicateRisks(stagedRegs, indexedExisting, opts = {}) {
+  const updateExisting = !!opts.updateExisting;
+  const warnings = [];
+  const skipIndices = new Set();
+  const seenEmail = new Map();
+  const seenPhone = new Map();
+  const seenName = new Map();
+
+  (stagedRegs || []).forEach((rec, idx) => {
+    const keys = extractImportCaptainIdentityKeys(rec);
+    const teamLabel = String(rec.teamName || rec.teamKey || `Group ${idx + 1}`).trim();
+
+    if (indexedExisting && indexedExisting.length) {
+      const existingMatch = findMatchingRegistration(rec, indexedExisting);
+      if (existingMatch && existingMatch.id) {
+        warnings.push(
+          `“${teamLabel}” matches an existing sign-up (${existingMatch.id}). ${
+            updateExisting ? "Will update that registration when you import." : "Will be skipped."
+          }`
+        );
+        if (!updateExisting) skipIndices.add(idx);
+      }
+    }
+
+    if (keys.email) {
+      if (seenEmail.has(keys.email)) {
+        const first = seenEmail.get(keys.email) + 1;
+        warnings.push(
+          `“${teamLabel}” (import #${idx + 1}): duplicate captain email in file (${keys.email}) — same as import #${first}. Skipped.`
+        );
+        skipIndices.add(idx);
+      } else {
+        seenEmail.set(keys.email, idx);
+      }
+    } else if (keys.phone) {
+      if (seenPhone.has(keys.phone)) {
+        warnings.push(
+          `“${teamLabel}” (import #${idx + 1}): duplicate captain phone in file — same as another row. Skipped.`
+        );
+        skipIndices.add(idx);
+      } else {
+        seenPhone.set(keys.phone, idx);
+      }
+    } else if (keys.name.length > 2) {
+      if (seenName.has(keys.name)) {
+        warnings.push(
+          `“${teamLabel}” (import #${idx + 1}): duplicate captain name with no email/phone — skipped as possible duplicate.`
+        );
+        skipIndices.add(idx);
+      } else {
+        seenName.set(keys.name, idx);
+      }
+    }
+  });
+
+  return { warnings, skipIndices };
+}
+
+/** Counts staged groups flagged incomplete (fixed-size last chunk, etc.). */
+export function countIncompleteImportGroups(stagedRegs) {
+  let n = 0;
+  (stagedRegs || []).forEach((r) => {
+    if ((r._importIssues || []).some((x) => String(x || "").includes("Incomplete group"))) n += 1;
+  });
+  return n;
 }
 
 export function buildImportRegisterTeamPayload({

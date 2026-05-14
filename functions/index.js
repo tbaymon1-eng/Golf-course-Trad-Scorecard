@@ -7,6 +7,12 @@
  *
  * This prevents two concurrent clients from reading the same "next hole" on the
  * client and both writing the same assignedHole (shotgun), or duplicating tee slots.
+ *
+ * Registration confirmation email is sent via Resend after a successful write when
+ * the registrant has a valid email and registrantSource is not an import/admin path
+ * (csv_import, admin_manual, roster_import, admin). Missing/empty source is treated
+ * as public (legacy clients). There is no separate public HTTP registration endpoint
+ * today; if one is added, use the same gating from event-registration-email.js.
  */
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -15,6 +21,12 @@ const admin = require("firebase-admin");
 const crypto = require("crypto");
 
 const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
+const RESEND_API_KEY = defineSecret("RESEND_API_KEY");
+
+const {
+  sendEventRegistrationConfirmationEmail,
+  shouldSendRegistrationConfirmationEmail,
+} = require("./event-registration-email");
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -106,6 +118,87 @@ function userIsMemberOfOrgData(data, orgId) {
   return buildMergedUserOrgState(data).orgIds.includes(o);
 }
 
+/** Org admin or platform global role — used for manual "resend confirmation" callable. */
+function callerCanResendRegistrationEmail(userData, orgId) {
+  const oid = safeText(orgId);
+  if (!oid) return false;
+  if (isPlatformGlobalRoleValue(userData.role)) return true;
+  if (!userIsMemberOfOrgData(userData, oid)) return false;
+  const r =
+    userData.roleByOrg && typeof userData.roleByOrg === "object"
+      ? userData.roleByOrg[oid]
+      : "";
+  return normalizeOperatorRole(r) === "admin";
+}
+
+/** Org admin, staff (operator), or platform — roster resend from modal. */
+function callerCanOperateOrgResendConfirmationEmail(userData, orgId) {
+  const oid = safeText(orgId);
+  if (!oid) return false;
+  if (isPlatformGlobalRoleValue(userData.role)) return true;
+  if (!userIsMemberOfOrgData(userData, oid)) return false;
+  const r =
+    userData.roleByOrg && typeof userData.roleByOrg === "object"
+      ? userData.roleByOrg[oid]
+      : "";
+  const role = normalizeOperatorRole(r);
+  return role === "admin" || role === "staff";
+}
+
+/**
+ * Registration doc under org path or legacy tournaments root.
+ */
+async function resolveRegistrationRefForResend(db, orgId, tournamentId, registrationId) {
+  const oid = safeText(orgId);
+  const tid = safeText(tournamentId);
+  const rid = safeText(registrationId);
+  if (!tid || !rid) return null;
+
+  if (oid) {
+    const ref = db
+      .collection("organizations")
+      .doc(oid)
+      .collection("tournaments")
+      .doc(tid)
+      .collection("registrations")
+      .doc(rid);
+    const snap = await ref.get();
+    if (snap.exists) {
+      return { ref, orgIdResolved: oid, registrationSnap: snap };
+    }
+  }
+
+  const legacyRef = db.collection("tournaments").doc(tid).collection("registrations").doc(rid);
+  const legacySnap = await legacyRef.get();
+  if (!legacySnap.exists) return null;
+
+  const tSnap = await db.collection("tournaments").doc(tid).get();
+  const tData = tSnap.exists ? tSnap.data() || {} : {};
+  const orgFromT = safeText(tData.organizationId || tData.orgId);
+
+  return {
+    ref: legacyRef,
+    orgIdResolved: orgFromT,
+    registrationSnap: legacySnap,
+  };
+}
+
+/**
+ * Tournament/event doc for email body — org-scoped or legacy root.
+ */
+async function loadTournamentDocForResendEmail(db, orgId, tournamentId) {
+  const oid = safeText(orgId);
+  const tid = safeText(tournamentId);
+  if (!tid) return {};
+  if (oid) {
+    const ref = db.collection("organizations").doc(oid).collection("tournaments").doc(tid);
+    const s = await ref.get();
+    if (s.exists) return s.data() || {};
+  }
+  const leg = await db.collection("tournaments").doc(tid).get();
+  return leg.exists ? leg.data() || {} : {};
+}
+
 /** Lowercase, trim, collapse spaces to hyphens, strip characters outside a-z0-9-. */
 function normalizeOrgSlug(raw) {
   return String(raw || "")
@@ -115,6 +208,19 @@ function normalizeOrgSlug(raw) {
     .replace(/[^a-z0-9-]/g, "")
     .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+/** Admin SDK: resolve organizations/{id} from document id or public slug field. */
+async function resolveOrganizationDocumentIdFromToken(raw) {
+  const s = safeText(raw);
+  if (!s) return "";
+  const direct = await db.collection("organizations").doc(s).get();
+  if (direct.exists) return direct.id;
+  const norm = normalizeOrgSlug(s);
+  if (!norm) return "";
+  const q = await db.collection("organizations").where("slug", "==", norm).limit(3).get();
+  if (q.size === 1) return q.docs[0].id;
+  return "";
 }
 
 function normalizeOperatorRole(raw) {
@@ -150,6 +256,23 @@ function logSetup(step, payload) {
     );
   } catch (_e) {
     console.log("[setupOrganization]", step, payload);
+  }
+}
+
+/** Org onboarding: single-line log for Cloud Logging (uid/email/org/role). */
+function logSignupRoleAssignment(payload) {
+  const uid = safeText(payload?.uid);
+  const email = safeText(payload?.email);
+  const orgId = safeText(payload?.orgId);
+  const assignedRole = safeText(payload?.assignedRole) || "admin";
+  const source = safeText(payload?.source);
+  try {
+    console.log(
+      "[signup role assignment]",
+      JSON.stringify({ uid, email, orgId, assignedRole, ...(source ? { source } : {}) })
+    );
+  } catch (_e) {
+    console.log("[signup role assignment]", { uid, email, orgId, assignedRole, source });
   }
 }
 
@@ -205,20 +328,34 @@ exports.setupOrganization = onCall(
 
       const uid = request.auth.uid;
       const email = safeText(request.auth.token?.email || "");
-      const { courseName: rawCourseName } = request.data || {};
+      const reqData = request.data || {};
+      const { courseName: rawCourseName } = reqData;
       const courseName = safeText(rawCourseName);
+      const organizationName = safeText(reqData.organizationName);
+      /** Public URL / routing slug (normalized); optional. */
+      const slugIncoming = safeText(reqData.slug);
+      const contactEmailField = safeText(reqData.contactEmail);
+      const contactPhoneField = safeText(reqData.contactPhone);
+      const staffInviteField = safeText(reqData.staffInviteCode);
+
+      const orgDisplayName = organizationName || courseName;
 
       logSetup("incoming_data", {
         runId,
         uid,
         courseName,
+        organizationName,
         courseNameLength: courseName.length,
+        orgDisplayNameLength: orgDisplayName.length,
         emailFromToken: email || "(empty)",
       });
 
-      if (!courseName) {
+      if (!orgDisplayName) {
         logSetup("reject_no_courseName", { runId, uid });
-        throw new HttpsError("invalid-argument", "Course name required.");
+        throw new HttpsError(
+          "invalid-argument",
+          "Organization name or course name required."
+        );
       }
 
       const userRef = db.doc(`users/${uid}`);
@@ -237,8 +374,6 @@ exports.setupOrganization = onCall(
           let nextRole;
           if (userSnap.exists && isPlatformGlobalRoleValue(topRole)) {
             nextRole = prev.role;
-          } else if (userSnap.exists && safeText(prev.role)) {
-            nextRole = prev.role;
           } else {
             nextRole = "admin";
           }
@@ -250,17 +385,32 @@ exports.setupOrganization = onCall(
           const nextRoleByOrg = { ...m.roleByOrg, [newOrgId]: "admin" };
           const nextActive = newOrgId;
 
-          tx.set(orgRef, {
-            name: courseName,
+          const slugNorm =
+            slugIncoming !== ""
+              ? normalizeOrgSlug(slugIncoming)
+              : normalizeOrgSlug(orgDisplayName);
+
+          /** @type {Record<string, any>} */
+          const orgPayload = {
+            name: orgDisplayName,
             ownerUid: uid,
             createdAt: FieldValue.serverTimestamp(),
-          });
+          };
+          if (slugNorm) {
+            orgPayload.slug = slugNorm;
+          }
+          if (contactEmailField) orgPayload.contactEmail = contactEmailField;
+          if (contactPhoneField) orgPayload.contactPhone = contactPhoneField;
+          if (staffInviteField) orgPayload.staffInviteCode = staffInviteField;
+
+          tx.set(orgRef, orgPayload);
 
           const payload = {
             orgIds: nextIds,
             activeOrgId: nextActive,
             roleByOrg: nextRoleByOrg,
             orgId: nextActive,
+            organizationId: nextActive,
             email: email || safeText(prev.email),
             role: nextRole,
             updatedAt: FieldValue.serverTimestamp(),
@@ -287,8 +437,15 @@ exports.setupOrganization = onCall(
         throw mapFirestoreOrUnknownError(e);
       }
 
-      logSetup("return_ok", { runId, orgId: out.orgId, alreadySetup: out.alreadySetup });
-      return out;
+        logSetup("return_ok", { runId, orgId: out.orgId, alreadySetup: out.alreadySetup });
+        logSignupRoleAssignment({
+          uid,
+          email,
+          orgId: out.orgId,
+          assignedRole: "admin",
+          source: "setupOrganization",
+        });
+        return out;
     } catch (e) {
       if (e instanceof HttpsError) {
         logSetup("rethrow_https", { runId, code: e.code, message: e.message });
@@ -343,6 +500,7 @@ exports.repairUserProfile = onCall(
             activeOrgId: merged.activeOrgId,
             roleByOrg: merged.roleByOrg,
             orgId: merged.activeOrgId,
+            organizationId: merged.activeOrgId,
             email: email || safeText(raw.email) || request.auth.token?.email,
             updatedAt: FieldValue.serverTimestamp(),
           },
@@ -419,9 +577,13 @@ exports.setActiveOrganization = onCall(
       throw new HttpsError("unauthenticated", "Sign in required.");
     }
     const uid = request.auth.uid;
-    const want = safeText((request.data || {}).orgId);
+    let want = safeText((request.data || {}).orgId);
     if (!want) {
       throw new HttpsError("invalid-argument", "orgId is required.");
+    }
+    const resolvedWant = await resolveOrganizationDocumentIdFromToken(want);
+    if (resolvedWant) {
+      want = resolvedWant;
     }
     const userRef = db.collection("users").doc(uid);
     const userSnap = await userRef.get();
@@ -434,6 +596,7 @@ exports.setActiveOrganization = onCall(
         {
           activeOrgId: want,
           orgId: want,
+          organizationId: want,
           updatedAt: FieldValue.serverTimestamp(),
         },
         { merge: true }
@@ -454,6 +617,7 @@ exports.setActiveOrganization = onCall(
           roleByOrg: nextRoleByOrg,
           activeOrgId: want,
           orgId: want,
+          organizationId: want,
           email: safeText(d.email) || request.auth?.token?.email,
           updatedAt: FieldValue.serverTimestamp(),
         },
@@ -536,16 +700,13 @@ exports.staffSignupWithInvite = onCall(
       );
     }
 
+    const assignedRole = "admin";
     const nextIds = [...new Set([...m0.orgIds, targetId])];
-    const nextRoleByOrg = { ...m0.roleByOrg, [targetId]: "staff" };
+    const nextRoleByOrg = { ...m0.roleByOrg, [targetId]: assignedRole };
     const top = String(prevData.role || "")
       .trim()
       .toLowerCase();
-    const nextTopRole = isPlatformGlobalRoleValue(top)
-      ? prevData.role
-      : userSnap.exists && safeText(prevData.role)
-        ? prevData.role
-        : "staff";
+    const nextTopRole = isPlatformGlobalRoleValue(top) ? prevData.role : assignedRole;
 
     const payload = {
       displayName,
@@ -554,6 +715,7 @@ exports.staffSignupWithInvite = onCall(
       activeOrgId: targetId,
       roleByOrg: nextRoleByOrg,
       orgId: targetId,
+      organizationId: targetId,
       role: nextTopRole,
       active: true,
       updatedAt: FieldValue.serverTimestamp(),
@@ -564,7 +726,53 @@ exports.staffSignupWithInvite = onCall(
 
     await userRef.set(payload, { merge: true });
 
+    logSignupRoleAssignment({
+      uid,
+      email,
+      orgId: targetId,
+      assignedRole,
+      source: "staffSignupWithInvite",
+    });
     return { orgId: targetId, ok: true };
+  }
+);
+
+/**
+ * Map a URL org segment (Firestore document id or stored slug) to canonical organizations/{id}.
+ * Callable uses Admin SDK so anonymous clients can resolve slugs without org read rules.
+ */
+exports.resolveOrganizationCanonicalId = onCall(
+  {
+    region: "us-central1",
+    cors: true,
+  },
+  async (request) => {
+    const raw = safeText(
+      (request.data || {}).org ??
+        (request.data || {}).orgId ??
+        (request.data || {}).urlOrg
+    );
+    if (!raw) {
+      return { ok: false, message: "Missing org." };
+    }
+
+    const canonicalOrgId = await resolveOrganizationDocumentIdFromToken(raw);
+    if (!canonicalOrgId) {
+      return { ok: false, message: "Organization not found." };
+    }
+
+    const orgSnap = await db.collection("organizations").doc(canonicalOrgId).get();
+    if (!orgSnap.exists) {
+      return { ok: false, message: "Organization not found." };
+    }
+    const slug = safeText(orgSnap.data()?.slug);
+    const source = raw === canonicalOrgId || raw === orgSnap.id ? "document-id" : "slug";
+    return {
+      ok: true,
+      canonicalOrgId,
+      source,
+      slug: slug || null,
+    };
   }
 );
 
@@ -576,14 +784,16 @@ exports.createOrganizationOperatorInvite = onCall(
   async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Sign in required.");
     const uid = request.auth.uid;
-    const orgId = safeText(request.data?.orgId);
-    const email = safeText(request.data?.email).toLowerCase();
-    const role = normalizeOperatorRole(request.data?.role);
+    let orgId = safeText(request.data?.orgId);
     if (!orgId) throw new HttpsError("invalid-argument", "orgId is required.");
+    const resolvedOrg = await resolveOrganizationDocumentIdFromToken(orgId);
+    if (resolvedOrg) orgId = resolvedOrg;
+    const email = safeText(request.data?.email).toLowerCase();
+    /** All new operator invites grant org admin until per-org staff tiers return. */
+    const role = "admin";
     if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
       throw new HttpsError("invalid-argument", "Valid operator email is required.");
     }
-    if (!role) throw new HttpsError("invalid-argument", "role must be admin, staff, or viewer.");
 
     const userSnap = await db.collection("users").doc(uid).get();
     const userData = userSnap.exists ? userSnap.data() || {} : {};
@@ -645,8 +855,8 @@ exports.acceptOrganizationOperatorInvite = onCall(
     const inviteDoc = inviteQuery.docs[0];
     const inv = inviteDoc.data() || {};
     const orgId = safeText(inv.orgId);
-    const role = normalizeOperatorRole(inv.role);
-    if (!orgId || !role) throw new HttpsError("failed-precondition", "Invite is invalid.");
+    const assignedRole = "admin";
+    if (!orgId) throw new HttpsError("failed-precondition", "Invite is invalid.");
     if (inv.active === false || String(inv.status || "") === "revoked") {
       throw new HttpsError("failed-precondition", "Invite is no longer active.");
     }
@@ -665,15 +875,11 @@ exports.acceptOrganizationOperatorInvite = onCall(
     const prev = userSnap.exists ? userSnap.data() || {} : {};
     const merged = buildMergedUserOrgState(prev);
     const nextIds = [...new Set([...merged.orgIds, orgId])];
-    const nextRoleByOrg = { ...merged.roleByOrg, [orgId]: role };
+    const nextRoleByOrg = { ...merged.roleByOrg, [orgId]: assignedRole };
     const top = String(prev.role || "")
       .trim()
       .toLowerCase();
-    const nextTopRole = isPlatformGlobalRoleValue(top)
-      ? prev.role
-      : userSnap.exists && safeText(prev.role)
-        ? prev.role
-        : role;
+    const nextTopRole = isPlatformGlobalRoleValue(top) ? prev.role : assignedRole;
 
     await userRef.set(
       {
@@ -683,6 +889,7 @@ exports.acceptOrganizationOperatorInvite = onCall(
         roleByOrg: nextRoleByOrg,
         activeOrgId: orgId,
         orgId,
+        organizationId: orgId,
         role: nextTopRole,
         active: true,
         updatedAt: FieldValue.serverTimestamp(),
@@ -699,7 +906,14 @@ exports.acceptOrganizationOperatorInvite = onCall(
       },
       { merge: true }
     );
-    return { ok: true, orgId, role };
+    logSignupRoleAssignment({
+      uid,
+      email: emailFromAuth || safeText(prev.email),
+      orgId,
+      assignedRole,
+      source: "acceptOrganizationOperatorInvite",
+    });
+    return { ok: true, orgId, role: assignedRole };
   }
 );
 
@@ -818,6 +1032,43 @@ function normalizeHoleLabel(raw) {
   const m = s.match(/^([1-9]|1[0-8])([A-Z])$/);
   if (!m) return "";
   return `${parseInt(m[1], 10)}${m[2]}`;
+}
+
+/** First hole number 1–18 from a label like "5A" or normalized "5A". */
+function parseNumericHoleFromAssignedLabel(raw) {
+  const norm = normalizeHoleLabel(raw);
+  const s = norm || String(raw || "").trim();
+  if (!s) return null;
+  const m = String(s).match(/^([1-9]|1[0-8])/);
+  if (!m) return null;
+  const n = parseInt(m[1], 10);
+  if (!Number.isFinite(n) || n < 1 || n > 18) return null;
+  return n;
+}
+
+/**
+ * Every registration must persist numeric startingHole (default 1).
+ * startingHoleLabel when we have a shotgun label or explicit client label.
+ */
+function ensureStartingHoleFields(assignment) {
+  const a = assignment || {};
+  let n = null;
+  if (a.startingHole != null && a.startingHole !== "" && Number.isFinite(Number(a.startingHole))) {
+    n = clampIntServer(Number(a.startingHole), 1, 18);
+  }
+  if (n == null) {
+    const fromAssigned = parseNumericHoleFromAssignedLabel(a.assignedHole);
+    if (fromAssigned != null) n = fromAssigned;
+  }
+  if (n == null) n = 1;
+
+  let label = safeText(a.startingHoleLabel);
+  if (!label) {
+    const hl = normalizeHoleLabel(a.assignedHole);
+    if (hl) label = hl;
+    else if (safeText(a.assignedHole)) label = String(a.assignedHole).trim().toUpperCase();
+  }
+  return { startingHole: n, startingHoleLabel: label };
 }
 
 /**
@@ -1020,16 +1271,30 @@ function resolveParticipantSizingRulesServer(tournament) {
   return { min: minP, max: maxP, mode };
 }
 
+function deriveCompetitionScoringStructureFromFormatServer(tournament) {
+  const fmt = safeText(tournament?.formatOfPlay || tournament?.format, "").toLowerCase();
+  if (fmt.includes("scramble")) return "team";
+  if (
+    fmt.includes("best ball") ||
+    fmt.includes("bestball") ||
+    fmt.includes("best_ball") ||
+    fmt.includes("four ball") ||
+    fmt.includes("fourball") ||
+    fmt.includes("four_ball")
+  ) {
+    return "team";
+  }
+  if (fmt.includes("stableford") || fmt.includes("modified stableford")) return "individual";
+  if (fmt.includes("stroke") || fmt.includes("stroke play")) return "individual";
+  return "individual";
+}
+
 function resolveScoringStructureServer(tournament) {
-  const raw = safeText(tournament?.scoringType || tournament?.scoringStructure, "").toLowerCase();
-  if (raw === "individual" || raw === "team" || raw === "none") return raw;
   const cat =
     safeText(tournament?.eventCategory, "").toLowerCase() ||
     safeText(tournament?.eventType, "").toLowerCase();
   if (cat === "clinic" || cat === "camp" || cat === "general") return "none";
-  const fmt = safeText(tournament?.formatOfPlay || tournament?.format, "").toLowerCase();
-  if (fmt.includes("scramble") || fmt.includes("best")) return "team";
-  return "individual";
+  return deriveCompetitionScoringStructureFromFormatServer(tournament);
 }
 
 /**
@@ -1080,11 +1345,8 @@ function buildRegistrationDocument(tournament, tournamentId, clientData, assignm
 
   const assignedHole = safeText(assignment.assignedHole);
   const teeTime = safeText(assignment.teeTime);
-  const shRaw = assignment.startingHole;
-  const startingHole =
-    shRaw != null && shRaw !== "" && Number.isFinite(Number(shRaw))
-      ? Math.max(1, Math.min(18, Math.round(Number(shRaw))))
-      : null;
+  const holeFields = ensureStartingHoleFields(assignment);
+  const startingHole = holeFields.startingHole;
 
   const isAssigned = !!assignedHole || !!teeTime;
 
@@ -1135,8 +1397,10 @@ function buildRegistrationDocument(tournament, tournamentId, clientData, assignm
     updatedAt: FieldValue.serverTimestamp(),
   };
 
+  doc.startingHole = startingHole;
+  if (holeFields.startingHoleLabel) doc.startingHoleLabel = holeFields.startingHoleLabel;
+
   if (teeTime) doc.teeTime = teeTime;
-  if (startingHole != null) doc.startingHole = startingHole;
 
   return doc;
 }
@@ -1159,11 +1423,8 @@ function buildPlainRegistrationForClient(tournament, tournamentId, clientData, a
 
   const assignedHole = safeText(assignment.assignedHole);
   const teeTime = safeText(assignment.teeTime);
-  const shRaw = assignment.startingHole;
-  const startingHole =
-    shRaw != null && shRaw !== "" && Number.isFinite(Number(shRaw))
-      ? Math.max(1, Math.min(18, Math.round(Number(shRaw))))
-      : null;
+  const holeFieldsPlain = ensureStartingHoleFields(assignment);
+  const startingHole = holeFieldsPlain.startingHole;
 
   const isAssigned = !!assignedHole || !!teeTime;
 
@@ -1212,8 +1473,10 @@ function buildPlainRegistrationForClient(tournament, tournamentId, clientData, a
     source: legacySourceFieldFromRegistrantSource(registrantSource),
   };
 
+  plain.startingHole = startingHole;
+  if (holeFieldsPlain.startingHoleLabel) plain.startingHoleLabel = holeFieldsPlain.startingHoleLabel;
+
   if (teeTime) plain.teeTime = teeTime;
-  if (startingHole != null) plain.startingHole = startingHole;
 
   return plain;
 }
@@ -1229,6 +1492,7 @@ exports.registerTeam = onCall(
   {
     region: "us-central1",
     cors: true,
+    secrets: [RESEND_API_KEY],
   },
   async (request) => {
     if (!request.auth) {
@@ -1280,7 +1544,6 @@ exports.registerTeam = onCall(
 
       let assignedHole = "";
       let teeTimeStr = "";
-      let startingHoleNum = null;
       let assignment = {};
 
       if (isGolfEvent) {
@@ -1302,11 +1565,11 @@ exports.registerTeam = onCall(
             if (!teeTimeStr) {
               throw new HttpsError("failed-precondition", "Invalid first tee time format on the tournament.");
             }
-            startingHoleNum = resolveStartingHoleFromTournament(tournament);
+            const startingHoleFromTee = resolveStartingHoleFromTournament(tournament);
             assignment = {
               assignedHole: "",
               teeTime: teeTimeStr,
-              startingHole: startingHoleNum,
+              startingHole: startingHoleFromTee,
             };
           } else {
             assignment = {};
@@ -1372,10 +1635,79 @@ exports.registerTeam = onCall(
         registrationId: newRegRef.id,
         assignedHole,
         teeTime: teeTimeStr,
-        startingHole: startingHoleNum,
+        startingHole: regPayload.startingHole,
         registration: buildPlainRegistrationForClient(tournament, tournamentId, clientData, assignment),
       };
     });
+
+    /**
+     * Resend confirmation when email is present and source is not import/admin.
+     * Failure must not affect the successful registration response below.
+     */
+    console.log("[registerTeam] entering email confirmation block");
+    try {
+      const registrantSource = data.registrantSource;
+      const recipientForEmail = safeText(
+        data.captainEmail || data.email || data.registrantEmail
+      );
+
+      console.log("registration source", registrantSource);
+      console.log(
+        "registration email",
+        data.captainEmail || data.email || data.registrantEmail
+      );
+
+      const decision = shouldSendRegistrationConfirmationEmail(
+        registrantSource,
+        recipientForEmail
+      );
+
+      console.log("[registerTeam] public registration evaluation", {
+        send: decision.send,
+        reason: decision.reason,
+        registrantSourceRaw: registrantSource === undefined ? "(undefined)" : registrantSource,
+      });
+
+      if (!decision.send) {
+        console.log("[registerTeam] confirmation email skipped:", decision.reason);
+      } else {
+        const tournamentSnapForEmail = await tournamentRef.get();
+        const tournamentForEmail = tournamentSnapForEmail.exists
+          ? tournamentSnapForEmail.data() || {}
+          : {};
+        let resolvedOrgIdForEmail = safeText(organizationId);
+        if (!resolvedOrgIdForEmail) {
+          resolvedOrgIdForEmail = safeText(
+            tournamentForEmail.organizationId || tournamentForEmail.orgId
+          );
+        }
+
+        const emailOut = await sendEventRegistrationConfirmationEmail({
+          db,
+          to: recipientForEmail,
+          orgId: resolvedOrgIdForEmail,
+          event: tournamentForEmail,
+          registration: result.registration,
+          tournamentId,
+          registrationId: result.registrationId,
+          resendApiKey: RESEND_API_KEY.value(),
+        });
+
+        if (emailOut && emailOut.skipped) {
+          console.log("[registerTeam] confirmation email skipped:", emailOut.reason || "sender skipped");
+        } else if (emailOut && emailOut.ok) {
+          console.log("[registerTeam] confirmation email completed", {
+            resendId: emailOut.id || null,
+          });
+        } else {
+          console.error("[registerTeam] confirmation email send returned failure", {
+            error: emailOut && emailOut.error ? emailOut.error : emailOut,
+          });
+        }
+      }
+    } catch (emailErr) {
+      console.error("[registerTeam] registration confirmation email failed (non-fatal)", emailErr);
+    }
 
     return result;
   }
@@ -1907,6 +2239,256 @@ exports.deleteOrganization = onCall(
     return {
       ok: true,
       counts,
+    };
+  }
+);
+
+// --- Email sender / Resend (domain verification helpers still placeholders) ---
+
+exports.createEmailDomainVerification = onCall(
+  { region: "us-central1", cors: true },
+  async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Sign in required.");
+    const orgId = safeText((request.data || {}).orgId);
+    if (!orgId) throw new HttpsError("invalid-argument", "orgId is required.");
+    return {
+      ok: false,
+      message: "Domain verification is not deployed yet. Finish onboarding; verify email from the dashboard when available.",
+    };
+  }
+);
+
+exports.checkEmailDomainVerification = onCall(
+  { region: "us-central1", cors: true },
+  async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Sign in required.");
+    const orgId = safeText((request.data || {}).orgId);
+    if (!orgId) throw new HttpsError("invalid-argument", "orgId is required.");
+    return {
+      ok: false,
+      verified: false,
+      message: "Verification check is not deployed yet.",
+    };
+  }
+);
+
+exports.sendTestCourseEmail = onCall(
+  { region: "us-central1", cors: true },
+  async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Sign in required.");
+    return {
+      ok: false,
+      message: "Test email sending is not deployed yet.",
+    };
+  }
+);
+
+exports.sendRegistrationConfirmationEmail = onCall(
+  {
+    region: "us-central1",
+    cors: true,
+    secrets: [RESEND_API_KEY],
+  },
+  async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Sign in required.");
+    const data = request.data || {};
+    const orgId = safeText(data.orgId || data.organizationId);
+    const tournamentId = safeText(data.tournamentId);
+    const registrationId = safeText(data.registrationId);
+    if (!orgId || !tournamentId || !registrationId) {
+      throw new HttpsError(
+        "invalid-argument",
+        "orgId (or organizationId), tournamentId, and registrationId are required."
+      );
+    }
+
+    const userSnap = await db.collection("users").doc(request.auth.uid).get();
+    const userData = userSnap.exists ? userSnap.data() || {} : {};
+    if (!callerCanResendRegistrationEmail(userData, orgId)) {
+      throw new HttpsError("permission-denied", "Organization admin access required.");
+    }
+
+    const regRef = db
+      .collection("organizations")
+      .doc(orgId)
+      .collection("tournaments")
+      .doc(tournamentId)
+      .collection("registrations")
+      .doc(registrationId);
+    const regSnap = await regRef.get();
+    if (!regSnap.exists) {
+      throw new HttpsError("not-found", "Registration not found.");
+    }
+
+    const tournamentRef = db
+      .collection("organizations")
+      .doc(orgId)
+      .collection("tournaments")
+      .doc(tournamentId);
+    const tournamentSnap = await tournamentRef.get();
+    const tournamentForEmail = tournamentSnap.exists ? tournamentSnap.data() || {} : {};
+
+    const regData = regSnap.data() || {};
+    const recipient = safeText(regData.captainEmail);
+    if (!recipient) {
+      return { ok: false, message: "Registration has no email address." };
+    }
+
+    const plainRegistration = { ...regData };
+    delete plainRegistration.createdAt;
+    delete plainRegistration.updatedAt;
+
+    try {
+      const out = await sendEventRegistrationConfirmationEmail({
+        db,
+        to: recipient,
+        orgId,
+        event: tournamentForEmail,
+        registration: plainRegistration,
+        tournamentId,
+        registrationId,
+        resendApiKey: RESEND_API_KEY.value(),
+      });
+      if (out.skipped) {
+        return { ok: false, message: out.reason || "Email not sent." };
+      }
+      if (!out.ok) {
+        return { ok: false, message: safeText(out.error, "Send failed.") };
+      }
+      return { ok: true, message: "Sent.", id: out.id || null };
+    } catch (e) {
+      console.error("[sendRegistrationConfirmationEmail]", e);
+      return { ok: false, message: e?.message || String(e) };
+    }
+  }
+);
+
+/**
+ * Roster/UI: resend registration confirmation and persist audit fields on the registration doc.
+ * Does not alter registerTeam public registration behavior.
+ */
+exports.resendRegistrationConfirmationEmail = onCall(
+  {
+    region: "us-central1",
+    cors: true,
+    secrets: [RESEND_API_KEY],
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required to resend confirmation email.");
+    }
+
+    const data = request.data || {};
+    const orgIdIn = safeText(data.orgId || data.organizationId);
+    const tournamentId = safeText(data.tournamentId || data.eventId);
+    const registrationId = safeText(data.registrationId);
+    if (!tournamentId || !registrationId) {
+      throw new HttpsError(
+        "invalid-argument",
+        "orgId, tournamentId (or eventId), and registrationId are required."
+      );
+    }
+
+    const resolved = await resolveRegistrationRefForResend(
+      db,
+      orgIdIn,
+      tournamentId,
+      registrationId
+    );
+    if (!resolved) {
+      throw new HttpsError("not-found", "Registration not found for this event.");
+    }
+
+    const effectiveOrgId = safeText(resolved.orgIdResolved);
+    if (!effectiveOrgId) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Could not resolve organization for this registration. Open roster from an organization link, or ensure the event is linked to an organization."
+      );
+    }
+
+    const userSnap = await db.collection("users").doc(request.auth.uid).get();
+    const userData = userSnap.exists ? userSnap.data() || {} : {};
+    if (!callerCanOperateOrgResendConfirmationEmail(userData, effectiveOrgId)) {
+      throw new HttpsError(
+        "permission-denied",
+        "Organization admin or staff access required to resend confirmation emails."
+      );
+    }
+
+    const regData = resolved.registrationSnap.data() || {};
+    const recipient = safeText(regData.captainEmail);
+    if (!recipient) {
+      return { ok: false, message: "This registration has no email address." };
+    }
+
+    const tournamentForEmail = await loadTournamentDocForResendEmail(
+      db,
+      effectiveOrgId,
+      tournamentId
+    );
+
+    const plainRegistration = { ...regData };
+    delete plainRegistration.createdAt;
+    delete plainRegistration.updatedAt;
+
+    let out;
+    try {
+      out = await sendEventRegistrationConfirmationEmail({
+        db,
+        to: recipient,
+        orgId: effectiveOrgId,
+        event: tournamentForEmail,
+        registration: plainRegistration,
+        tournamentId,
+        registrationId,
+        resendApiKey: RESEND_API_KEY.value(),
+      });
+    } catch (e) {
+      console.error("[resendRegistrationConfirmationEmail] send threw", e);
+      out = { ok: false, error: e?.message || String(e) };
+    }
+
+    const patch = {
+      confirmationEmailResendCount: FieldValue.increment(1),
+      confirmationEmailStatus: out.ok ? "sent" : "failed",
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+    if (out.ok) {
+      patch.confirmationEmailLastSentAt = FieldValue.serverTimestamp();
+      patch.confirmationEmailError = FieldValue.delete();
+    } else {
+      const errLine =
+        safeText(out.error) ||
+        safeText(String(out.reason || "")) ||
+        "send_failed";
+      patch.confirmationEmailError = errLine.slice(0, 2000);
+    }
+
+    try {
+      await resolved.ref.set(patch, { merge: true });
+    } catch (updErr) {
+      console.error("[resendRegistrationConfirmationEmail] registration doc update failed", updErr);
+    }
+
+    if (out.skipped) {
+      return {
+        ok: false,
+        message: safeText(out.reason, "Email could not be sent (skipped)."),
+        resendId: null,
+      };
+    }
+    if (!out.ok) {
+      return {
+        ok: false,
+        message: safeText(out.error, "Email send failed."),
+        resendId: null,
+      };
+    }
+    return {
+      ok: true,
+      message: "Confirmation email sent.",
+      resendId: out.id || null,
     };
   }
 );

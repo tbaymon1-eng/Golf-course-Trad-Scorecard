@@ -4,6 +4,33 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Scorecard</title>
+  <script>
+    (function () {
+      try {
+        var p = new URLSearchParams(location.search || "");
+        var mode = String(p.get("mode") || "").toLowerCase();
+        var course = String(
+          p.get("course") || p.get("courseId") || p.get("c") || ""
+        ).trim();
+        var org = String(
+          p.get("org") || p.get("orgId") || p.get("organizationId") || p.get("o") || ""
+        ).trim();
+        var tid = String(
+          p.get("id") || p.get("t") || p.get("tournamentId") || ""
+        ).trim();
+        var html = document.documentElement;
+        if (mode === "course" && course && org && !tid) {
+          html.classList.add("scorecard-boot-course");
+        } else if (tid) {
+          html.classList.add("scorecard-boot-tournament");
+        } else if ((mode === "casual" || mode === "daily") && course) {
+          html.classList.add("scorecard-boot-casual");
+        } else if (course && !tid) {
+          html.classList.add("scorecard-boot-casual");
+        }
+      } catch (_e) {}
+    })();
+  </script>
 
   <link rel="manifest" href="./manifest.webmanifest">
   <meta name="theme-color" content="#7a7670">
@@ -145,6 +172,15 @@
       font-weight:800;
       line-height:1.4;
       color:var(--muted);
+      word-break:break-word;
+    }
+
+    #teamPickerScreen .team-card-teebox{
+      font-size:12px;
+      font-weight:800;
+      line-height:1.35;
+      color:var(--ink);
+      opacity:0.92;
       word-break:break-word;
     }
 
@@ -405,6 +441,34 @@
       opacity:.85;
     }
 
+    #scorecardBootOverlay{
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200000;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      box-sizing: border-box;
+      background: var(--paper);
+      color: var(--ink);
+      font-weight: 900;
+      font-size: clamp(16px, 4vw, 20px);
+      font-family: Cinzel, Georgia, serif;
+      line-height: 1.4;
+    }
+    html.scorecard-boot-course #scorecardBootOverlay,
+    html.scorecard-boot-tournament #scorecardBootOverlay,
+    html.scorecard-boot-casual #scorecardBootOverlay{
+      display: flex !important;
+    }
+    html.scorecard-boot-course .wrap,
+    html.scorecard-boot-tournament .wrap,
+    html.scorecard-boot-casual .wrap{
+      visibility: hidden;
+    }
+
     .lockBanner{
       display:none;
       margin: 10px 10px 0;
@@ -418,6 +482,70 @@
     }
 
     .lockBanner.show{ display:block; }
+
+    .score-share-toast{
+      position: fixed;
+      left: 50%;
+      bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%);
+      max-width: min(92vw, 420px);
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 2px solid rgba(0,0,0,.12);
+      background: rgba(30,30,30,.92);
+      color: #f5f5f5;
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 1.35;
+      text-align: center;
+      box-shadow: 0 8px 28px rgba(0,0,0,.22);
+      z-index: 100000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .28s ease;
+    }
+    .score-share-toast.score-share-toast--show{
+      opacity: 1;
+    }
+
+    /** Screen-only: hidden mount used for html2canvas (must not cover UI). */
+    .scorecard-export-mount{
+      box-sizing: border-box;
+      color: #111;
+    }
+
+    /** Print / Save as PDF: hide app chrome; keep scorecard table + header + course title. */
+    @media print {
+      @page {
+        margin: 10mm;
+      }
+      body.scorecard-print-active .scorecard-no-print,
+      body.scorecard-print-active #scoreShareToast,
+      body.scorecard-print-active #scoreSponsorTicker{
+        display: none !important;
+      }
+      body.scorecard-print-active .wrap{
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      body.scorecard-print-active .card{
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        max-width: none !important;
+      }
+      body.scorecard-print-active #courseSwipeZone .course-select{
+        display: none !important;
+      }
+      body.scorecard-print-active .scroll-x{
+        overflow: visible !important;
+        width: auto !important;
+        max-width: none !important;
+      }
+      body.scorecard-print-active table{
+        min-width: 0 !important;
+      }
+    }
 
     .lockedStage{
       opacity:.68;
@@ -638,11 +766,189 @@
     }
 
     .actions{
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-      padding: 12px 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 14px 12px 16px;
       background: var(--card);
+    }
+
+    .actions-group{
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .actions-group + .actions-group{
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(0,0,0,.08);
+    }
+
+    .actions-group--share-row{
+      flex-direction: row;
+      gap: 10px;
+    }
+
+    .actions-group--share-row .btn-action-secondary{
+      flex: 1;
+      min-width: 0;
+    }
+
+    .actions-group--danger{
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px dashed rgba(0,0,0,.12);
+    }
+
+    /* Primary booking CTA */
+    .book-btn.book-btn--primary-cta{
+      grid-column: 1 / -1;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 17px;
+      padding: 14px 12px;
+    }
+
+    .btn-finish-round{
+      width: 100%;
+      box-sizing: border-box;
+      border: 2px solid rgba(47,107,47,.42);
+      background: rgba(47,107,47,.18);
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: 900;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .btn-finish-round:active{
+      transform: translateY(1px);
+    }
+
+    .btn-action-secondary{
+      border: 2px solid var(--border);
+      background: var(--buttonSecondaryBg);
+      border-radius: 10px;
+      padding: 10px 8px;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-action-secondary:active{
+      transform: translateY(1px);
+    }
+
+    .btn-clear-danger{
+      align-self: center;
+      width: 100%;
+      max-width: 280px;
+      margin: 0 auto;
+      border: 2px solid #8b2f24;
+      background: transparent;
+      color: #7a2920;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-clear-danger:hover{
+      background: rgba(182,66,45,.08);
+    }
+
+    .btn-clear-danger:active{
+      transform: translateY(1px);
+    }
+
+    /* Clear scores confirmation */
+    .clear-scores-modal{
+      position: fixed;
+      inset: 0;
+      z-index: 10040;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      box-sizing: border-box;
+    }
+
+    .clear-scores-modal[hidden]{
+      display: none !important;
+    }
+
+    .clear-scores-modal__backdrop{
+      position: absolute;
+      inset: 0;
+      background: rgba(28,22,18,.52);
+      cursor: pointer;
+    }
+
+    .clear-scores-modal__panel{
+      position: relative;
+      width: 100%;
+      max-width: 380px;
+      padding: 20px 18px 18px;
+      border-radius: 14px;
+      border: 2px solid var(--border);
+      background: var(--card);
+      box-shadow: 0 14px 40px rgba(0,0,0,.2);
+      text-align: left;
+    }
+
+    .clear-scores-modal__title{
+      margin: 0 0 8px;
+      font-family: Cinzel, serif;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--ink);
+    }
+
+    .clear-scores-modal__body{
+      margin: 0 0 18px;
+      font-size: 14px;
+      line-height: 1.45;
+      color: var(--ink);
+      opacity: .92;
+    }
+
+    .clear-scores-modal__actions{
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 10px;
+    }
+
+    @media (min-width: 400px){
+      .clear-scores-modal__actions{
+        flex-direction: row;
+        justify-content: flex-end;
+      }
+      .clear-scores-modal__actions .clear-scores-modal__btn-cancel{ flex: 0 1 auto; }
+      .clear-scores-modal__actions .clear-scores-modal__btn-confirm{ flex: 0 1 auto; }
+    }
+
+    .clear-scores-modal__btn-cancel{
+      border: 2px solid var(--border);
+      background: var(--buttonSecondaryBg);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 900;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .clear-scores-modal__btn-confirm{
+      border: 2px solid #7a2b20;
+      background: #b6422d;
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 900;
+      font-size: 15px;
+      cursor: pointer;
     }
 
     button{
@@ -678,6 +984,37 @@
       box-shadow: 0 0 0 3px rgba(202,162,74,.45), 0 6px 18px rgba(47,107,47,.28);
       transform: scale(1.02);
       animation: bookSpotlightPulse 2.4s ease-in-out 2;
+    }
+
+    .course-play-actions-bar{
+      display:none;
+      align-self: stretch;
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 0 0 12px;
+    }
+    .course-play-actions-bar.is-visible{
+      display:flex;
+    }
+    .course-play-actions-bar .course-play-link{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--border);
+      background: var(--buttonSecondaryBg);
+      color: var(--ink);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-weight: 800;
+      font-size: 14px;
+      text-decoration: none;
+      text-align: center;
+      flex: 1 1 140px;
+      min-width: 120px;
+    }
+    .course-play-actions-bar .course-play-link:active{
+      transform: translateY(1px);
     }
 
     @keyframes bookSpotlightPulse{
@@ -747,19 +1084,6 @@
       color: rgba(var(--roundWarm),.92);
     }
 
-    .danger{
-      background:#b6422d;
-      color:#fff;
-      border-color:#7a2b20;
-      grid-column: 1 / -1;
-    }
-
-    .mini{
-      font-size: 14px;
-      padding: 10px 10px;
-      opacity: .95;
-    }
-
     .legal{
       padding: 10px 12px 14px;
       border-top: 1px solid rgba(0,0,0,.10);
@@ -790,15 +1114,6 @@
     }
 
     .legal .right{ opacity:.9; }
-
-    #finishRound{
-      border:2px solid rgba(47,107,47,.35);
-      background:rgba(47,107,47,.14);
-      border-radius:12px;
-      padding:10px 12px;
-      font-weight:900;
-      cursor:pointer;
-    }
 
     button:disabled,
     select:disabled,
@@ -911,12 +1226,13 @@
   <link rel="stylesheet" href="./css/operations-typography.css" />
 </head>
   <body>
+  <div id="scorecardBootOverlay" aria-live="polite" aria-busy="true">Loading scorecard…</div>
   <div class="wrap">
     <div class="card" id="card">
 
       <img id="courseHeader" class="header-img" src="" alt="Course header" />
 
-      <div id="liveAlertBanner" class="liveAlertBanner liveAlertBanner--info" style="display:none;" role="alert">
+      <div id="liveAlertBanner" class="liveAlertBanner liveAlertBanner--info scorecard-no-print" style="display:none;" role="alert">
         <div class="liveAlertInner">
           <span class="liveAlertLabel" id="liveAlertLabel">Alert</span>
           <div class="liveAlertTickerViewport">
@@ -927,11 +1243,11 @@
         </div>
       </div>
 
-      <div id="teamPickerScreen">
+      <div id="teamPickerScreen" class="scorecard-no-print">
         <div class="team-picker-top">
           <div class="team-picker-title">Select your team</div>
           <div class="team-picker-meta" id="teamPickerMeta">
-            Scan the event QR code, then tap your team to start scoring.
+            Scan the event QR code, then tap your team to open your scorecard.
           </div>
         </div>
 
@@ -941,63 +1257,23 @@
 
         <div id="teamList" class="team-list"></div>
         <div id="teamPickerEmpty" class="team-picker-empty">
-          No teams match that search.
+          No teams available yet. Please contact the tournament organizer.
         </div>
       </div>
 
-      <div id="joinScreen">
-        <div style="font-family:Cinzel,serif; font-weight:900; font-size:16px;">Tournament Scorecard</div>
-        <div id="joinMeta" style="margin-top:6px; font-size:13px; opacity:.85;"></div>
-
-        <div style="display:grid; gap:10px; margin-top:12px;">
-
-          <label style="font-weight:900; font-size:13px;">
-            Your name (person keeping score)
-            <input id="joinName" autocomplete="name"
-              style="width:100%; padding:12px 10px; border:2px solid var(--border); border-radius:10px; background:var(--cellBg);" />
-          </label>
-
-          <div class="team-mates-block">
-            <div style="font-family:Cinzel,serif; font-weight:900; font-size:13px; opacity:.9;">Other players on this scorecard</div>
-            <label>Player 2 <input id="joinMate1" placeholder="Player name"></label>
-            <label>Player 3 <input id="joinMate2" placeholder="Player name"></label>
-            <label>Player 4 <input id="joinMate3" placeholder="Player name"></label>
-            <label>Player 5 <input id="joinMate4" placeholder="Player name"></label>
-            <label>Player 6 <input id="joinMate5" placeholder="Player name"></label>
-          </div>
-
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <label style="font-weight:900; font-size:13px;">
-              Team or company name
-              <input id="joinGroup"
-                style="width:100%; padding:12px 10px; border:2px solid var(--border); border-radius:10px; background:var(--cellBg);" />
-            </label>
-
-            <label style="font-weight:900; font-size:13px;">
-              Starting hole
-              <input id="joinStartHole" placeholder="2A" inputmode="text" autocapitalize="characters"
-                style="width:100%; padding:12px 10px; border:2px solid var(--border); border-radius:10px; background:var(--cellBg);" />
-              <div style="margin-top:6px; font-size:12px; opacity:.8;">
-                Examples: <b>2A</b>, <b>10B</b>
-              </div>
-            </label>
-          </div>
-
-          <button id="joinBtn" style="border:2px solid var(--border); background:var(--green); color:var(--parRowText); border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
-            Start scoring
-          </button>
-
-          <button id="joinCancel" style="border:2px solid var(--border); background:var(--buttonSecondaryBg); border-radius:10px; padding:12px 10px; font-weight:900; font-size:16px;">
-            Back to list
-          </button>
-
-          <div style="font-size:12px; opacity:.85; line-height:1.3;">
-            By joining, you agree to our <a href="./terms.html">Terms</a> and <a href="./privacy.html">Privacy Policy</a>.
-          </div>
-        </div>
+      <!-- Programmatic tournament fields for submissions (not shown; players use team picker + QR flow). Walk-up teams are added from roster/admin. -->
+      <div id="joinScreen" class="scorecard-no-print" aria-hidden="true">
+        <input id="joinName" type="text" autocomplete="off" tabindex="-1" />
+        <input id="joinMate1" type="text" tabindex="-1" />
+        <input id="joinMate2" type="text" tabindex="-1" />
+        <input id="joinMate3" type="text" tabindex="-1" />
+        <input id="joinMate4" type="text" tabindex="-1" />
+        <input id="joinMate5" type="text" tabindex="-1" />
+        <input id="joinGroup" type="text" tabindex="-1" />
+        <input id="joinStartHole" type="text" tabindex="-1" />
       </div>
 
-      <div id="scoreSponsor" role="button" aria-label="Tournament Sponsor">
+      <div id="scoreSponsor" class="scorecard-no-print" role="button" aria-label="Tournament Sponsor">
         <div id="scoreSponsorTitle">Tournament Sponsor</div>
         <div id="scoreSponsorRow">
           <img id="scoreSponsorLogo" alt="Sponsor Logo" />
@@ -1008,7 +1284,7 @@
       <div class="coursebar" id="courseSwipeZone">
         <div>
           <div class="course-title" id="courseTitle">Course</div>
-          <div class="course-hint" id="courseHint">Swipe left/right here to switch courses</div>
+          <div class="course-hint scorecard-no-print" id="courseHint">Swipe left/right here to switch courses</div>
         </div>
 
         <select class="course-select" id="courseSelect" aria-label="Select course">
@@ -1017,7 +1293,7 @@
         </select>
       </div>
 
-      <div id="lockBanner" class="lockBanner">
+      <div id="lockBanner" class="lockBanner scorecard-no-print">
         Choose your team or sign-up above to unlock player names, score entry, side games, and event actions.
       </div>
 
@@ -1044,30 +1320,41 @@
           <h3 class="round-complete-title" id="roundCompleteTitle">Round complete</h3>
           <p class="round-complete-warm" id="roundCompleteWarm">Hope you enjoyed your day at the course.</p>
           <div class="round-complete-summary" id="roundCompleteSummary"></div>
-          <p class="round-complete-next" id="roundCompleteNextHint">When you’re ready, book your next tee time below.</p>
+          <p class="round-complete-next" id="roundCompleteNextHint">When you’re ready, use Book Tee Time below.</p>
         </div>
 
-        <div class="actions">
-          <button id="saveImg">Save as Image</button>
-          <button id="liveLeaderboardBtn" style="display:none;">Live Leaderboard</button>
+        <div class="actions scorecard-no-print">
+          <div id="coursePlayActionsBar" class="course-play-actions-bar scorecard-no-print" hidden></div>
 
-          <a
-            id="bookBtn"
-            href="#"
-            target="_blank"
-            class="book-btn"
-          >
-            Book Your Next Tee Time Here!
-          </a>
+          <div class="actions-group actions-group--primary">
+            <a
+              id="bookBtn"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="book-btn book-btn--primary-cta"
+            >
+              Book Tee Time
+            </a>
+          </div>
 
-          <button id="share">Share</button>
-          <button id="finishRound">✅ Finish Round</button>
-          <button class="danger" id="clear">Clear Card</button>
-          <button class="mini" id="refreshApp">Refresh App (update)</button>
+          <div class="actions-group actions-group--round">
+            <button id="liveLeaderboardBtn" type="button" style="display:none;">Live Leaderboard</button>
+            <button id="finishRound" type="button" class="btn-finish-round">Finish Round</button>
+          </div>
+
+          <div class="actions-group actions-group--share-row">
+            <button id="share" type="button" class="btn-action-secondary">Share</button>
+            <button id="saveImg" type="button" class="btn-action-secondary">Save as Image</button>
+          </div>
+
+          <div class="actions-group actions-group--danger">
+            <button type="button" id="clear" class="btn-clear-danger">Clear scores / New round</button>
+          </div>
         </div>
       </div>
 
-      <div class="legal">
+      <div class="legal scorecard-no-print">
         <div class="left">
           <a href="./privacy.html">Privacy</a>
           <a href="./terms.html">Terms</a>
@@ -1077,6 +1364,31 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <div id="scoreShareToast" class="score-share-toast" role="status" aria-live="polite"></div>
+
+  <div id="clearScoresModal" class="clear-scores-modal" hidden role="presentation">
+    <div class="clear-scores-modal__backdrop" id="clearScoresModalBackdrop" tabindex="-1"></div>
+    <div
+      class="clear-scores-modal__panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="clearScoresModalTitle"
+    >
+      <h3 class="clear-scores-modal__title" id="clearScoresModalTitle">Start over?</h3>
+      <p class="clear-scores-modal__body">
+        This clears all scores and side game picks on this scorecard. You can’t undo it.
+      </p>
+      <div class="clear-scores-modal__actions">
+        <button type="button" class="clear-scores-modal__btn-cancel" id="clearScoresModalCancel">
+          Cancel
+        </button>
+        <button type="button" class="clear-scores-modal__btn-confirm" id="clearScoresModalConfirm">
+          Clear scores
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1090,6 +1402,7 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
     
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -1107,8 +1420,14 @@ import {
   courseDocRef,
   casualRoundDocRef,
   resolveTournamentOrgIdStrict,
-  applyOrgTournamentParams
+  tournamentSubmissionsCollection,
+  PLAY_GROUP_SELECTION_PREFIX as PLAY_GROUP_LIST_PREFIX,
+  SUBMISSION_DOC_PLAYGROUP_PREFIX,
+  stableTournamentSubmissionDocId,
+  buildTournamentAbsoluteUrl,
 } from "./js/org-paths.js";
+import { resolveCanonicalOrgIdOrSame } from "./js/canonical-org-resolver.js";
+import { canonicalSiteUrlHref, getAppBaseUrl } from "./js/base-url.js";
 import { parseParticipantKey, expandRegistrationParticipants } from "./js/play-groups.js";
 import {
   applyScorecardTheme,
@@ -1125,6 +1444,7 @@ import {
   REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL,
 } from "./js/tournament-fields.js";
 import { formatTime } from "./js/time-format.js";
+import { resolveRegistrationTeeBoxDisplay } from "./js/tee-display.js";
 import {
   pickContrastTextForBackground,
   normalizeTeeColorKey,
@@ -1133,15 +1453,17 @@ import {
 
 let db = null;
 let auth = null;
+/** Firebase app instance (for org canonicalization / callable). */
+let firebaseApp = null;
 let authReady = false;
 const DEFAULT_PUBLIC_COURSE_ID = "tradition";
 
 try {
-  const app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
+  firebaseApp = initializeApp(firebaseConfig);
+  auth = getAuth(firebaseApp);
   await auth.authStateReady();
   if (!auth.currentUser) await signInAnonymously(auth);
-  db = getFirestore(app);
+  db = getFirestore(firebaseApp);
   authReady = true;
   console.log("Firebase ready ✅");
 } catch (e) {
@@ -1154,6 +1476,8 @@ const COURSE_TRADITION = {
   title: "Tradition Course",
   headerImg: BUILT_IN_SCORECARD_HEADER_BY_KEY.tradition,
   bookingUrl: "https://foresightcypress.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225",
+  teeTimeUrl: "",
+  bookOnlineUrl: "",
   theme: BUILT_IN_CYPRESSWOOD_SCORECARD_THEME,
   teeRows: [
     { css:"row-black", label:"Black Tees", front:[465,384,203,448,606,376,528,196,453], out:3657, back:[405,256,545,464,185,394,472,318,546], inn:3563, tot:7220 },
@@ -1173,6 +1497,8 @@ const COURSE_CYPRESS = {
   title: "Cypress Course",
   headerImg: BUILT_IN_SCORECARD_HEADER_BY_KEY.cypress,
   bookingUrl: "https://foresightcypress.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225",
+  teeTimeUrl: "",
+  bookOnlineUrl: "",
   theme: BUILT_IN_CYPRESSWOOD_SCORECARD_THEME,
   teeRows: [
     { css:"row-blue", label:"Blue", front:[514,396,387,426,182,417,160,563,427], out:3472, back:[416,409,388,349,149,586,193,531,413], inn:3434, tot:6906 },
@@ -1191,17 +1517,28 @@ const COURSES = {
   cypress: COURSE_CYPRESS
 };
 
-let currentCourseId = "tradition";
+/** Resolved from URL/Firestore before first render — avoid flashing built-in Tradition/Cypress. */
+let currentCourseId = "";
 let organizationId = "";
 let tournamentId = null;
 /** Casual scorecard (?q= publicLinks token) — extension path; tournament logic unchanged when false. */
 let isCasualMode = false;
 let casualCourseId = "";
 let casualRoundId = "";
+/** Public course scorecard (?mode=course&org=&course=) — local-only, no casualRounds/Firestore scores */
+let isCoursePlayMode = false;
+/** ?mode=org-scorecard&org= — same local-only rules as course play, with multi-course #courseSelect */
+let isOrgScorecardMode = false;
+/** Active courses for org-scorecard mode (id, display name, hydrated course object). */
+let orgScorecardCourseRows = [];
+/** When true, next build() skips loadState (e.g. after switching courses — fresh scores on screen). */
+let orgSuppressLoadStateOnce = false;
 let liveAlertListenerStarted = false;
 /** Set when a tournament link error must not be followed by a default Cypresswood/Tradition scorecard build. */
 let tournamentScorecardBootstrapFatal = false;
 let isTournamentMode = false;
+/** First successful build logs [Scorecard Init] render course: */
+let scorecardInitialRenderLogged = false;
 let startHoleSelected = "";
 let rosterNames = [];
 let joinCompleted = false;
@@ -1226,6 +1563,7 @@ const liveAlertTickerTrack = document.getElementById("liveAlertTickerTrack");
 
 const tbody = document.getElementById("tbody");
 const hdrRow = document.getElementById("hdrRow");
+const scoreTableEl = document.getElementById("scoreTable");
 
 document.getElementById("yr").textContent = new Date().getFullYear();
 const holesFront = [1,2,3,4,5,6,7,8,9];
@@ -1238,6 +1576,8 @@ let tournamentEntryMode = "team_rep";
 let tournamentStartType = "shotgun";
 /** From event doc `registrationStructure`; drives join copy. */
 let tournamentRegistrationStructure = "team";
+/** Event default tee label from `t.defaultTee` (operator-controlled). */
+let tournamentDefaultTee = "";
 let tournamentSideGames = {
   skinsEnabled:false,
   ctpEnabled:false,
@@ -1247,7 +1587,6 @@ let tournamentSideGames = {
 };
 let loadedRegistrations = [];
 let loadedPlayGroups = [];
-const PLAY_GROUP_LIST_PREFIX = "pg:";
 let selectedRegistrationId = "";
 let selectedPlayGroupId = "";
 let incomingRegistrationId = "";
@@ -1261,9 +1600,6 @@ const courseHint = document.getElementById("courseHint");
 const hintLine = document.getElementById("hintLine");
 const scrollX = document.getElementById("scrollX");
 
-const joinMeta = document.getElementById("joinMeta");
-const joinBtn = document.getElementById("joinBtn");
-const joinCancel = document.getElementById("joinCancel");
 const joinName = document.getElementById("joinName");
 const joinGroup = document.getElementById("joinGroup");
 const joinStartHole = document.getElementById("joinStartHole");
@@ -1272,8 +1608,6 @@ const joinMate2 = document.getElementById("joinMate2");
 const joinMate3 = document.getElementById("joinMate3");
 const joinMate4 = document.getElementById("joinMate4");
 const joinMate5 = document.getElementById("joinMate5");
-const refreshBtn = document.getElementById("refreshApp");
-
 const scoreSponsor = document.getElementById("scoreSponsor");
 const scoreSponsorLogo = document.getElementById("scoreSponsorLogo");
 const scoreSponsorName = document.getElementById("scoreSponsorName");
@@ -1326,14 +1660,17 @@ function setCourseHeader(courseKey){
 function setBookButtonForCourse(course){
   const bookBtn = document.getElementById("bookBtn");
   if(!bookBtn) return;
-  const url = normalizeUrl(String(course?.bookingUrl || "").trim());
+  bookBtn.textContent = "Book Tee Time";
+  const url = resolveCourseBookingUrl(course);
   if(!url){
     bookBtn.style.display = "none";
+    bookBtn.classList.remove("book-btn--primary-cta");
     bookBtn.setAttribute("aria-disabled", "true");
     bookBtn.removeAttribute("href");
     return;
   }
   bookBtn.style.display = "";
+  bookBtn.classList.add("book-btn--primary-cta");
   bookBtn.removeAttribute("aria-disabled");
   bookBtn.href = url;
 }
@@ -1343,6 +1680,73 @@ function normalizeUrl(u){
   if(!s) return "";
   if(/^https?:\/\//i.test(s)) return s;
   return "https://" + s;
+}
+
+/** First non-empty of bookingUrl · teeTimeUrl · bookOnlineUrl (course doc canonical order). */
+function resolveCourseBookingUrl(course){
+  const raw = String(course?.bookingUrl || course?.teeTimeUrl || course?.bookOnlineUrl || "").trim();
+  return normalizeUrl(raw);
+}
+
+function phoneDigitsForTel(raw){
+  let s = String(raw || "").trim();
+  if (!s) return "";
+  if (s.startsWith("+")) return "+" + s.slice(1).replace(/\D/g, "");
+  const d = s.replace(/\D/g, "");
+  return d;
+}
+
+function phoneToTelHref(raw){
+  const d = phoneDigitsForTel(raw);
+  if (!d) return "";
+  return `tel:${d}`;
+}
+
+function directionsHrefFromCourse(course){
+  const m = normalizeUrl(String(course?.mapsUrl || "").trim());
+  if (m) return m;
+  const addr = String(course?.address || "").trim();
+  if (!addr) return "";
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
+}
+
+function refreshCoursePlayActionsBar(course){
+  const bar = document.getElementById("coursePlayActionsBar");
+  if (!bar) return;
+  bar.innerHTML = "";
+  bar.setAttribute("hidden", "");
+  bar.classList.remove("is-visible");
+
+  if (!isCoursePlayMode || !course) return;
+
+  const addHttpLink = (href, label) => {
+    if (!href) return;
+    const a = document.createElement("a");
+    a.href = href;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.className = "course-play-link";
+    a.textContent = label;
+    bar.appendChild(a);
+  };
+
+  addHttpLink(normalizeUrl(String(course.websiteUrl || "").trim()), "Course Website");
+
+  const tel = phoneToTelHref(course.phone);
+  if (tel) {
+    const aTel = document.createElement("a");
+    aTel.href = tel;
+    aTel.className = "course-play-link";
+    aTel.textContent = "Call Pro Shop";
+    bar.appendChild(aTel);
+  }
+
+  addHttpLink(directionsHrefFromCourse(course), "Get Directions");
+
+  if (bar.childElementCount > 0) {
+    bar.removeAttribute("hidden");
+    bar.classList.add("is-visible");
+  }
 }
 
 function escapeHtml(s){
@@ -1518,6 +1922,9 @@ function orgPart(){
 }
 
 function storageKeyFor(courseId){
+  if (isCoursePlayMode && organizationId && courseId) {
+    return `scorecard_course_local_${organizationId}_${courseId}_v1`;
+  }
   if (isCasualMode && organizationId && courseId) {
     return `scorecard_casual_${organizationId}_${courseId}_v1`;
   }
@@ -1538,7 +1945,15 @@ function sessionStorageKeyFor(courseId){
 function buildScorecardSessionState(){
   return {
     version: 1,
-    mode: isTournamentMode ? "tournament" : (isCasualMode ? "casual" : "standalone"),
+    mode: isTournamentMode
+      ? "tournament"
+      : isOrgScorecardMode
+        ? "org_scorecard"
+        : isCoursePlayMode
+          ? "course"
+          : isCasualMode
+            ? "casual"
+            : "standalone",
     tournamentId: String(tournamentId || "").trim(),
     organizationId: String(organizationId || "").trim(),
     courseId: String(currentCourseId || "").trim(),
@@ -1591,6 +2006,23 @@ function scorecardSessionMatchesCurrentContext(state){
     return true;
   }
 
+  if (isOrgScorecardMode) {
+    if (savedMode !== "org_scorecard") return false;
+    if (savedTournamentId) return false;
+    if (savedCasualRoundId) return false;
+    if ((savedOrgId || curOrgId) && savedOrgId !== curOrgId) return false;
+    return true;
+  }
+
+  if (isCoursePlayMode) {
+    if (savedMode !== "course") return false;
+    if (savedTournamentId) return false;
+    if (savedCasualRoundId) return false;
+    if ((savedOrgId || curOrgId) && savedOrgId !== curOrgId) return false;
+    if (savedCourseId !== curCourseId) return false;
+    return true;
+  }
+
   return false;
 }
 
@@ -1616,7 +2048,15 @@ function tryRestoreSessionStorageFromLocal(courseId){
       } else {
         console.info("[ScorecardSession] skipped restore due to context mismatch", {
           savedMode: String(parsed?.mode || ""),
-          currentMode: isTournamentMode ? "tournament" : (isCasualMode ? "casual" : "standalone"),
+          currentMode: isTournamentMode
+            ? "tournament"
+            : isOrgScorecardMode
+              ? "org_scorecard"
+              : isCoursePlayMode
+                ? "course"
+                : isCasualMode
+                  ? "casual"
+                  : "standalone",
           savedOrgId: String(parsed?.organizationId || ""),
           currentOrgId: String(organizationId || ""),
           savedCourseId: String(parsed?.courseId || ""),
@@ -1692,6 +2132,87 @@ function makeDeviceId(){
   }
   localStorage.setItem("t_device_id", id);
   return id;
+}
+
+/** Resets when switching tournaments or adopting a roster-bound submission id */
+let cachedAnonymousSubmissionWriteId = "";
+
+function normalizedSubmissionPlayerSignatureFromNames(names) {
+  const arr = (Array.isArray(names) ? names : [])
+    .map((x) => String(x || "").trim().toLowerCase())
+    .filter(Boolean);
+  const u = [...new Set(arr)];
+  u.sort();
+  return u.join("|");
+}
+
+async function resolveSubmissionWriteDocId() {
+  const deviceFallback = makeDeviceId();
+  const stable = stableTournamentSubmissionDocId(
+    selectedRegistrationId,
+    selectedPlayGroupId,
+    deviceFallback
+  );
+  if (stable !== deviceFallback) {
+    cachedAnonymousSubmissionWriteId = "";
+    return stable;
+  }
+
+  if (cachedAnonymousSubmissionWriteId) return cachedAnonymousSubmissionWriteId;
+
+  const payload = readScoresFromDOM();
+  const rosterSafe = (Array.isArray(rosterNames) && rosterNames.length)
+    ? rosterNames.slice(0, 6)
+    : (payload.names || []).filter(Boolean).slice(0, 6);
+  const sig = normalizedSubmissionPlayerSignatureFromNames(rosterSafe);
+  if (!sig || !db || !organizationId || !tournamentId) {
+    cachedAnonymousSubmissionWriteId = deviceFallback;
+    return deviceFallback;
+  }
+
+  try {
+    const col = tournamentSubmissionsCollection(db, organizationId, tournamentId);
+    const snap = await getDocs(query(col));
+    let bestId = "";
+    let bestTs = -1;
+    snap.forEach((d) => {
+      const idPart = String(d.id || "");
+      if (!idPart || idPart.startsWith(SUBMISSION_DOC_PLAYGROUP_PREFIX)) return;
+      const data = d.data() || {};
+      if (String(data.registrationId || "").trim()) return;
+      const other = normalizedSubmissionPlayerSignatureFromNames(
+        data.rosterNames || data.names || []
+      );
+      if (other !== sig) return;
+      const ts = Number(data.updatedAt?.seconds ?? data.updatedAt?._seconds ?? 0) || 0;
+      if (ts >= bestTs) {
+        bestTs = ts;
+        bestId = idPart;
+      }
+    });
+
+    if (bestId && bestId !== deviceFallback) {
+      console.warn("Duplicate team prevented", {
+        players: rosterSafe,
+        registrationId: String(selectedRegistrationId || "").trim() || "",
+      });
+      try {
+        localStorage.setItem("t_device_id", bestId);
+      } catch (e) {}
+      cachedAnonymousSubmissionWriteId = bestId;
+      return bestId;
+    }
+  } catch (e) {
+    console.warn("[scorecard] anonymous submission dedupe scan failed", e);
+  }
+
+  cachedAnonymousSubmissionWriteId = deviceFallback;
+  return deviceFallback;
+}
+
+async function getSubmissionWriteRef() {
+  const docId = await resolveSubmissionWriteDocId();
+  return tournamentSubmissionsDoc(db, organizationId, tournamentId, docId);
 }
 
 function getRosterOptionNames(){
@@ -1849,7 +2370,7 @@ function setPreJoinLock(locked, customLockMessage){
   if(saveBtn) saveBtn.disabled = !!locked;
   if(shareBtn) shareBtn.disabled = !!locked;
   if(finishBtn) finishBtn.disabled = !!locked || roundFinished;
-  if(clearBtn) clearBtn.disabled = !!locked || roundFinished;
+  if (clearBtn) clearBtn.disabled = !!locked || (roundFinished && !isCoursePlayMode);
   if(courseSel) courseSel.disabled = !!locked || roundFinished;
 
   if(lockBanner){
@@ -1870,7 +2391,23 @@ function setPreJoinLock(locked, customLockMessage){
   }
   const liveLeaderboardBtn = document.getElementById("liveLeaderboardBtn");
   if (liveLeaderboardBtn) {
-    const canShow = !!(isTournamentMode && tournamentId && joinCompleted && !locked);
+    let canShow = false;
+    if (isCoursePlayMode) {
+      const c = COURSES[currentCourseId];
+      const url = normalizeUrl(String(c?.leaderboardUrl || "").trim());
+      const flagOn = !!(c && c.showLeaderboardLinkOnCourseScorecard === true);
+      canShow = !!(joinCompleted && flagOn && url);
+      if (canShow) {
+        liveLeaderboardBtn.dataset.courseLeaderboardHref = url;
+        liveLeaderboardBtn.textContent = "Leaderboard";
+      } else {
+        delete liveLeaderboardBtn.dataset.courseLeaderboardHref;
+      }
+    } else {
+      delete liveLeaderboardBtn.dataset.courseLeaderboardHref;
+      liveLeaderboardBtn.textContent = "Live Leaderboard";
+      canShow = !!(isTournamentMode && tournamentId && joinCompleted);
+    }
     liveLeaderboardBtn.style.display = canShow ? "" : "none";
   }
 }
@@ -1941,6 +2478,40 @@ function applyRowStyle(rowEl, rowKey, scorecardRowColors) {
     cell.style.borderColor = "rgba(0,0,0,0.15)";
   });
   return true;
+}
+
+function scorecardFontStackFromSlug(slug) {
+  const s = String(slug || "system").trim() || "system";
+  const map = {
+    system: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+    arial: "Arial, Helvetica, sans-serif",
+    helvetica: "Helvetica, Arial, sans-serif",
+    georgia: "Georgia, serif",
+    times: '"Times New Roman", Times, serif',
+    verdana: "Verdana, Geneva, sans-serif",
+    trebuchet: '"Trebuchet MS", Helvetica, sans-serif',
+  };
+  return map[s] || map.system;
+}
+
+function applyScorecardTypography(course) {
+  if (!scoreTableEl) return;
+  const ss = course && course.scorecardStyle && typeof course.scorecardStyle === "object"
+    ? course.scorecardStyle
+    : null;
+  if (!ss) {
+    scoreTableEl.style.fontFamily = "";
+    scoreTableEl.style.fontWeight = "";
+    scoreTableEl.style.fontSize = "";
+    return;
+  }
+  const fontFamily = scorecardFontStackFromSlug(ss.fontFamily);
+  const fw = String(ss.fontWeight || "700").toLowerCase();
+  const fontWeight = fw === "400" || fw === "normal" ? "400" : "700";
+  const fontSize = String(ss.fontSize || "12px").trim() || "12px";
+  scoreTableEl.style.fontFamily = fontFamily;
+  scoreTableEl.style.fontWeight = fontWeight;
+  scoreTableEl.style.fontSize = fontSize;
 }
 
 function buildHeader(course) {
@@ -2389,7 +2960,17 @@ function updateRoundCompletePanel(opts){
   }
   fillRoundCompleteSummary(summaryEl);
 
-  if(bookBtn) bookBtn.classList.add("book-btn--spotlight");
+  const nextHint = document.getElementById("roundCompleteNextHint");
+  if (nextHint) {
+    nextHint.textContent = isCoursePlayMode || isOrgScorecardMode
+      ? "Scores stay on this phone or browser. Use Clear scores / New round to reset."
+      : "When you’re ready, use Book Tee Time below.";
+  }
+
+  if (bookBtn) {
+    const hasBookHref = bookBtn.style.display !== "none" && !!bookBtn.getAttribute("href");
+    bookBtn.classList.toggle("book-btn--spotlight", hasBookHref);
+  }
 
   if(scroll){
     requestAnimationFrame(() => {
@@ -2523,6 +3104,14 @@ function tryBuildOrgCourseFromDoc(d, courseKey) {
     title,
     headerImg,
     bookingUrl: String(d.bookingUrl || "").trim(),
+    teeTimeUrl: String(d.teeTimeUrl || "").trim(),
+    bookOnlineUrl: String(d.bookOnlineUrl || "").trim(),
+    websiteUrl: String(d.websiteUrl || d.website || "").trim(),
+    phone: String(d.phone || d.proShopPhone || "").trim(),
+    mapsUrl: String(d.mapsUrl || "").trim(),
+    address: String(d.address || "").trim(),
+    leaderboardUrl: String(d.leaderboardUrl || "").trim(),
+    showLeaderboardLinkOnCourseScorecard: d.showLeaderboardLinkOnCourseScorecard === true,
     teeRows,
     parFront,
     parBack,
@@ -2532,6 +3121,10 @@ function tryBuildOrgCourseFromDoc(d, courseKey) {
     extraRow: undefined,
     theme,
     scorecardRowColors,
+    scorecardStyle:
+      d.scorecardStyle && typeof d.scorecardStyle === "object"
+        ? d.scorecardStyle
+        : undefined,
   };
 }
 
@@ -2557,7 +3150,18 @@ function courseFromFirestoreData(d, courseKey) {
     id: String(d.id || courseKey),
     title: String(d.name || d.title || base?.title || "Course").trim() || "Course",
     headerImg: resolveScorecardHeaderImageForDoc(courseKey, d, base?.headerImg),
-    bookingUrl: String(d.bookingUrl || d.bookOnlineUrl || base?.bookingUrl || "").trim(),
+    bookingUrl: String(d.bookingUrl || base?.bookingUrl || "").trim(),
+    teeTimeUrl: String(d.teeTimeUrl || base?.teeTimeUrl || "").trim(),
+    bookOnlineUrl: String(d.bookOnlineUrl || base?.bookOnlineUrl || "").trim(),
+    websiteUrl: String(d.websiteUrl || d.website || base?.websiteUrl || "").trim(),
+    phone: String(d.phone || d.proShopPhone || base?.phone || "").trim(),
+    mapsUrl: String(d.mapsUrl || base?.mapsUrl || "").trim(),
+    address: String(d.address || base?.address || "").trim(),
+    leaderboardUrl: String(d.leaderboardUrl || base?.leaderboardUrl || "").trim(),
+    showLeaderboardLinkOnCourseScorecard:
+      typeof d.showLeaderboardLinkOnCourseScorecard === "boolean"
+        ? d.showLeaderboardLinkOnCourseScorecard
+        : !!base?.showLeaderboardLinkOnCourseScorecard,
     theme: normalizeFirestoreTheme(d.theme) || base?.theme || undefined,
     teeRows,
     parFront,
@@ -2566,7 +3170,11 @@ function courseFromFirestoreData(d, courseKey) {
     hcpBack: Array.isArray(d.hcpBack) && d.hcpBack.length === 9 ? d.hcpBack : (base?.hcpBack || parBack.map(() => 1)),
     bottomRow: d.bottomRow || base?.bottomRow,
     extraRow: d.extraRow || base?.extraRow,
-    scorecardRowColors
+    scorecardRowColors,
+    scorecardStyle:
+      d.scorecardStyle && typeof d.scorecardStyle === "object"
+        ? d.scorecardStyle
+        : base?.scorecardStyle,
   };
 }
 
@@ -2682,15 +3290,55 @@ async function resolveStandaloneCourseStrict(orgId, incomingCourseId) {
   );
 }
 
+/**
+ * ?mode=course permanent scorecard only: one exact Firestore path —
+ * organizations/{orgId}/courses/{courseId}
+ * URL must use real document IDs; no org/course slug resolution, no case fallbacks, no list queries.
+ */
+async function resolvePermanentCoursePlaySingleDoc(orgFirestoreId, courseFirestoreId) {
+  const oid = String(orgFirestoreId || "").trim();
+  const cid = String(courseFirestoreId || "").trim();
+  if (!oid || !cid || !db) return null;
+
+  console.info("[scorecard] permanent course single path (orgId + courseId only, no slug fallbacks)", {
+    orgId: oid,
+    courseId: cid,
+  });
+
+  try {
+    const snap = await getDoc(courseDocRef(db, oid, cid));
+    if (!snap.exists()) return null;
+    const data = snap.data() || {};
+    const docKey = snap.id;
+    const built = tryBuildOrgCourseFromDoc(data, docKey) || courseFromFirestoreData(data, docKey);
+    if (!built) return null;
+    console.info("[Scorecard perf] permanent scorecard Firestore read (exact getDoc only)", {
+      path: `organizations/${oid}/courses/${docKey}`,
+    });
+    return {
+      course: built,
+      resolvedCourseDocId: docKey,
+      headerSource: detectHeaderSourceForLog(docKey, data, COURSES[docKey]?.headerImg),
+      lookupPath: "permanent-getDoc:exact-orgId-courseId",
+      canonicalOrgId: oid,
+    };
+  } catch (e) {
+    console.warn("[scorecard] permanent course getDoc failed (exact path only)", {
+      organizationId: oid,
+      courseDocumentId: cid,
+      error: e,
+    });
+    return null;
+  }
+}
+
 /** Tournament: set currentCourseId + #courseSelect from tournament doc (built-ins vs org Firestore course). */
 function syncCourseSelectOptions() {
   if (!courseSelect) return;
-  const id = currentCourseId;
+  const id = String(currentCourseId || "").trim();
   const c = COURSES[id];
-  if (!c) {
-    courseSelect.innerHTML =
-      `<option value="tradition">Tradition</option><option value="cypress">Cypress</option>`;
-    courseSelect.value = "tradition";
+  if (!id || !c) {
+    courseSelect.innerHTML = "";
     return;
   }
   if (id === "tradition" || id === "cypress") {
@@ -2708,6 +3356,22 @@ function syncCourseSelectOptions() {
 }
 
 const orgBuiltInCompatibilityCache = new Map();
+
+/**
+ * Browser-only hydrated courses for permanent ?mode=course links.
+ * Keys: courseCache:{urlOrgSegment}:{urlCourseSegment} and, when known, courseCache:{canonicalOrgId}:{courseDocId}.
+ */
+const SCORECARD_COURSE_HYDRATION_CACHE = new Map();
+
+function clearScorecardBootShell() {
+  try {
+    document.documentElement.classList.remove(
+      "scorecard-boot-course",
+      "scorecard-boot-tournament",
+      "scorecard-boot-casual",
+    );
+  } catch (_e) {}
+}
 
 async function isCypresswoodOrgForBuiltIns(orgId) {
   const oid = String(orgId || "").trim();
@@ -2835,8 +3499,7 @@ async function applyTournamentCourseSelection(t, orgIdForCourse) {
       return;
     }
     if (!orgScoped) {
-      currentCourseId = "tradition";
-      syncCourseSelectOptions();
+      failOrgCourse(explicit || " tournament course");
       return;
     }
     try {
@@ -2862,8 +3525,7 @@ async function applyTournamentCourseSelection(t, orgIdForCourse) {
   }
 
   if (!orgScoped) {
-    currentCourseId = COURSES[keyLower] ? keyLower : "tradition";
-    syncCourseSelectOptions();
+    failOrgCourse(rawDefault);
     return;
   }
 
@@ -2989,7 +3651,6 @@ async function tryStartCasualMode(token) {
     joinScreen.style.display = "none";
     if (courseSelect) courseSelect.style.display = "none";
     hideScorecardSponsorTicker();
-    document.title = `${courseObj.title} · Casual`;
 
     build();
     await hydrateCasualRoundFromFirestore();
@@ -3116,16 +3777,35 @@ function wireInputs(){
 
   enforceStartHoleLock();
 }
-  function build(){
+
+function applyScorecardDocumentTitle(course){
+  if (!course || typeof course !== "object") return;
+  const name = String(course.title ?? course.name ?? "").trim();
+  document.title = name ? `${name} Scorecard` : "Scorecard";
+}
+
+function build(){
   const course = COURSES[currentCourseId];
+  if (!course) return;
+  clearScorecardBootShell();
+  if (!scorecardInitialRenderLogged) {
+    scorecardInitialRenderLogged = true;
+    console.log("[Scorecard Init] render course:", String(currentCourseId || "").trim() || "(none)");
+  }
+  applyScorecardDocumentTitle(course);
   applyScorecardTheme(course && course.theme ? course.theme : null);
+  applyScorecardTypography(course);
   courseTitle.textContent = course.title;
   courseSelect.value = currentCourseId;
   setCourseHeader(currentCourseId);
   setBookButtonForCourse(course);
 
   if (courseHint) {
-    if (isCasualMode) {
+    if (isOrgScorecardMode) {
+      courseHint.textContent = "Choose a course above. Swipe to scroll yardages and holes.";
+    } else if (isCoursePlayMode) {
+      courseHint.textContent = "Swipe to scroll yardages and holes.";
+    } else if (isCasualMode) {
       courseHint.textContent = "Swipe to scroll yardages and scores.";
     } else if (currentCourseId !== "tradition" && currentCourseId !== "cypress") {
       courseHint.textContent = "Swipe to scroll. This tournament uses your organization course.";
@@ -3135,8 +3815,12 @@ function wireInputs(){
   }
 
   if (hintLine) {
-    hintLine.textContent = isCasualMode
-      ? "Casual round — swipe to scroll, tap to enter scores. Out/In/Tot auto-calc. Your progress syncs to this device."
+    hintLine.textContent = isOrgScorecardMode
+      ? "Scorecard — pick a course, then enter strokes. Saved on this device only (not uploaded)."
+      : isCoursePlayMode
+      ? "Scorecard — tap to enter strokes. Out/In/Tot auto-calculates. Your card is saved on this device only."
+      : isCasualMode
+      ? "Scorecard — swipe to scroll, tap to enter scores. Out/In/Tot auto-calc. Your progress syncs to this device."
       : tournamentFormat === "scramble"
         ? "Scramble: enter ONE team score row. First score must start on your assigned hole. One digit per hole. Out/In/Tot auto-calc."
         : tournamentFormat === "bestball"
@@ -3157,7 +3841,10 @@ function wireInputs(){
   tbody.appendChild(buildYardageRow(course.bottomRow, course));
 
   wireInputs();
-  loadState();
+  if (!orgSuppressLoadStateOnce) {
+    loadState();
+  }
+  orgSuppressLoadStateOnce = false;
 
   if(Array.isArray(rosterNames) && rosterNames.length){
     setPlayerRowNames(rosterNames);
@@ -3170,9 +3857,11 @@ function wireInputs(){
     }
   }
 
-  if(isTournamentMode && !joinCompleted){
+  if (isCoursePlayMode) {
+    setPreJoinLock(false);
+  } else if (isTournamentMode && !joinCompleted) {
     setPreJoinLock(true);
-  }else{
+  } else {
     setPreJoinLock(false);
   }
 
@@ -3180,6 +3869,8 @@ function wireInputs(){
 }
 
 function setCourse(courseId){
+  if (isOrgScorecardMode) return;
+  if (isCoursePlayMode) return;
   if (isCasualMode) return;
   if (!COURSES[courseId]) return;
   if (isTournamentMode && !joinCompleted && courseId !== currentCourseId) return;
@@ -3240,7 +3931,11 @@ async function refreshCasualCourseSelectOptions() {
 function updateCasualCourseUrl(courseId) {
   const cid = String(courseId || "").trim();
   if (!cid) return;
-  const u = new URL(location.href);
+  const origin = String(getAppBaseUrl() || "").replace(/\/+$/, "");
+  const u = new URL(
+    `${window.location.pathname}${window.location.search}`,
+    `${origin}/`,
+  );
   u.searchParams.set("mode", "casual");
   u.searchParams.set("courseId", cid);
   if (organizationId) {
@@ -3333,6 +4028,10 @@ async function handleCasualCourseChange(nextCourseId) {
 }
 
 courseSelect.addEventListener("change", async () => {
+  if (isOrgScorecardMode) {
+    await handleOrgScorecardCourseChange(courseSelect.value);
+    return;
+  }
   if (isCasualMode) {
     await handleCasualCourseChange(courseSelect.value);
     return;
@@ -3346,7 +4045,7 @@ swipeZone.addEventListener("touchstart", (e) => {
 }, { passive:true });
 
 swipeZone.addEventListener("touchend", (e) => {
-  if (isCasualMode) {
+  if (isCoursePlayMode || isCasualMode) {
     touchStartX = null;
     return;
   }
@@ -3358,39 +4057,266 @@ swipeZone.addEventListener("touchend", (e) => {
   if (isTournamentMode && !joinCompleted) return;
   if (roundFinished) return;
 
-  if (currentCourseId !== "tradition" && currentCourseId !== "cypress") return;
+  if (!currentCourseId || (currentCourseId !== "tradition" && currentCourseId !== "cypress")) return;
 
   if (dx < 0) setCourse(currentCourseId === "tradition" ? "cypress" : "tradition");
   else        setCourse(currentCourseId === "cypress" ? "tradition" : "cypress");
 }, { passive:true });
 
-async function captureFullCardCanvas(){
-  const card = document.getElementById("card");
-  const scroll = document.querySelector(".scroll-x");
+/*
+ * Scorecard export / Share / Save as Image / Print — browser-only.
+ * Generated scorecard exports are intentionally browser-only and are not uploaded or persisted.
+ * PNG blobs exist only in-memory / Web Share / save dialogs; print uses window.print() + CSS.
+ * Firebase on this page is not used for exported images (course logos and headers are READ via URLs).
+ */
+function getHtml2CanvasFn() {
+  const fn = globalThis.html2canvas;
+  return typeof fn === "function" ? fn : null;
+}
+
+function isExportMobileScale() {
+  try {
+    if (globalThis.matchMedia && globalThis.matchMedia("(max-width: 900px)").matches) return true;
+  } catch (_e) {}
+  return /iPhone|iPad|iPod|Android/i.test(String(navigator.userAgent || ""));
+}
+
+/**
+ * Reload image with CORS when possible so html2canvas does not taint the canvas (required for iOS save/share).
+ * @returns {Promise<boolean>} whether the image can be drawn without tainting the canvas
+ */
+async function prepareImgForExportClone(img) {
+  const src = String(img?.getAttribute("src") || img?.src || "").trim();
+  if (!src || src.startsWith("data:")) return true;
+  return new Promise((resolve) => {
+    const probe = new Image();
+    probe.crossOrigin = "anonymous";
+    probe.onload = () => {
+      img.crossOrigin = "anonymous";
+      img.src = probe.src;
+      resolve(true);
+    };
+    probe.onerror = () => {
+      resolve(false);
+    };
+    probe.src = src;
+  });
+}
+
+async function waitForImagesIn(root) {
+  const imgs = Array.from(root.querySelectorAll("img"));
+  await Promise.all(
+    imgs.map(
+      (im) =>
+        new Promise((res) => {
+          if (im.complete && im.naturalWidth > 0) return res();
+          const done = () => res();
+          im.addEventListener("load", done, { once: true });
+          im.addEventListener("error", done, { once: true });
+        }),
+    ),
+  );
+}
+
+async function buildScorecardExportMount() {
+  const mount = document.createElement("div");
+  mount.className = "scorecard-export-mount";
+  mount.setAttribute("aria-hidden", "true");
+  mount.style.cssText =
+    "position:fixed;left:0;top:0;width:max-content;max-width:none;padding:14px;background:#ffffff;" +
+    "z-index:-99999;opacity:0.01;pointer-events:none;overflow:visible;";
+
+  const headerWrap = document.createElement("div");
+  headerWrap.style.marginBottom = "10px";
+
+  if (courseHeaderImg && String(courseHeaderImg.src || "").trim()) {
+    const hi = courseHeaderImg.cloneNode(true);
+    hi.style.display = "block";
+    hi.style.maxWidth = "100%";
+    hi.style.height = "auto";
+    const imgOk = await prepareImgForExportClone(hi);
+    if (imgOk) {
+      headerWrap.appendChild(hi);
+    }
+  }
+
+  const titleLine = document.createElement("div");
+  titleLine.style.fontFamily = "Cinzel, serif";
+  titleLine.style.fontWeight = "900";
+  titleLine.style.fontSize = "18px";
+  titleLine.style.marginTop = "6px";
+  titleLine.textContent = String(courseTitle?.textContent || "Scorecard").trim() || "Scorecard";
+  headerWrap.appendChild(titleLine);
+  mount.appendChild(headerWrap);
+
+  const shell = document.querySelector("#scorecardStage .table-shell");
   const table = document.getElementById("scoreTable");
+  const tw = table ? table.scrollWidth : 0;
 
-  const oldOverflowX = scroll.style.overflowX;
-  const oldOverflowY = scroll.style.overflowY;
-  const oldWidth = scroll.style.width;
-  const oldCardWidth = card.style.width;
+  if (shell) {
+    const shellClone = shell.cloneNode(true);
+    const scrollClone = shellClone.querySelector(".scroll-x") || shellClone.querySelector("#scrollX");
+    if (scrollClone && tw) {
+      scrollClone.style.overflow = "visible";
+      scrollClone.style.overflowX = "visible";
+      scrollClone.style.overflowY = "visible";
+      scrollClone.style.width = tw + "px";
+      scrollClone.style.maxWidth = "none";
+    }
+    mount.appendChild(shellClone);
+  }
 
-  scroll.style.overflowX = "visible";
-  scroll.style.overflowY = "visible";
-  scroll.style.width = table.scrollWidth + "px";
-  card.style.width = (table.scrollWidth + 40) + "px";
+  const sg = document.getElementById("sideGamesPanel");
+  if (sg && sg.offsetParent !== null && window.getComputedStyle(sg).display !== "none") {
+    mount.appendChild(sg.cloneNode(true));
+  }
 
-  try{
-    return await html2canvas(card, {
-      scale: 2,
-      backgroundColor: null,
-      windowWidth: card.scrollWidth,
-      windowHeight: card.scrollHeight
+  const rcp = document.getElementById("roundCompletePanel");
+  if (rcp && window.getComputedStyle(rcp).display !== "none") {
+    mount.appendChild(rcp.cloneNode(true));
+  }
+
+  document.body.appendChild(mount);
+
+  try {
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
+  } catch (_e) {}
+
+  await waitForImagesIn(mount);
+
+  return {
+    mount,
+    cleanup: () => {
+      try {
+        mount.remove();
+      } catch (_e) {}
+    },
+  };
+}
+
+async function captureScorecardToCanvas() {
+  const h2c = getHtml2CanvasFn();
+  if (!h2c) {
+    throw new Error("html2canvas failed to load");
+  }
+
+  const { mount, cleanup } = await buildScorecardExportMount();
+  const scale = isExportMobileScale() ? 1.5 : 2;
+
+  try {
+    return await h2c(mount, {
+      scale,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: "#ffffff",
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: mount.scrollWidth,
+      windowHeight: mount.scrollHeight,
     });
   } finally {
-    scroll.style.overflowX = oldOverflowX;
-    scroll.style.overflowY = oldOverflowY;
-    scroll.style.width = oldWidth;
-    card.style.width = oldCardWidth;
+    cleanup();
+  }
+}
+
+/** @deprecated use captureScorecardToCanvas — kept name for minimal diff */
+async function captureFullCardCanvas() {
+  return captureScorecardToCanvas();
+}
+
+function getScorecardShareTitle(){
+  const name = String(COURSES[currentCourseId]?.title || "").trim();
+  return (name ? `${name} Scorecard` : "Scorecard").trim();
+}
+
+function isUserCancelledShare(err){
+  if (!err) return false;
+  return String(err.name || "") === "AbortError";
+}
+
+function showScoreShareToast(message, ms = 3800){
+  const el = document.getElementById("scoreShareToast");
+  if (!el) return;
+  el.textContent = String(message || "").trim();
+  el.classList.add("score-share-toast--show");
+  clearTimeout(showScoreShareToast._t);
+  showScoreShareToast._t = setTimeout(() => {
+    el.classList.remove("score-share-toast--show");
+  }, ms);
+}
+
+async function captureScorecardPngBlob(){
+  const canvas = await captureFullCardCanvas();
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("Could not build scorecard image."))),
+      "image/png"
+    );
+  });
+  return { canvas, blob };
+}
+
+/** Same fallback as Save as Image: open PNG in a new tab (returns false if pop-up blocked). */
+function openScorecardImageFromCanvas(canvas){
+  let dataUrl;
+  try {
+    dataUrl = canvas.toDataURL("image/png");
+  } catch (_e) {
+    return false;
+  }
+  const w = window.open();
+  if (w) {
+    w.document.write(
+      `<!DOCTYPE html><meta charset="utf-8"><title>Scorecard</title><img src="${dataUrl}" style="width:100%;height:auto;display:block" alt="Scorecard" />`
+    );
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Share flow: generate PNG first, try native file share, then URL+text, then open image (no error popups for cancel).
+ */
+async function runShareButtonFlow(){
+  const shareTitle = getScorecardShareTitle();
+  const { canvas, blob } = await captureScorecardPngBlob();
+  const file = new File([blob], "scorecard.png", { type: "image/png" });
+
+  const canTryFileShare =
+    typeof navigator.share === "function" &&
+    typeof File !== "undefined" &&
+    (typeof navigator.canShare !== "function" || navigator.canShare({ files: [file] }));
+
+  if (canTryFileShare) {
+    try {
+      await navigator.share({ files: [file], title: shareTitle });
+      return;
+    } catch (e) {
+      if (isUserCancelledShare(e)) return;
+    }
+  }
+
+  if (typeof navigator.share === "function") {
+    try {
+      const url = String(canonicalSiteUrlHref() || "").trim();
+      await navigator.share({
+        title: shareTitle,
+        text: shareTitle,
+        ...(url ? { url } : {}),
+      });
+      return;
+    } catch (e) {
+      if (isUserCancelledShare(e)) return;
+    }
+  }
+
+  if (openScorecardImageFromCanvas(canvas)) {
+    showScoreShareToast("Sharing wasn’t available, so we saved the scorecard image instead.");
+  } else {
+    showScoreShareToast("Sharing wasn’t available. Try Save as Image below.");
   }
 }
 
@@ -3455,7 +4381,13 @@ function registrationEffectiveStartHoleLabel(reg){
     if (Number.isFinite(n) && n >= 1 && n <= 18) return String(n);
     return "1";
   }
-  return String(reg.assignedHole || "").trim();
+  const a = String(reg.assignedHole || "").trim();
+  if (a) return a;
+  const sl = String(reg.startingHoleLabel || "").trim();
+  if (sl) return sl;
+  const n = Number(reg.startingHole);
+  if (Number.isFinite(n) && n >= 1 && n <= 18) return String(n);
+  return "";
 }
 
 /** Match registration courseId to a loaded COURSES key (exact Firestore id or case-insensitive). */
@@ -3527,11 +4459,25 @@ function isRegistrationFullyUnassigned(reg, groupedKeySet) {
 
 function playGroupMatchesSearch(g, regById, q) {
   if (!q) return true;
+  let teeForSearch = "";
+  const meta = tournamentMetaForTeeDisplay();
+  for (const id of g.participantIds || []) {
+    const r = regById.get(id);
+    if (r) {
+      const t = resolveRegistrationTeeBoxDisplay(r, meta);
+      if (t) {
+        teeForSearch = t;
+        break;
+      }
+    }
+  }
+  if (!teeForSearch) teeForSearch = String(tournamentDefaultTee || "").trim();
   const hay = [
     groupDisplayName(g),
     g?.groupNumber,
     g?.teeTime,
     g?.startingHole,
+    teeForSearch,
     ...resolvePlayGroupPlayerNames(g, regById),
   ]
     .join(" ")
@@ -3636,21 +4582,31 @@ async function fetchRegistrationById(registrationId){
   }
 }
 
-async function autoStartFromRegistration(reg){
-  if(!reg) return false;
+/**
+ * Open the tournament scorecard for a resolved registration (picker, deep link, or QR return).
+ * Matches roster/assignment data, validates start hole, applies format roster limits, then pushes.
+ */
+async function activateRegistrationForScoring(reg){
+  if (!reg) return false;
 
   pendingRegistration = reg;
-  selectedPlayGroupId = "";
-  selectedRegistrationId = reg.id || "";
-  saveSelectedRegistrationId(selectedRegistrationId);
-
   selectedPlayerDetails = Array.isArray(reg.playerDetails) ? reg.playerDetails.slice(0,6) : [];
   selectedHandicapEnabled = !!reg.handicapEnabled;
   selectedHandicapPercent = Number(reg.handicapPercent || 100) || 100;
 
+  const pgId = reg.playGroupId ? String(reg.playGroupId).trim() : "";
+  if (pgId) {
+    selectedPlayGroupId = pgId;
+    selectedRegistrationId = String(reg.primaryRegistrationId || reg.id || "");
+    saveSelectedRegistrationId(PLAY_GROUP_LIST_PREFIX + selectedPlayGroupId);
+  } else {
+    selectedPlayGroupId = "";
+    selectedRegistrationId = String(reg.id || "");
+    saveSelectedRegistrationId(selectedRegistrationId);
+  }
+  cachedAnonymousSubmissionWriteId = "";
+
   rosterNames = Array.isArray(reg.players) ? reg.players.slice(0,6) : [];
-  startHoleSelected = registrationEffectiveStartHoleLabel(reg);
-
   joinGroup.value = reg.teamName || "";
   joinName.value = reg.captainName || rosterNames[0] || "";
   joinMate1.value = rosterNames[1] || "";
@@ -3658,66 +4614,66 @@ async function autoStartFromRegistration(reg){
   joinMate3.value = rosterNames[3] || "";
   joinMate4.value = rosterNames[4] || "";
   joinMate5.value = rosterNames[5] || "";
-  joinStartHole.value = registrationEffectiveStartHoleLabel(reg);
+  const startLbl = registrationEffectiveStartHoleLabel(reg);
+  joinStartHole.value = startLbl;
 
   applyRegistrationCourseId(reg.courseId);
 
-  joinCompleted = true;
-  roundFinished = false;
-  finishedHolesCount = null;
-
-  teamPickerScreen.style.display = "none";
-  joinScreen.style.display = "none";
-
-  build();
-  setPlayerRowNames(rosterNames);
-  renderSideGamesPanel(readSideGamesFromDOM());
-  setPreJoinLock(false);
-  enforceStartHoleLock();
-  saveState();
-
-  try{
-    await pushTournamentNow();
-  }catch(e){
-    console.error("Auto-start push failed", e);
+  if (!(joinName.value || "").trim() && rosterNames.length) {
+    joinName.value = rosterNames[0];
   }
 
-  const norm = normalizeStartHole(startHoleSelected);
-  if(norm){
-    setTimeout(() => scrollToStartHole(norm.holeNum), 250);
+  let norm = normalizeStartHole(joinStartHole.value);
+  const hadValidJoinLabel = !!norm;
+  if (!norm) {
+    const n = Number(reg.startingHole);
+    const fallbackRaw =
+      Number.isFinite(n) && n >= 1 && n <= 18
+        ? String(Math.round(n))
+        : "1";
+    norm = normalizeStartHole(fallbackRaw) || normalizeStartHole("1");
+  }
+  const hasNumericStartingHole =
+    reg.startingHole != null &&
+    reg.startingHole !== "" &&
+    Number.isFinite(Number(reg.startingHole));
+  if (!hadValidJoinLabel && !hasNumericStartingHole) {
+    showScoreShareToast("Waiting for starting hole assignment");
   }
 
-  return true;
-}
+  const scorerName = (joinName.value || "").trim();
+  if (!scorerName) {
+    alert("Please enter your name (Scorer).");
+    return false;
+  }
 
-async function autoStartFromPlayGroup(g){
-  if (!g || !g.id) return false;
-  const regById = new Map(loadedRegistrations.map((r) => [r.id, r]));
-  const reg = buildSyntheticRegistrationFromPlayGroup(g, regById);
-  if (!reg.playGroupId) return false;
+  const matesRaw = [
+    joinMate1?.value || "",
+    joinMate2?.value || "",
+    joinMate3?.value || "",
+    joinMate4?.value || "",
+    joinMate5?.value || ""
+  ].map(s => s.trim()).filter(Boolean);
 
-  pendingRegistration = reg;
-  selectedPlayGroupId = reg.playGroupId;
-  selectedRegistrationId = reg.primaryRegistrationId || reg.id || "";
-  saveSelectedRegistrationId(PLAY_GROUP_LIST_PREFIX + reg.playGroupId);
+  let all = [scorerName, ...matesRaw].slice(0, 6);
+  const seen = new Set();
+  all = all.filter(n => {
+    const k = n.toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
 
-  selectedPlayerDetails = Array.isArray(reg.playerDetails) ? reg.playerDetails.slice(0, 6) : [];
-  selectedHandicapEnabled = !!reg.handicapEnabled;
-  selectedHandicapPercent = Number(reg.handicapPercent || 100) || 100;
+  if(tournamentFormat === "scramble"){
+    rosterNames = all.slice(0, 6);
+  }else if(tournamentFormat === "bestball"){
+    rosterNames = all.slice(0, 2);
+  }else{
+    rosterNames = all;
+  }
 
-  rosterNames = Array.isArray(reg.players) ? reg.players.slice(0, 6) : [];
-  startHoleSelected = registrationEffectiveStartHoleLabel(reg);
-
-  joinGroup.value = reg.teamName || "";
-  joinName.value = reg.captainName || rosterNames[0] || "";
-  joinMate1.value = rosterNames[1] || "";
-  joinMate2.value = rosterNames[2] || "";
-  joinMate3.value = rosterNames[3] || "";
-  joinMate4.value = rosterNames[4] || "";
-  joinMate5.value = rosterNames[5] || "";
-  joinStartHole.value = registrationEffectiveStartHoleLabel(reg);
-
-  applyRegistrationCourseId(reg.courseId);
+  startHoleSelected = norm.label;
+  joinStartHole.value = norm.label;
 
   joinCompleted = true;
   roundFinished = false;
@@ -3736,15 +4692,24 @@ async function autoStartFromPlayGroup(g){
   try {
     await pushTournamentNow();
   } catch (e) {
-    console.error("Auto-start push failed", e);
+    console.error(e);
   }
 
-  const norm = normalizeStartHole(startHoleSelected);
-  if (norm) {
-    setTimeout(() => scrollToStartHole(norm.holeNum), 250);
-  }
-
+  setTimeout(() => scrollToStartHole(norm.holeNum), 250);
   return true;
+}
+
+async function autoStartFromRegistration(reg){
+  if (!reg) return false;
+  return activateRegistrationForScoring(reg);
+}
+
+async function autoStartFromPlayGroup(g){
+  if (!g || !g.id) return false;
+  const regById = new Map(loadedRegistrations.map((r) => [r.id, r]));
+  const reg = buildSyntheticRegistrationFromPlayGroup(g, regById);
+  if (!reg.playGroupId) return false;
+  return activateRegistrationForScoring(reg);
 }
 
 function getTeeTimeSortMs(t){
@@ -3779,13 +4744,37 @@ function teamPickerSecondaryStartLineHtml(team){
   return "";
 }
 
+function tournamentMetaForTeeDisplay() {
+  return { defaultTee: tournamentDefaultTee };
+}
+
+function teamPickerTeeBoxRowHtmlForRegistration(reg) {
+  const txt = resolveRegistrationTeeBoxDisplay(reg, tournamentMetaForTeeDisplay());
+  return txt ? `<div class="team-card-teebox">Tee: ${escapeHtml(txt)}</div>` : "";
+}
+
+function teamPickerTeeBoxRowHtmlForPlayGroup(g, regById) {
+  const meta = tournamentMetaForTeeDisplay();
+  for (const id of g.participantIds || []) {
+    const r = regById.get(id);
+    if (r) {
+      const txt = resolveRegistrationTeeBoxDisplay(r, meta);
+      if (txt) return `<div class="team-card-teebox">Tee: ${escapeHtml(txt)}</div>`;
+    }
+  }
+  const dt = String(tournamentDefaultTee || "").trim();
+  return dt ? `<div class="team-card-teebox">Tee: ${escapeHtml(dt)}</div>` : "";
+}
+
 function teamMatchesSearch(team, q){
   if(!q) return true;
+  const teeSearch = resolveRegistrationTeeBoxDisplay(team, tournamentMetaForTeeDisplay());
   const hay = [
     team.teamName,
     team.captainName,
     team.assignedHole,
     team.teeTime,
+    teeSearch,
     ...(team.players || [])
   ].join(" ").toLowerCase();
   return hay.includes(q);
@@ -3795,19 +4784,16 @@ function syncJoinPickerCopy(){
   const rs = String(tournamentRegistrationStructure || "team").trim().toLowerCase();
   const titleEl = document.querySelector(".team-picker-title");
   const metaEl = document.getElementById("teamPickerMeta");
-  const emptyEl = document.getElementById("teamPickerEmpty");
-  if (!titleEl || !metaEl || !teamSearchInput || !emptyEl) return;
+  if (!titleEl || !metaEl || !teamSearchInput) return;
   if (rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL) {
     titleEl.textContent = "Find your sign-up";
     metaEl.textContent =
-      "Tap the row that matches your confirmation (one line per person), then start scoring.";
+      "Tap the row that matches your confirmation to open your scorecard.";
     teamSearchInput.placeholder = "Search by name, email, phone, or assignment…";
-    emptyEl.textContent = "No rows match that search.";
   } else {
     titleEl.textContent = "Select your team";
-    metaEl.textContent = "Scan the event QR code, then tap your team to start scoring.";
+    metaEl.textContent = "Scan the event QR code, then tap your team to open your scorecard.";
     teamSearchInput.placeholder = "Search by team, contact, player, or assignment…";
-    emptyEl.textContent = "No teams match that search.";
   }
 }
 
@@ -3860,11 +4846,13 @@ function renderTeamPicker(){
     for (const g of pgs) {
       const extraStart = teamPickerSecondaryStartLineHtml(playGroupToPickerDisplayTeam(g));
       const names = resolvePlayGroupPlayerNames(g, regById);
+      const teeBoxRow = teamPickerTeeBoxRowHtmlForPlayGroup(g, regById);
       chunks.push(`
   <div class="team-card team-card--picker" data-play-group-id="${escapeHtmlAttr(g.id)}" role="button" tabindex="0">
     <div class="team-card-tee">
       ${teamPickerPrimaryLineHtml(playGroupToPickerDisplayTeam(g))}
     </div>
+    ${teeBoxRow}
     <div class="team-card-name">
       ${escapeHtml(groupDisplayName(g))}
     </div>
@@ -3883,11 +4871,13 @@ function renderTeamPicker(){
 
     for (const team of visibleRegs) {
       const extraStart = teamPickerSecondaryStartLineHtml(team);
+      const teeBoxRow = teamPickerTeeBoxRowHtmlForRegistration(team);
       chunks.push(`
   <div class="team-card team-card--picker" data-team-id="${escapeHtmlAttr(team.id)}" role="button" tabindex="0">
     <div class="team-card-tee">
       ${teamPickerPrimaryLineHtml(team)}
     </div>
+    ${teeBoxRow}
     <div class="team-card-name">
       ${escapeHtml(team.teamName || (rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL ? "Player sign-up" : "Team"))}
     </div>
@@ -3903,11 +4893,13 @@ function renderTeamPicker(){
     );
     chunks = visible.map((team) => {
       const extraStart = teamPickerSecondaryStartLineHtml(team);
+      const teeBoxRow = teamPickerTeeBoxRowHtmlForRegistration(team);
       return `
   <div class="team-card team-card--picker" data-team-id="${escapeHtmlAttr(team.id)}" role="button" tabindex="0">
     <div class="team-card-tee">
       ${teamPickerPrimaryLineHtml(team)}
     </div>
+    ${teeBoxRow}
     <div class="team-card-name">
       ${escapeHtml(team.teamName || (rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL ? "Player sign-up" : "Team"))}
     </div>
@@ -3921,27 +4913,34 @@ function renderTeamPicker(){
 
   teamList.innerHTML = chunks.join("");
 
-  teamPickerEmpty.style.display = chunks.length ? "none" : "block";
+  if (teamPickerEmpty) {
+    if (chunks.length) {
+      teamPickerEmpty.style.display = "none";
+    } else {
+      teamPickerEmpty.style.display = "block";
+      teamPickerEmpty.textContent = q
+        ? rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL
+          ? "No rows match that search."
+          : "No teams match that search."
+        : "No teams available yet. Please contact the tournament organizer.";
+    }
+  }
 
   teamList.querySelectorAll(".team-card").forEach((card) => {
-    const go = () => {
+    const go = async () => {
       const pgId = card.getAttribute("data-play-group-id");
       if (pgId) {
         const g = loadedPlayGroups.find((x) => x.id === pgId);
         if (!g) return;
-        saveSelectedRegistrationId(PLAY_GROUP_LIST_PREFIX + g.id);
         incomingRegistrationId = "";
-        joinCompleted = true;
-        applyRegistrationSelection(buildSyntheticRegistrationFromPlayGroup(g, regById));
+        await applyRegistrationSelection(buildSyntheticRegistrationFromPlayGroup(g, regById));
         return;
       }
       const id = card.getAttribute("data-team-id");
       const reg = loadedRegistrations.find((x) => x.id === id);
       if (!reg) return;
-      saveSelectedRegistrationId(reg.id);
       incomingRegistrationId = reg.id;
-      joinCompleted = true;
-      applyRegistrationSelection(reg);
+      await applyRegistrationSelection(reg);
     };
     card.addEventListener("click", go);
     card.addEventListener("keydown", (e) => {
@@ -4035,132 +5034,16 @@ async function loadRegistrations(){
   renderTeamPicker();
 }
 
-function applyRegistrationSelection(reg){
-  pendingRegistration = reg;
-  selectedPlayGroupId = reg && reg.playGroupId ? String(reg.playGroupId) : "";
-  selectedPlayerDetails = Array.isArray(reg.playerDetails) ? reg.playerDetails.slice(0,6) : [];
-  selectedHandicapEnabled = !!reg.handicapEnabled;
-  selectedHandicapPercent = Number(reg.handicapPercent || 100) || 100;
-
-  rosterNames = Array.isArray(reg.players) ? reg.players.slice(0,6) : [];
-  joinGroup.value = reg.teamName || "";
-  joinName.value = reg.captainName || rosterNames[0] || "";
-  joinMate1.value = rosterNames[1] || "";
-  joinMate2.value = rosterNames[2] || "";
-  joinMate3.value = rosterNames[3] || "";
-  joinMate4.value = rosterNames[4] || "";
-  joinMate5.value = rosterNames[5] || "";
-  const startLbl = registrationEffectiveStartHoleLabel(reg);
-  joinStartHole.value = startLbl;
-  startHoleSelected = startLbl;
-  applyRegistrationCourseId(reg.courseId);
-
-  setPlayerRowNames(rosterNames);
-  build();
-
-  teamPickerScreen.style.display = "none";
-  joinScreen.style.display = "block";
-  const rsJoin =
-    String(reg.registrationStructure || tournamentRegistrationStructure || "team").trim().toLowerCase();
-  const rosterLabel =
-    reg.teamName ||
-    (Array.isArray(rosterNames) && rosterNames.filter(Boolean).length
-      ? rosterNames.filter(Boolean).join(", ")
-      : rsJoin === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL
-        ? "Participants"
-        : "Team");
-  const confirmWord =
-    rsJoin === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL ? "Confirm players" : "Confirm team";
-  joinMeta.textContent =
-    tournamentStartType === ASSIGNMENT_TEE_TIMES
-      ? `${confirmWord}: ${rosterLabel} • Tee time ${formatTime(reg.teeTime) || "—"} • Hole ${startLbl}`
-      : `${confirmWord}: ${rosterLabel} • Start Hole ${reg.assignedHole || "—"}`;
-  updateJoinScreenForEntryMode();
-}
-
-function backToTeamPicker(){
-  pendingRegistration = null;
-  selectedPlayGroupId = "";
-  joinScreen.style.display = "none";
-  teamPickerScreen.style.display = "block";
-  joinCompleted = false;
-  clearStateWithReason("explicit_exit_scorecard");
-  setPreJoinLock(true);
-}
-
-function updateJoinScreenForEntryMode(){
-  const mode = String(tournamentEntryMode || "").trim().toLowerCase();
-  const isTeamRep = mode === "team_rep";
-  const isOnsite = isOnsiteEntryMode(mode);
-
-  const joinTitle = joinScreen.querySelector("div[style*='font-family:Cinzel']");
-  const scorerLabel = joinName?.closest("label");
-  const groupLabel = joinGroup?.closest("label");
-  const startHoleLabel = joinStartHole?.closest("label");
-
-  if (isOnsite) {
-    if(joinTitle) joinTitle.textContent = "Enter team and players";
-
-    if(scorerLabel) scorerLabel.style.display = "none";
-    if(groupLabel) groupLabel.style.display = "";
-    if(startHoleLabel) startHoleLabel.style.display = "";
-
-    if(joinGroup) joinGroup.placeholder = "Team name";
-
-    if(joinMate1) joinMate1.placeholder = "Player 2";
-    if(joinMate2) joinMate2.placeholder = "Player 3";
-    if(joinMate3) joinMate3.placeholder = "Player 4";
-    if(joinMate4) joinMate4.placeholder = "Player 5";
-    if(joinMate5) joinMate5.placeholder = "Player 6";
-
-    if(joinBtn) joinBtn.textContent = "Start scoring";
-    if(joinCancel) joinCancel.style.display = "none";
-    return;
-  }
-
-  if (isTeamRep){
-    if(joinTitle) joinTitle.textContent = "Enter each player’s name";
-
-    if(scorerLabel) scorerLabel.style.display = "none";
-    if(groupLabel) groupLabel.style.display = "none";
-    if(startHoleLabel) startHoleLabel.style.display = "";
-
-    if(joinMate1) joinMate1.placeholder = "Player 2";
-    if(joinMate2) joinMate2.placeholder = "Player 3";
-    if(joinMate3) joinMate3.placeholder = "Player 4";
-    if(joinMate4) joinMate4.placeholder = "Player 5";
-    if(joinMate5) joinMate5.placeholder = "Player 6";
-
-    if(joinBtn) joinBtn.textContent = "Save names and start scoring";
-    if(joinCancel) joinCancel.style.display = "none";
-  } else {
-    if(joinTitle) joinTitle.textContent = "Tournament Scorecard";
-
-    if(scorerLabel) scorerLabel.style.display = "";
-    if(groupLabel) groupLabel.style.display = "";
-    if(startHoleLabel) startHoleLabel.style.display = "";
-
-    const rs = String(tournamentRegistrationStructure || "team").trim().toLowerCase();
-    const matePh =
-      rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL
-        ? "Another player on this scorecard"
-        : "Another player on this team";
-    if(joinMate1) joinMate1.placeholder = matePh;
-    if(joinMate2) joinMate2.placeholder = matePh;
-    if(joinMate3) joinMate3.placeholder = matePh;
-    if(joinMate4) joinMate4.placeholder = matePh;
-    if(joinMate5) joinMate5.placeholder = matePh;
-
-    if(joinBtn) joinBtn.textContent = "Start scoring";
-    if(joinCancel) joinCancel.style.display = "";
-  }
+async function applyRegistrationSelection(reg){
+  await activateRegistrationForScoring(reg);
 }
 
 async function pushTournamentNow(){
   if (isCasualMode) return;
   if (!db || !tournamentId || !joinCompleted) return;
 
-  const deviceId = makeDeviceId();
+  const writeDocId = await resolveSubmissionWriteDocId();
+  const subRef = tournamentSubmissionsDoc(db, organizationId, tournamentId, writeDocId);
   const payload = readScoresFromDOM();
   const netTotals = Array.from({length: playersCount}, (_,i) => getNetTotalForRow(i));
   const onsiteMode = isOnsiteEntryMode(tournamentEntryMode);
@@ -4182,7 +5065,6 @@ const group =
   const norm = normalizeStartHole(startHoleSelected || joinStartHole.value);
   const startHoleLabel = norm ? norm.label : "";
 
-  const subRef = tournamentSubmissionsDoc(db, organizationId, tournamentId, deviceId);
   const rosterSafe = (Array.isArray(rosterNames) && rosterNames.length)
     ? rosterNames
     : (payload.names || []).filter(Boolean).slice(0, 6);
@@ -4190,8 +5072,11 @@ const group =
   const sideGames = readSideGamesFromDOM();
 
   await setDoc(subRef, {
-    deviceId,
+    deviceId: writeDocId,
     registrationId: selectedRegistrationId || "",
+    organizationId: String(organizationId || "").trim(),
+    orgId: String(organizationId || "").trim(),
+    tournamentId: String(tournamentId || "").trim(),
     courseId: currentCourseId,
     format: tournamentFormat,
     entryMode: tournamentEntryMode,
@@ -4212,6 +5097,7 @@ const group =
 
 let pushTimer = null;
 function scheduleTournamentPush(){
+  if (isCoursePlayMode) return;
   if (isCasualMode) {
     scheduleCasualPush();
     return;
@@ -4226,63 +5112,123 @@ function scheduleTournamentPush(){
     }
   }, 250);
 }
+
+  /**
+   * Print-only scorecard (CSS @media print). Fallback when PNG capture / share fails.
+   */
+  function openScorecardPrintExport(opts) {
+    const reason = opts && opts.reason;
+    if (reason !== undefined && reason !== null) {
+      console.error("[scorecard export] Opening print layout (fallback):", reason);
+    }
+    document.body.classList.add("scorecard-print-active");
+    requestAnimationFrame(() => {
+      try {
+        window.print();
+      } catch (e) {
+        console.error("[scorecard export] window.print failed:", e?.message || e, e);
+      }
+    });
+    const cleanup = () => document.body.classList.remove("scorecard-print-active");
+    window.addEventListener("afterprint", cleanup, { once: true });
+    setTimeout(cleanup, 5000);
+  }
+
   function wireButtons(){
   const saveBtn = document.getElementById("saveImg");
   const liveLeaderboardBtn = document.getElementById("liveLeaderboardBtn");
   const shareBtn = document.getElementById("share");
   const clearBtn = document.getElementById("clear");
   const finishBtn = document.getElementById("finishRound");
+  if (!saveBtn || !shareBtn || !clearBtn || !finishBtn) {
+    console.warn("[scorecard] Action buttons missing from DOM.");
+    return;
+  }
 
   liveLeaderboardBtn?.addEventListener("click", () => {
+    if (isCoursePlayMode) {
+      const raw = liveLeaderboardBtn.dataset.courseLeaderboardHref || "";
+      const u = normalizeUrl(String(raw || "").trim());
+      if (u) window.open(u, "_blank", "noopener noreferrer");
+      return;
+    }
     if (!isTournamentMode || !tournamentId) return;
-    const lbUrl = new URL("./leaderboard.html", window.location.href);
-    applyOrgTournamentParams(lbUrl, organizationId, tournamentId);
-    window.open(lbUrl.toString(), "_blank", "noopener");
+    window.open(
+      buildTournamentAbsoluteUrl("leaderboard.html", organizationId, tournamentId),
+      "_blank",
+      "noopener"
+    );
   });
 
   saveBtn.addEventListener("click", async () => {
     if (isTournamentMode && !joinCompleted) return;
-    try{
-      const canvas = await captureFullCardCanvas();
-      canvas.toBlob(async (blob) => {
-        const file = new File([blob], "scorecard.png", { type: "image/png" });
+    try {
+      const canvas = await captureScorecardToCanvas();
+      canvas.toBlob(
+        async (blob) => {
+          if (!blob) {
+            console.error(
+              "[scorecard Save as Image] canvas.toBlob returned null — empty or tainted canvas.",
+            );
+            showScoreShareToast("Could not save as image. Opening print layout…");
+            openScorecardPrintExport({ reason: new Error("toBlob returned null") });
+            return;
+          }
+          const file = new File([blob], "scorecard.png", { type: "image/png" });
+          const saveTitle = getScorecardShareTitle();
 
-        if (navigator.canShare && navigator.canShare({ files:[file] })) {
-          await navigator.share({ files:[file], title:"Scorecard" });
-          return;
-        }
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({ files: [file], title: saveTitle });
+              return;
+            } catch (e) {
+              if (isUserCancelledShare(e)) return;
+              console.error("[scorecard Save as Image] navigator.share failed:", e?.message || e, e);
+            }
+          }
 
-        const dataUrl = canvas.toDataURL("image/png");
-        const w = window.open();
-        if (w) w.document.write(`<img src="${dataUrl}" style="width:100%;height:auto" />`);
-        else alert("Pop-up blocked. Try Share instead.");
-      }, "image/png");
-    }catch(e){
-      alert("Save failed. Try again.");
+          if (!openScorecardImageFromCanvas(canvas)) {
+            showScoreShareToast("Pop-up blocked. Opening print layout…");
+            openScorecardPrintExport({ reason: new Error("popup blocked for image preview") });
+          }
+        },
+        "image/png",
+      );
+    } catch (e) {
+      console.error("[scorecard Save as Image] capture failed:", e?.message || e, e);
+      showScoreShareToast("Save failed. Opening print layout…");
+      openScorecardPrintExport({ reason: e });
     }
   });
 
   shareBtn.addEventListener("click", async () => {
     if (isTournamentMode && !joinCompleted) return;
-    try{
-      const canvas = await captureFullCardCanvas();
-      const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
-      const file = new File([blob], "scorecard.png", { type:"image/png" });
-
-      if (navigator.canShare && navigator.canShare({ files:[file] })){
-        await navigator.share({ files:[file], title:"Scorecard" });
-      } else {
-        alert("Sharing not supported here. Use Save as Image.");
+    try {
+      await runShareButtonFlow();
+    } catch (e) {
+      if (isUserCancelledShare(e)) return;
+      console.error("[scorecard Share] primary flow failed:", e?.message || e, e);
+      try {
+        const { canvas } = await captureScorecardPngBlob();
+        if (openScorecardImageFromCanvas(canvas)) {
+          showScoreShareToast("Sharing wasn’t available, so we saved the scorecard image instead.");
+        } else {
+          showScoreShareToast("Opening print layout…");
+          openScorecardPrintExport({ reason: new Error("share fallback: open image failed") });
+        }
+      } catch (e2) {
+        console.error("[scorecard Share] fallback capture failed:", e2?.message || e2, e2);
+        showScoreShareToast("Opening print layout…");
+        openScorecardPrintExport({ reason: e2 });
       }
-    }catch(e){
-      alert("Share failed. Use Save as Image.");
     }
   });
 
-  clearBtn.addEventListener("click", () => {
-    if (isTournamentMode && !joinCompleted) return;
-    if (roundFinished) return;
-    if(!confirm("Clear all scores and side game selections for this course?")) return;
+  function performClearScoresAndNewRound() {
+    roundFinished = false;
+    finishedHolesCount = null;
+    document.querySelectorAll(".score-input").forEach(i => (i.disabled = false));
+    document.querySelectorAll(".player-name").forEach(i => (i.disabled = false));
     document.querySelectorAll(".score-input").forEach(i => i.value = "");
     document.querySelectorAll(".player-name").forEach(i => i.value = "");
     document.querySelectorAll(".sidegame-select").forEach(i => i.value = "");
@@ -4293,7 +5239,51 @@ function scheduleTournamentPush(){
       setPlayerRowNames(rosterNames);
     }
     renderSideGamesPanel();
+    setPreJoinLock(false);
+    updateRoundCompletePanel();
     scheduleTournamentPush();
+  }
+
+  const clearScoresModal = document.getElementById("clearScoresModal");
+  const clearScoresModalBackdrop = document.getElementById("clearScoresModalBackdrop");
+  const clearScoresModalCancel = document.getElementById("clearScoresModalCancel");
+  const clearScoresModalConfirm = document.getElementById("clearScoresModalConfirm");
+
+  function closeClearScoresModal() {
+    if (!clearScoresModal) return;
+    clearScoresModal.hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  function openClearScoresModal() {
+    if (!clearScoresModal) {
+      if (!confirm("Clear all scores and side game selections for this course?")) return;
+      performClearScoresAndNewRound();
+      return;
+    }
+    clearScoresModal.hidden = false;
+    document.body.style.overflow = "hidden";
+    clearScoresModalConfirm?.focus();
+  }
+
+  clearBtn.addEventListener("click", () => {
+    if (isTournamentMode && !joinCompleted) return;
+    if (!isCoursePlayMode && roundFinished) return;
+    openClearScoresModal();
+  });
+
+  clearScoresModalBackdrop?.addEventListener("click", closeClearScoresModal);
+  clearScoresModalCancel?.addEventListener("click", closeClearScoresModal);
+  clearScoresModalConfirm?.addEventListener("click", () => {
+    closeClearScoresModal();
+    performClearScoresAndNewRound();
+  });
+
+  clearScoresModal?.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape") {
+      ev.preventDefault();
+      closeClearScoresModal();
+    }
   });
 
   finishBtn.addEventListener("click", async () => {
@@ -4325,6 +5315,37 @@ function scheduleTournamentPush(){
       } catch (e) {
         console.error(e);
         alert("Could not finish round.");
+      }
+      return;
+    }
+
+    if (isCoursePlayMode) {
+      if (roundFinished) {
+        alert("This round is already finalized.");
+        return;
+      }
+      const norm = normalizeStartHole("1") || normalizeStartHole(joinStartHole?.value || "1");
+      const holeNum = norm ? norm.holeNum : 1;
+      const completed = getCompletedHoleCount(holeNum);
+      if (completed < 9) {
+        alert(`You must complete at least 9 holes.\nCurrent: ${completed}`);
+        return;
+      }
+      let finishHoles = 9;
+      if (completed >= 18) {
+        const finish18 = confirm("18 holes detected.\n\nPress OK for Finish 18.\nPress Cancel for Finish 9.");
+        finishHoles = finish18 ? 18 : 9;
+      } else {
+        const ok = confirm(`Finish 9 holes?\nCompleted: ${completed}`);
+        if (!ok) return;
+      }
+      try {
+        finishedHolesCount = finishHoles;
+        lockScorecard();
+        saveState();
+      } catch (e) {
+        console.error(e);
+        alert("Could not finalize round.");
       }
       return;
     }
@@ -4362,8 +5383,7 @@ function scheduleTournamentPush(){
 
     try{
       await pushTournamentNow();
-      const deviceId = makeDeviceId();
-      const subRef = tournamentSubmissionsDoc(db, organizationId, tournamentId, deviceId);
+      const subRef = await getSubmissionWriteRef();
       await setDoc(subRef,{
         roundStatus:"finished",
         finishedHoles:finishHoles,
@@ -4445,6 +5465,7 @@ function startLiveAlertListener(){
 /** Load tournament from URL; returns true if the scorecard was built from Firestore (format/rows correct). */
 async function checkTournamentFromURL(){
   tournamentScorecardBootstrapFatal = false;
+  cachedAnonymousSubmissionWriteId = "";
   const params = new URLSearchParams(location.search);
   const orgIdFromUrl = getResolvedOrgId(params);
   const tId = getResolvedTournamentId(params);
@@ -4471,7 +5492,7 @@ async function checkTournamentFromURL(){
 
   if (!db) return false;
 
-  const resolvedOrg = await resolveTournamentOrgIdStrict(db, orgIdFromUrl, tId);
+  const resolvedOrg = await resolveTournamentOrgIdStrict(db, orgIdFromUrl, tId, firebaseApp);
   if (!resolvedOrg.ok || !resolvedOrg.orgId) {
     setPreJoinLock(true, resolvedOrg.error || "Missing or invalid organization for this tournament link.");
     showTournamentLinkError(resolvedOrg.error || "Missing or invalid organization for this tournament link.");
@@ -4495,6 +5516,7 @@ async function checkTournamentFromURL(){
       tournamentEntryMode = String(t.entryMode || "team_rep").trim().toLowerCase();
       tournamentStartType = normalizeAssignmentType(t);
       tournamentRegistrationStructure = resolveRegistrationStructure(t);
+      tournamentDefaultTee = String(t.defaultTee || "").trim();
       syncJoinPickerCopy();
 
       await applyTournamentCourseSelection(t, organizationId);
@@ -4575,39 +5597,27 @@ joinCompleted = true;
         });
         return true;
       }
-      console.info("[ScorecardSession] no valid session found, showing join");
+      console.info("[ScorecardSession] no valid session found, showing team list");
 
-      const onsiteMode = isOnsiteEntryMode(tournamentEntryMode);
+      teamPickerScreen.style.display = "block";
+      joinScreen.style.display = "none";
+      setPreJoinLock(true);
 
-      if (onsiteMode || tournamentEntryMode === "team_rep") {
-        teamPickerScreen.style.display = "none";
-        joinScreen.style.display = "block";
-        joinMeta.textContent = tournamentMetaText;
-        setPreJoinLock(true);
-        updateJoinScreenForEntryMode();
-      } else {
-        teamPickerScreen.style.display = "block";
-        joinScreen.style.display = "none";
-        joinMeta.textContent = tournamentMetaText;
-        setPreJoinLock(true);
-        updateJoinScreenForEntryMode();
+      await loadRegistrations();
 
-        await loadRegistrations();
-
-        const savedRegId = loadSelectedRegistrationId();
-        if (savedRegId) {
-          if (String(savedRegId).startsWith(PLAY_GROUP_LIST_PREFIX)) {
-            const pgid = String(savedRegId).slice(PLAY_GROUP_LIST_PREFIX.length);
-            const g = loadedPlayGroups.find((x) => x.id === pgid);
-            if (g) {
-              const regById = new Map(loadedRegistrations.map((r) => [r.id, r]));
-              applyRegistrationSelection(buildSyntheticRegistrationFromPlayGroup(g, regById));
-            }
-          } else {
-            const found = loadedRegistrations.find((x) => x.id === savedRegId);
-            if (found) {
-              applyRegistrationSelection(found);
-            }
+      const savedRegId = loadSelectedRegistrationId();
+      if (savedRegId) {
+        if (String(savedRegId).startsWith(PLAY_GROUP_LIST_PREFIX)) {
+          const pgid = String(savedRegId).slice(PLAY_GROUP_LIST_PREFIX.length);
+          const g = loadedPlayGroups.find((x) => x.id === pgid);
+          if (g) {
+            const regById = new Map(loadedRegistrations.map((r) => [r.id, r]));
+            await applyRegistrationSelection(buildSyntheticRegistrationFromPlayGroup(g, regById));
+          }
+        } else {
+          const found = loadedRegistrations.find((x) => x.id === savedRegId);
+          if (found) {
+            await applyRegistrationSelection(found);
           }
         }
       }
@@ -4642,7 +5652,12 @@ function getResolvedTournamentId(params) {
 }
 
 function getResolvedCourseId(params) {
-  return String(params.get("courseId") || params.get("c") || "").trim();
+  return String(
+    params.get("course") ||
+      params.get("courseId") ||
+      params.get("c") ||
+      ""
+  ).trim();
 }
 
 function getResolvedOrgId(params) {
@@ -4655,6 +5670,24 @@ function getResolvedOrgId(params) {
   ).trim();
 }
 
+/** true only for ?mode=course with org+course and no tournament id (id / t / tournamentId). */
+function isPermanentCourseMode(params) {
+  if (!(params instanceof URLSearchParams)) return false;
+  const modeRaw = String(params.get("mode") || "").trim().toLowerCase();
+  if (modeRaw !== "course") return false;
+  if (!String(getResolvedCourseId(params) || "").trim()) return false;
+  if (!String(getResolvedOrgId(params) || "").trim()) return false;
+  return !String(getResolvedTournamentId(params) || "").trim();
+}
+
+async function resolveOrganizationIdFromPublicParam(raw) {
+  const s = String(raw || "").trim();
+  if (!s || !db) return "";
+  return resolveCanonicalOrgIdOrSame(db, firebaseApp, s, {
+    context: "scorecard-resolveOrganizationIdFromPublicParam",
+  });
+}
+
 function resolveScorecardMode(params) {
   const modeRaw = String(params.get("mode") || "").trim().toLowerCase();
   const forceCasual = modeRaw === "casual" || modeRaw === "daily";
@@ -4662,6 +5695,64 @@ function resolveScorecardMode(params) {
   const resolvedCourseId = getResolvedCourseId(params);
   const resolvedOrgId = getResolvedOrgId(params);
   const registrationFromUrl = String(params.get("registration") || params.get("r") || "").trim();
+
+  if (modeRaw === "org-scorecard" || modeRaw === "org_scorecard") {
+    if (resolvedTournamentId) {
+      return {
+        mode: "tournament",
+        reason:
+          "mode=org-scorecard with tournament id/query param — tournament initialization (org-scorecard shortcut ignored)",
+        resolvedTournamentId,
+        resolvedCourseId,
+        resolvedOrgId,
+      };
+    }
+    if (!resolvedOrgId) {
+      return {
+        mode: "incomplete",
+        reason: "mode=org-scorecard requires org (or orgId / organizationId)",
+        resolvedTournamentId: "",
+        resolvedCourseId: "",
+        resolvedOrgId: "",
+      };
+    }
+    return {
+      mode: "org_scorecard",
+      reason: "organization scorecard (default course + in-app course toggle)",
+      resolvedTournamentId: "",
+      resolvedCourseId: "",
+      resolvedOrgId,
+    };
+  }
+
+  if (modeRaw === "course") {
+    if (resolvedTournamentId) {
+      return {
+        mode: "tournament",
+        reason:
+          "mode=course with tournament id/query param — tournament initialization (no permanent course shortcut)",
+        resolvedTournamentId,
+        resolvedCourseId,
+        resolvedOrgId,
+      };
+    }
+    if (!resolvedCourseId || !resolvedOrgId) {
+      return {
+        mode: "incomplete",
+        reason: "mode=course requires org and course params",
+        resolvedTournamentId,
+        resolvedCourseId,
+        resolvedOrgId,
+      };
+    }
+    return {
+      mode: "course_play",
+      reason: "mode=course (local-only public scorecard)",
+      resolvedTournamentId: "",
+      resolvedCourseId,
+      resolvedOrgId,
+    };
+  }
 
   if (registrationFromUrl && resolvedTournamentId) {
     return {
@@ -4718,7 +5809,43 @@ function resolveScorecardMode(params) {
   };
 }
 
+/** Parse URL first; drive boot + logs. Does not load Firestore (see init paths). */
+function resolveInitialScorecardContext(params) {
+  const resolved = resolveScorecardMode(params);
+  const permanent = isPermanentCourseMode(params);
+  const tournamentIdPresent = !!String(getResolvedTournamentId(params) || "").trim();
+  console.log("[Init] Permanent course mode:", permanent);
+  console.log(
+    "[Init] Tournament mode preserved:",
+    !tournamentIdPresent || resolved.mode === "tournament"
+  );
+  const mode = resolved.mode;
+  const oid = String(resolved.resolvedOrgId || "").trim();
+  const cid = String(resolved.resolvedCourseId || "").trim();
+  const tid = String(resolved.resolvedTournamentId || "").trim();
+  let loadingPath = "site default / incomplete";
+  if (mode === "course_play") {
+    loadingPath = "organizations/{resolvedOrgId}/courses/{courseId}";
+  } else if (mode === "org_scorecard") {
+    loadingPath = "organizations/{resolvedOrgId}/courses/* (active) + defaultCourseId";
+  } else if (mode === "tournament") {
+    loadingPath =
+      "organizations/{resolvedOrgId}/tournaments/{tournamentId} + organizations/{resolvedOrgId}/courses/{courseId}";
+  } else if (mode === "casual_course") {
+    loadingPath = "organizations/{resolvedOrgId}/courses/{courseId} (standalone casual URL)";
+  } else if (mode === "incomplete") {
+    loadingPath = "resolveDefaultCourseForOrg | built-in default";
+  }
+  console.log("[Scorecard Init] mode:", mode);
+  console.log("[Scorecard Init] resolved orgId:", oid || "(none)");
+  console.log("[Scorecard Init] resolved courseId:", cid || "(none)");
+  console.log("[Scorecard Init] loading path:", loadingPath);
+  console.log("[Scorecard Init] render course:", "(pending — first build after data load)");
+  return { params, resolved, mode, oid, cid, tid, loadingPath };
+}
+
 function showIncompleteScorecardLinkMessage() {
+  clearScorecardBootShell();
   const msg = "This scorecard link is incomplete. Ask your organizer for a valid tournament or daily course scorecard link.";
   setPreJoinLock(true);
   if (teamPickerScreen) teamPickerScreen.style.display = "none";
@@ -4732,6 +5859,7 @@ function showIncompleteScorecardLinkMessage() {
 }
 
 function showTournamentLinkError(msg) {
+  clearScorecardBootShell();
   tournamentScorecardBootstrapFatal = true;
   const text = String(msg || "This tournament link is invalid or incomplete.").trim();
   console.error("[scorecard] tournament link error:", text);
@@ -4750,6 +5878,7 @@ function showTournamentLinkError(msg) {
 }
 
 function showStandaloneCourseError(msg) {
+  clearScorecardBootShell();
   const text = String(msg || "Course data not found for this link.").trim();
   console.error("[scorecard] standalone fatal:", text);
   if (lockBanner) {
@@ -4843,6 +5972,273 @@ function applyResolvedCasualCourse(orgParam, courseParam, resolved) {
   teamPickerScreen.style.display = "none";
   joinScreen.style.display = "none";
   return { storeKey, loaded };
+}
+
+function applyCoursePlayMode(resolvedCourseResult, incomingCourseParam) {
+  const storeKey = String(
+    resolvedCourseResult.resolvedCourseDocId ||
+      resolvedCourseResult.course.id ||
+      incomingCourseParam
+  ).trim();
+  const loaded = resolvedCourseResult.course;
+  loaded.id = storeKey;
+  COURSES[storeKey] = loaded;
+
+  currentCourseId = storeKey;
+  isCoursePlayMode = true;
+  isCasualMode = false;
+  casualCourseId = "";
+  casualRoundId = "";
+  isTournamentMode = false;
+  tournamentId = null;
+  tournamentFormat = "stroke";
+  playersCount = 6;
+  joinCompleted = true;
+  roundFinished = false;
+  finishedHolesCount = null;
+  rosterNames = [];
+  incomingRegistrationId = "";
+  selectedRegistrationId = "";
+  selectedPlayGroupId = "";
+  pendingRegistration = null;
+
+  teamPickerScreen.style.display = "none";
+  joinScreen.style.display = "none";
+  if (courseSelect) courseSelect.style.display = isOrgScorecardMode ? "" : "none";
+  hideScorecardSponsorTicker();
+  applySponsorUI("", "", "");
+}
+
+async function initCoursePlayFromUrl(orgParam, courseParam, params) {
+  isOrgScorecardMode = false;
+  orgScorecardCourseRows = [];
+  if (!db) {
+    showStandaloneCourseError("Unable to load this scorecard offline.");
+    return false;
+  }
+  const pubOrg = String(orgParam || "").trim();
+  const pubCourse = String(courseParam || "").trim();
+  if (!pubOrg || !pubCourse) {
+    showStandaloneCourseError("Course scorecard link is incomplete or invalid.");
+    return false;
+  }
+  const permanent =
+    !!(params instanceof URLSearchParams && isPermanentCourseMode(params));
+
+  let resolved;
+
+  if (permanent) {
+    const urlCacheKey = `courseCache:${pubOrg}:${pubCourse}`;
+    resolved = SCORECARD_COURSE_HYDRATION_CACHE.get(urlCacheKey);
+    if (!resolved?.course) {
+      resolved = await resolvePermanentCoursePlaySingleDoc(pubOrg, pubCourse);
+      if (resolved?.course) {
+        SCORECARD_COURSE_HYDRATION_CACHE.set(urlCacheKey, resolved);
+        const canonOid = String(resolved.canonicalOrgId || "").trim();
+        const docId = String(resolved.resolvedCourseDocId || "").trim();
+        const canonKey = canonOid && docId ? `courseCache:${canonOid}:${docId}` : "";
+        if (canonKey && canonKey !== urlCacheKey) {
+          SCORECARD_COURSE_HYDRATION_CACHE.set(canonKey, resolved);
+        }
+      }
+    }
+  } else {
+    const oid = await resolveOrganizationIdFromPublicParam(pubOrg);
+    if (!oid) {
+      showStandaloneCourseError("Organization not found for this link.");
+      return false;
+    }
+    const legacyCacheKey = `courseCache:${oid}:${pubCourse}`;
+    resolved = SCORECARD_COURSE_HYDRATION_CACHE.get(legacyCacheKey);
+    if (!resolved?.course) {
+      resolved = await resolveStandaloneCourseStrict(oid, courseParam);
+      if (resolved?.course) {
+        SCORECARD_COURSE_HYDRATION_CACHE.set(legacyCacheKey, resolved);
+      }
+    }
+    organizationId = String(oid || "").trim();
+  }
+
+  if (!resolved?.course) {
+    showStandaloneCourseError(
+      permanent
+        ? "Permanent scorecard links must use a valid Firestore organization ID and course document ID. No match was found and slug fallbacks are not used."
+        : "Course not found for this link."
+    );
+    return false;
+  }
+
+  if (permanent) {
+    organizationId = String(resolved.canonicalOrgId || pubOrg || "").trim();
+    if (!organizationId) {
+      showStandaloneCourseError("Organization not found for this link.");
+      return false;
+    }
+  }
+  applyCoursePlayMode(resolved, courseParam);
+  build();
+  if (lockBanner) {
+    lockBanner.classList.remove("show");
+  }
+  return true;
+}
+
+async function loadActiveOrgCoursesForOrgScorecard(resolvedOrgId) {
+  const oid = String(resolvedOrgId || "").trim();
+  if (!oid || !db) return { rows: [], defaultFromOrgDoc: "" };
+  let defaultFromOrgDoc = "";
+  try {
+    const orgSnap = await getDoc(doc(db, "organizations", oid));
+    if (orgSnap.exists()) {
+      const od = orgSnap.data() || {};
+      defaultFromOrgDoc = String(
+        od.defaultCourseId || od.defaultCourse || od.courseDefault || od.selectedCourseId || ""
+      ).trim();
+    }
+  } catch (_e) {}
+  const snap = await getDocs(collection(db, "organizations", oid, "courses"));
+  const rows = [];
+  snap.forEach((d) => {
+    const data = d.data() || {};
+    if (data.active === false || data.archived === true) return;
+    const label = String(data.name || data.title || d.id).trim() || d.id;
+    const built = tryBuildOrgCourseFromDoc(data, d.id) || courseFromFirestoreData(data, d.id);
+    if (!built) return;
+    const copy = { ...built, id: d.id };
+    rows.push({ id: d.id, name: label, built: copy });
+  });
+  rows.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+  if (!rows.length && (await isCypresswoodOrgForBuiltIns(oid))) {
+    rows.push({
+      id: "tradition",
+      name: "Tradition",
+      built: { ...COURSES.tradition, id: "tradition" },
+    });
+    rows.push({
+      id: "cypress",
+      name: "Cypress",
+      built: { ...COURSES.cypress, id: "cypress" },
+    });
+    rows.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+  }
+  return { rows, defaultFromOrgDoc };
+}
+
+function updateOrgScorecardUrlInAddressBar() {
+  if (!isOrgScorecardMode || !organizationId) return;
+  try {
+    const origin = String(getAppBaseUrl() || "").replace(/\/+$/, "");
+    const u = new URL(`${window.location.pathname}`, `${origin}/`);
+    u.searchParams.set("mode", "org-scorecard");
+    u.searchParams.set("org", organizationId);
+    u.searchParams.set("orgId", organizationId);
+    u.searchParams.delete("course");
+    u.searchParams.delete("courseId");
+    u.searchParams.delete("c");
+    u.searchParams.delete("t");
+    u.searchParams.delete("id");
+    u.searchParams.delete("tournamentId");
+    history.replaceState(null, "", u.toString());
+  } catch (e) {
+    console.warn("[scorecard] updateOrgScorecardUrlInAddressBar failed", e);
+  }
+}
+
+async function refreshOrgScorecardCourseSelectOptions() {
+  if (!courseSelect) return;
+  if (!isOrgScorecardMode) return;
+  const selected = String(currentCourseId || "").trim();
+  courseSelect.innerHTML = "";
+  orgScorecardCourseRows.forEach((r) => {
+    const el = document.createElement("option");
+    el.value = r.id;
+    el.textContent = r.name;
+    courseSelect.appendChild(el);
+  });
+  if (selected && orgScorecardCourseRows.some((x) => x.id === selected)) {
+    courseSelect.value = selected;
+  }
+}
+
+async function handleOrgScorecardCourseChange(nextCourseId) {
+  if (!isOrgScorecardMode) return;
+  const targetId = String(nextCourseId || "").trim();
+  if (!targetId || targetId === currentCourseId) return;
+  const prev = currentCourseId;
+  try {
+    const row = orgScorecardCourseRows.find((x) => x.id === targetId);
+    if (!row?.built) throw new Error("Unknown course");
+    COURSES[targetId] = row.built;
+    currentCourseId = targetId;
+    orgSuppressLoadStateOnce = true;
+    roundFinished = false;
+    finishedHolesCount = null;
+    rosterNames = [];
+    build();
+    await refreshOrgScorecardCourseSelectOptions();
+    updateOrgScorecardUrlInAddressBar();
+    saveState();
+    console.info("[scorecard] org scorecard course switched", { from: prev, to: targetId, orgId: organizationId });
+  } catch (e) {
+    orgSuppressLoadStateOnce = false;
+    console.warn("[scorecard] org scorecard course switch failed", e);
+    if (courseSelect) courseSelect.value = prev;
+    alert("Could not load the selected course.");
+  }
+}
+
+async function initOrgScorecardFromUrl(orgParam, params) {
+  isOrgScorecardMode = false;
+  orgScorecardCourseRows = [];
+  if (!db) {
+    showStandaloneCourseError("Unable to load this scorecard offline.");
+    return false;
+  }
+  const pubOrg = String(orgParam || "").trim();
+  if (!pubOrg) {
+    showStandaloneCourseError("Organization scorecard link is missing the organization.");
+    return false;
+  }
+  const oid = await resolveOrganizationIdFromPublicParam(pubOrg);
+  if (!oid) {
+    showStandaloneCourseError("Organization not found for this link.");
+    return false;
+  }
+  const { rows, defaultFromOrgDoc } = await loadActiveOrgCoursesForOrgScorecard(oid);
+  if (!rows.length) {
+    showStandaloneCourseError("No active courses are available for this organization yet.");
+    return false;
+  }
+  let initial = rows.find((r) => r.id === defaultFromOrgDoc);
+  if (!initial) initial = rows[0];
+  rows.forEach((r) => {
+    COURSES[r.id] = r.built;
+  });
+  organizationId = oid;
+  isOrgScorecardMode = true;
+  const resolved = {
+    course: initial.built,
+    resolvedCourseDocId: initial.id,
+    headerSource: "org-scorecard",
+    lookupPath: "org-scorecard-multi",
+    canonicalOrgId: oid,
+  };
+  applyCoursePlayMode(resolved, initial.id);
+  orgScorecardCourseRows = rows.slice();
+  await refreshOrgScorecardCourseSelectOptions();
+  updateOrgScorecardUrlInAddressBar();
+  try {
+    sessionStorage.setItem("selectedOrgId", oid);
+    sessionStorage.setItem("orgId", oid);
+    sessionStorage.setItem("activeOrgId", oid);
+    localStorage.setItem("selectedOrgId", oid);
+    localStorage.setItem("orgId", oid);
+  } catch (_e) {}
+  if (lockBanner) {
+    lockBanner.classList.remove("show");
+  }
+  build();
+  return true;
 }
 
 async function resolveDefaultCourseForOrg(orgId) {
@@ -4961,171 +6357,14 @@ async function checkStandaloneCourseFromURL() {
   return true;
 }
 
-joinBtn.addEventListener("click", async () => {
-  if (!tournamentId) return;
-  if(roundFinished){
-    alert("This round is already finalized and cannot be reopened.");
-    return;
-  }
-
-  const norm = normalizeStartHole(joinStartHole.value);
-  if (!norm) {
-    alert("Missing starting hole.");
-    return;
-  }
-
-  const onsiteMode = isOnsiteEntryMode(tournamentEntryMode);
-  let all = [];
-
-  if (onsiteMode) {
-    const teamName = (joinGroup?.value || "").trim();
-
-    all = [
-      joinMate1?.value || "",
-      joinMate2?.value || "",
-      joinMate3?.value || "",
-      joinMate4?.value || "",
-      joinMate5?.value || ""
-    ].map(s => s.trim()).filter(Boolean).slice(0, 6);
-
-    if (!teamName) {
-      alert("Please enter a team name.");
-      return;
-    }
-
-    if (!all.length) {
-      alert("Please enter at least one player name.");
-      return;
-    }
-
-    selectedRegistrationId = "";
-    selectedPlayGroupId = "";
-    clearSelectedRegistrationId();
-  }
-  else if (tournamentEntryMode === "team_rep") {
-    all = [
-      joinMate1?.value || "",
-      joinMate2?.value || "",
-      joinMate3?.value || "",
-      joinMate4?.value || "",
-      joinMate5?.value || ""
-    ].map(s => s.trim()).filter(Boolean).slice(0, 6);
-
-    if (!all.length) {
-      alert("Please enter at least one player name.");
-      return;
-    }
-
-    selectedRegistrationId = "";
-    selectedPlayGroupId = "";
-    clearSelectedRegistrationId();
-  }
-  else {
-    const scorerName = (joinName.value || "").trim();
-    if (!scorerName) {
-      alert("Please enter your name (Scorer).");
-      return;
-    }
-
-    if (pendingRegistration) {
-      if (pendingRegistration.playGroupId) {
-        selectedPlayGroupId = String(pendingRegistration.playGroupId);
-        selectedRegistrationId = String(
-          pendingRegistration.primaryRegistrationId || pendingRegistration.id || ""
-        );
-        saveSelectedRegistrationId(PLAY_GROUP_LIST_PREFIX + selectedPlayGroupId);
-      } else {
-        selectedPlayGroupId = "";
-        selectedRegistrationId = pendingRegistration.id || "";
-        saveSelectedRegistrationId(selectedRegistrationId);
-      }
-    }
-
-    const matesRaw = [
-      joinMate1?.value || "",
-      joinMate2?.value || "",
-      joinMate3?.value || "",
-      joinMate4?.value || "",
-      joinMate5?.value || ""
-    ].map(s => s.trim()).filter(Boolean);
-
-    all = [scorerName, ...matesRaw].slice(0, 6);
-  }
-
-  const seen = new Set();
-  all = all.filter(n => {
-    const k = n.toLowerCase();
-    if (seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  });
-
-  if(tournamentFormat === "scramble"){
-    rosterNames = all.slice(0, 6);
-  }else if(tournamentFormat === "bestball"){
-    rosterNames = all.slice(0, 2);
-  }else{
-    rosterNames = all;
-  }
-
-  setPlayerRowNames(rosterNames);
-
-  startHoleSelected = norm.label;
-  joinCompleted = true;
-  roundFinished = false;
-  finishedHolesCount = null;
-  joinScreen.style.display = "none";
-  teamPickerScreen.style.display = "none";
-
-  renderSideGamesPanel(readSideGamesFromDOM());
-  setPreJoinLock(false);
-  enforceStartHoleLock();
-  saveState();
-
-  try{
-    await pushTournamentNow();
-  }catch(e){
-    console.error(e);
-  }
-
-  setTimeout(() => scrollToStartHole(norm.holeNum), 250);
-});
-
-joinCancel.addEventListener("click", () => {
-  backToTeamPicker();
-});
-
 teamSearchInput.addEventListener("input", renderTeamPicker);
-
-async function hardRefreshApp(){
-  try{
-    if ('serviceWorker' in navigator){
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r => r.unregister()));
-    }
-  }catch(e){}
-
-  try{
-    if (window.caches){
-      const keys = await caches.keys();
-      await Promise.all(keys.map(k => caches.delete(k)));
-    }
-  }catch(e){}
-
-  location.reload();
-}
-
-refreshBtn.addEventListener("click", () => {
-  if(!confirm("Refresh app and pull latest update?")) return;
-  hardRefreshApp();
-});
 
 wireButtons();
 
 async function initTournamentScorecard() {
   const ok = await checkTournamentFromURL();
   if (!ok && !tournamentScorecardBootstrapFatal) {
-    build();
+    showIncompleteScorecardLinkMessage();
   }
 }
 
@@ -5223,8 +6462,9 @@ async function initDefaultCasualScorecardForOrg(params) {
 
 (async function boot() {
   const params = new URLSearchParams(location.search);
+  const { resolved } = resolveInitialScorecardContext(params);
   const forcedOrgFromUrl = getResolvedOrgId(params);
-  if (forcedOrgFromUrl) {
+  if (forcedOrgFromUrl && resolved.mode !== "course_play") {
     try {
       sessionStorage.setItem("selectedOrgId", forcedOrgFromUrl);
       sessionStorage.setItem("orgId", forcedOrgFromUrl);
@@ -5233,12 +6473,7 @@ async function initDefaultCasualScorecardForOrg(params) {
       localStorage.setItem("orgId", forcedOrgFromUrl);
     } catch (_e) {}
   }
-  const resolved = resolveScorecardMode(params);
-  console.info("[scorecard] Scorecard mode:", resolved.mode === "tournament" ? "tournament" : resolved.mode === "casual_course" ? "casual course" : "incomplete");
-  console.info("[scorecard] Resolved orgId:", resolved.resolvedOrgId || "(none)");
-  console.info("[scorecard] Resolved courseId:", resolved.resolvedCourseId || "(none)");
-  console.info("[scorecard] Resolved tournamentId:", resolved.resolvedTournamentId || "(none)");
-  console.info("[scorecard] Mode resolver reason:", resolved.reason);
+  console.info("[scorecard] Mode resolver detail:", resolved.reason);
 
   {
     const tidB = String(resolved.resolvedTournamentId || "").trim();
@@ -5260,6 +6495,46 @@ async function initDefaultCasualScorecardForOrg(params) {
       await initTournamentScorecard();
       return;
     }
+    if (resolved.mode === "course_play") {
+      const ok = await initCoursePlayFromUrl(
+        resolved.resolvedOrgId,
+        resolved.resolvedCourseId,
+        params
+      );
+      if (ok) {
+        try {
+          const oid = String(organizationId || "").trim();
+          if (oid) {
+            sessionStorage.setItem("selectedOrgId", oid);
+            sessionStorage.setItem("orgId", oid);
+            sessionStorage.setItem("activeOrgId", oid);
+            localStorage.setItem("selectedOrgId", oid);
+            localStorage.setItem("orgId", oid);
+          }
+        } catch (_e) {}
+        return;
+      }
+      showStandaloneCourseError("Course scorecard link is incomplete or invalid.");
+      return;
+    }
+    if (resolved.mode === "org_scorecard") {
+      const ok = await initOrgScorecardFromUrl(resolved.resolvedOrgId, params);
+      if (ok) {
+        try {
+          const oid = String(organizationId || "").trim();
+          if (oid) {
+            sessionStorage.setItem("selectedOrgId", oid);
+            sessionStorage.setItem("orgId", oid);
+            sessionStorage.setItem("activeOrgId", oid);
+            localStorage.setItem("selectedOrgId", oid);
+            localStorage.setItem("orgId", oid);
+          }
+        } catch (_e) {}
+        return;
+      }
+      showStandaloneCourseError("Organization scorecard could not be loaded.");
+      return;
+    }
     if (resolved.mode === "casual_course") {
       await initCasualCourseScorecard();
       return;
@@ -5269,6 +6544,14 @@ async function initDefaultCasualScorecardForOrg(params) {
     showIncompleteScorecardLinkMessage();
   } catch (err) {
     console.error("Tournament load failed:", err);
+    if (resolved.mode === "course_play") {
+      showStandaloneCourseError("Course data not found for this link");
+      return;
+    }
+    if (resolved.mode === "org_scorecard") {
+      showStandaloneCourseError("Organization scorecard could not be loaded.");
+      return;
+    }
     if (resolved.mode === "casual_course") {
       showStandaloneCourseError("Course data not found for this link");
       return;

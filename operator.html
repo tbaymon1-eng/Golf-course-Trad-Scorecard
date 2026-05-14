@@ -288,13 +288,10 @@
     </div>
 
     <div class="section" id="qrSection">
-      <h2>QR Sheet</h2>
+      <h2>QR Sheet (player-facing)</h2>
+      <p class="helper" style="margin:0 0 12px;">One code opens the tournament scorecard; the scorecard links to the live leaderboard. Use the buttons above for roster, registration, or admin.</p>
       <div class="qr-grid">
         <div class="qr-cell">Tournament Scorecard<div id="qrScorecard" class="qr-box"></div></div>
-        <div class="qr-cell">Leaderboard<div id="qrLeaderboard" class="qr-box"></div></div>
-        <div class="qr-cell">Organizer Roster<div id="qrRoster" class="qr-box"></div></div>
-        <div class="qr-cell">Registration<div id="qrRegistration" class="qr-box"></div></div>
-        <div class="qr-cell">Admin<div id="qrAdmin" class="qr-box"></div></div>
       </div>
     </div>
 
@@ -317,13 +314,14 @@
     import { getFirestore, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { firebaseConfig } from "./js/firebase-config.js";
     import {
-      applyOrgTournamentParams,
       buildTournamentIndexJoinUrl,
+      buildTournamentAbsoluteUrl,
       tournamentDocRef,
       courseDocRef,
       resolveTournamentOrgIdStrict,
     } from "./js/org-paths.js";
     import { getEventTypeDisplayLabelFromStoredCategory } from "./js/tournament-fields.js";
+    import { renderRealQrCode } from "./js/render-real-qr-code.js";
 
     const $ = (id) => document.getElementById(id);
     const app = initializeApp(firebaseConfig);
@@ -337,34 +335,26 @@
     let orgId = String(params.get("org") || params.get("orgId") || params.get("organizationId") || "").trim();
     const tokenFromUrl = String(params.get("admin") || "").trim();
 
-    function baseRoot() {
-      const path = window.location.pathname;
-      const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
-      return `${window.location.origin}${dir}`;
+    function makeUrl(page, extra = {}) {
+      const merged = {};
+      for (const [k, v] of Object.entries(extra)) {
+        if (String(v || "").trim()) merged[k] = String(v).trim();
+      }
+      return buildTournamentAbsoluteUrl(page, orgId, tournamentId, merged);
     }
 
-    function makeUrl(page, extra = {}) {
-      const url = new URL(page, baseRoot());
-      applyOrgTournamentParams(url, orgId, tournamentId);
-      for (const [k, v] of Object.entries(extra)) {
-        if (String(v || "").trim()) url.searchParams.set(k, String(v).trim());
-      }
-      return url.toString();
-    }
+    const operatorQrTypes = {
+      qrScorecard: "operator-tournament-scorecard",
+    };
 
     function drawQr(hostId, text) {
       const host = $(hostId);
       if (!host) return;
-      host.innerHTML = "";
-      if (!text) {
-        host.textContent = "—";
-        return;
-      }
-      new QRCode(host, {
-        text,
+      renderRealQrCode(host, String(text || "").trim(), {
+        qrType: operatorQrTypes[hostId] || "operator-qr",
         width: 120,
         height: 120,
-        correctLevel: QRCode.CorrectLevel.M,
+        correctLevel: "M",
       });
     }
 
@@ -400,7 +390,7 @@
         "[operator] Tournament id in URL but no org / orgId / organizationId; strict resolution may use legacy Cypresswood-only rules when applicable."
       );
     }
-    const resolvedOrg = await resolveTournamentOrgIdStrict(db, orgId, tournamentId);
+    const resolvedOrg = await resolveTournamentOrgIdStrict(db, orgId, tournamentId, app);
     if (!resolvedOrg.ok || !resolvedOrg.orgId) {
       $("status").textContent = resolvedOrg.error || "Missing or invalid organization.";
       throw new Error(resolvedOrg.error || "Missing or invalid organization.");
@@ -441,7 +431,7 @@
 
     const adminToken = String(tokenFromUrl || t.adminToken || "").trim();
     const links = {
-      scorecard: buildTournamentIndexJoinUrl(window.location.href, orgId, tournamentId, "", { log: false }),
+      scorecard: buildTournamentIndexJoinUrl("", orgId, tournamentId, "", { log: false }),
       leaderboard: makeUrl("leaderboard.html"),
       roster: makeUrl("roster.html", adminToken ? { admin: adminToken } : {}),
       registration: makeUrl("register-complete.html"),
@@ -466,10 +456,6 @@
     $("rawAdmin").textContent = links.admin;
 
     drawQr("qrScorecard", links.scorecard);
-    drawQr("qrLeaderboard", links.leaderboard);
-    drawQr("qrRoster", links.roster);
-    drawQr("qrRegistration", links.registration);
-    drawQr("qrAdmin", links.admin);
 
     $("copyAllBtn").addEventListener("click", () => void copyAllLinks(links));
     $("printQrBtn").addEventListener("click", () => window.print());

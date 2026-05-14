@@ -1,21 +1,37 @@
+import { buildAbsoluteUrl } from "./base-url.js";
+
 /**
- * Build standalone everyday-play scorecard URL for a course.
- * Uses orgId + courseId query params consumed by index.html.
+ * Permanent public everyday-play scorecard URL (course mode).
+ * Scores persist in localStorage on the visitor device only — no casualRounds writes.
+ *
+ * Consumed by index.html with ?mode=course&course=...&org=...
  */
-export function buildPublicCourseScorecardUrl(orgId, courseId, baseHref = window.location.href) {
+export function buildPublicCourseScorecardUrl(orgId, courseId, _baseHref) {
   const oid = String(orgId || "").trim();
   const cid = String(courseId || "").trim();
   if (!cid) return "";
-  const base = new URL(baseHref);
-  const dir = base.pathname.endsWith("/")
-    ? base.pathname
-    : base.pathname.slice(0, base.pathname.lastIndexOf("/") + 1);
-  const u = new URL(`index.html`, `${base.origin}${dir}`);
-  u.searchParams.set("mode", "casual");
-  u.searchParams.set("courseId", cid);
+  const params = {
+    mode: "course",
+    course: cid,
+    courseId: cid,
+  };
   if (oid) {
-    u.searchParams.set("org", oid);
-    u.searchParams.set("orgId", oid);
+    params.org = oid;
+    params.orgId = oid;
   }
-  return u.toString();
+  return buildAbsoluteUrl("index.html", params);
+}
+
+/**
+ * Organization-wide scorecard: default course first, course toggle for all active org courses.
+ * Consumed by index.html with ?mode=org-scorecard&org=...
+ */
+export function buildOrganizationScorecardUrl(orgId) {
+  const oid = String(orgId || "").trim();
+  if (!oid) return "";
+  return buildAbsoluteUrl("index.html", {
+    mode: "org-scorecard",
+    org: oid,
+    orgId: oid,
+  });
 }

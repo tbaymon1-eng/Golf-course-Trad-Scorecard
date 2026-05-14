@@ -769,13 +769,98 @@
     }
 
     function renderCourseCard(orgId, row) {
+      const oid = String(orgId || "").trim();
+      const courseId = String(row.id || row.courseId || "").trim();
+      const name = String(row.name || courseId || "Course").trim() || "Course";
+      const slug = String(row.slug || "").trim();
+      const isBuiltIn = row.builtInCourse === true;
+      const scorecardUrl = buildPublicCourseScorecardUrl(oid, courseId);
+      const buttonsRendered = {
+        viewScorecard: Boolean(scorecardUrl),
+        copyScorecardLink: Boolean(scorecardUrl),
+        qr: Boolean(scorecardUrl),
+        editCourse: Boolean(oid && courseId && !isBuiltIn),
+        deleteCourse: Boolean(canDeleteCourses && oid && courseId && !isBuiltIn),
+      };
+      console.info("[dashboard course render]", {
+        activeOrgId: oid,
+        courseId,
+        courseName: name,
+        generatedCourseScorecardUrl: scorecardUrl || "(none)",
+        buttonsRendered,
+      });
+
       const div = document.createElement("div");
       div.className = "item";
 
-      const line = document.createElement("div");
-      line.className = "sub";
-      line.textContent = `• ${String(row.name || row.id || "Course").trim() || "Course"}`;
-      div.appendChild(line);
+      const titleRow = document.createElement("div");
+      titleRow.className = "item-title-row";
+      const h2 = document.createElement("h2");
+      h2.textContent = name;
+      titleRow.appendChild(h2);
+      div.appendChild(titleRow);
+
+      const sub = document.createElement("div");
+      sub.className = "sub";
+      sub.innerHTML = `ID: <code>${escapeHtml(courseId)}</code>${
+        slug ? ` · slug <code>${escapeHtml(slug)}</code>` : ""
+      }${isBuiltIn ? ` · <span style="opacity:.75">built-in template</span>` : ""}`;
+      div.appendChild(sub);
+
+      const actions = document.createElement("div");
+      actions.className = "card-actions";
+
+      if (scorecardUrl) {
+        const view = document.createElement("a");
+        view.href = scorecardUrl;
+        view.target = "_blank";
+        view.rel = "noopener";
+        view.className = "btn btn-sm btn-blue";
+        view.textContent = "View scorecard";
+        view.addEventListener("click", () => persistCourseSelection(oid, courseId));
+        actions.appendChild(view);
+
+        const copy = document.createElement("button");
+        copy.type = "button";
+        copy.className = "btn btn-sm btn-ghost";
+        copy.textContent = "Copy scorecard link";
+        copy.addEventListener("click", async () => {
+          await copyText(scorecardUrl);
+        });
+        actions.appendChild(copy);
+
+        const qr = document.createElement("button");
+        qr.type = "button";
+        qr.className = "btn btn-sm btn-ghost";
+        qr.textContent = "QR code";
+        qr.addEventListener("click", () => openCourseQrModal(oid, row));
+        actions.appendChild(qr);
+      }
+
+      const editHref =
+        oid && courseId && !isBuiltIn
+          ? `./create-course.html?org=${encodeURIComponent(oid)}&courseId=${encodeURIComponent(courseId)}`
+          : "";
+      if (editHref) {
+        const ed = document.createElement("a");
+        ed.href = editHref;
+        ed.className = "btn btn-sm";
+        ed.textContent = "Edit course";
+        actions.appendChild(ed);
+      }
+
+      if (canDeleteCourses && !isBuiltIn && oid && courseId) {
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "btn btn-sm btn-danger";
+        del.textContent = "Delete course";
+        del.addEventListener("click", () =>
+          openCourseDeleteModal(oid, { ...row, id: courseId, name })
+        );
+        actions.appendChild(del);
+      }
+
+      div.appendChild(actions);
       return div;
     }
 
@@ -804,8 +889,8 @@
         const createHref = createCourseHrefForOrg(oid);
         host.innerHTML = `
           <div class="empty">
-            <p><strong>Create your first course</strong> to run tournaments and scorecards for this customer account.</p>
-            <a class="btn btn-sm" href="${createHref}">Create your first course</a>
+            <p><strong>No courses found for this organization.</strong> Add a course to enable everyday scorecards and tournament setup.</p>
+            <a class="btn btn-sm" href="${createHref}">Create a course</a>
           </div>`;
         return;
       }
@@ -852,8 +937,8 @@
         const createHref = createCourseHrefForOrg(oid);
         host.innerHTML = `
           <div class="empty">
-            <p><strong>Create your first course</strong> to run tournaments and scorecards for this customer account.</p>
-            <a class="btn btn-sm" href="${createHref}">Create your first course</a>
+            <p><strong>No courses found for this organization.</strong> Add a course to enable everyday scorecards and tournament setup.</p>
+            <a class="btn btn-sm" href="${createHref}">Create a course</a>
           </div>`;
         return;
       }

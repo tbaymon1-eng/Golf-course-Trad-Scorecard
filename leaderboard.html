@@ -131,60 +131,138 @@
     .topRow{
       display:flex;
       gap:12px;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
       flex-wrap:wrap;
     }
 
     .brand{
       display:flex;
-      gap:10px;
+      gap:12px;
       align-items:center;
-      min-width:240px;
+      min-width:0;
     }
 
-    .courseHeaderMini{
-      width:150px;
-      height:44px;
-      object-fit:contain;
+    /* Course / club header logo — wide logos (e.g. Hermann Park) stay readable, no crop */
+    .leaderboard-logo,
+    .course-logo-wrap,
+    .lb-logo-wrap{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-shrink:0;
+      box-sizing:border-box;
+      min-width:180px;
+      min-height:80px;
+      padding:10px;
       background: rgba(255,255,255,.34);
       border: 2px solid rgba(255,255,255,.18);
       border-radius: 12px;
-      padding: 6px 10px;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
+    }
+
+    .leaderboard-logo img,
+    .course-logo-wrap img,
+    .lb-logo-wrap img,
+    .courseHeaderMini{
+      width:auto;
+      height:auto;
+      max-width:170px;
+      max-height:70px;
+      object-fit:contain;
+      object-position:center;
+      display:block;
+      margin:0 auto;
+      padding:0;
+      background:transparent;
+      border:none;
+      border-radius:0;
+      backdrop-filter:none;
+      -webkit-backdrop-filter:none;
+    }
+
+    @media (max-width: 720px){
+      .leaderboard-logo,
+      .course-logo-wrap,
+      .lb-logo-wrap{
+        min-width:210px;
+        min-height:92px;
+        padding:10px;
+      }
+      .leaderboard-logo img,
+      .course-logo-wrap img,
+      .lb-logo-wrap img,
+      .courseHeaderMini{
+        max-width:190px;
+        max-height:80px;
+      }
     }
 
     .titleBlock{
       display:flex;
       flex-direction:column;
       gap:2px;
+      flex:1;
+      min-width:0;
     }
 
-    h1{
+    .top .titleBlock h1#pageTitle{
       margin:0;
       font-family: var(--font-head);
       font-weight:900;
       letter-spacing: var(--caps-track);
       font-size:18px;
-      line-height: var(--lh-tight);
+      line-height: 1.15;
       text-transform: uppercase;
       color: rgba(255,255,255,.92);
       text-shadow: 0 2px 10px rgba(0,0,0,.35);
+      min-width:0;
+      max-width:100%;
+      white-space:normal;
+      overflow-wrap:anywhere;
+      word-break:normal;
+      text-overflow:clip;
+      display:-webkit-box;
+      -webkit-box-orient:vertical;
+      -webkit-line-clamp:2;
+      line-clamp:2;
+      overflow:hidden;
     }
 
     .clubName{
       font-family: var(--font-head);
       font-weight:900;
       letter-spacing:.06em;
-      font-size:12px;
       opacity:.92;
       text-transform:uppercase;
       color: rgba(255,255,255,.86);
       text-shadow: 0 2px 10px rgba(0,0,0,.30);
+      font-size: clamp(18px, 4vw, 24px);
+      line-height: 1.2;
+      white-space: normal;
+      text-overflow: clip;
+      overflow-wrap: anywhere;
+      word-break: normal;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      overflow: hidden;
+      min-width: 0;
+      max-width: 100%;
     }
 
-    .meta{
+    /* Beat html.ops-typography .clubName { line-height: var(--ops-heading-lh) } from linked CSS */
+    html.ops-typography .brand .titleBlock .clubName{
+      line-height: 1.2;
+    }
+
+    html.ops-typography .top .titleBlock h1#pageTitle{
+      line-height: 1.15;
+    }
+
+    .titleBlock .meta{
       margin-top:2px;
       font-size:12px;
       color: rgba(255,255,255,.78);
@@ -192,6 +270,10 @@
       font-family: var(--font-ui);
       letter-spacing:.02em;
       text-shadow: 0 2px 10px rgba(0,0,0,.30);
+      white-space:normal;
+      overflow-wrap:anywhere;
+      word-break:normal;
+      max-width:100%;
     }
 
     .pillRow{
@@ -200,6 +282,8 @@
       align-items:center;
       flex-wrap:wrap;
       justify-content:flex-end;
+      flex:1 1 140px;
+      min-width:0;
     }
 
     .pill{
@@ -212,7 +296,11 @@
       background: rgba(255,255,255,.14);
       font-weight:900;
       font-size:12px;
-      white-space:nowrap;
+      white-space:normal;
+      overflow-wrap:anywhere;
+      word-break:normal;
+      min-width:0;
+      max-width:100%;
       font-family: var(--font-ui);
       letter-spacing:.06em;
       text-transform:uppercase;
@@ -912,7 +1000,20 @@
 
     body.tv .wrap{ max-width:1400px; padding:12px 12px 70px; }
     body.tv h1{ font-size:22px; }
-    body.tv .courseHeaderMini{ width:200px; height:52px; }
+    body.tv .leaderboard-logo,
+    body.tv .course-logo-wrap,
+    body.tv .lb-logo-wrap{
+      min-width:220px;
+      min-height:92px;
+      padding:10px;
+    }
+    body.tv .leaderboard-logo img,
+    body.tv .course-logo-wrap img,
+    body.tv .lb-logo-wrap img,
+    body.tv .courseHeaderMini{
+      max-width:200px;
+      max-height:78px;
+    }
     body.tv .lb-row{ padding:12px 16px; }
     body.tv .lb-score{ font-size:36px; }
 
@@ -1026,7 +1127,9 @@
       <div class="top">
         <div class="topRow">
           <div class="brand">
-            <img id="courseHeaderMini" class="courseHeaderMini" src="./assets/neutral-header.svg" alt="Course header" />
+            <div class="lb-logo-wrap course-logo-wrap leaderboard-logo">
+              <img id="courseHeaderMini" class="courseHeaderMini" src="./assets/neutral-header.svg" alt="Course header" />
+            </div>
             <div class="titleBlock">
               <h1 id="pageTitle">Live Leaderboard</h1>
               <div class="clubName" id="clubName">Golf Club</div>
@@ -1042,7 +1145,7 @@
 
           <div class="actions">
             <button class="primary" id="refreshBtn">🔄 Refresh</button>
-            <a class="btn green" id="joinBtn" href="./index.html">Tournament Scorecard</a>
+            <a class="btn green" id="joinBtn" href="#">Tournament Scorecard</a>
             <button id="copyBtn">📋 Copy Link</button>
             <a class="btn" id="tvBtn" href="#">📺 TV</a>
           </div>
@@ -1190,10 +1293,12 @@
     tournamentDocRef,
     tournamentSubmissionsCollection,
     tournamentAlertsLiveRef,
-    applyOrgTournamentParams,
     buildTournamentIndexJoinUrl,
+    buildTournamentAbsoluteUrl,
     courseDocRef,
+    SUBMISSION_DOC_PLAYGROUP_PREFIX,
   } from "./js/org-paths.js";
+  import { buildAbsoluteUrl, canonicalSiteUrlHref } from "./js/base-url.js";
   import {
     applyLeaderboardTheme,
     BUILT_IN_CYPRESSWOOD_SCORECARD_THEME,
@@ -1310,6 +1415,17 @@
     return hcp;
   }
 
+  function registerLeaderboardCourseAliases(courseObj, aliasKeys) {
+    if (!courseObj) return;
+    const seen = new Set();
+    for (const k of aliasKeys) {
+      const key = String(k || "").trim();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      COURSES[key] = courseObj;
+    }
+  }
+
   async function ensureOrgCourseLoadedForLeaderboard(orgId, courseIdRaw) {
     const raw = String(courseIdRaw || "").trim();
     if (!orgId || !raw) {
@@ -1321,28 +1437,56 @@
       applyLeaderboardTheme(COURSES[low].theme);
       return;
     }
-    if (COURSES[raw] && COURSES[raw].loaded) {
-      applyLeaderboardTheme(COURSES[raw].theme);
+    let existingLoaded =
+      (COURSES[raw]?.loaded && COURSES[raw]) ||
+      (COURSES[low]?.loaded && COURSES[low]) ||
+      null;
+    if (!existingLoaded) {
+      for (const k of Object.keys(COURSES)) {
+        if (COURSES[k]?.loaded && k.toLowerCase() === low) {
+          existingLoaded = COURSES[k];
+          break;
+        }
+      }
+    }
+    if (existingLoaded) {
+      applyLeaderboardTheme(existingLoaded.theme);
       return;
     }
+    const candidateIds = [...new Set([raw, low].filter((x, i, a) => a.indexOf(x) === i))];
     try {
-      const snap = await getDoc(courseDocRef(db, orgId, raw));
-      if (!snap.exists()) {
+      let snap = null;
+      let resolvedDocId = "";
+      for (const cid of candidateIds) {
+        const s = await getDoc(courseDocRef(db, orgId, cid));
+        if (s.exists()) {
+          snap = s;
+          resolvedDocId = String(s.id || cid).trim();
+          break;
+        }
+      }
+      if (!snap || !snap.exists()) {
+        console.warn("[leaderboard] org course document not found", {
+          orgId,
+          attempted: candidateIds,
+        });
         applyLeaderboardTheme(null);
         return;
       }
       const d = snap.data() || {};
       const par = parArrFromOrgDoc(d);
       const hcp = hcpArrFromOrgDoc(d);
-      const headerMini = resolveScorecardHeaderImageForDoc(raw, d, null);
+      const headerMini = resolveScorecardHeaderImageForDoc(resolvedDocId, d, null);
       const leaderboardBackgroundImage = resolveLeaderboardBackgroundImageFromCourseDoc(d);
-      const clubName = String(d.name || tournament.courseName || "Golf Club").trim();
+      const clubName = String(
+        d.name || tournament.courseName || tournament.name || "Golf Club",
+      ).trim();
       let theme = normalizeFirestoreTheme(d.theme);
       if (!theme && String(d.primaryColor || "").trim()) {
         theme = normalizeFirestoreTheme({ primary: String(d.primaryColor).trim() });
       }
-      COURSES[raw] = {
-        id: raw,
+      const courseObj = {
+        id: resolvedDocId,
         headerMini,
         leaderboardBackgroundImage,
         clubName,
@@ -1351,9 +1495,16 @@
         theme,
         loaded: true,
       };
+      registerLeaderboardCourseAliases(courseObj, [resolvedDocId, raw, low, resolvedDocId.toLowerCase()]);
+      console.info("[leaderboard] loaded org course for leaderboard", {
+        orgId,
+        courseDocumentId: resolvedDocId,
+        courseName: clubName,
+        requestedKey: raw,
+      });
       applyLeaderboardTheme(theme);
     } catch (e) {
-      console.warn("[leaderboard] org course", e);
+      console.warn("[leaderboard] org course load failed", e);
       applyLeaderboardTheme(null);
     }
   }
@@ -1448,7 +1599,7 @@
     throw new Error("Missing tournament id.");
   }
   {
-    const resolvedOrg = await resolveTournamentOrgIdStrict(db, organizationId, tournamentId);
+    const resolvedOrg = await resolveTournamentOrgIdStrict(db, organizationId, tournamentId, app);
     if (!resolvedOrg.ok || !resolvedOrg.orgId) {
       pageMeta.textContent = resolvedOrg.error || "Missing or invalid organization.";
       statusPill.textContent = "⚠️ ERROR";
@@ -1470,6 +1621,7 @@
     name: "Tournament",
     date: "",
     organizer: "",
+    courseId: "",
     courseDefault: "tradition",
     format: "stroke",
     handicapEnabled: false,
@@ -1600,10 +1752,33 @@
     return out;
   }
 
-  function setCourseHeaderMini(courseId){
-    const cid = String(courseId || "tradition").trim();
+  function pickCourseObjectForId(courseIdRaw){
+    const cid = String(courseIdRaw || "").trim();
+    if (!cid) return COURSE_TRADITION;
     const low = cid.toLowerCase();
-    const c = COURSES[cid] || COURSES[low] || COURSE_TRADITION;
+    if (COURSES[cid]) return COURSES[cid];
+    if (COURSES[low]) return COURSES[low];
+    for (const k of Object.keys(COURSES)) {
+      if (k.toLowerCase() === low) return COURSES[k];
+    }
+    return COURSE_TRADITION;
+  }
+
+  /** Par / to-par scoring always uses the tournament’s course (same as scorecard), not per-submission courseId. */
+  function getCourseForLeaderboardScoring(){
+    const co = pickCourseObjectForId(tournament.courseId);
+    const want = String(tournament.courseId || "").trim();
+    if (want && co === COURSE_TRADITION && want.toLowerCase() !== "tradition" && want.toLowerCase() !== "cypress") {
+      console.warn("[leaderboard] scoring: tournament course not in cache; Tradition par fallback", {
+        tournamentCourseId: want,
+      });
+    }
+    return co;
+  }
+
+  function setCourseHeaderMini(courseId){
+    const cid = String(courseId || tournament.courseId || "tradition").trim();
+    const c = pickCourseObjectForId(cid);
     const fromCourse = String(c.headerMini || "").trim();
     courseHeaderMini.src =
       fromCourse ||
@@ -1615,13 +1790,6 @@
 
     const totalPar = c.par.reduce((a,b)=>a+(Number(b)||0),0);
     parPill.textContent = `TOTAL PAR: ${totalPar}`;
-  }
-
-  function getCourseForEntry(entryCourseId){
-    const e = String(entryCourseId || "").trim().toLowerCase();
-    const tc = String(tournament.courseId || tournament.courseDefault || "").trim().toLowerCase();
-    const key = e || tc || "tradition";
-    return COURSES[key] || COURSES[tc] || COURSES[e] || COURSE_TRADITION;
   }
 
   function getScore(scoresFlat, pIndex, hole){
@@ -1924,12 +2092,8 @@
     const netTotals = Array.isArray(docData.netTotals) ? docData.netTotals : [];
     const updatedAt = docData.updatedAt;
 
-    const courseId = String(
-      docData.courseId || tournament.courseId || tournament.courseDefault || "tradition"
-    )
-      .trim()
-      .toLowerCase();
-    const course = getCourseForEntry(courseId);
+    const courseId = String(tournament.courseId || docData.courseId || "").trim().toLowerCase();
+    const course = getCourseForLeaderboardScoring();
     const scorerName = playerName || names[0] || "";
     const fmt = normalizeFormatValue(docData.format || tournament.format || "stroke");
     const useNet = !!tournament.handicapEnabled;
@@ -2512,26 +2676,30 @@ const grossTotal = hasScoreData
     formatPill.textContent = "FORMAT: —";
     parPill.textContent = "TOTAL PAR: —";
     if (scoreHeaderLabel) scoreHeaderLabel.textContent = "TO PAR";
-    joinBtn.href = "./index.html";
+    joinBtn.href = buildAbsoluteUrl("index.html", {});
     hideSponsors();
     if (liveAlertBanner) liveAlertBanner.style.display = "none";
   } else {
-    joinBtn.href = buildTournamentIndexJoinUrl(
-      window.location.href,
-      organizationId,
-      tournamentId,
-      "",
-      { log: true }
-    );
+    joinBtn.href = buildTournamentIndexJoinUrl("", organizationId, tournamentId, "", { log: true });
 
-    const tvUrl = new URL(window.location.href);
-    applyOrgTournamentParams(tvUrl, organizationId, tournamentId);
-    tvUrl.searchParams.set("tv", "1");
-    tvBtn.href = tvUrl.toString();
+    tvBtn.href = buildTournamentAbsoluteUrl("leaderboard.html", organizationId, tournamentId, {
+      tv: "1",
+    });
 
     copyBtn.addEventListener("click", async () => {
       try{
-        await navigator.clipboard.writeText(window.location.href);
+        let href = canonicalSiteUrlHref();
+        const cc = String(tournament.courseId || "").trim();
+        if (cc) {
+          try {
+            const u = new URL(href);
+            u.searchParams.set("courseId", cc);
+            href = u.toString();
+          } catch (_e) {
+            /* keep href */
+          }
+        }
+        await navigator.clipboard.writeText(href);
         copyBtn.textContent = "✅ Copied";
         setTimeout(() => copyBtn.textContent = "📋 Copy Link", 900);
       }catch(e){
@@ -2568,14 +2736,9 @@ if (canonOrg) organizationId = canonOrg;
           ...t,
           name: t.tournamentName || t.name || tournament.name,
           date: t.eventDate || t.date || tournament.date,
-          courseId: String(t.courseId || "").trim(),
+          courseId: String(t.courseId || t.defaultCourse || t.courseDefault || "").trim(),
           courseName: String(t.courseName || "").trim(),
-          courseDefault: (() => {
-            const id = String(t.courseId || t.defaultCourse || t.courseDefault || "tradition").trim();
-            const l = id.toLowerCase();
-            if (l === "tradition" || l === "cypress") return l;
-            return id;
-          })(),
+          courseDefault: String(t.courseId || t.defaultCourse || t.courseDefault || "tradition").trim(),
           format: normalizeFormatValue(t.formatOfPlay || t.format),
           handicapEnabled:
             isHandicapEnabled(t.enableHandicapScoring) ||
@@ -2592,6 +2755,29 @@ if (canonOrg) organizationId = canonOrg;
         leaderboardScoringDisabled = resolveScoringStructure(tournament) === SCORING_STRUCTURE_NONE;
 
         syncLeaderboardStandingsLabels();
+
+        const urlCourseHint = String(params.get("courseId") || params.get("c") || "").trim();
+        if (
+          urlCourseHint &&
+          String(tournament.courseId || "").trim() &&
+          urlCourseHint.toLowerCase() !== String(tournament.courseId || "").trim().toLowerCase()
+        ) {
+          console.warn("[leaderboard] URL courseId does not match tournament.courseId — using tournament document", {
+            urlCourseId: urlCourseHint,
+            tournamentCourseId: tournament.courseId,
+          });
+        }
+
+        console.info("[leaderboard] tournament + course ids", {
+          tournamentId,
+          orgId: organizationId,
+          tournamentCourseId: tournament.courseId || "(missing)",
+          tournamentCourseName: tournament.courseName || "",
+          courseDefaultField: tournament.courseDefault,
+        });
+        if (!String(tournament.courseId || "").trim()) {
+          console.warn("[leaderboard] tournament has no courseId / defaultCourse / courseDefault — par uses Tradition until the event sets a course");
+        }
 
         const skinsOn = skinsEnabled();
         const sideOn = nonSkinsSideGamesEnabled();
@@ -2611,11 +2797,25 @@ if (canonOrg) organizationId = canonOrg;
 
         {
           const courseKey = String(
-            tournament.courseId || tournament.courseDefault || "tradition"
+            tournament.courseId || tournament.courseDefault || "tradition",
           ).trim();
           await ensureOrgCourseLoadedForLeaderboard(organizationId, courseKey);
-          setCourseHeaderMini(courseKey);
+          setCourseHeaderMini(tournament.courseId || courseKey);
+          const loaded = pickCourseObjectForId(tournament.courseId || courseKey);
+          console.info("[leaderboard] resolved course for display + scoring", {
+            loadKey: courseKey,
+            resolvedDocumentOrKey: loaded?.id || courseKey,
+            courseName: loaded?.clubName || "",
+            totalPar: Array.isArray(loaded?.par) ? loaded.par.reduce((a, b) => a + (Number(b) || 0), 0) : "",
+          });
         }
+
+        tvBtn.href = buildTournamentAbsoluteUrl("leaderboard.html", organizationId, tournamentId, {
+          tv: "1",
+          ...(String(tournament.courseId || "").trim()
+            ? { courseId: String(tournament.courseId || "").trim() }
+            : {}),
+        });
         renderSponsors();
         updateViewButtons();
 
@@ -2641,6 +2841,61 @@ if (canonOrg) organizationId = canonOrg;
       hideSponsors();
     }
 
+    function leaderboardSubmissionDedupeKey(docId, data) {
+      const d = data || {};
+      const rid = String(d.registrationId || "").trim();
+      if (rid) return `reg:${rid}`;
+      if (String(docId || "").startsWith(SUBMISSION_DOC_PLAYGROUP_PREFIX)) return `pdoc:${docId}`;
+      const pick =
+        Array.isArray(d.rosterNames) && d.rosterNames.length
+          ? d.rosterNames
+          : Array.isArray(d.names)
+            ? d.names
+            : [];
+      const sig = pick
+        .map((x) => String(x || "").trim().toLowerCase())
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b))
+        .join("|");
+      if (sig) return `sig:${sig}`;
+      return `id:${docId}`;
+    }
+
+    function leaderboardDocUpdatedAtSeconds(data) {
+      const d = data || {};
+      return Number(d.updatedAt?.seconds ?? d.updatedAt?._seconds ?? 0) || 0;
+    }
+
+    function mergeDedupedLeaderboardSubmissionSnaps(snap) {
+      const map = new Map();
+      snap.forEach((docSnap) => {
+        const data = docSnap.data() || {};
+        const key = leaderboardSubmissionDedupeKey(docSnap.id, data);
+        const prevSnap = map.get(key);
+        const ts = leaderboardDocUpdatedAtSeconds(data);
+        if (!prevSnap) {
+          map.set(key, docSnap);
+          return;
+        }
+        const prevData = prevSnap.data() || {};
+        const prevTs = leaderboardDocUpdatedAtSeconds(prevData);
+        if (prevSnap.id !== docSnap.id) {
+          const playersSrc =
+            Array.isArray(data.rosterNames) && data.rosterNames.length
+              ? data.rosterNames
+              : Array.isArray(data.names)
+                ? data.names
+                : [];
+          console.warn("Duplicate team prevented", {
+            registrationId: String(data.registrationId || "").trim(),
+            players: playersSrc,
+          });
+        }
+        map.set(key, ts >= prevTs ? docSnap : prevSnap);
+      });
+      return [...map.values()];
+    }
+
     const subCol = tournamentSubmissionsCollection(db, organizationId, tournamentId);
   const q = query(subCol);
 
@@ -2648,7 +2903,9 @@ if (canonOrg) organizationId = canonOrg;
       const entries = [];
       const docs = [];
 
-      snap.forEach(d => {
+      const mergedSnaps = mergeDedupedLeaderboardSubmissionSnaps(snap);
+
+      mergedSnaps.forEach((d) => {
         const data = d.data() || {};
         docs.push(data);
 

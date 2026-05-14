@@ -67,7 +67,11 @@
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
     import { firebaseConfig } from "./js/firebase-config.js";
-    import { applyOrgTournamentParams, orgTournamentsCollection, tournamentDocRef } from "./js/org-paths.js";
+    import {
+      buildTournamentAbsoluteUrl,
+      orgTournamentsCollection,
+      tournamentDocRef,
+    } from "./js/org-paths.js";
     import {
       resolveOrganizerOrgId,
       readOrganizerOrgIdFromUserDoc,
@@ -85,19 +89,8 @@
     let cachedOrgId = "";
     let showArchived = false;
 
-    function baseDir() {
-      const path = window.location.pathname;
-      const dir = path.endsWith("/") ? path : path.slice(0, path.lastIndexOf("/") + 1);
-      return `${window.location.origin}${dir}`;
-    }
-
     function tournamentLinks(orgId, tId) {
-      const root = baseDir();
-      const u = (page) => {
-        const url = new URL(page, root);
-        applyOrgTournamentParams(url, orgId, tId);
-        return url.toString();
-      };
+      const u = (page) => buildTournamentAbsoluteUrl(page, orgId, tId);
       return {
         scorecard: u("index.html"),
         leaderboard: u("leaderboard.html"),

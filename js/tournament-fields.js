@@ -271,7 +271,7 @@ export const REGISTRATION_PAGE_UI = {
     pageTitle: `${EVENT_TYPE_LABELS[REGISTRATION_PAGE_EVENT_TOURNAMENT]} Registration`,
     heading: "Sign up your team",
     helperText:
-      "Add your team name, contact person, and player names. If handicaps are on for this event, those fields appear below.",
+      "Add Player 1 and optionally more names, then your email to finish. Team details are optional. If handicaps are on for this event, those fields appear below.",
     submitLabel: "Complete registration",
     successMessage: "You’re signed up. The organizer has your details.",
     finePrint: "Your information is saved for this event.",
@@ -729,9 +729,29 @@ export function resolveRegistrationStructure(t) {
   return REGISTRATION_STRUCTURE_TEAM;
 }
 
-function formatImpliesTeamScoring(t) {
-  const fmt = String(t?.formatOfPlay || t?.format || "").trim().toLowerCase();
-  return fmt.includes("scramble") || fmt.includes("best ball") || fmt.includes("bestball");
+/**
+ * Team vs individual for rankings — derived from format only (not a separate operator toggle).
+ */
+export function deriveCompetitionScoringStructureFromFormat(t) {
+  const fmt = String(t?.formatOfPlay ?? t?.format ?? "").trim().toLowerCase();
+  if (fmt.includes("scramble")) return SCORING_STRUCTURE_TEAM;
+  if (
+    fmt.includes("best ball") ||
+    fmt.includes("bestball") ||
+    fmt.includes("best_ball") ||
+    fmt.includes("four ball") ||
+    fmt.includes("fourball") ||
+    fmt.includes("four_ball")
+  ) {
+    return SCORING_STRUCTURE_TEAM;
+  }
+  if (fmt.includes("stableford") || fmt.includes("modified stableford")) {
+    return SCORING_STRUCTURE_INDIVIDUAL;
+  }
+  if (fmt.includes("stroke") || fmt.includes("stroke play")) {
+    return SCORING_STRUCTURE_INDIVIDUAL;
+  }
+  return SCORING_STRUCTURE_INDIVIDUAL;
 }
 
 /**
@@ -739,18 +759,10 @@ function formatImpliesTeamScoring(t) {
  * @returns {typeof SCORING_STRUCTURE_INDIVIDUAL | typeof SCORING_STRUCTURE_TEAM | typeof SCORING_STRUCTURE_NONE}
  */
 export function resolveScoringStructure(t) {
-  const raw = String(t?.scoringType || t?.scoringStructure || "").trim().toLowerCase();
-  if (
-    raw === SCORING_STRUCTURE_INDIVIDUAL ||
-    raw === SCORING_STRUCTURE_TEAM ||
-    raw === SCORING_STRUCTURE_NONE
-  ) {
-    return raw;
-  }
-  const vis = getEventTypeVisibility(resolveRegistrationPageEventTypeFromDocument(t));
+  const vis = getEventTypeVisibility(resolveRegistrationPageEventTypeFromDocument(t || {}));
   if (!vis.showLeaderboardOptions) return SCORING_STRUCTURE_NONE;
-  if (formatImpliesTeamScoring(t)) return SCORING_STRUCTURE_TEAM;
-  return SCORING_STRUCTURE_INDIVIDUAL;
+
+  return deriveCompetitionScoringStructureFromFormat(t);
 }
 
 /**
@@ -895,16 +907,14 @@ export function getRegistrationPageUiConfigForTournament(tournamentDoc) {
     eventRegModel: model,
     regStructure: rs,
     showTeamNameField: rs === REGISTRATION_STRUCTURE_TEAM,
-    contactSectionTitle: "Your information",
+    contactSectionTitle: "Optional team info",
     captainNameLabel:
-      rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL
-        ? "Contact name"
-        : rs === REGISTRATION_STRUCTURE_SINGLE
-          ? "Player name"
-          : "Captain name",
+      rs === REGISTRATION_STRUCTURE_SINGLE ? "Player name" : "Contact name",
     captainEmailLabel: "Email",
     captainPhoneLabel: "Phone",
-    participant1Visible: rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL,
+    participant1Visible:
+      rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL ||
+      rs === REGISTRATION_STRUCTURE_TEAM,
     hidePlayers2Thru6: rs === REGISTRATION_STRUCTURE_SINGLE,
     flexParticipantCountUi:
       rs === REGISTRATION_STRUCTURE_MULTI_INDIVIDUAL && model.participantCountMode === PARTICIPANT_COUNT_MODE_FLEX,
@@ -922,7 +932,7 @@ export function getRegistrationPageUiConfigForTournament(tournamentDoc) {
     out.submitLabel = "Complete registration";
     out.successMessage = "You’re signed up. The organizer has your details.";
     out.helperText =
-      "Add the contact person first, then each player by name. Each name is its own player for this event—they are not scored as one team unless the organizer set that up separately.";
+      "Add Player 1 and any teammates, then extras if you want. Email is all you need after that to finish. Organizer rules may set a minimum or maximum roster size.";
   }
   return out;
 }
@@ -950,4 +960,27 @@ export function getRosterPageUiConfigForTournament(pageType, tournamentDoc) {
     };
   }
   return { ...base, eventRegModel: model };
+}
+
+/**
+ * Heuristic for Firestore auto-ids and similar opaque tokens — not suitable for public UI copy.
+ */
+export function isLikelyInternalId(value) {
+  const s = typeof value === "string" ? value.trim() : "";
+  return s.length >= 16 && /^[A-Za-z0-9_-]+$/.test(s);
+}
+
+/**
+ * Human-readable golf course label for registration headers (never a course Firestore doc id).
+ * @param {object} [tournamentLike]
+ * @returns {string}
+ */
+export function pickHumanCourseDisplayName(tournamentLike) {
+  const t =
+    tournamentLike && typeof tournamentLike === "object" ? tournamentLike : {};
+  const cn = String(t.courseName || "").trim();
+  const dc = String(t.defaultCourse || "").trim();
+  if (cn && !isLikelyInternalId(cn)) return cn;
+  if (dc && !isLikelyInternalId(dc)) return dc;
+  return "";
 }

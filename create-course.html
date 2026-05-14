@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Add your first course</title>
+  <title>Course onboarding</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -200,10 +200,39 @@
       font-weight: 800;
       color: var(--blue);
     }
+    .scorecard-typography-panel {
+      margin: 14px 0 12px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 2px dashed rgba(154, 98, 23, 0.35);
+      background: rgba(255, 255, 255, 0.42);
+    }
+    .scorecard-typography-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--blue);
+      margin: 0 0 12px;
+    }
+    .scorecard-typography-grid label {
+      font-size: 0.88rem;
+      margin-bottom: 4px;
+    }
+    .scorecard-typography-grid select {
+      width: 100%;
+      padding: 14px 12px;
+      border-radius: 12px;
+      border: 2px solid rgba(154, 98, 23, 0.45);
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: inherit;
+      background: rgba(255, 255, 255, 0.88);
+      margin-bottom: 12px;
+      min-height: 48px;
+    }
     .tee-colors-list {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 6px;
+      gap: 12px;
     }
     .tee-colors-actions {
       display: flex;
@@ -212,44 +241,83 @@
       margin-top: 10px;
     }
     .tee-color-row {
-      display: grid;
-      grid-template-columns: minmax(84px, 1fr) 40px minmax(96px, 124px) 44px;
-      align-items: center;
-      gap: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+      padding: 12px 10px;
+      border-radius: 12px;
+      border: 2px solid rgba(154, 98, 23, 0.22);
+      background: rgba(255, 255, 255, 0.45);
+    }
+    @media (min-width: 420px) {
+      .tee-color-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
     }
     .tee-color-name {
-      font-size: 0.88rem;
-      font-weight: 700;
+      font-size: 0.95rem;
+      font-weight: 800;
       color: var(--ink);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      line-height: 1.25;
+      flex: 1;
+      min-width: 0;
+    }
+    .tee-color-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
     }
     .tee-color-swatch {
-      width: 36px;
-      height: 28px;
-      border-radius: 8px;
-      border: 2px solid rgba(0,0,0,0.18);
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: 2px solid rgba(0, 0, 0, 0.2);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
     }
     .tee-color-input {
       width: 100%;
-      height: 32px;
-      padding: 4px 6px;
-      border-radius: 8px;
-      border: 1px solid rgba(154, 98, 23, 0.6);
-      background: rgba(255,255,255,0.9);
-      font-family: inherit;
-      font-weight: 700;
-      font-size: 0.85rem;
+      max-width: 120px;
+      height: 40px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      border: 2px solid rgba(154, 98, 23, 0.35);
+      background: rgba(255, 255, 255, 0.92);
+      font-family: ui-monospace, monospace;
+      font-weight: 600;
+      font-size: 0.82rem;
     }
     .tee-color-picker {
-      width: 40px;
-      height: 32px;
-      border: 1px solid rgba(154, 98, 23, 0.6);
-      border-radius: 8px;
-      background: rgba(255,255,255,0.9);
+      width: 52px;
+      height: 48px;
+      min-width: 52px;
+      min-height: 48px;
+      border: 2px solid rgba(154, 98, 23, 0.5);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.95);
       padding: 0;
       cursor: pointer;
+    }
+    .tee-color-hex-details {
+      width: 100%;
+      flex-basis: 100%;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .tee-color-hex-details summary {
+      cursor: pointer;
+      padding: 6px 0;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      list-style-position: outside;
+      user-select: none;
     }
     .scorecard-preview-panel {
       margin-top: 10px;
@@ -267,8 +335,6 @@
       border-collapse: collapse;
       min-width: 900px;
       width: max-content;
-      font-size: 0.73rem;
-      font-weight: 700;
       color: #1f1b18;
     }
     .scorecard-preview-table th,
@@ -413,7 +479,40 @@
       font-weight: 700;
       font-size: 0.92rem;
       margin-top: 10px;
+      margin-bottom: 12px;
       min-height: 1.35em;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      padding: 8px 0;
+    }
+    @media (max-width: 600px) {
+      .err {
+        font-size: 1.05rem;
+        line-height: 1.4;
+        padding: 12px 12px;
+        margin: 0 0 14px;
+        border-radius: 14px;
+        background: rgba(255, 240, 236, 0.96);
+        border: 2px solid rgba(163, 34, 34, 0.35);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+      }
+    }
+    #initLoading[hidden] {
+      display: none !important;
+      pointer-events: none !important;
+    }
+    #wizardNavStep5 {
+      position: relative;
+      z-index: 6;
+      isolation: isolate;
+    }
+    #wizardNavStep5 .btn {
+      position: relative;
+      z-index: 7;
+      pointer-events: auto;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: rgba(18, 53, 111, 0.2);
     }
     @media (min-width: 480px) {
       .tee-head {
@@ -448,31 +547,170 @@
       border: 3px solid rgba(154, 98, 23, 0.4);
       border-radius: 18px;
     }
+    .wizard-stepper {
+      max-width: 520px;
+      margin: 0 auto 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      align-items: center;
+    }
+    .wizard-stepper[hidden] { display: none !important; }
+    .wizard-step-pill {
+      font-size: 0.78rem;
+      font-weight: 800;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 2px solid rgba(154, 98, 23, 0.35);
+      background: rgba(255, 255, 255, 0.45);
+      color: var(--muted);
+    }
+    .wizard-step-pill.is-active {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: rgba(255, 255, 255, 0.75);
+    }
+    .wizard-step-pill.is-done {
+      border-color: var(--green);
+      color: #1e4a22;
+    }
+    .wizard-panel[hidden] {
+      display: none !important;
+    }
+    .wizard-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .wizard-nav .btn {
+      flex: 1 1 140px;
+      margin-top: 0;
+    }
+    .btn-wizard-back {
+      background: var(--blue);
+    }
+    input[type="password"],
+    input[type="email"] {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 2px solid var(--line);
+      font-size: 1rem;
+      margin-bottom: 12px;
+      font-family: inherit;
+      background: rgba(255, 255, 255, 0.65);
+    }
+    .onboarding-edit-mode #wizardStepper { display: none !important; }
+    .onboarding-edit-mode #panelStep1,
+    .onboarding-edit-mode #panelStep2,
+    .onboarding-edit-mode #panelStep3 { display: none !important; }
+    .onboarding-edit-mode .wizard-panel { display: block !important; }
+    .onboarding-edit-mode .wizard-nav { display: none !important; }
   </style>
   <link rel="stylesheet" href="./css/operations-typography.css" />
 </head>
 <body>
   <header class="page-header">
-    <h1 id="pageHeading">Add your first course</h1>
-    <p id="pageSub">Saved to your organization. You can add tournaments and details later in the admin.</p>
+    <h1 id="pageHeading">Course onboarding</h1>
+    <p id="pageSub">Create your organizer account, set outbound email preferences, then add your organization and course in a few guided steps.</p>
   </header>
+
+  <div id="wizardStepper" class="wizard-stepper" hidden aria-label="Onboarding steps">
+    <span class="wizard-step-pill" id="wizPill1" data-step="1">1 · Account</span>
+    <span class="wizard-step-pill" id="wizPill2" data-step="2">2 · Email</span>
+    <span class="wizard-step-pill" id="wizPill3" data-step="3">3 · Organization</span>
+    <span class="wizard-step-pill" id="wizPill4" data-step="4">4 · Assets</span>
+    <span class="wizard-step-pill" id="wizPill5" data-step="5">5 · Finish</span>
+  </div>
 
   <div id="initLoading" class="init-banner" role="status" aria-live="polite">Loading…</div>
 
   <form id="form" class="stack-form" autocomplete="on" hidden>
-    <section class="section" aria-labelledby="org-heading">
-      <h2 class="section-title" id="org-heading">Organization</h2>
-      <p class="section-note">Your course is stored inside the active customer account organization linked to your signed-in account. Existing share links and tournaments for this organization are unchanged.</p>
-    </section>
+    <div class="err" id="err" role="alert" aria-live="assertive"></div>
 
-    <section class="section" aria-labelledby="course-heading">
-      <h2 class="section-title" id="course-heading">Course</h2>
-      <label for="courseName">Course name</label>
-      <input id="courseName" type="text" required autocomplete="organization" placeholder="e.g. North Nine, Championship Course" />
+    <!-- Step 1: Create organizer account -->
+    <div id="panelStep1" class="wizard-panel section" data-wizard-panel="1" hidden>
+      <h2 class="section-title">Step 1 — Create account</h2>
+      <p class="section-note">Creates your Firebase sign-in. You&apos;ll become an <strong>organization admin</strong> for your course customer account.</p>
+      <label for="acctDisplayName">Your name</label>
+      <input id="acctDisplayName" type="text" required autocomplete="name" placeholder="e.g. Casey Morgan" />
 
-     
-    </section>
+      <label for="acctEmail">Email</label>
+      <input id="acctEmail" type="email" required autocomplete="email" />
 
+      <label for="acctPassword">Password</label>
+      <input id="acctPassword" type="password" required minlength="6" autocomplete="new-password" placeholder="Minimum 6 characters" />
+
+      <div class="wizard-nav">
+        <button type="button" class="btn" id="step1Continue">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Registration email identity (Reply-To); platform sends until domain verified -->
+    <div id="panelStep2" class="wizard-panel section" data-wizard-panel="2" hidden>
+      <h2 class="section-title">Step 2 — Email setup</h2>
+      <p class="section-note">
+        Registration confirmations are sent from <strong>ELB Solutions</strong> (<code>registrations@elbsolutions.co</code>).
+        Replies from players go to your course contact when you add one below. Custom &quot;From&quot; addresses require domain verification later — not required for this step.
+      </p>
+      <label for="emailSenderName">Email sender name</label>
+      <input
+        id="emailSenderName"
+        type="text"
+        autocomplete="organization"
+        placeholder="e.g. Hermann Park Golf Course"
+      />
+      <label for="replyToEmail">Course / tournament contact email (Reply-To)</label>
+      <input id="replyToEmail" type="email" autocomplete="email" placeholder="tournamentdirector@yourclub.com" />
+
+      <label for="senderDomain">Sender domain (optional)</label>
+      <input id="senderDomain" type="text" autocomplete="off" placeholder="e.g. yourclub.com — if different from the address above" />
+      <p class="hint" id="senderDomainHint" aria-live="polite"></p>
+      <p class="section-note"><strong>Note:</strong> We never collect or store an email password.</p>
+
+      <div class="wizard-nav">
+        <button type="button" class="btn btn-wizard-back" id="step2Back">Back</button>
+        <button type="button" class="btn" id="step2Continue">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Organization + primary course identifiers -->
+    <div id="panelStep3" class="wizard-panel section" data-wizard-panel="3" hidden>
+      <h2 class="section-title">Step 3 — Organization / course</h2>
+      <p class="section-note">
+        Saves your Firestore organization and adds you as <strong>admin</strong>.
+        Invite staff later with your code if you publish one below.
+      </p>
+      <label for="organizationNameInput">Organization / club name</label>
+      <input id="organizationNameInput" type="text" required autocomplete="organization" placeholder="e.g. Cypresswood Traditions GC" />
+
+      <label for="courseName">Primary course display name</label>
+      <input id="courseName" type="text" required autocomplete="off" placeholder="e.g. North Nine, Traditions Tournament Course" />
+
+      <label for="orgSlugInput">Organization URL slug</label>
+      <input id="orgSlugInput" type="text" placeholder="Letters, numbers, hyphens — used in URLs" />
+      <p class="hint" id="orgSlugDerivedHint"></p>
+
+      <label for="orgContactEmail">Course / org contact email</label>
+      <input id="orgContactEmail" type="email" autocomplete="email" />
+
+      <label for="orgContactPhone">Contact phone</label>
+      <input id="orgContactPhone" type="text" inputmode="tel" autocomplete="tel" />
+
+      <label for="staffInviteCodeInput">Staff invite code (optional)</label>
+      <input id="staffInviteCodeInput" type="text" autocomplete="off" placeholder="Share with staff onboarding" />
+
+      <div id="setupOrgErr" class="err" aria-live="polite"></div>
+
+      <div class="wizard-nav">
+        <button type="button" class="btn btn-wizard-back" id="step3Back">Back</button>
+        <button type="button" class="btn" id="step3Continue">Continue</button>
+      </div>
+    </div>
+
+    <div id="panelStep4" class="wizard-panel" data-wizard-panel="4" hidden>
     <section class="section" aria-labelledby="brand-heading">
       <h2 class="section-title" id="brand-heading">Branding</h2>
       <label for="logoFile">Course logo (optional)</label>
@@ -531,16 +769,43 @@
       </button>
       <div id="teeColorsEditor" class="tee-colors-editor" hidden>
         <div class="tee-colors-head">
-          <div class="tee-colors-title">Scorecard row colors</div>
+          <div class="tee-colors-title">Customize scorecard</div>
           <button type="button" class="btn-prefill" id="useExtractedColorsBtn" style="margin-top:0;max-width:220px;">
             Use extracted colors
           </button>
         </div>
+        <p class="section-note" style="margin-top: -4px; margin-bottom: 10px">
+          Match your paper scorecard with row colors below. Typography applies to your live scorecard and this preview.
+        </p>
+        <div id="scorecardTypographyPanel" class="scorecard-typography-panel">
+          <div class="scorecard-typography-title">Font (preview &amp; app scorecard)</div>
+          <div class="scorecard-typography-grid">
+            <label for="scorecardFontFamily">Font family</label>
+            <select id="scorecardFontFamily" autocomplete="off">
+              <option value="system" selected>System / default</option>
+              <option value="arial">Arial</option>
+              <option value="helvetica">Helvetica</option>
+              <option value="georgia">Georgia</option>
+              <option value="times">Times New Roman</option>
+              <option value="verdana">Verdana</option>
+              <option value="trebuchet">Trebuchet MS</option>
+            </select>
+            <label for="scorecardFontWeight">Font weight</label>
+            <select id="scorecardFontWeight" autocomplete="off">
+              <option value="400">Normal</option>
+              <option value="700" selected>Bold</option>
+            </select>
+            <label for="scorecardFontSize">Font size</label>
+            <select id="scorecardFontSize" autocomplete="off">
+              <option value="11px">Small (11px)</option>
+              <option value="12px" selected>Medium (12px)</option>
+              <option value="13px">Large (13px)</option>
+              <option value="14px">Extra large (14px)</option>
+            </select>
+          </div>
+        </div>
         <div id="teeColorsList" class="tee-colors-list"></div>
         <div class="tee-colors-actions">
-          <button type="button" class="btn-prefill" id="previewScorecardBtn" style="margin-top:0;max-width:220px;">
-            Preview Scorecard
-          </button>
           <button type="button" class="btn-prefill" id="applyColorsBtn" style="margin-top:0;max-width:220px;">
             Apply colors
           </button>
@@ -554,6 +819,14 @@
       </div>
       <div id="extractStatus" class="extract-status" role="status" aria-live="polite"></div>
     </section>
+
+      <div class="wizard-nav" id="wizardNavStep4">
+        <button type="button" class="btn btn-wizard-back" id="step4Back">Back</button>
+        <button type="button" class="btn" id="step4Continue">Continue</button>
+      </div>
+    </div>
+
+    <div id="panelStep5" class="wizard-panel" data-wizard-panel="5" hidden>
 
     <section class="section" aria-labelledby="holes-heading">
       <h2 class="section-title" id="holes-heading">Hole data</h2>
@@ -570,10 +843,56 @@
       </div>
     </section>
 
-    <button type="submit" class="btn" id="submitBtn">Save and continue</button>
+    <section id="permanentCourseStrip" class="section" hidden aria-labelledby="perm-card-heading">
+      <h2 class="section-title" id="perm-card-heading">Permanent everyday scorecard</h2>
+      <p class="section-note">
+        Share this URL for casual rounds. Scores stay in each golfer’s browser (not written to Firebase).
+      </p>
+      <div
+        id="permanentCourseUrlBox"
+        style="word-break:break-all;font-size:0.92rem;font-weight:700;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:rgba(255,255,255,.58);min-height:2.75em;"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;">
+        <button type="button" class="btn" style="margin:0;background:var(--blue);" id="permCopyBtn">
+          Copy permanent scorecard link
+        </button>
+        <a
+          id="permOpenBtn"
+          class="btn"
+          style="margin:0;text-decoration:none;display:inline-block;text-align:center;"
+          target="_blank"
+          rel="noopener noreferrer"
+          >View permanent scorecard</a>
+        <button type="button" class="btn btn-secondary" style="margin:0;" id="permQrToggleBtn">
+          Permanent scorecard QR
+        </button>
+      </div>
+      <div id="permQrHost" style="margin-top:14px;" hidden></div>
+    </section>
+
+    <section class="section" aria-labelledby="slug-heading">
+      <h2 class="section-title" id="slug-heading">Course slug (optional)</h2>
+      <p class="hint">Usually derived from your course name. Override only when you care about URLs.</p>
+      <label for="courseSlug">Custom URL slug</label>
+      <input id="courseSlug" type="text" autocomplete="off" placeholder="Auto from course name" />
+    </section>
+
+    <div class="wizard-nav" id="wizardNavStep5">
+      <button type="button" class="btn btn-wizard-back" id="step5Back">Back</button>
+      <button
+        type="submit"
+        class="btn"
+        id="submitBtn"
+        formnovalidate
+        style="margin-top:0;flex:2;"
+      >
+        Finish onboarding
+      </button>
+    </div>
+    </div>
+
   </form>
 
-  <div class="err" id="err" style="max-width:520px;margin:0 auto 12px;padding:0 4px;"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <div style="max-width:520px;margin:16px auto 0;padding:0 4px;">
     <a class="btn btn-secondary" href="./dashboard.html" id="skipLink">Skip for now</a>
@@ -591,15 +910,19 @@
       deleteField,
       serverTimestamp,
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
     import { firebaseConfig } from "./js/firebase-config.js";
     import { orgCoursesCollection, courseDocRef } from "./js/org-paths.js";
+    import { buildPublicCourseScorecardUrl } from "./js/public-course-links.js";
+    import { renderRealQrCode } from "./js/render-real-qr-code.js";
     import {
       resolveOrganizerOrgId,
       readDashboardAuthContext,
       isPlatformAdminRole,
+      buildMergedUserOrgStateClient,
+      persistSessionActiveOrgId,
     } from "./js/resolve-organizer-org.js";
     import { generateThemeFromLogoUrl, generateThemeFromLogoFile } from "./js/course-theme.js";
     import {
@@ -615,9 +938,87 @@
     const storage = getStorage(app);
     const functions = getFunctions(app, "us-central1");
     const extractScorecardDataCallable = httpsCallable(functions, "extractScorecardData");
+    const setupOrganizationCallable = httpsCallable(functions, "setupOrganization");
+
+    const ONBOARD_EMAIL_KEY = "onboardingEmailDraftV1";
+    const ONBOARD_STEP_KEY = "onboardingWizardStepV1";
+    const ONBOARD_ORG_CREATED_KEY = "onboardingCreatedOrgIdV1";
+
+    function senderDomainFromEmail(email) {
+      const s = String(email || "").trim();
+      const at = s.lastIndexOf("@");
+      if (at < 1) return "";
+      return s.slice(at + 1).trim().toLowerCase();
+    }
+
+    function readOnboardingEmailDraft() {
+      try {
+        const raw = sessionStorage.getItem(ONBOARD_EMAIL_KEY);
+        const d = raw ? JSON.parse(raw) : null;
+        if (d && typeof d === "object" && d.senderEmail && !d.replyToEmail) {
+          d.replyToEmail = d.senderEmail;
+        }
+        return d;
+      } catch (_e) {
+        return null;
+      }
+    }
+
+    function writeOnboardingEmailDraft(obj) {
+      try {
+        sessionStorage.setItem(ONBOARD_EMAIL_KEY, JSON.stringify(obj));
+      } catch (_e) {}
+    }
+
+    function persistWizardStep(step) {
+      try {
+        sessionStorage.setItem(ONBOARD_STEP_KEY, String(step));
+      } catch (_e) {}
+    }
+
+    function readWizardStep() {
+      try {
+        const n = Number(sessionStorage.getItem(ONBOARD_STEP_KEY) || "0");
+        return Number.isFinite(n) && n >= 1 && n <= 5 ? n : 0;
+      } catch (_e) {
+        return 0;
+      }
+    }
 
     const $ = (id) => document.getElementById(id);
     const form = $("form");
+
+    /** Slug helpers for URLs (orgs + courses reuse same pattern client-side). */
+    function slugifyOrganizationSlug(raw) {
+      return String(raw || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "")
+        .replace(/-+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    let currentWizardStep = 1;
+
+    function setWizardStep(n) {
+      currentWizardStep = n;
+      persistWizardStep(n);
+      const onboarding = form && !form.classList.contains("onboarding-edit-mode");
+      if (!onboarding) return;
+      for (let i = 1; i <= 5; i++) {
+        const p = $("panelStep" + i);
+        if (p) p.hidden = i !== n;
+        const pill = $("wizPill" + i);
+        if (pill) {
+          pill.classList.toggle("is-active", i === n);
+          pill.classList.toggle("is-done", i < n);
+        }
+      }
+      const wiz = $("wizardStepper");
+      if (wiz) wiz.hidden = false;
+    }
+
     const errEl = $("err");
     const submitBtn = $("submitBtn");
     const skipLink = $("skipLink");
@@ -628,6 +1029,10 @@
 
     const SEL_ORG = "selectedOrgId";
     const SEL_COURSE = "selectedCourseId";
+    const DASHBOARD_ADMIN_ORG_KEY = "dashboardAdminOrgId";
+
+    /** Filled asynchronously from organizations/{orgId} for debugging logs only. */
+    let createCourseResolvedOrgSlug = "";
 
     function readSel(key) {
       try {
@@ -652,22 +1057,27 @@
       } catch (_e) {}
     }
 
-    function sessionOrgFromDashboard() {
-      try {
-        return String(
-          sessionStorage.getItem("activeOrgId") || sessionStorage.getItem("orgId") || ""
-        ).trim();
-      } catch (_e) {
-        return "";
-      }
-    }
-
     /** Resolved after auth; used by submit and extract. */
     let editCourseId = "";
     let isEditMode = false;
 
     let orgId = "";
     let ready = false;
+
+    function buildPermanentScorecardLinkForCreateCourse(courseIdHint, log) {
+      const cid = String(courseIdHint != null ? courseIdHint : editCourseId).trim();
+      const oid = String(orgId || "").trim();
+      const url = oid && cid ? buildPublicCourseScorecardUrl(oid, cid) : "";
+      if (log) {
+        console.log("Permanent scorecard link", {
+          selectedOrgId: oid,
+          selectedOrgSlug: String(createCourseResolvedOrgSlug || "").trim(),
+          courseId: cid,
+          url,
+        });
+      }
+      return url;
+    }
     /** Preserved from Firestore in edit mode when not replacing with a new upload. */
     let savedScorecardImageUrl = "";
     /** Merged from scorecard image extraction; saved on submit. */
@@ -677,8 +1087,180 @@
     let extractedTeeColorsCandidate = {};
     let teeColorsManualEdited = false;
     let hadExistingPersistedTeeColors = false;
-    let showScorecardPreview = false;
     let cachedHolesForPreview = [];
+
+    const DEFAULT_SCORECARD_TYPOGRAPHY = Object.freeze({
+      fontFamily: "system",
+      fontWeight: "700",
+      fontSize: "12px",
+    });
+    /** Saved as slugs / CSS values alongside scorecard row colors */
+    let scorecardTypography = { ...DEFAULT_SCORECARD_TYPOGRAPHY };
+
+    function fontStackForSlug(slug) {
+      const s = String(slug || "system").trim() || "system";
+      const map = {
+        system: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+        arial: "Arial, Helvetica, sans-serif",
+        helvetica: "Helvetica, Arial, sans-serif",
+        georgia: "Georgia, serif",
+        times: '"Times New Roman", Times, serif',
+        verdana: "Verdana, Geneva, sans-serif",
+        trebuchet: '"Trebuchet MS", Helvetica, sans-serif',
+      };
+      return map[s] || map.system;
+    }
+
+    function typographyCssForPreview() {
+      const w = scorecardTypography.fontWeight === "400" ? "400" : "700";
+      return {
+        fontFamily: fontStackForSlug(scorecardTypography.fontFamily),
+        fontWeight: w,
+        fontSize: scorecardTypography.fontSize || "12px",
+      };
+    }
+
+    function applyTypographyToPreviewTable(tableEl) {
+      if (!tableEl) return;
+      const t = typographyCssForPreview();
+      tableEl.style.fontFamily = t.fontFamily;
+      tableEl.style.fontWeight = t.fontWeight;
+      tableEl.style.fontSize = t.fontSize;
+    }
+
+    function readTypographyFromDom() {
+      const ff = $("scorecardFontFamily");
+      const fw = $("scorecardFontWeight");
+      const fz = $("scorecardFontSize");
+      scorecardTypography = {
+        fontFamily: (ff && ff.value) || DEFAULT_SCORECARD_TYPOGRAPHY.fontFamily,
+        fontWeight:
+          fw && fw.value === "400"
+            ? "400"
+            : DEFAULT_SCORECARD_TYPOGRAPHY.fontWeight,
+        fontSize: (fz && fz.value) || DEFAULT_SCORECARD_TYPOGRAPHY.fontSize,
+      };
+    }
+
+    function writeTypographyToDom() {
+      const ff = $("scorecardFontFamily");
+      const fw = $("scorecardFontWeight");
+      const fz = $("scorecardFontSize");
+      if (ff) ff.value = scorecardTypography.fontFamily || DEFAULT_SCORECARD_TYPOGRAPHY.fontFamily;
+      if (fw) fw.value = scorecardTypography.fontWeight === "400" ? "400" : "700";
+      if (fz) fz.value = scorecardTypography.fontSize || DEFAULT_SCORECARD_TYPOGRAPHY.fontSize;
+    }
+
+    function isDefaultTypography() {
+      return (
+        (scorecardTypography.fontFamily || "") === DEFAULT_SCORECARD_TYPOGRAPHY.fontFamily &&
+        (scorecardTypography.fontWeight || "") === DEFAULT_SCORECARD_TYPOGRAPHY.fontWeight &&
+        (scorecardTypography.fontSize || "") === DEFAULT_SCORECARD_TYPOGRAPHY.fontSize
+      );
+    }
+
+    function applyScorecardStyleFromDoc(scorecardStyle) {
+      if (!scorecardStyle || typeof scorecardStyle !== "object") return;
+      if (!courseBrandingRowColors || typeof courseBrandingRowColors !== "object") {
+        courseBrandingRowColors = {};
+      }
+      const rowColors =
+        scorecardStyle.rowColors && typeof scorecardStyle.rowColors === "object"
+          ? scorecardStyle.rowColors
+          : {};
+      const hole = normalizeHexColor(rowColors.hole);
+      if (hole) courseBrandingRowColors.header = hole;
+      const parC = normalizeHexColor(rowColors.par);
+      if (parC) courseBrandingRowColors.Par = parC;
+      const hcpC = normalizeHexColor(rowColors.handicap);
+      if (hcpC) courseBrandingRowColors.Handicap = hcpC;
+      const tees = rowColors.tees && typeof rowColors.tees === "object" ? rowColors.tees : {};
+      courseBrandingTeeColors = normalizeTeeColorMap(courseBrandingTeeColors);
+      for (const [k, v] of Object.entries(tees)) {
+        const nk = normalizeTeeColorKey(k);
+        const hv = normalizeHexColor(v);
+        if (nk && hv) {
+          courseBrandingTeeColors[nk] = hv;
+          courseBrandingRowColors[nk] = hv;
+        }
+      }
+      const custom = rowColors.custom && typeof rowColors.custom === "object" ? rowColors.custom : {};
+      for (const [k, v] of Object.entries(custom)) {
+        const hv = normalizeHexColor(v);
+        if (hv) courseBrandingRowColors[k] = hv;
+      }
+      const ff = String(scorecardStyle.fontFamily || "").trim();
+      if (ff) scorecardTypography.fontFamily = ff;
+      const fw = String(scorecardStyle.fontWeight || "").trim().toLowerCase();
+      if (fw === "400" || fw === "700" || fw === "normal" || fw === "bold") {
+        scorecardTypography.fontWeight =
+          fw === "normal" || fw === "400" ? "400" : "700";
+      }
+      const fz = String(scorecardStyle.fontSize || "").trim();
+      if (fz) scorecardTypography.fontSize = fz;
+    }
+
+    function collectCustomRowColorsForSave() {
+      const teeKeys = new Set(teeColorDisplayRows().map((r) => r.key));
+      const structural = new Set(["header", "Par", "Handicap"]);
+      const out = {};
+      for (const [k, v] of Object.entries(courseBrandingRowColors || {})) {
+        if (structural.has(k)) continue;
+        if (teeKeys.has(normalizeTeeColorKey(k))) continue;
+        const hv = normalizeHexColor(v);
+        if (hv) out[k] = hv;
+      }
+      return out;
+    }
+
+    function buildScorecardStyleForSave() {
+      readTypographyFromDom();
+      const rowColors = {};
+      const hole = normalizeHexColor(courseBrandingRowColors.header);
+      if (hole) rowColors.hole = hole;
+      const parC = normalizeHexColor(courseBrandingRowColors.Par);
+      if (parC) rowColors.par = parC;
+      const hcpC = normalizeHexColor(courseBrandingRowColors.Handicap);
+      if (hcpC) rowColors.handicap = hcpC;
+      const tees = {};
+      for (const row of teeColorDisplayRows()) {
+        const hv = normalizeHexColor(
+          courseBrandingTeeColors[row.key] || courseBrandingRowColors[row.key]
+        );
+        if (hv) tees[row.key] = hv;
+      }
+      if (Object.keys(tees).length) rowColors.tees = tees;
+      const custom = collectCustomRowColorsForSave();
+      if (Object.keys(custom).length) rowColors.custom = custom;
+      const fontFamily = scorecardTypography.fontFamily || DEFAULT_SCORECARD_TYPOGRAPHY.fontFamily;
+      const fontWeight =
+        scorecardTypography.fontWeight === "400" ? "400" : "700";
+      const fontSize = scorecardTypography.fontSize || DEFAULT_SCORECARD_TYPOGRAPHY.fontSize;
+      const hasRowColors =
+        !!(rowColors.hole || rowColors.par || rowColors.handicap) ||
+        (rowColors.tees && Object.keys(rowColors.tees).length > 0) ||
+        (rowColors.custom && Object.keys(rowColors.custom).length > 0);
+      if (!hasRowColors && isDefaultTypography()) return null;
+      return {
+        fontFamily,
+        fontWeight,
+        fontSize,
+        rowColors: hasRowColors ? rowColors : {},
+      };
+    }
+
+    function wireScorecardTypographyControls() {
+      ["scorecardFontFamily", "scorecardFontWeight", "scorecardFontSize"].forEach((id) => {
+        const el = $(id);
+        if (!el) return;
+        el.addEventListener("change", () => {
+          readTypographyFromDom();
+          renderScorecardPreview();
+        });
+      });
+    }
+
+    wireScorecardTypographyControls();
 
     function applyEditModeChrome() {
       document.title = "Edit course";
@@ -686,6 +1268,18 @@
       $("pageSub").textContent = "Update course details for your organization.";
       submitBtn.textContent = "Save changes";
       skipLink.textContent = "Back to dashboard";
+      form.classList.add("onboarding-edit-mode");
+      $("wizardStepper")?.setAttribute("hidden", "true");
+      [1, 2, 3, 4, 5].forEach((i) => {
+        const p = $("panelStep" + i);
+        if (p) {
+          p.hidden = false;
+          p.removeAttribute("hidden");
+        }
+      });
+      $("wizardNavStep4")?.setAttribute("hidden", "true");
+      $("wizardNavStep5")?.setAttribute("hidden", "true");
+      refreshStep4BackVisibility();
     }
 
     let logoPreviewObjectUrl = null;
@@ -784,7 +1378,6 @@
     const scorecardExistingImg = $("scorecardExistingImg");
     const prefillFromScorecardBtn = $("prefillFromScorecardBtn");
     const useExtractedColorsBtn = $("useExtractedColorsBtn");
-    const previewScorecardBtn = $("previewScorecardBtn");
     const applyColorsBtn = $("applyColorsBtn");
     const extractStatusEl = $("extractStatus");
 
@@ -833,7 +1426,7 @@
 
     $("teeBoxNames").addEventListener("input", () => {
       renderTeeColorEditor();
-      if (showScorecardPreview) renderScorecardPreview();
+      renderScorecardPreview();
     });
 
     if (useExtractedColorsBtn) {
@@ -841,14 +1434,8 @@
         if (applyExtractedTeeColorsToDraft(extractedTeeColorsCandidate)) {
           teeColorsManualEdited = true;
           setExtractStatus("success", "Extracted tee colors applied. You can still adjust them before saving.");
-          if (showScorecardPreview) renderScorecardPreview();
+          renderScorecardPreview();
         }
-      });
-    }
-    if (previewScorecardBtn) {
-      previewScorecardBtn.addEventListener("click", () => {
-        showScorecardPreview = !showScorecardPreview;
-        renderScorecardPreview();
       });
     }
     if (applyColorsBtn) {
@@ -864,11 +1451,14 @@
         }
         applyColorsBtn.disabled = true;
         try {
+          readTypographyFromDom();
+          const stylePatch = buildScorecardStyleForSave();
           const patch = {
             teeColors: map,
             scorecardRowColors: { ...(courseBrandingRowColors || {}), ...map },
             updatedAt: serverTimestamp(),
           };
+          if (stylePatch) patch.scorecardStyle = stylePatch;
           await updateDoc(courseDocRef(db, orgId, editCourseId), patch);
           hadExistingPersistedTeeColors = true;
           setExtractStatus("success", "Scorecard row colors saved.");
@@ -1057,6 +1647,316 @@
       return String(v || "").trim();
     }
 
+    /** Loose client check (aligned with server registration email helper). */
+    function looksLikeEmailForUi(raw) {
+      const s = safeText(raw);
+      if (!s || /\s/.test(s)) return false;
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+    }
+
+    /**
+     * Top-level organization email fields for registration confirmations (Resend / future verify).
+     * @returns {Record<string, unknown>}
+     */
+    function buildOrgEmailFieldsForSave() {
+      const emailSenderName = safeText($("emailSenderName")?.value);
+      const replyToEmail = safeText($("replyToEmail")?.value);
+      const domainManual = safeText($("senderDomain")?.value)
+        .toLowerCase()
+        .replace(/^@+/, "")
+        .replace(/\s+/g, "");
+      const domainFromReply = senderDomainFromEmail(replyToEmail);
+      const senderDomain = domainManual || domainFromReply;
+      const senderEmail = replyToEmail;
+      return {
+        emailSenderName,
+        replyToEmail,
+        senderEmail,
+        senderDomain,
+        emailSenderStatus: "reply_to_only",
+        emailDomainVerified: false,
+        emailProvider: "resend",
+      };
+    }
+
+    function applyOrgEmailFieldsToStep2(orgData) {
+      if (!orgData || typeof orgData !== "object") return;
+      const nested =
+        orgData.emailSettings && typeof orgData.emailSettings === "object"
+          ? orgData.emailSettings
+          : {};
+      const emailSenderName =
+        safeText(nested.emailSenderName) || safeText(orgData.emailSenderName);
+      const replyToEmail = safeText(nested.replyToEmail) || safeText(orgData.replyToEmail);
+      const senderDomain = safeText(nested.senderDomain) || safeText(orgData.senderDomain);
+      const elName = $("emailSenderName");
+      if (elName && emailSenderName) elName.value = emailSenderName;
+      const elReply = $("replyToEmail");
+      if (elReply && replyToEmail) elReply.value = replyToEmail;
+      const elDom = $("senderDomain");
+      if (elDom && senderDomain) {
+        const inferred = senderDomainFromEmail(replyToEmail);
+        if (!inferred || senderDomain.toLowerCase() !== inferred) elDom.value = senderDomain;
+      }
+    }
+
+    function refreshSenderDomainHint() {
+      const hint = $("senderDomainHint");
+      if (!hint) return;
+      const manual = safeText($("senderDomain")?.value)
+        .toLowerCase()
+        .replace(/^@+/, "")
+        .replace(/\s+/g, "");
+      const reply = safeText($("replyToEmail")?.value);
+      const inferred = senderDomainFromEmail(reply);
+      if (manual) {
+        hint.textContent = `Sender domain saved as: ${manual} (DNS verification can be completed later in the dashboard).`;
+      } else if (inferred) {
+        hint.textContent = `Detected domain from contact email: ${inferred}. You can override it above if needed.`;
+      } else {
+        hint.textContent =
+          "Optional: enter your organization’s email domain for future sender verification.";
+      }
+    }
+
+    /** After setupOrganization succeeds; prevents double-org creation during one session. */
+    let onboardingOrgCommitted = false;
+    let onboardingStep3Busy = false;
+    /** User started this session without Firestore org (true create flow vs "add course" flow). */
+    let onboardingHadNoOrgAtInit = false;
+
+    function refreshStep4BackVisibility() {
+      const back4 = $("step4Back");
+      if (!back4) return;
+      const editLocked = !!(form && form.classList.contains("onboarding-edit-mode"));
+      back4.hidden = editLocked ? true : !onboardingHadNoOrgAtInit && !!orgId;
+    }
+
+    function refreshOrgSlugDerivedHint() {
+      const hint = $("orgSlugDerivedHint");
+      const slugIn = $("orgSlugInput");
+      const orgName = safeText($("organizationNameInput")?.value);
+      if (!hint) return;
+      const slugRaw = safeText(slugIn?.value) || slugifyOrganizationSlug(orgName);
+      const slugFinal = slugifyOrganizationSlug(slugRaw);
+      hint.textContent = slugFinal
+        ? `URL slug saved as: ${slugFinal}`
+        : "Org name produces a slug for links after you fill it.";
+    }
+
+    function lockOrganizationStepInputs() {
+      ["organizationNameInput", "courseName", "orgSlugInput", "orgContactEmail", "orgContactPhone", "staffInviteCodeInput"].forEach(
+        (id) => {
+          const el = $(id);
+          if (el) el.setAttribute("disabled", "true");
+        }
+      );
+      const b = $("step3Continue");
+      if (b) b.setAttribute("disabled", "true");
+    }
+
+    function syncAcctFieldsFromUser(u) {
+      if (!u) return;
+      const nameEl = $("acctDisplayName");
+      const emailEl = $("acctEmail");
+      const passEl = $("acctPassword");
+      if (nameEl && !safeText(nameEl.value)) nameEl.value = safeText(u.displayName);
+      if (emailEl) {
+        if (u.email) emailEl.value = u.email;
+        emailEl.readOnly = !!u.email;
+      }
+      if (passEl && u.uid) {
+        passEl.required = false;
+        passEl.value = "";
+        passEl.placeholder = "Already signed in";
+        passEl.autocomplete = "off";
+      }
+    }
+
+    function emailDraftFromDom() {
+      return {
+        emailSenderName: safeText($("emailSenderName")?.value),
+        replyToEmail: safeText($("replyToEmail")?.value),
+        senderDomain: safeText($("senderDomain")?.value),
+      };
+    }
+
+    $("emailSenderName")?.addEventListener("input", () => {
+      writeOnboardingEmailDraft(emailDraftFromDom());
+    });
+    $("replyToEmail")?.addEventListener("input", () => {
+      refreshSenderDomainHint();
+      writeOnboardingEmailDraft(emailDraftFromDom());
+    });
+    $("senderDomain")?.addEventListener("input", () => {
+      refreshSenderDomainHint();
+      writeOnboardingEmailDraft(emailDraftFromDom());
+    });
+
+    $("orgSlugInput")?.addEventListener("input", refreshOrgSlugDerivedHint);
+    $("organizationNameInput")?.addEventListener("input", refreshOrgSlugDerivedHint);
+
+    $("step1Continue")?.addEventListener("click", async () => {
+      errEl.textContent = "";
+      if (auth.currentUser) {
+        refreshSenderDomainHint();
+        setWizardStep(2);
+        return;
+      }
+      const nm = safeText($("acctDisplayName")?.value);
+      const em = safeText($("acctEmail")?.value);
+      const pw = String($("acctPassword")?.value || "");
+      if (!nm || !em || pw.length < 6) {
+        errEl.textContent = "Enter your name, email, and a password with at least 6 characters.";
+        return;
+      }
+      const btn = $("step1Continue");
+      if (btn) btn.disabled = true;
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, em, pw);
+        await updateProfile(cred.user, { displayName: nm });
+        syncAcctFieldsFromUser(cred.user);
+        refreshSenderDomainHint();
+        setWizardStep(2);
+      } catch (e) {
+        errEl.textContent = e?.message || String(e);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+
+    $("step2Back")?.addEventListener("click", () => {
+      errEl.textContent = "";
+      setWizardStep(1);
+    });
+
+    $("step2Continue")?.addEventListener("click", () => {
+      errEl.textContent = "";
+      $("setupOrgErr").textContent = "";
+      const reply = safeText($("replyToEmail")?.value);
+      if (reply && !looksLikeEmailForUi(reply)) {
+        errEl.textContent = "Enter a valid contact email for Reply-To, or leave it blank.";
+        return;
+      }
+      refreshSenderDomainHint();
+      writeOnboardingEmailDraft(emailDraftFromDom());
+      setWizardStep(3);
+      refreshOrgSlugDerivedHint();
+    });
+
+    $("step3Back")?.addEventListener("click", () => {
+      errEl.textContent = "";
+      $("setupOrgErr").textContent = "";
+      setWizardStep(2);
+      refreshSenderDomainHint();
+    });
+
+    $("step3Continue")?.addEventListener("click", async () => {
+      $("setupOrgErr").textContent = "";
+      errEl.textContent = "";
+      if (!auth.currentUser) {
+        $("setupOrgErr").textContent = "Sign in is required.";
+        return;
+      }
+      if (onboardingOrgCommitted) {
+        setWizardStep(4);
+        return;
+      }
+      if (onboardingStep3Busy) return;
+      if (orgId && !onboardingHadNoOrgAtInit) {
+        setWizardStep(4);
+        return;
+      }
+      const organizationName = safeText($("organizationNameInput")?.value);
+      const courseName = safeText($("courseName")?.value);
+      if (!organizationName || !courseName) {
+        $("setupOrgErr").textContent = "Organization name and primary course name are required.";
+        return;
+      }
+      const slugManual = slugifyOrganizationSlug($("orgSlugInput")?.value);
+      const slug = slugManual || slugifyOrganizationSlug(organizationName);
+      if (!slug) {
+        $("setupOrgErr").textContent = "Enter a clearer organization name or slug (letters and numbers only).";
+        return;
+      }
+      const contactEmail = safeText($("orgContactEmail")?.value);
+      const contactPhone = safeText($("orgContactPhone")?.value);
+      const staffInviteCode = safeText($("staffInviteCodeInput")?.value);
+
+      onboardingStep3Busy = true;
+      const btn = $("step3Continue");
+      if (btn) btn.disabled = true;
+
+      try {
+        const result = await setupOrganizationCallable({
+          organizationName,
+          courseName,
+          slug,
+          contactEmail: contactEmail || undefined,
+          contactPhone: contactPhone || undefined,
+          staffInviteCode: staffInviteCode || undefined,
+        });
+        const createdOrgId = safeText(result.data?.orgId);
+        if (!createdOrgId) {
+          throw new Error("Organization was not created.");
+        }
+        onboardingOrgCommitted = true;
+        orgId = createdOrgId;
+        writeSel(orgId, "");
+        persistSessionActiveOrgId(orgId);
+        try {
+          sessionStorage.setItem(ONBOARD_ORG_CREATED_KEY, orgId);
+        } catch (_e) {}
+
+        const orgSnap = await getDoc(doc(db, "organizations", orgId));
+        const ox = typeof orgSnap.exists === "function" ? orgSnap.exists() : orgSnap.exists;
+        if (ox) {
+          createCourseResolvedOrgSlug = String(orgSnap.data()?.slug || "").trim();
+        }
+
+        try {
+          await updateDoc(doc(db, "organizations", orgId), buildOrgEmailFieldsForSave());
+        } catch (eOrgEmail) {
+          console.error("[create-course] saving organization email fields failed", eOrgEmail);
+        }
+
+        lockOrganizationStepInputs();
+        refreshStep4BackVisibility();
+        ready = true;
+        updatePrefillButtonState();
+        void refreshThemePreview();
+        setWizardStep(4);
+      } catch (e) {
+        const msg = e?.message || String(e);
+        $("setupOrgErr").textContent = msg;
+        console.warn("[create-course] setupOrganization failed", e);
+      } finally {
+        onboardingStep3Busy = false;
+        if (btn && !onboardingOrgCommitted) btn.disabled = false;
+      }
+    });
+
+    $("step4Back")?.addEventListener("click", () => {
+      errEl.textContent = "";
+      $("setupOrgErr").textContent = "";
+      if (!onboardingHadNoOrgAtInit && orgId) {
+        refreshStep4BackVisibility();
+        return;
+      }
+      if (onboardingOrgCommitted) lockOrganizationStepInputs();
+      setWizardStep(3);
+    });
+
+    $("step4Continue")?.addEventListener("click", () => {
+      errEl.textContent = "";
+      setWizardStep(5);
+    });
+
+    $("step5Back")?.addEventListener("click", () => {
+      errEl.textContent = "";
+      setWizardStep(4);
+    });
+
     function normalizeHexColor(v) {
       const s = String(v || "").trim();
       if (/^#[0-9A-Fa-f]{6}$/.test(s)) return s.toLowerCase();
@@ -1101,17 +2001,94 @@
       return rows;
     }
 
-    function getStructuralRowColorRows() {
-      const defs = [
-        { teeName: "Header row", key: "header" },
-        { teeName: "Par row", key: "Par" },
-        { teeName: "Handicap row", key: "Handicap" },
-      ];
-      return defs.map((d) => ({
-        teeName: d.teeName,
-        key: d.key,
-        color: normalizeHexColor(courseBrandingRowColors?.[d.key] || ""),
-      }));
+    function getCustomRowColorRows() {
+      const teeKeys = new Set(teeColorDisplayRows().map((r) => r.key));
+      const structural = new Set(["header", "Par", "Handicap"]);
+      const out = [];
+      for (const [k, v] of Object.entries(courseBrandingRowColors || {})) {
+        if (structural.has(k)) continue;
+        const nk = normalizeTeeColorKey(k);
+        if (teeKeys.has(nk)) continue;
+        const color = normalizeHexColor(v || "");
+        const pretty = String(k || "")
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase());
+        out.push({
+          teeName: `${pretty || k} row color`,
+          key: k,
+          color,
+        });
+      }
+      out.sort((a, b) => a.key.localeCompare(b.key));
+      return out;
+    }
+
+    function buildScorecardEditorRows() {
+      const rows = [];
+      rows.push({
+        label: "Hole row color",
+        storageKey: "header",
+        kind: "structural-hole",
+        color: normalizeHexColor(courseBrandingRowColors.header || ""),
+      });
+      for (const t of teeColorDisplayRows()) {
+        rows.push({
+          label: `${t.teeName} tee row color`,
+          storageKey: t.key,
+          kind: "tee",
+          color: normalizeHexColor(t.color || ""),
+        });
+      }
+      rows.push({
+        label: "Par row color",
+        storageKey: "Par",
+        kind: "structural-par",
+        color: normalizeHexColor(courseBrandingRowColors.Par || ""),
+      });
+      rows.push({
+        label: "Handicap row color",
+        storageKey: "Handicap",
+        kind: "structural-hcp",
+        color: normalizeHexColor(courseBrandingRowColors.Handicap || ""),
+      });
+      for (const c of getCustomRowColorRows()) {
+        rows.push({
+          label: c.teeName,
+          storageKey: c.key,
+          kind: "custom",
+          color: c.color || "",
+        });
+      }
+      return rows;
+    }
+
+    function persistEditorRowColor(kind, storageKey, hex) {
+      if (!courseBrandingRowColors || typeof courseBrandingRowColors !== "object") {
+        courseBrandingRowColors = {};
+      }
+      if (!courseBrandingTeeColors || typeof courseBrandingTeeColors !== "object") {
+        courseBrandingTeeColors = {};
+      }
+      if (kind === "structural-hole") courseBrandingRowColors.header = hex;
+      else if (kind === "structural-par") courseBrandingRowColors.Par = hex;
+      else if (kind === "structural-hcp") courseBrandingRowColors.Handicap = hex;
+      else if (kind === "tee") {
+        courseBrandingTeeColors[storageKey] = hex;
+        courseBrandingRowColors[storageKey] = hex;
+      } else if (kind === "custom") {
+        courseBrandingRowColors[storageKey] = hex;
+      }
+    }
+
+    function readEditorRowColor(kind, storageKey) {
+      if (kind === "structural-hole") return normalizeHexColor(courseBrandingRowColors.header || "");
+      if (kind === "structural-par") return normalizeHexColor(courseBrandingRowColors.Par || "");
+      if (kind === "structural-hcp") return normalizeHexColor(courseBrandingRowColors.Handicap || "");
+      if (kind === "tee")
+        return normalizeHexColor(
+          courseBrandingTeeColors[storageKey] || courseBrandingRowColors[storageKey] || ""
+        );
+      return normalizeHexColor(courseBrandingRowColors[storageKey] || "");
     }
 
     function hasPreviewableScorecardData() {
@@ -1145,11 +2122,13 @@
       const useBtn = $("useExtractedColorsBtn");
       if (!editor || !list || !useBtn) return;
 
-      const teeRows = teeColorDisplayRows();
-      const structuralRows = getStructuralRowColorRows();
-      const rows = [...teeRows, ...structuralRows];
+      const editorRows = buildScorecardEditorRows();
       const hasScorecardData = hasPreviewableScorecardData();
-      if (!rows.length && !Object.keys(extractedTeeColorsCandidate).length && !hasScorecardData) {
+      if (
+        !editorRows.length &&
+        !Object.keys(extractedTeeColorsCandidate).length &&
+        !hasScorecardData
+      ) {
         editor.hidden = true;
         return;
       }
@@ -1157,94 +2136,99 @@
       useBtn.hidden = !Object.keys(extractedTeeColorsCandidate).length;
       list.innerHTML = "";
 
-      for (const row of rows) {
+      for (const row of editorRows) {
+        const hexNow = readEditorRowColor(row.kind, row.storageKey);
+        const displayHex = hexNow || "#ffffff";
+
         const wrap = document.createElement("div");
         wrap.className = "tee-color-row";
 
         const name = document.createElement("div");
         name.className = "tee-color-name";
-        name.textContent = row.teeName;
-        wrap.appendChild(name);
+        name.textContent = row.label;
+
+        const controls = document.createElement("div");
+        controls.className = "tee-color-controls";
 
         const swatch = document.createElement("div");
         swatch.className = "tee-color-swatch";
-        swatch.style.background = row.color || "#ffffff";
-        swatch.style.color = pickContrastTextForBackground(row.color || "#ffffff");
-        wrap.appendChild(swatch);
-
-        const inp = document.createElement("input");
-        inp.className = "tee-color-input";
-        inp.type = "text";
-        inp.value = row.color || "";
-        inp.placeholder = "#aabbcc";
-        inp.setAttribute("aria-label", `${row.teeName} row color hex`);
-        inp.addEventListener("input", () => {
-          const hex = normalizeHexColor(inp.value);
-          if (hex) {
-            if (row.key === "header" || row.key === "Par" || row.key === "Handicap") {
-              courseBrandingRowColors[row.key] = hex;
-            } else {
-              courseBrandingTeeColors[row.key] = hex;
-              courseBrandingRowColors[row.key] = hex;
-            }
-            swatch.style.background = hex;
-            swatch.style.color = pickContrastTextForBackground(hex);
-            if (showScorecardPreview) renderScorecardPreview();
-          }
-        });
-        inp.addEventListener("change", () => {
-          const hex = normalizeHexColor(inp.value);
-          if (!hex) {
-            inp.value = courseBrandingRowColors[row.key] || courseBrandingTeeColors[row.key] || "";
-            return;
-          }
-          if (row.key === "header" || row.key === "Par" || row.key === "Handicap") {
-            courseBrandingRowColors[row.key] = hex;
-          } else {
-            courseBrandingTeeColors[row.key] = hex;
-            courseBrandingRowColors[row.key] = hex;
-          }
-          teeColorsManualEdited = true;
-          if (picker) picker.value = hex;
-          if (showScorecardPreview) renderScorecardPreview();
-        });
-        wrap.appendChild(inp);
+        swatch.style.background = displayHex;
+        swatch.style.color = pickContrastTextForBackground(displayHex);
+        swatch.setAttribute("aria-hidden", "true");
 
         const picker = document.createElement("input");
         picker.className = "tee-color-picker";
         picker.type = "color";
-        picker.value = row.color || "#cccccc";
-        picker.setAttribute("aria-label", `${row.teeName} row color picker`);
+        picker.value = hexNow ? hexNow : "#cccccc";
+        picker.setAttribute("aria-label", `Pick ${row.label}`);
+
+        const syncFromHexString = (hex, markManual) => {
+          if (!hex) return;
+          persistEditorRowColor(row.kind, row.storageKey, hex);
+          picker.value = hex;
+          inp.value = hex.toUpperCase();
+          swatch.style.background = hex;
+          swatch.style.color = pickContrastTextForBackground(hex);
+          renderScorecardPreview();
+          if (markManual) teeColorsManualEdited = true;
+        };
+
+        const inp = document.createElement("input");
+        inp.className = "tee-color-input";
+        inp.type = "text";
+        inp.value = hexNow ? hexNow.toUpperCase() : "";
+        inp.placeholder = "#______";
+        inp.spellcheck = false;
+        inp.autocomplete = "off";
+        inp.setAttribute("aria-label", `${row.label} — hex code (optional)`);
+
         picker.addEventListener("input", () => {
           const hex = normalizeHexColor(picker.value);
           if (!hex) return;
-          if (row.key === "header" || row.key === "Par" || row.key === "Handicap") {
-            courseBrandingRowColors[row.key] = hex;
-          } else {
-            courseBrandingTeeColors[row.key] = hex;
-            courseBrandingRowColors[row.key] = hex;
-          }
-          inp.value = hex;
-          swatch.style.background = hex;
-          swatch.style.color = pickContrastTextForBackground(hex);
-          if (showScorecardPreview) renderScorecardPreview();
+          syncFromHexString(hex, false);
         });
         picker.addEventListener("change", () => {
           const hex = normalizeHexColor(picker.value);
           if (!hex) return;
-          if (row.key === "header" || row.key === "Par" || row.key === "Handicap") {
-            courseBrandingRowColors[row.key] = hex;
-          } else {
-            courseBrandingTeeColors[row.key] = hex;
-            courseBrandingRowColors[row.key] = hex;
-          }
-          inp.value = hex;
-          teeColorsManualEdited = true;
-          if (showScorecardPreview) renderScorecardPreview();
+          syncFromHexString(hex, true);
         });
-        wrap.appendChild(picker);
+
+        inp.addEventListener("input", () => {
+          const hex = normalizeHexColor(inp.value);
+          if (hex) syncFromHexString(hex, false);
+        });
+        inp.addEventListener("change", () => {
+          const hex = normalizeHexColor(inp.value);
+          if (!hex) {
+            const cur = readEditorRowColor(row.kind, row.storageKey);
+            inp.value = cur ? cur.toUpperCase() : "";
+            if (cur) {
+              picker.value = cur;
+              swatch.style.background = cur;
+              swatch.style.color = pickContrastTextForBackground(cur);
+            }
+            renderScorecardPreview();
+            return;
+          }
+          syncFromHexString(hex, true);
+        });
+
+        controls.appendChild(swatch);
+        controls.appendChild(picker);
+
+        const hexDetails = document.createElement("details");
+        hexDetails.className = "tee-color-hex-details";
+        const hexSum = document.createElement("summary");
+        hexSum.textContent = "Hex code (optional)";
+        hexDetails.appendChild(hexSum);
+        hexDetails.appendChild(inp);
+
+        wrap.appendChild(name);
+        wrap.appendChild(controls);
+        wrap.appendChild(hexDetails);
         list.appendChild(wrap);
       }
+      renderScorecardPreview();
     }
 
     function applyExtractedTeeColorsToDraft(source) {
@@ -1303,6 +2287,70 @@
       return holes;
     }
 
+    /**
+     * When tee names are set, require a complete 18-hole grid (par, handicap, yardages per tee).
+     * Returns a user-visible message pointing at the hole builder.
+     */
+    function validateHoleGridForSubmit(tees, holes) {
+      if (!tees || !tees.length) return { ok: true };
+      if (!$("par_1")) {
+        return {
+          ok: false,
+          message:
+            'Tee box names are set, but hole data is missing. Tap "Show Hole Builder", then enter Par, Handicap, and yardages for every hole and tee.',
+        };
+      }
+      if (!Array.isArray(holes) || holes.length !== 18) {
+        return {
+          ok: false,
+          message: "Hole data must include all 18 holes. Open the hole builder and complete the grid.",
+        };
+      }
+      for (let i = 0; i < 18; i++) {
+        const row = holes[i] || {};
+        const hn = i + 1;
+        if (row.par == null || !Number.isFinite(Number(row.par)) || Number(row.par) < 1 || Number(row.par) > 15) {
+          return {
+            ok: false,
+            message: `Hole ${hn}: enter a valid Par (1–15) in the hole builder.`,
+          };
+        }
+        if (
+          row.handicap == null ||
+          !Number.isFinite(Number(row.handicap)) ||
+          Number(row.handicap) < 1 ||
+          Number(row.handicap) > 18
+        ) {
+          return {
+            ok: false,
+            message: `Hole ${hn}: enter a Handicap / stroke index (1–18) in the hole builder.`,
+          };
+        }
+        for (const teeName of tees) {
+          const y = row.yards && row.yards[teeName];
+          if (y == null || !Number.isFinite(Number(y)) || Number(y) < 0) {
+            return {
+              ok: false,
+              message: `Hole ${hn}, ${teeName} tee: enter a yardage (use 0 if not used) in the hole builder.`,
+            };
+          }
+        }
+      }
+      return { ok: true };
+    }
+
+    function showSubmitError(msg) {
+      if (!errEl) return;
+      errEl.textContent = msg;
+      try {
+        errEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      } catch (_e) {
+        try {
+          errEl.scrollIntoView(true);
+        } catch (_e2) {}
+      }
+    }
+
     function buildPreviewSnapshot() {
       let tees = parseTeeNames($("teeBoxNames")?.value || "");
       let holes = [];
@@ -1323,24 +2371,27 @@
       const panel = $("scorecardPreviewPanel");
       const table = $("scorecardPreviewTable");
       const status = $("scorecardPreviewStatus");
-      if (!panel || !table || !status || !previewScorecardBtn) return;
-      panel.hidden = !showScorecardPreview;
-      previewScorecardBtn.textContent = showScorecardPreview ? "Hide Preview" : "Preview Scorecard";
-      if (!showScorecardPreview) return;
+      if (!panel || !table || !status) return;
+      readTypographyFromDom();
+      applyTypographyToPreviewTable(table);
+
+      const canPreview = hasPreviewableScorecardData();
+      panel.hidden = !canPreview;
+      if (!canPreview) {
+        table.innerHTML = "";
+        status.textContent =
+          "Enter tee names and hole values to see a live preview. Colors and fonts still save with the course.";
+        return;
+      }
 
       const snap = buildPreviewSnapshot();
       const tees = snap.tees;
       const holes = snap.holes;
-      if (!tees.length || !holes.length) {
-        table.innerHTML = "";
-        status.textContent = "Enter tee names and hole values to preview the scorecard.";
-        return;
-      }
       const labels = Array.from({ length: 18 }, (_, i) => i + 1);
-      const headerCells = labels.map((n) => `<th${headerStyle}>${n}</th>`).join("");
       const headerBg = normalizeHexColor(courseBrandingRowColors?.header || "");
       const headerFg = headerBg ? pickContrastTextForBackground(headerBg) : "#1f1b18";
       const headerStyle = headerBg ? ` style="background:${headerBg};color:${headerFg};"` : "";
+      const headerCells = labels.map((n) => `<th${headerStyle}>${n}</th>`).join("");
       let html = `<thead><tr${headerStyle}><th class="label-cell"${headerStyle}>Row</th>${headerCells}<th${headerStyle}>Out</th><th${headerStyle}>In</th><th${headerStyle}>Tot</th></tr></thead><tbody>`;
 
       const sum = (arr) => arr.reduce((a, b) => a + (Number.isFinite(Number(b)) ? Number(b) : 0), 0);
@@ -1374,7 +2425,7 @@
         .join("")}<td${hcpStyle}></td><td${hcpStyle}></td><td${hcpStyle}></td></tr>`;
       html += "</tbody>";
       table.innerHTML = html;
-      status.textContent = "Preview updates live as you adjust tee rows and scorecard row colors.";
+      status.textContent = "Live preview — colors and typography update as you edit.";
     }
 
     function escapeHtml(s) {
@@ -1468,10 +2519,7 @@
       scroll.appendChild(inner);
       holesTable.appendChild(scroll);
       holesTable.querySelectorAll("input").forEach((inp) => {
-        inp.addEventListener("input", () => {
-          renderTeeColorEditor();
-          if (showScorecardPreview) renderScorecardPreview();
-        });
+        inp.addEventListener("input", () => renderScorecardPreview());
       });
     }
 
@@ -1514,6 +2562,11 @@
           ? { ...data.scorecardRowColors }
           : {};
       hadExistingPersistedTeeColors = Object.keys(courseBrandingTeeColors).length > 0;
+      scorecardTypography = { ...DEFAULT_SCORECARD_TYPOGRAPHY };
+      if (data.scorecardStyle && typeof data.scorecardStyle === "object") {
+        applyScorecardStyleFromDoc(data.scorecardStyle);
+      }
+      writeTypographyToDom();
       persistedAccentColor = safeText(data.accentColor);
       let teeSets = Array.isArray(data.teeSets)
         ? data.teeSets.map((x) => String(x).trim()).filter(Boolean)
@@ -1554,7 +2607,7 @@
       toggleHoleBuilder.textContent = open ? "Hide Hole Builder" : "Show Hole Builder";
       toggleHoleBuilder.setAttribute("aria-expanded", String(open));
       if (open) rebuildHoleGrid();
-      if (showScorecardPreview) renderScorecardPreview();
+      renderScorecardPreview();
     });
 
     onAuthStateChanged(auth, async (user) => {
@@ -1595,18 +2648,33 @@
           : qs
             ? `./create-course.html?${qs}`
             : "./create-course.html";
-        console.info("[create-course] redirect to login (no user)", {
-          nextPath,
-          urlOrgParam: urlOrgParam || "(none)",
-          urlCourseParam: urlCourseParam || "(none)",
-        });
-        window.location.href = "./login.html?next=" + encodeURIComponent(nextPath);
+
+        /** Edit flow still requires Firebase Auth; onboarding starts on-page at step 1. */
+        if (urlCourseParam) {
+          console.info("[create-course] redirect to login (edit course)", { nextPath });
+          window.location.href = "./login.html?next=" + encodeURIComponent(nextPath);
+          return;
+        }
+
+        if (initLoading) initLoading.hidden = true;
+        form.classList.remove("onboarding-edit-mode");
+        skipLink.style.display = "none";
+        endInit(true);
+        $("wizardStepper").hidden = false;
+        ready = false;
+        orgId = "";
+        editCourseId = "";
+        isEditMode = false;
+        onboardingOrgCommitted = false;
+        onboardingHadNoOrgAtInit = false;
+        setWizardStep(1);
+        $("acctEmail")?.focus?.();
         return;
       }
 
       setLoadingMessage("Loading…");
 
-      const ctx = await readDashboardAuthContext(db, user.uid);
+      const ctx = await readDashboardAuthContext(db, user.uid, app);
       const resolved = await resolveOrganizerOrgId(app, auth, db);
       if (!resolved.ok) {
         endInit(false);
@@ -1627,12 +2695,12 @@
 
       let useOrgId = profileOrg;
       if (isPlatformAdminRole(ctx.role)) {
-        const picked = (
-          urlOrgParam ||
-          fromStorageOrg ||
-          sessionOrgFromDashboard()
-        ).trim();
-        if (picked) useOrgId = picked;
+        const pickedFromUrl = (urlOrgParam || "").trim();
+        let pickedFromDash = "";
+        try {
+          pickedFromDash = String(sessionStorage.getItem(DASHBOARD_ADMIN_ORG_KEY) || "").trim();
+        } catch (_e) {}
+        useOrgId = pickedFromUrl || pickedFromDash || profileOrg;
       } else if (urlOrgParam && urlOrgParam !== profileOrg) {
         console.warn(
           "[create-course] URL orgId does not match signed-in organizer org; using profile org",
@@ -1651,6 +2719,24 @@
       }
       isEditMode = Boolean(editCourseId);
 
+      let mergedUserOrgs = buildMergedUserOrgStateClient({});
+      try {
+        const profSnap = await getDoc(doc(db, "users", user.uid));
+        const pex = typeof profSnap.exists === "function" ? profSnap.exists() : profSnap.exists;
+        if (pex) mergedUserOrgs = buildMergedUserOrgStateClient(profSnap.data() || {});
+      } catch (_e) {}
+
+      /** Without a stored organization membership we are in onboarding (ignore uid-as-org resolver fallback). */
+      if (
+        !isPlatformAdminRole(ctx.role) &&
+        !isEditMode &&
+        !(mergedUserOrgs.orgIds && mergedUserOrgs.orgIds.length)
+      ) {
+        useOrgId = "";
+      } else if (!isPlatformAdminRole(ctx.role) && mergedUserOrgs.effectiveOrgId) {
+        useOrgId = mergedUserOrgs.effectiveOrgId;
+      }
+
       console.info("[create-course] init context", {
         selectedOrgId: useOrgId,
         selectedCourseId: editCourseId || "(none)",
@@ -1665,18 +2751,53 @@
 
       orgId = useOrgId;
 
+      createCourseResolvedOrgSlug = "";
+      if (orgId) {
+        void getDoc(doc(db, "organizations", orgId))
+          .then((snap) => {
+            const ex = typeof snap.exists === "function" ? snap.exists() : snap.exists;
+            if (ex) {
+              createCourseResolvedOrgSlug = String(snap.data()?.slug || "").trim();
+            }
+          })
+          .catch(() => {});
+      }
+
       if (isEditMode) {
         setLoadingMessage("Loading course…");
         applyEditModeChrome();
       }
 
       if (!orgId) {
-        endInit(false);
-        errEl.textContent = "No organization is linked to this account.";
-        skipLink.style.display = "";
-        skipLink.href = "./signup.html";
-        skipLink.textContent = "Create an organization";
-        console.warn("[create-course] no orgId after resolution", { profileOrg });
+        if (isEditMode) {
+          endInit(false);
+          errEl.textContent = "No organization context for editing this course.";
+          skipLink.style.display = "";
+          skipLink.href = "./login.html";
+          return;
+        }
+
+        onboardingHadNoOrgAtInit = true;
+        $("wizardStepper").hidden = false;
+        skipLink.style.display = "none";
+        form.classList.remove("onboarding-edit-mode");
+        $("organizationNameInput")?.removeAttribute("disabled");
+        $("step3Continue")?.removeAttribute("disabled");
+        const draftMail = readOnboardingEmailDraft();
+        if ($("emailSenderName") && draftMail?.emailSenderName) $("emailSenderName").value = draftMail.emailSenderName;
+        if ($("replyToEmail") && draftMail?.replyToEmail) $("replyToEmail").value = draftMail.replyToEmail;
+        if ($("senderDomain") && draftMail?.senderDomain) $("senderDomain").value = draftMail.senderDomain;
+        refreshSenderDomainHint();
+        syncAcctFieldsFromUser(auth.currentUser);
+        refreshOrgSlugDerivedHint();
+        const saved = readWizardStep();
+        const go = saved >= 2 && saved <= 5 ? saved : 2;
+        setWizardStep(go);
+        refreshStep4BackVisibility();
+
+        endInit(true);
+        ready = false;
+        updatePrefillButtonState();
         return;
       }
 
@@ -1696,6 +2817,11 @@
             window.location.href = `./dashboard.html?org=${encodeURIComponent(orgId)}`;
             return;
           }
+          try {
+            const orgSnap = await getDoc(doc(db, "organizations", orgId));
+            const ox = typeof orgSnap.exists === "function" ? orgSnap.exists() : orgSnap.exists;
+            if (ox) applyOrgEmailFieldsToStep2(orgSnap.data());
+          } catch (_e) {}
         } catch (e) {
           console.error(e);
           endInit(false);
@@ -1742,12 +2868,27 @@
         }
       }
 
+      if (!isEditMode) {
+        form.classList.remove("onboarding-edit-mode");
+        const ws = $("wizardStepper");
+        if (ws) ws.hidden = false;
+        const saved = readWizardStep();
+        const go = saved >= 4 && saved <= 5 ? saved : 4;
+        setWizardStep(go);
+        refreshStep4BackVisibility();
+      } else {
+        const ws = $("wizardStepper");
+        if (ws) ws.hidden = true;
+        refreshStep4BackVisibility();
+      }
+
       ready = true;
       updatePrefillButtonState();
       void refreshThemePreview();
       if (skipLink && orgId) {
         skipLink.href = `./dashboard.html?org=${encodeURIComponent(orgId)}`;
       }
+      updatePermanentCourseStripDisplay();
       endInit(true);
       console.log("[create-course] after org resolution", { orgId, ready, isEditMode });
     });
@@ -1758,25 +2899,83 @@
       window.location.href = `./dashboard.html?org=${encodeURIComponent(orgId)}`;
     });
 
+    function updatePermanentCourseStripDisplay() {
+      const strip = $("permanentCourseStrip");
+      const box = $("permanentCourseUrlBox");
+      const open = $("permOpenBtn");
+      const host = $("permQrHost");
+      if (!strip || !orgId || !editCourseId) {
+        if (strip) strip.hidden = true;
+        return;
+      }
+      strip.hidden = !(isEditMode && orgId && editCourseId);
+      const u = buildPermanentScorecardLinkForCreateCourse(undefined, false);
+      if (box) box.textContent = u || "—";
+      if (open) {
+        open.href = u || "#";
+        if (!u) open.setAttribute("aria-disabled", "true");
+        else open.removeAttribute("aria-disabled");
+      }
+      if (host) {
+        host.innerHTML = "";
+        host.hidden = true;
+      }
+    }
+
+    $("permCopyBtn")?.addEventListener("click", async () => {
+      const u = buildPermanentScorecardLinkForCreateCourse(undefined, true);
+      if (!u) return;
+      try {
+        await navigator.clipboard.writeText(u);
+        errEl.textContent = "Permanent scorecard link copied.";
+        setTimeout(() => {
+          if (errEl.textContent.includes("Permanent scorecard")) errEl.textContent = "";
+        }, 2200);
+      } catch (_e) {
+        errEl.textContent = "Could not copy. Select the URL in the box above.";
+      }
+    });
+
+    $("permQrToggleBtn")?.addEventListener("click", () => {
+      const u = buildPermanentScorecardLinkForCreateCourse(undefined, true);
+      const host = $("permQrHost");
+      if (!host || !u) return;
+      const hasQr = !!(host.childNodes && host.childNodes.length);
+      if (!host.hidden && hasQr) {
+        host.innerHTML = "";
+        host.hidden = true;
+        return;
+      }
+      host.hidden = false;
+      renderRealQrCode(host, u, {
+        qrType: "create-course-permanent-scorecard",
+        width: 220,
+        height: 220,
+      });
+    });
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      console.log("[create-course] submit start", { ready, orgId, submitDisabled: submitBtn.disabled });
+      console.log("[create-course] finish onboarding clicked");
       errEl.textContent = "";
       if (!ready || !orgId) {
-        errEl.textContent = "Still loading. Please wait.";
+        showSubmitError("Still loading. Please wait.");
+        console.log("[create-course] submit blocked", { ready, orgId });
         return;
       }
 
       const courseName = safeText($("courseName").value);
       if (!courseName) {
-        errEl.textContent = "Course name is required.";
+        showSubmitError("Course name is required. Go back to step 3 and enter the primary course name.");
         return;
       }
 
       const slugInput = safeText($("courseSlug")?.value);
       const slug = slugInput ? slugifyName(slugInput) : slugifyName(courseName);
       if (!slug) {
-        errEl.textContent = "Could not derive a valid identifier from the course name. Try adjusting the name.";
+        showSubmitError(
+          "Could not derive a valid URL slug from the course name. Adjust the course name or the custom slug (step 5)."
+        );
         return;
       }
 
@@ -1788,6 +2987,11 @@
       const bookingUrl = safeText($("bookingUrl").value);
       const teeSets = parseTeeNames($("teeBoxNames")?.value || "");
       const holes = collectHolesPayload(teeSets);
+      const holeCheck = validateHoleGridForSubmit(teeSets, holes);
+      if (!holeCheck.ok) {
+        showSubmitError(holeCheck.message);
+        return;
+      }
 
       submitBtn.disabled = true;
       try {
@@ -1864,14 +3068,26 @@
           } else {
             patch.scorecardRowColors = deleteField();
           }
+          readTypographyFromDom();
+          const styleDocSave = buildScorecardStyleForSave();
+          patch.scorecardStyle = styleDocSave || deleteField();
           if (persistedAccentColor) {
             patch.accentColor = persistedAccentColor;
           } else {
             patch.accentColor = deleteField();
           }
+          console.log("[create-course] submitting course onboarding", {
+            mode: "edit",
+            orgId,
+            courseId: editCourseId,
+            courseName,
+            slug,
+            teeSets,
+            holesCount: holes.length,
+          });
           console.log("[create-course] before updateDoc", { refPath: courseRef.path });
           await updateDoc(courseRef, patch);
-          console.log("[create-course] after updateDoc");
+          console.log("[create-course] setup complete", { mode: "edit", orgId, courseId: editCourseId });
         } else {
           const newRef = doc(orgCoursesCollection(db, orgId));
           const payload = {
@@ -1893,13 +3109,36 @@
           if (Object.keys(courseBrandingRowColors).length) {
             payload.scorecardRowColors = courseBrandingRowColors;
           }
+          readTypographyFromDom();
+          const styleDocCreate = buildScorecardStyleForSave();
+          if (styleDocCreate) payload.scorecardStyle = styleDocCreate;
           if (persistedAccentColor) {
             payload.accentColor = persistedAccentColor;
           }
 
+          console.log("[create-course] submitting course onboarding", {
+            mode: "create",
+            orgId,
+            courseName,
+            slug,
+            teeSets,
+            holesCount: holes.length,
+            hasLogoUrl: !!payload.logoUrl,
+            hasScorecardImage: !!payload.scorecardImageUrl,
+          });
           console.log("[create-course] before setDoc", { refPath: newRef.path });
           await setDoc(newRef, payload);
+          try {
+            await updateDoc(doc(db, "organizations", orgId), buildOrgEmailFieldsForSave());
+          } catch (eOrg) {
+            console.error("[create-course] saving organization email fields failed", eOrg);
+          }
           const createdCourseId = newRef.id;
+          console.log("[create-course] setup complete", {
+            createdCourseId,
+            orgId,
+            coursePath: newRef.path,
+          });
           console.log("[create-course] after setDoc", { createdCourseId });
           window.location.href = `./dashboard.html?org=${encodeURIComponent(orgId)}&createdCourseId=${encodeURIComponent(createdCourseId)}`;
           return;
@@ -1908,7 +3147,7 @@
         window.location.href = `./dashboard.html?org=${encodeURIComponent(orgId)}`;
       } catch (e2) {
         console.error(e2);
-        errEl.textContent = e2?.message || String(e2);
+        showSubmitError(e2?.message || String(e2));
       } finally {
         submitBtn.disabled = false;
       }

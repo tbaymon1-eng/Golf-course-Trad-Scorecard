@@ -98,10 +98,13 @@
       signInWithEmailAndPassword,
       sendPasswordResetEmail,
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { firebaseConfig } from "./js/firebase-config.js";
+    import { resolveCanonicalOrgIdFromSearchParams, readUrlOrgAliasFromSearchParams } from "./js/canonical-org-resolver.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
     const params = new URLSearchParams(location.search);
     const nextUrl = params.get("next") || "./dashboard.html";
@@ -170,7 +173,46 @@
       btn.disabled = true;
       try {
         await signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value);
-        window.location.href = nextUrl;
+        const u = auth.currentUser;
+        let redirectUrl = nextUrl;
+        try {
+          const abs = new URL(nextUrl, window.location.href);
+          const rawOrg = readUrlOrgAliasFromSearchParams(abs.searchParams);
+          if (rawOrg) {
+            const r = await resolveCanonicalOrgIdFromSearchParams(db, app, abs.searchParams, {
+              context: "login-redirect-next",
+            });
+            if (r.ok && r.canonicalOrgId) {
+              abs.searchParams.set("org", r.canonicalOrgId);
+              abs.searchParams.set("orgId", r.canonicalOrgId);
+              abs.searchParams.set("organizationId", r.canonicalOrgId);
+              if (/^https?:\/\//i.test(nextUrl)) {
+                redirectUrl = abs.href;
+              } else {
+                redirectUrl = `${abs.pathname}${abs.search}${abs.hash || ""}`;
+              }
+            }
+          }
+        } catch (_e) {}
+        let storageSnap = {};
+        try {
+          storageSnap = {
+            sessionStorage: {
+              orgId: sessionStorage.getItem("orgId"),
+              activeOrgId: sessionStorage.getItem("activeOrgId"),
+              selectedOrgId: sessionStorage.getItem("selectedOrgId"),
+            },
+            localStorage: { selectedOrgId: localStorage.getItem("selectedOrgId") },
+          };
+        } catch (_e) {}
+        console.info("[org resolver]", {
+          context: "login-success-redirect",
+          incomingUrlOrg: "(see next URL)",
+          canonicalOrgId: "(rewritten if slug in next)",
+          finalRedirectTarget: redirectUrl,
+          storageBeforeRedirect: storageSnap,
+        });
+        window.location.href = redirectUrl;
       } catch (e2) {
         console.error(e2);
         err.textContent = e2?.message || String(e2);

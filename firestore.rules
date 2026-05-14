@@ -93,11 +93,17 @@ service cloud.firestore {
 
       match /{subcollection}/{docId} {
         allow read: if request.auth != null;
-        allow create, update, delete: if
+        allow create, update: if
           // Player score pushes can stay authenticated-only.
           (subcollection == "submissions" && request.auth != null) ||
           // Roster/check-in/ops writes are org-scoped.
           canOperateOrg(orgId);
+        // Deletes: registrations only by platform admins or org admins (not staff-only).
+        // Other subcollections (e.g. playGroups) remain staff-delete via canOperateOrg.
+        allow delete: if
+          (subcollection == "submissions" && request.auth != null)
+          || (subcollection == "registrations" && canManageOrg(orgId))
+          || (subcollection != "submissions" && subcollection != "registrations" && canOperateOrg(orgId));
       }
     }
 

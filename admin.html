@@ -871,6 +871,14 @@
               <option value="Tradition">Tradition</option>
               <option value="Cypress">Cypress</option>
             </select>
+            <div id="adminSelectedCoursePanel" class="field" style="margin-top:12px;" hidden>
+              <p class="label" style="margin-bottom:6px;">Selected course (everyday scorecard)</p>
+              <div id="adminSelectedCourseSummary" class="hint" style="white-space:pre-wrap;">—</div>
+              <div class="card-actions" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;">
+                <a id="adminSelectedCourseOpenBtn" class="btn btn-sm btn-blue" target="_blank" rel="noopener" href="#">Open course scorecard</a>
+                <button type="button" class="btn btn-sm btn-ghost" id="adminSelectedCourseCopyBtn">Copy scorecard link</button>
+              </div>
+            </div>
           </div>
           <div class="field">
             <label class="label" for="eventDate">Date (optional)</label>
@@ -1277,6 +1285,7 @@
     tournamentRegistrationDoc,
     applyOrgTournamentParams,
     buildTournamentIndexJoinUrl,
+    courseDocRef,
   } from "./js/org-paths.js";
   import {
     resolveOrganizerOrgId,
@@ -1285,6 +1294,7 @@
     readOrganizerOrgIdFromUserDoc,
     withFirestoreRetry,
   } from "./js/resolve-organizer-org.js";
+  import { buildPublicCourseScorecardUrl } from "./js/public-course-links.js";
   import {
     EVENT_TYPE_GOLF_TOURNAMENT,
     EVENT_CATEGORY_GOLF,
@@ -1727,7 +1737,7 @@
   async function inviteOperatorForActiveOrg() {
     const oid = String(state.orgId || "").trim();
     const email = String($("operatorInviteEmail")?.value || "").trim().toLowerCase();
-    const role = String($("operatorInviteRole")?.value || "staff").trim().toLowerCase();
+    const role = "admin";
     if (!oid) {
       showToast("No active customer account selected.");
       return;
@@ -3188,6 +3198,7 @@
     syncRegistrantSourceAdminUI();
     syncCategoryActionLabels();
     updateAdminSummary();
+    void refreshAdminSelectedCourseDetail();
   }
 
   function saveTournamentToLocal(){
@@ -3707,13 +3718,83 @@
     }
   }
 
+  async function refreshAdminSelectedCourseDetail() {
+    const panel = $("adminSelectedCoursePanel");
+    const sum = $("adminSelectedCourseSummary");
+    const openBtn = $("adminSelectedCourseOpenBtn");
+    const copyBtn = $("adminSelectedCourseCopyBtn");
+    if (!panel || !sum || !openBtn || !copyBtn) return;
+    const oid = String(state.orgId || "").trim();
+    const sel = $("defaultCourse");
+    const courseId = sel ? String(sel.value || "").trim() : "";
+    if (!oid || !courseId) {
+      panel.hidden = true;
+      console.info("[admin course render]", {
+        activeOrgId: oid || "(empty)",
+        selectedCourseId: courseId || "(empty)",
+        courseDocExists: false,
+        holesPresent: false,
+        teesPresent: false,
+        generatedCourseScorecardUrl: "(none)",
+      });
+      return;
+    }
+    let courseDocExists = false;
+    let holesPresent = false;
+    let teesPresent = false;
+    const scorecardUrl = buildPublicCourseScorecardUrl(oid, courseId);
+    try {
+      const cref = courseDocRef(db, oid, courseId);
+      const cs = await withFirestoreRetry(() => getDoc(cref));
+      courseDocExists = typeof cs.exists === "function" ? cs.exists() : !!cs.exists;
+      const d = courseDocExists ? cs.data() || {} : {};
+      const docName = String(d.name || "").trim();
+      const teeRows = Array.isArray(d.teeRows) ? d.teeRows : [];
+      const holes = Array.isArray(d.holes) ? d.holes : [];
+      teesPresent = teeRows.length > 0;
+      holesPresent = holes.length > 0;
+      const parF = Array.isArray(d.parFront) ? d.parFront.length : 0;
+      const parB = Array.isArray(d.parBack) ? d.parBack.length : 0;
+      sum.textContent = [
+        `Course: ${docName || courseId}`,
+        `Path: organizations/${oid}/courses/${courseId}`,
+        `Tees (teeRows): ${teeRows.length} · Holes array: ${holes.length} · parFront/parBack lengths: ${parF}/${parB}`,
+        scorecardUrl ? `Everyday scorecard URL:\n${scorecardUrl}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+    } catch (e) {
+      sum.textContent = `Could not read course document:\n${String(e?.message || e)}`;
+    }
+    if (scorecardUrl) {
+      openBtn.href = scorecardUrl;
+      openBtn.removeAttribute("aria-disabled");
+      copyBtn.disabled = false;
+    } else {
+      openBtn.href = "#";
+      openBtn.setAttribute("aria-disabled", "true");
+      copyBtn.disabled = true;
+    }
+    panel.hidden = false;
+    console.info("[admin course render]", {
+      activeOrgId: oid,
+      selectedCourseId: courseId,
+      courseDocExists,
+      holesPresent,
+      teesPresent,
+      generatedCourseScorecardUrl: scorecardUrl || "(none)",
+    });
+  }
+
   async function loadDefaultCourseOptionsForOrg(orgId, preferredCourseId = "") {
     const sel = $("defaultCourse");
     if (!sel) return { activeCount: 0 };
+    try {
     const oid = String(orgId || "").trim();
     const preferred = String(preferredCourseId || "").trim();
     if (!oid) {
-      restoreBuiltinDefaultCourseOptions();
+      sel.innerHTML =
+        '<option value="">Organization required — open Dashboard and use your venue link, then try again.</option>';
       updateAdminSummary();
       return { activeCount: 0 };
     }
@@ -3759,7 +3840,8 @@
     });
 
     if (!rows.length) {
-      sel.innerHTML = '<option value="">Create a course first (Dashboard)</option>';
+      sel.innerHTML =
+        '<option value="">No courses found for this organization</option>';
       updateAdminSummary();
       return { activeCount: 0 };
     }
@@ -3774,10 +3856,14 @@
     sel.value = rows.some((r) => r.id === preferred) ? preferred : rows[0].id;
     updateAdminSummary();
     return { activeCount: rows.length };
+    } finally {
+      void refreshAdminSelectedCourseDetail();
+    }
   }
 
   /** Replaces dropdown options with a single org course (Firestore doc id + display name). */
   function applyOrgCourseAsDefaultSelect(courseId, displayName) {
+    try {
     const sel = $("defaultCourse");
     if (!sel) return;
     const id = String(courseId || "").trim();
@@ -3789,12 +3875,16 @@
     opt.textContent = label;
     sel.appendChild(opt);
     sel.value = id;
+    } finally {
+      void refreshAdminSelectedCourseDetail();
+    }
   }
 
   /**
    * Sets Default Course from saved event data. Prefers courseId (Firestore doc id), then legacy fields.
    */
   function setDefaultCourseFromFormData(data) {
+    try {
     const sel = $("defaultCourse");
     const oid = String(state.orgId || "").trim();
     const cid = String(data.courseId || "").trim();
@@ -3855,6 +3945,9 @@
       return;
     }
     applyOrgCourseAsDefaultSelect(trimmed, String(data.courseName || "").trim());
+    } finally {
+      void refreshAdminSelectedCourseDetail();
+    }
   }
 
   /** Firestore documents max ~1MB; logos are stored as data URLs inside the event document. */
@@ -4400,6 +4493,20 @@
     el.addEventListener("input", fn);
     el.addEventListener("change", fn);
   });
+
+  const adminCourseCopyBtn = $("adminSelectedCourseCopyBtn");
+  if (adminCourseCopyBtn && !adminCourseCopyBtn.dataset.boundCourseCopy) {
+    adminCourseCopyBtn.dataset.boundCourseCopy = "1";
+    adminCourseCopyBtn.addEventListener("click", async () => {
+      const href = String($("adminSelectedCourseOpenBtn")?.getAttribute("href") || "").trim();
+      await copyText(href, "✔ Scorecard link copied");
+    });
+  }
+  const defaultCourseRefreshEl = $("defaultCourse");
+  if (defaultCourseRefreshEl && !defaultCourseRefreshEl.dataset.boundCourseDetailRefresh) {
+    defaultCourseRefreshEl.dataset.boundCourseDetailRefresh = "1";
+    defaultCourseRefreshEl.addEventListener("change", () => void refreshAdminSelectedCourseDetail());
+  }
 
   if ($("formatOfPlay")) {
     $("formatOfPlay").addEventListener("change", () => {
